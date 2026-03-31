@@ -203,10 +203,10 @@ export default function RinkSVG() {
       {/* Center ice logo */}
       <image
         href="/goonsquad.png"
-        x={W / 2 - 75}
-        y={H * 0.36 + 5}
-        width={150}
-        height={H * 0.28 - 10}
+        x={W / 2 - 120}
+        y={H * 0.36}
+        width={240}
+        height={H * 0.28}
         opacity={theme === 'dark' ? 0.08 : 0.12}
         preserveAspectRatio="xMidYMid meet"
         style={{ pointerEvents: 'none' }}
