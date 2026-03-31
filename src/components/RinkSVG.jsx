@@ -204,7 +204,7 @@ export default function RinkSVG() {
       <image
         href="/goonsquad.png"
         x={W / 2 - 153}
-        y={H * 0.31}
+        y={H * 0.32}
         width={306}
         height={H * 0.34}
         opacity={theme === 'dark' ? 0.08 : 0.12}
