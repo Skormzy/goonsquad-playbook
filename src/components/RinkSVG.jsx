@@ -200,13 +200,13 @@ export default function RinkSVG() {
       {/* Rink outline */}
       <rect x={4} y={4} width={W - 8} height={H - 8} rx={52} fill="url(#rg)" stroke={t.rs} strokeWidth={2.5} />
       <RinkMarkings t={t} glY1={glY1} glY2={glY2} cx={cx} />
- {/* Center ice logo */}
+{/* Center ice logo */}
       <image
         href="/goonsquad.png"
-        x={W / 2 - 180}
-        y={H * 0.30}
-        width={360}
-        height={H * 0.40}
+        x={W / 2 - 153}
+        y={H * 0.33}
+        width={306}
+        height={H * 0.34}
         opacity={theme === 'dark' ? 0.08 : 0.12}
         preserveAspectRatio="xMidYMid meet"
         style={{ pointerEvents: 'none' }}
