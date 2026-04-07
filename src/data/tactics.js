@@ -557,7 +557,7 @@ export const TACTICS = [
         opp: [ {id:'o1',x:30,y:14,label:'LW'},{id:'o2',x:70,y:22,label:'C',hasBall:true},{id:'o3',x:74,y:30,label:'RW'},{id:'o4',x:38,y:46,label:'LD'},{id:'o5',x:66,y:46,label:'RD'},{id:'og',x:52,y:93,label:'G',isGoalie:true} ],
         ball:{x:70,y:22}, arrows:[] },
       { duration: 3.5, caption: 'Forced to the right side. Low-danger perimeter shot.',
-        our: { G:{x:48,y:7}, LW:{x:68,y:36}, C:{x:64,y:14}, RW:{x:30,y:34}, LD:{x:36,y:11}, RD:{x:64,y:24} },
+        our: { G:{x:48,y:7}, LW:{x:68,y:36}, C:{x:66,y:13}, RW:{x:30,y:34}, LD:{x:36,y:11}, RD:{x:64,y:24} },
         opp: [ {id:'o1',x:28,y:14,label:'LW'},{id:'o2',x:72,y:22,label:'C',hasBall:true},{id:'o3',x:76,y:30,label:'RW'},{id:'o4',x:38,y:44,label:'LD'},{id:'o5',x:64,y:44,label:'RD'},{id:'og',x:51,y:93,label:'G',isGoalie:true} ],
         ball:{x:72,y:22}, arrows:[{from:{x:72,y:22},to:{x:50,y:7},type:'shot'}] },
     ]},
