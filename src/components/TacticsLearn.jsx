@@ -76,6 +76,8 @@ export default function TacticsLearn() {
 
   const goPhase = useCallback((n) => {
     if (n < 0 || n >= totalPhases) return;
+    clearTimeout(restartTimerRef.current);
+    restartTimerRef.current = null;
     setPrevPhasePositions(scene.phases[currentPhase].our);
     setCurrentPhase(n);
   }, [totalPhases, scene, currentPhase]);
