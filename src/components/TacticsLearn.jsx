@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { TACTICS, TACTICAL_COLORS } from '../data/tactics';
 import { BALL_COLOR } from '../data/plays';
@@ -25,6 +25,7 @@ export default function TacticsLearn() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [prevPhasePositions, setPrevPhasePositions] = useState(null);
+  const restartTimerRef = useRef(null);
 
   const principle = TACTICS[activePrinciple];
   const scene = activeTab === 'mistake' ? principle.mistakeScene : principle.correctScene;
@@ -55,6 +56,7 @@ export default function TacticsLearn() {
   }, [isPlaying, currentPhase, speed, phase.duration, totalPhases, scene]);
 
   const selectPrinciple = useCallback((i) => {
+    clearTimeout(restartTimerRef.current);
     setActivePrinciple(i);
     setCurrentPhase(0);
     setIsPlaying(false);
@@ -62,6 +64,7 @@ export default function TacticsLearn() {
   }, []);
 
   const switchTab = useCallback((tab) => {
+    clearTimeout(restartTimerRef.current);
     setActiveTab(tab);
     setCurrentPhase(0);
     setIsPlaying(false);
@@ -81,7 +84,7 @@ export default function TacticsLearn() {
       if (currentPhase >= totalPhases - 1) {
         setPrevPhasePositions(null);
         setCurrentPhase(0);
-        setTimeout(() => setIsPlaying(true), 80);
+        restartTimerRef.current = setTimeout(() => setIsPlaying(true), 80);
       } else {
         setIsPlaying(true);
       }
@@ -90,6 +93,7 @@ export default function TacticsLearn() {
 
   useEffect(() => {
     const handler = (e) => {
+      if (e.target.closest('button,input,select,textarea,[contenteditable="true"]')) return;
       if (e.key === 'ArrowRight') goPhase(currentPhase + 1);
       else if (e.key === 'ArrowLeft') goPhase(currentPhase - 1);
       else if (e.key === ' ') {

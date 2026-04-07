@@ -14,7 +14,7 @@ export default function Header() {
     setActiveView(view);
   };
 
-  const viewTab = (view, label) => ({
+  const viewTab = (view) => ({
     flex: 1, maxWidth: 90, padding: '5px 0', borderRadius: 5, cursor: 'pointer',
     fontSize: 10, fontWeight: 700, letterSpacing: 1.5, fontFamily: 'monospace',
     border: `2px solid ${activeView === view ? t.ac : t.bd}`,
