@@ -79,6 +79,8 @@ export default function TacticsLearn() {
   }, [cancelRestartTimer]);
 
   const goPhase = useCallback((n) => {
+    // Cancel before bounds check: any navigation intent during the 80ms
+    // restart window should suppress the pending restart.
     cancelRestartTimer();
     if (n < 0 || n >= totalPhases) return;
     setPrevPhasePositions(scene.phases[currentPhase].our);
@@ -100,7 +102,7 @@ export default function TacticsLearn() {
         setIsPlaying(true);
       }
     }
-  }, [isPlaying, currentPhase, totalPhases]);
+  }, [cancelRestartTimer, isPlaying, currentPhase, totalPhases]);
 
   useEffect(() => {
     const handler = (e) => {
