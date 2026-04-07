@@ -3,6 +3,7 @@ import { createContext, useContext, useState } from 'react';
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
+  const [activeView, setActiveView] = useState('playbook');
   const [selectedPosition, setSelectedPosition] = useState('C');
   const [currentPlay, setCurrentPlay] = useState(null);
   const [currentPhase, setCurrentPhase] = useState(0);
@@ -16,6 +17,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
+      activeView, setActiveView,
       selectedPosition, setSelectedPosition,
       currentPlay, setCurrentPlay,
       currentPhase, setCurrentPhase,

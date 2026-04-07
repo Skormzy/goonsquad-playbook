@@ -6,11 +6,13 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import PlayViewer from './components/PlayViewer';
 import StrategyModal from './components/StrategyModal';
+import TacticsLearn from './components/TacticsLearn';
 
 export default function App() {
   const { theme, themes, toggleTheme } = useTheme();
   const t = themes[theme];
   const {
+    activeView,
     currentPlay, setCurrentPlay, currentPhase, setCurrentPhase,
     isPlaying, setIsPlaying, isMirrored, setIsMirrored,
     showOpponents, setShowOpponents, sidebarOpen,
@@ -51,8 +53,9 @@ export default function App() {
     return () => clearInterval(intervalRef.current);
   }, [isPlaying, tot, currentPlay, speed, setCurrentPhase, setIsPlaying, setPreviousPositions]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts (playbook mode only — tactics has its own)
   useEffect(() => {
+    if (activeView !== 'playbook') return;
     const handler = (e) => {
       if (e.key === 'ArrowRight') go(currentPhase + 1);
       else if (e.key === 'ArrowLeft') go(currentPhase - 1);
@@ -66,7 +69,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [currentPhase, go, setIsPlaying, setIsMirrored, setShowOpponents, toggleTheme]);
+  }, [activeView, currentPhase, go, setIsPlaying, setIsMirrored, setShowOpponents, toggleTheme]);
 
   return (
     <div style={{
@@ -77,8 +80,14 @@ export default function App() {
       <StrategyModal />
       <Header />
       <div style={{ flex: 1, display: 'flex', position: 'relative' }}>
-        {sidebarOpen && <Sidebar />}
-        <PlayViewer />
+        {activeView === 'playbook' ? (
+          <>
+            {sidebarOpen && <Sidebar />}
+            <PlayViewer />
+          </>
+        ) : (
+          <TacticsLearn />
+        )}
       </div>
     </div>
   );
