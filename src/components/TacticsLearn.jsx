@@ -41,6 +41,9 @@ export default function TacticsLearn() {
 
   const coverage = scene.coverage || null;
 
+  // Unmount cleanup: cancel any pending restart timer
+  useEffect(() => () => clearTimeout(restartTimerRef.current), []);
+
   useEffect(() => {
     if (!isPlaying) return;
     const ms = (phase.duration * 1000) / speed;
@@ -84,7 +87,7 @@ export default function TacticsLearn() {
       if (currentPhase >= totalPhases - 1) {
         setPrevPhasePositions(null);
         setCurrentPhase(0);
-        restartTimerRef.current = setTimeout(() => setIsPlaying(true), 80);
+        restartTimerRef.current = setTimeout(() => { restartTimerRef.current = null; setIsPlaying(true); }, 80);
       } else {
         setIsPlaying(true);
       }
@@ -93,7 +96,7 @@ export default function TacticsLearn() {
 
   useEffect(() => {
     const handler = (e) => {
-      if (e.target.closest('button,input,select,textarea,[contenteditable="true"]')) return;
+      if (!(e.target instanceof Element) || e.target.closest('button,input,select,textarea,[contenteditable="true"]')) return;
       if (e.key === 'ArrowRight') goPhase(currentPhase + 1);
       else if (e.key === 'ArrowLeft') goPhase(currentPhase - 1);
       else if (e.key === ' ') {
