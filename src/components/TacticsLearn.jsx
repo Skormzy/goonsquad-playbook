@@ -87,7 +87,9 @@ export default function TacticsLearn() {
       if (currentPhase >= totalPhases - 1) {
         setPrevPhasePositions(null);
         setCurrentPhase(0);
-        restartTimerRef.current = setTimeout(() => { restartTimerRef.current = null; setIsPlaying(true); }, 80);
+        clearTimeout(restartTimerRef.current);
+        const id = setTimeout(() => { if (restartTimerRef.current === id) restartTimerRef.current = null; setIsPlaying(true); }, 80);
+        restartTimerRef.current = id;
       } else {
         setIsPlaying(true);
       }
@@ -96,7 +98,7 @@ export default function TacticsLearn() {
 
   useEffect(() => {
     const handler = (e) => {
-      if (!(e.target instanceof Element) || e.target.closest('button,input,select,textarea,[contenteditable="true"]')) return;
+      if (e.target instanceof Element && e.target.closest('button,input,select,textarea,[contenteditable="true"]')) return;
       if (e.key === 'ArrowRight') goPhase(currentPhase + 1);
       else if (e.key === 'ArrowLeft') goPhase(currentPhase - 1);
       else if (e.key === ' ') {
