@@ -26,6 +26,10 @@ export default function TacticsLearn() {
   const [speed, setSpeed] = useState(1);
   const [prevPhasePositions, setPrevPhasePositions] = useState(null);
   const restartTimerRef = useRef(null);
+  const cancelRestartTimer = useCallback(() => {
+    clearTimeout(restartTimerRef.current);
+    restartTimerRef.current = null;
+  }, []);
 
   const principle = TACTICS[activePrinciple];
   const scene = activeTab === 'mistake' ? principle.mistakeScene : principle.correctScene;
@@ -42,7 +46,7 @@ export default function TacticsLearn() {
   const coverage = scene.coverage || null;
 
   // Unmount cleanup: cancel any pending restart timer
-  useEffect(() => () => clearTimeout(restartTimerRef.current), []);
+  useEffect(() => cancelRestartTimer, [cancelRestartTimer]);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -59,38 +63,37 @@ export default function TacticsLearn() {
   }, [isPlaying, currentPhase, speed, phase.duration, totalPhases, scene]);
 
   const selectPrinciple = useCallback((i) => {
-    clearTimeout(restartTimerRef.current);
+    cancelRestartTimer();
     setActivePrinciple(i);
     setCurrentPhase(0);
     setIsPlaying(false);
     setPrevPhasePositions(null);
-  }, []);
+  }, [cancelRestartTimer]);
 
   const switchTab = useCallback((tab) => {
-    clearTimeout(restartTimerRef.current);
+    cancelRestartTimer();
     setActiveTab(tab);
     setCurrentPhase(0);
     setIsPlaying(false);
     setPrevPhasePositions(null);
-  }, []);
+  }, [cancelRestartTimer]);
 
   const goPhase = useCallback((n) => {
+    cancelRestartTimer();
     if (n < 0 || n >= totalPhases) return;
-    clearTimeout(restartTimerRef.current);
-    restartTimerRef.current = null;
     setPrevPhasePositions(scene.phases[currentPhase].our);
     setCurrentPhase(n);
-  }, [totalPhases, scene, currentPhase]);
+  }, [cancelRestartTimer, totalPhases, scene, currentPhase]);
 
   const togglePlay = useCallback(() => {
     if (isPlaying) {
-      clearTimeout(restartTimerRef.current);
+      cancelRestartTimer();
       setIsPlaying(false);
     } else {
       if (currentPhase >= totalPhases - 1) {
         setPrevPhasePositions(null);
         setCurrentPhase(0);
-        clearTimeout(restartTimerRef.current);
+        cancelRestartTimer();
         const id = setTimeout(() => { if (restartTimerRef.current === id) { restartTimerRef.current = null; setIsPlaying(true); } }, 80);
         restartTimerRef.current = id;
       } else {
