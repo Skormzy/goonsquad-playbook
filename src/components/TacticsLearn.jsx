@@ -82,13 +82,14 @@ export default function TacticsLearn() {
 
   const togglePlay = useCallback(() => {
     if (isPlaying) {
+      clearTimeout(restartTimerRef.current);
       setIsPlaying(false);
     } else {
       if (currentPhase >= totalPhases - 1) {
         setPrevPhasePositions(null);
         setCurrentPhase(0);
         clearTimeout(restartTimerRef.current);
-        const id = setTimeout(() => { if (restartTimerRef.current === id) restartTimerRef.current = null; setIsPlaying(true); }, 80);
+        const id = setTimeout(() => { if (restartTimerRef.current === id) { restartTimerRef.current = null; setIsPlaying(true); } }, 80);
         restartTimerRef.current = id;
       } else {
         setIsPlaying(true);
