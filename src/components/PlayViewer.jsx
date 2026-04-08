@@ -16,10 +16,10 @@ function phaseColor(title, ac) {
 export default function PlayViewer() {
   const { theme, themes } = useTheme();
   const t = themes[theme];
-  const { currentPlay, setCurrentPlay, currentPhase, setCurrentPhase, isMirrored, setStrategyOpen, setIsPlaying, setPreviousPositions, playbackTimerRef } = useApp();
+  const { currentPlay, setCurrentPlay, currentPhase, setCurrentPhase, isMirrored, setStrategyOpen, setIsPlaying, setPreviousPositions, cancelPlaybackRestart } = useApp();
   const playIdx = currentPlay ? PLAYS.findIndex(p => p.id === currentPlay.id) : -1;
   const goPlay = (p) => {
-    if (playbackTimerRef.current) { clearTimeout(playbackTimerRef.current); playbackTimerRef.current = null; }
+    cancelPlaybackRestart();
     setPreviousPositions(null); setCurrentPlay(p); setCurrentPhase(0); setIsPlaying(false);
   };
 

@@ -10,11 +10,12 @@ function phaseColor(title, ac) {
 export default function PhaseControls() {
   const { theme, themes } = useTheme();
   const t = themes[theme];
-  const { currentPlay, currentPhase, setCurrentPhase, isPlaying, setIsPlaying, speed, setSpeed, setPreviousPositions, playbackTimerRef } = useApp();
+  const { currentPlay, currentPhase, setCurrentPhase, isPlaying, setIsPlaying, speed, setSpeed, setPreviousPositions, cancelPlaybackRestart, schedulePlaybackRestart } = useApp();
 
   const tot = currentPlay?.phases.length || 0;
 
   const go = (n) => {
+    cancelPlaybackRestart();
     if (!currentPlay || n < 0 || n >= tot) return;
     setPreviousPositions(currentPlay.phases[currentPhase]?.pos || null);
     setCurrentPhase(n);
@@ -22,13 +23,13 @@ export default function PhaseControls() {
 
   const togglePlay = () => {
     if (isPlaying) {
+      cancelPlaybackRestart();
       setIsPlaying(false);
     } else {
       if (currentPhase >= tot - 1) {
         setPreviousPositions(null);
         setCurrentPhase(0);
-        if (playbackTimerRef.current) clearTimeout(playbackTimerRef.current);
-        playbackTimerRef.current = setTimeout(() => { playbackTimerRef.current = null; setIsPlaying(true); }, 80);
+        schedulePlaybackRestart(() => setIsPlaying(true));
       } else {
         setIsPlaying(true);
       }

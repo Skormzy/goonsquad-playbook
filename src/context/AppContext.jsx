@@ -15,6 +15,13 @@ export function AppProvider({ children }) {
   const [speed, setSpeed] = useState(1);
   const [previousPositions, setPreviousPositions] = useState(null);
   const playbackTimerRef = useRef(null);
+  const cancelPlaybackRestart = () => {
+    if (playbackTimerRef.current) { clearTimeout(playbackTimerRef.current); playbackTimerRef.current = null; }
+  };
+  const schedulePlaybackRestart = (cb) => {
+    cancelPlaybackRestart();
+    playbackTimerRef.current = setTimeout(() => { playbackTimerRef.current = null; cb(); }, 80);
+  };
 
   return (
     <AppContext.Provider value={{
@@ -29,7 +36,7 @@ export function AppProvider({ children }) {
       strategyOpen, setStrategyOpen,
       speed, setSpeed,
       previousPositions, setPreviousPositions,
-      playbackTimerRef,
+      cancelPlaybackRestart, schedulePlaybackRestart,
     }}>
       {children}
     </AppContext.Provider>
