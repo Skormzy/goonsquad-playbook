@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 const AppContext = createContext();
 
@@ -15,15 +15,19 @@ export function AppProvider({ children }) {
   const [speed, setSpeed] = useState(1);
   const [previousPositions, setPreviousPositions] = useState(null);
   const playbackTimerRef = useRef(null);
-  const cancelPlaybackRestart = () => {
+  const cancelPlaybackRestart = useCallback(() => {
     if (playbackTimerRef.current) { clearTimeout(playbackTimerRef.current); playbackTimerRef.current = null; }
-  };
-  const schedulePlaybackRestart = (cb) => {
+  }, []);
+  const schedulePlaybackRestart = useCallback((cb) => {
     cancelPlaybackRestart();
-    playbackTimerRef.current = setTimeout(() => { playbackTimerRef.current = null; cb(); }, 80);
-  };
-  // Clear any pending restart on unmount
-  useEffect(() => cancelPlaybackRestart, []);
+    const id = setTimeout(() => {
+      if (playbackTimerRef.current !== id) return;
+      playbackTimerRef.current = null;
+      cb();
+    }, 80);
+    playbackTimerRef.current = id;
+  }, [cancelPlaybackRestart]);
+  useEffect(() => cancelPlaybackRestart, [cancelPlaybackRestart]);
 
   return (
     <AppContext.Provider value={{

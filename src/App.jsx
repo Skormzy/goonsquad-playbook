@@ -71,7 +71,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [activeView, currentPhase, go, setIsPlaying, setIsMirrored, setShowOpponents, toggleTheme]);
+  }, [activeView, currentPhase, go, setIsPlaying, setIsMirrored, setShowOpponents, toggleTheme, cancelPlaybackRestart]);
 
   return (
     <div style={{
