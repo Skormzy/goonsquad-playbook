@@ -1,8 +1,11 @@
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
+import { PLAYS } from '../data/plays';
 import RinkSVG from './RinkSVG';
 import PhaseControls from './PhaseControls';
 import ResponsibilityPanel from './ResponsibilityPanel';
+
+function truncate(s, n = 25) { return s.length > n ? s.slice(0, n) + '…' : s; }
 
 function phaseColor(title, ac) {
   if (title?.includes('✅')) return '#22c55e';
@@ -13,7 +16,9 @@ function phaseColor(title, ac) {
 export default function PlayViewer() {
   const { theme, themes } = useTheme();
   const t = themes[theme];
-  const { currentPlay, currentPhase, isMirrored, setStrategyOpen } = useApp();
+  const { currentPlay, setCurrentPlay, currentPhase, setCurrentPhase, isMirrored, setStrategyOpen, setIsPlaying, setPreviousPositions } = useApp();
+  const playIdx = PLAYS.findIndex(p => p.id === currentPlay?.id);
+  const goPlay = (p) => { setPreviousPositions(null); setCurrentPlay(p); setCurrentPhase(0); setIsPlaying(false); };
 
   const ph = currentPlay?.phases[currentPhase];
   const tot = currentPlay?.phases.length || 0;
@@ -44,6 +49,25 @@ export default function PlayViewer() {
       </div>
       {/* Controls */}
       <PhaseControls />
+      {/* Prev / Next play nav */}
+      <div style={{ display: 'flex', gap: 6, width: '100%', maxWidth: 380, margin: '2px 0 4px', padding: '0 6px' }}>
+        {playIdx > 0 ? (
+          <button
+            onClick={() => goPlay(PLAYS[playIdx - 1])}
+            style={{ flex: 1, padding: '4px 8px', borderRadius: 5, border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, cursor: 'pointer', fontSize: 10, fontWeight: 600, textAlign: 'left', fontFamily: "'Trebuchet MS','Lucida Grande',sans-serif" }}
+          >
+            {'← '}{truncate(PLAYS[playIdx - 1].n)}
+          </button>
+        ) : <div style={{ flex: 1 }} />}
+        {playIdx < PLAYS.length - 1 ? (
+          <button
+            onClick={() => goPlay(PLAYS[playIdx + 1])}
+            style={{ flex: 1, padding: '4px 8px', borderRadius: 5, border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, cursor: 'pointer', fontSize: 10, fontWeight: 600, textAlign: 'right', fontFamily: "'Trebuchet MS','Lucida Grande',sans-serif" }}
+          >
+            {truncate(PLAYS[playIdx + 1].n)}{' →'}
+          </button>
+        ) : <div style={{ flex: 1 }} />}
+      </div>
       {/* Responsibility */}
       <ResponsibilityPanel />
     </div>

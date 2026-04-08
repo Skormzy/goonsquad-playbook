@@ -65,6 +65,7 @@ export default function TacticsLearn() {
   const selectPrinciple = useCallback((i) => {
     cancelRestartTimer();
     setActivePrinciple(i);
+    setActiveTab('mistake');
     setCurrentPhase(0);
     setIsPlaying(false);
     setPrevPhasePositions(null);
@@ -303,6 +304,36 @@ export default function TacticsLearn() {
             }}
           />
         ))}
+      </div>
+
+      {/* Prev / Next tactic nav */}
+      <div style={{ display: 'flex', gap: 6, width: '100%', maxWidth: 380, margin: '2px 0 8px', padding: '0 8px' }}>
+        {activePrinciple > 0 ? (
+          <button
+            onClick={() => selectPrinciple(activePrinciple - 1)}
+            style={{
+              ...btnBase, flex: 1, padding: '5px 8px', textAlign: 'left',
+              border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, fontSize: 10,
+            }}
+          >
+            {'← '}{TACTICS[activePrinciple - 1].title.length > 25
+              ? TACTICS[activePrinciple - 1].title.slice(0, 25) + '…'
+              : TACTICS[activePrinciple - 1].title}
+          </button>
+        ) : <div style={{ flex: 1 }} />}
+        {activePrinciple < TACTICS.length - 1 ? (
+          <button
+            onClick={() => selectPrinciple(activePrinciple + 1)}
+            style={{
+              ...btnBase, flex: 1, padding: '5px 8px', textAlign: 'right',
+              border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, fontSize: 10,
+            }}
+          >
+            {TACTICS[activePrinciple + 1].title.length > 25
+              ? TACTICS[activePrinciple + 1].title.slice(0, 25) + '…'
+              : TACTICS[activePrinciple + 1].title}{' →'}
+          </button>
+        ) : <div style={{ flex: 1 }} />}
       </div>
 
       {/* Color legend */}
