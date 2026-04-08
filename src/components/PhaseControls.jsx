@@ -10,7 +10,7 @@ function phaseColor(title, ac) {
 export default function PhaseControls() {
   const { theme, themes } = useTheme();
   const t = themes[theme];
-  const { currentPlay, currentPhase, setCurrentPhase, isPlaying, setIsPlaying, speed, setSpeed, setPreviousPositions } = useApp();
+  const { currentPlay, currentPhase, setCurrentPhase, isPlaying, setIsPlaying, speed, setSpeed, setPreviousPositions, playbackTimerRef } = useApp();
 
   const tot = currentPlay?.phases.length || 0;
 
@@ -27,7 +27,8 @@ export default function PhaseControls() {
       if (currentPhase >= tot - 1) {
         setPreviousPositions(null);
         setCurrentPhase(0);
-        setTimeout(() => setIsPlaying(true), 80);
+        if (playbackTimerRef.current) clearTimeout(playbackTimerRef.current);
+        playbackTimerRef.current = setTimeout(() => { playbackTimerRef.current = null; setIsPlaying(true); }, 80);
       } else {
         setIsPlaying(true);
       }

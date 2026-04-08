@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useRef, useState } from 'react';
 
 const AppContext = createContext();
 
@@ -14,6 +14,7 @@ export function AppProvider({ children }) {
   const [strategyOpen, setStrategyOpen] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [previousPositions, setPreviousPositions] = useState(null);
+  const playbackTimerRef = useRef(null);
 
   return (
     <AppContext.Provider value={{
@@ -28,6 +29,7 @@ export function AppProvider({ children }) {
       strategyOpen, setStrategyOpen,
       speed, setSpeed,
       previousPositions, setPreviousPositions,
+      playbackTimerRef,
     }}>
       {children}
     </AppContext.Provider>
