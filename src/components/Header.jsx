@@ -5,10 +5,11 @@ import { POSITIONS, PLAYS } from '../data/plays';
 export default function Header() {
   const { theme, themes, toggleTheme } = useTheme();
   const t = themes[theme];
-  const { activeView, setActiveView, selectedPosition, setSelectedPosition, showOpponents, setShowOpponents, isMirrored, setIsMirrored, sidebarOpen, setSidebarOpen, setIsPlaying } = useApp();
+  const { activeView, setActiveView, selectedPosition, setSelectedPosition, showOpponents, setShowOpponents, isMirrored, setIsMirrored, sidebarOpen, setSidebarOpen, setIsPlaying, cancelPlaybackRestart } = useApp();
 
   const switchView = (view) => {
     if (view === activeView) return;
+    cancelPlaybackRestart();
     setIsPlaying(false);
     if (view === 'tactics') setSidebarOpen(false);
     setActiveView(view);

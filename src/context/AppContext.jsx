@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 
 const AppContext = createContext();
 
@@ -22,6 +22,8 @@ export function AppProvider({ children }) {
     cancelPlaybackRestart();
     playbackTimerRef.current = setTimeout(() => { playbackTimerRef.current = null; cb(); }, 80);
   };
+  // Clear any pending restart on unmount
+  useEffect(() => cancelPlaybackRestart, []);
 
   return (
     <AppContext.Provider value={{

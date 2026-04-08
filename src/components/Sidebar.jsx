@@ -6,7 +6,7 @@ import { PLAYS, CATEGORIES, DIFFICULTY_COLORS } from '../data/plays';
 export default function Sidebar() {
   const { theme, themes } = useTheme();
   const t = themes[theme];
-  const { currentPlay, setCurrentPlay, setCurrentPhase, setIsPlaying, setSidebarOpen, setPreviousPositions } = useApp();
+  const { currentPlay, setCurrentPlay, setCurrentPhase, setIsPlaying, setSidebarOpen, setPreviousPositions, cancelPlaybackRestart } = useApp();
   const [cat, setCat] = useState(null);
 
   const cc = {};
@@ -14,6 +14,7 @@ export default function Sidebar() {
   const fp = cat ? PLAYS.filter(p => p.cat === cat) : PLAYS;
 
   const pick = p => {
+    cancelPlaybackRestart();
     setPreviousPositions(null);
     setCurrentPlay(p);
     setCurrentPhase(0);

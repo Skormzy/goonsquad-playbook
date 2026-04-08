@@ -16,7 +16,7 @@ export default function App() {
     currentPlay, setCurrentPlay, currentPhase, setCurrentPhase,
     isPlaying, setIsPlaying, isMirrored, setIsMirrored,
     showOpponents, setShowOpponents, sidebarOpen,
-    speed, setPreviousPositions,
+    speed, setPreviousPositions, cancelPlaybackRestart,
   } = useApp();
 
   const intervalRef = useRef(null);
@@ -31,10 +31,11 @@ export default function App() {
 
   // Navigate phases
   const go = useCallback((n) => {
+    cancelPlaybackRestart();
     if (!currentPlay || n < 0 || n >= tot) return;
     setPreviousPositions(currentPlay.phases[currentPhase]?.pos || null);
     setCurrentPhase(n);
-  }, [currentPlay, currentPhase, tot, setPreviousPositions, setCurrentPhase]);
+  }, [currentPlay, currentPhase, tot, setPreviousPositions, setCurrentPhase, cancelPlaybackRestart]);
 
   // Auto-play interval
   useEffect(() => {
@@ -61,6 +62,7 @@ export default function App() {
       else if (e.key === 'ArrowLeft') go(currentPhase - 1);
       else if (e.key === ' ') {
         e.preventDefault();
+        cancelPlaybackRestart();
         setIsPlaying(p => !p);
       }
       else if (e.key === 'm') setIsMirrored(m => !m);
