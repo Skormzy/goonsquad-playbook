@@ -261,7 +261,7 @@ function BallIndicator({ rph, sel, mode }) {
     animX = xk;
     animY = yk;
     const times = xk.map((_, i) => i / (xk.length - 1));
-    transition = { duration: 0.5 * arrows.length, ease: 'easeOut', times };
+    transition = { duration: Math.max(0.6, 0.5 * arrows.length), ease: 'easeOut', times };
   } else {
     // Smooth carry/reposition — matches player dot timing
     animX = bx;
