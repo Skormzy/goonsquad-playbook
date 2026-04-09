@@ -235,7 +235,19 @@ function BallIndicator({ rph, sel, mode }) {
 
   let animX, animY, transition;
 
-  if (hasArrow) {
+  if (rph.ballPath && rph.ballPath.length >= 2) {
+    // Board-path animation: ball follows curved waypoints along the boards
+    const xk = rph.ballPath.map(wp => toX(wp.x));
+    const yk = rph.ballPath.map(wp => toY(wp.y));
+    // Replace final waypoint with carrier-adjusted pixel position
+    xk[xk.length - 1] = bx;
+    yk[yk.length - 1] = by;
+    const segCount = xk.length - 1;
+    const times = xk.map((_, i) => i / segCount);
+    animX = xk;
+    animY = yk;
+    transition = { duration: 0.15 * segCount, ease: 'linear', times };
+  } else if (hasArrow) {
     // Build keyframe path: arrow start → intermediate stops → final position
     const xk = [toX(arrows[0].from.x)];
     const yk = [toY(arrows[0].from.y)];
