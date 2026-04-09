@@ -7,6 +7,7 @@ import { POSITIONS, BALL_COLOR } from '../data/plays';
 const W = 380, H = 660, PD = 14;
 const toX = p => (p / 100) * (W - PD * 2) + PD;
 const toY = p => H - ((p / 100) * (H - PD * 2) + PD);
+const PLAYER_ANIM_S = 0.6; // player dot transition duration — ball animations must not exceed this
 
 /* Coverage lines — connect each of our skaters to their assigned opponent.
    Color shifts from green (tight) to red (lost) based on distance. */
@@ -27,7 +28,7 @@ function CoverageLines({ coverage, rph }) {
       <motion.line
         key={`cov-${pos}`}
         animate={{ x1, y1, x2, y2, stroke: color }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }}
         strokeWidth={1.2}
         strokeDasharray="4,4"
         opacity={0.55}
@@ -156,7 +157,7 @@ function PlayerDots({ rph, sel, t, theme }) {
         )}
         <motion.circle
           animate={{ cx: ox, cy: oy }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+          transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }}
           r={r} fill={c} opacity={s ? 1 : 0.85}
           stroke={s ? (theme === 'dark' ? '#fff' : '#0a0e1a') : 'none'}
           strokeWidth={s ? 2 : 0}
@@ -164,7 +165,7 @@ function PlayerDots({ rph, sel, t, theme }) {
         />
         <motion.text
           animate={{ x: ox, y: oy + 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+          transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }}
           textAnchor="middle" dominantBaseline="central"
           fill={s ? t.dt : '#fff'} fontSize={s ? 9 : 8}
           fontWeight="bold" fontFamily="monospace"
@@ -185,12 +186,12 @@ function OpponentDots({ rph, t, theme }) {
 
     return (
       <g key={o.id} style={{ filter: theme === 'dark' ? 'url(#ng)' : 'none' }}>
-        <motion.circle animate={{ cx: ox, cy: oy }} transition={{ duration: 0.6, ease: 'easeOut' }} r={10} fill={t.rk} opacity={0.9} />
-        <motion.circle animate={{ cx: ox, cy: oy }} transition={{ duration: 0.6, ease: 'easeOut' }} r={10} fill="none" stroke={neon} strokeWidth={2} opacity={theme === 'dark' ? 0.95 : 0.75} />
-        <motion.circle animate={{ cx: ox, cy: oy }} transition={{ duration: 0.6, ease: 'easeOut' }} r={9} fill={neon} opacity={0.08} />
+        <motion.circle animate={{ cx: ox, cy: oy }} transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }} r={10} fill={t.rk} opacity={0.9} />
+        <motion.circle animate={{ cx: ox, cy: oy }} transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }} r={10} fill="none" stroke={neon} strokeWidth={2} opacity={theme === 'dark' ? 0.95 : 0.75} />
+        <motion.circle animate={{ cx: ox, cy: oy }} transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }} r={9} fill={neon} opacity={0.08} />
         <motion.text
           animate={{ x: ox, y: oy + 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+          transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }}
           textAnchor="middle" dominantBaseline="central"
           fill={neon} fontSize={8} fontWeight="bold" fontFamily="monospace" opacity={0.95}
         >{label}</motion.text>
@@ -247,7 +248,7 @@ function BallIndicator({ rph, sel, mode }) {
     animX = xk;
     animY = yk;
     // Minimum 0.6s so ball never arrives before players finish moving
-    transition = { duration: Math.max(0.6, 0.15 * segCount), ease: 'linear', times };
+    transition = { duration: Math.max(PLAYER_ANIM_S, 0.15 * segCount), ease: 'linear', times };
   } else if (hasArrow) {
     // Build keyframe path: arrow start → intermediate stops → final position
     const xk = [toX(arrows[0].from.x)];
@@ -261,12 +262,12 @@ function BallIndicator({ rph, sel, mode }) {
     animX = xk;
     animY = yk;
     const times = xk.map((_, i) => i / (xk.length - 1));
-    transition = { duration: Math.max(0.6, 0.5 * arrows.length), ease: 'easeOut', times };
+    transition = { duration: Math.max(PLAYER_ANIM_S, 0.5 * arrows.length), ease: 'easeOut', times };
   } else {
     // Smooth carry/reposition — matches player dot timing
     animX = bx;
     animY = by;
-    transition = { duration: 0.6, ease: 'easeOut' };
+    transition = { duration: PLAYER_ANIM_S, ease: 'easeOut' };
   }
 
   return (
