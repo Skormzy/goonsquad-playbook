@@ -7,7 +7,7 @@ import { POSITIONS, BALL_COLOR } from '../data/plays';
 const W = 380, H = 660, PD = 14;
 const toX = p => (p / 100) * (W - PD * 2) + PD;
 const toY = p => H - ((p / 100) * (H - PD * 2) + PD);
-const PLAYER_ANIM_S = 0.6; // player dot transition duration — ball animations must not exceed this
+const PLAYER_ANIM_S = 0.6; // player dot transition duration — ball animations must last at least this long
 
 /* Coverage lines — connect each of our skaters to their assigned opponent.
    Color shifts from green (tight) to red (lost) based on distance. */
