@@ -246,7 +246,8 @@ function BallIndicator({ rph, sel, mode }) {
     const times = xk.map((_, i) => i / segCount);
     animX = xk;
     animY = yk;
-    transition = { duration: 0.15 * segCount, ease: 'linear', times };
+    // Minimum 0.6s so ball never arrives before players finish moving
+    transition = { duration: Math.max(0.6, 0.15 * segCount), ease: 'linear', times };
   } else if (hasArrow) {
     // Build keyframe path: arrow start → intermediate stops → final position
     const xk = [toX(arrows[0].from.x)];
