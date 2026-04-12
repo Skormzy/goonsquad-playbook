@@ -154,7 +154,7 @@ export const TACTICS = [
         opp: [ {id:'o1',x:44,y:36,label:'C',hasBall:true},{id:'o2',x:38,y:54,label:'LW'},{id:'o3',x:60,y:54,label:'RW'},{id:'o4',x:50,y:62,label:'LD'},{id:'o5',x:74,y:60,label:'RD'},{id:'og',x:52,y:93,label:'G',isGoalie:true} ],
         ball:{x:44,y:36}, arrows:[] },
       { duration: 3.5, caption: 'Over-retreating opened the inside lane. Carrier cut right and scored unchallenged.',
-        our: { G:{x:48,y:7}, LW:{x:66,y:44}, C:{x:48,y:40}, RW:{x:28,y:44}, LD:{x:52,y:30}, RD:{x:62,y:32} },
+        our: { G:{x:48,y:7}, LW:{x:66,y:44}, C:{x:48,y:40}, RW:{x:28,y:44}, LD:{x:62,y:9}, RD:{x:62,y:32} },
         opp: [ {id:'o1',x:60,y:22,label:'C'},{id:'o2',x:40,y:50,label:'LW'},{id:'o3',x:58,y:50,label:'RW'},{id:'o4',x:50,y:58,label:'LD'},{id:'o5',x:72,y:56,label:'RD'},{id:'og',x:51,y:93,label:'G',isGoalie:true} ],
         ball:{x:50,y:7}, arrows:[{from:{x:60,y:22},to:{x:50,y:7},type:'shot'}] },
     ]},
