@@ -31,7 +31,7 @@ opp:o5({x:30,y:26,l:"C"},{x:14,y:28,l:"RW"},{x:40,y:28,l:"LW"},{x:22,y:40,l:"LD"
 pos:{LW:{x:8,y:44,role:"Up boards. Primary outlet.",u:"sprint"},C:{x:38,y:35,role:"Middle option.",u:"run"},RW:{x:65,y:44,role:"Far-side. Stay wide.",u:"drift"},LD:{x:20,y:18,role:"Make the pass. Boards=safe.",u:"run",ball:true},RD:{x:50,y:14,role:"Follow play.",u:"drift"},G:GK},
 opp:o5({x:28,y:30,l:"F1"},{x:12,y:36,l:"F2"},{x:65,y:38,l:"F3"},{x:34,y:50,l:"D1"},{x:60,y:50,l:"D2"}),ball:{x:20,y:18},lanes:[{f:"LD",t:"LW",ty:"primary"},{f:"LD",t:"C",ty:"secondary"}]},
 {id:3,t:"❌ LOST — Collapse",desc:"They win draw. Wings break to cover their points. D protect net.",
-pos:{LW:{x:18,y:28,role:"Break to cover their left point man.",u:"sprint"},C:{x:38,y:20,role:"Get to the SLOT. Don't chase the ball.",u:"sprint",key:"SLOT first. Ball second. Slot open = goal against."},RW:{x:55,y:28,role:"Break to cover their right point man.",u:"sprint"},LD:{x:24,y:13,role:"Get between ball and net. Contain carrier.",u:"sprint"},RD:{x:52,y:10,role:"Net-front. Box out. Nobody gets a free look.",u:"hold"},G:GK},
+pos:{LW:{x:25,y:31,role:"Break to cover their left point man.",u:"sprint"},C:{x:32,y:18,role:"Get to the SLOT. Don't chase the ball.",u:"sprint",key:"SLOT first. Ball second. Slot open = goal against."},RW:{x:48,y:29,role:"Break to cover their right point man.",u:"sprint"},LD:{x:24,y:21,role:"Get between ball and net. Contain carrier.",u:"sprint"},RD:{x:52,y:10,role:"Net-front. Box out. Nobody gets a free look.",u:"hold"},G:GK},
 opp:o5({x:26,y:22,l:"C"},{x:18,y:24,l:"RW"},{x:36,y:24,l:"LW"},{x:20,y:36,l:"LD"},{x:48,y:36,l:"RD"}),ball:{x:26,y:22},lanes:[]}
 ]},
 // ═══ 2. D-ZONE FACEOFF RIGHT — dot(72,21) hashes at x:64 and x:80 ═══
@@ -46,7 +46,7 @@ opp:o5({x:72,y:26,l:"C"},{x:62,y:28,l:"RW"},{x:82,y:28,l:"LW"},{x:52,y:40,l:"LD"
 pos:{LW:{x:35,y:44,role:"Far-side. Stay wide.",u:"drift"},C:{x:62,y:35,role:"Middle option.",u:"run"},RW:{x:92,y:44,role:"Up boards. Primary outlet.",u:"sprint"},LD:{x:50,y:14,role:"Follow play.",u:"drift"},RD:{x:80,y:18,role:"Make the pass. Boards=safe.",u:"run",ball:true},G:GK},
 opp:o5({x:72,y:30,l:"F1"},{x:88,y:36,l:"F2"},{x:35,y:38,l:"F3"},{x:40,y:50,l:"D1"},{x:66,y:50,l:"D2"}),ball:{x:80,y:18},lanes:[{f:"RD",t:"RW",ty:"primary"},{f:"RD",t:"C",ty:"secondary"}]},
 {id:3,t:"❌ LOST — Collapse",desc:"They win. Wings cover points. D protect net.",
-pos:{LW:{x:45,y:28,role:"Cover their left point.",u:"sprint"},C:{x:62,y:20,role:"Get to the SLOT. Don't chase ball.",u:"sprint",key:"SLOT first. Ball second."},RW:{x:82,y:28,role:"Cover their right point.",u:"sprint"},LD:{x:48,y:10,role:"Net-front. Box out.",u:"hold"},RD:{x:76,y:13,role:"Contain ball carrier.",u:"sprint"},G:GK},
+pos:{LW:{x:52,y:29,role:"Cover their left point.",u:"sprint"},C:{x:68,y:18,role:"Get to the SLOT. Don't chase ball.",u:"sprint",key:"SLOT first. Ball second."},RW:{x:73,y:31,role:"Cover their right point.",u:"sprint"},LD:{x:48,y:10,role:"Net-front. Box out.",u:"hold"},RD:{x:76,y:21,role:"Contain ball carrier.",u:"sprint"},G:GK},
 opp:o5({x:74,y:22,l:"C"},{x:64,y:24,l:"RW"},{x:82,y:24,l:"LW"},{x:52,y:36,l:"LD"},{x:78,y:36,l:"RD"}),ball:{x:74,y:22},lanes:[]}
 ]},
 // ═══ 3-7: NON-FACEOFF DEFENSIVE ═══
