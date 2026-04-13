@@ -250,7 +250,7 @@ export const TACTICS = [
       'If neither calls it, default rule: pick up the attacker closest to the net',
       'Silent defense is the clearest sign a team is disorganized'
     ],
-    mistakeScene: { coverage: { LD:'o1', C:'o2', RD:'o3', LW:'o4', RW:'o5' }, phases: [
+    mistakeScene: { phases: [
       { duration: 3.5, caption: 'They enter our zone. Two forwards set up a crossing move.',
         our: { G:{x:50,y:7}, LW:{x:28,y:40}, C:{x:50,y:44}, RW:{x:68,y:40}, LD:{x:38,y:28}, RD:{x:62,y:28} },
         opp: [ {id:'o1',x:30,y:32,label:'RW',hasBall:true},{id:'o2',x:54,y:36,label:'C'},{id:'o3',x:74,y:32,label:'LW'},{id:'o4',x:36,y:50,label:'RD'},{id:'o5',x:66,y:50,label:'LD'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
