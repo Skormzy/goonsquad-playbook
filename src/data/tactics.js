@@ -30,7 +30,7 @@ export const TACTICS = [
       'Trust your teammates to pressure the ball carrier',
       'Head on a swivel — see both the ball and your man'
     ],
-    mistakeScene: { coverage: { LD:'o1', C:'o2', RD:'o3', RW:'o4', LW:'o5' }, phases: [
+    mistakeScene: { coverage: { LD:'o1', C:'o2', RD:'o3', LW:'o4', RW:'o5' }, phases: [
       { duration: 3.5, caption: 'They cross our blue line. Our forwards sprint back.',
         our: { G:{x:50,y:7}, LW:{x:27,y:41}, C:{x:50,y:44}, RW:{x:70,y:40}, LD:{x:34,y:32}, RD:{x:64,y:32} },
         opp: [ {id:'o1',x:20,y:30,label:'RW',hasBall:true},{id:'o2',x:48,y:36,label:'C'},{id:'o3',x:74,y:32,label:'LW'},{id:'o4',x:33,y:49,label:'RD'},{id:'o5',x:66,y:48,label:'LD'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
@@ -48,7 +48,7 @@ export const TACTICS = [
         opp: [ {id:'o1',x:12,y:14,label:'RW'},{id:'o2',x:54,y:14,label:'C'},{id:'o3',x:76,y:12,label:'LW'},{id:'o4',x:28,y:46,label:'RD'},{id:'o5',x:64,y:34,label:'LD'},{id:'og',x:51,y:93,label:'G',isGoalie:true} ],
         ball:{x:50,y:7}, arrows:[{from:{x:54,y:14},to:{x:50,y:7},type:'shot'}] },
     ]},
-    correctScene: { coverage: { LD:'o1', C:'o2', RD:'o3', RW:'o4', LW:'o5' }, phases: [
+    correctScene: { coverage: { LD:'o1', C:'o2', RD:'o3', LW:'o4', RW:'o5' }, phases: [
       { duration: 3.5, caption: 'They cross our blue line. Our forwards sprint back.',
         our: { G:{x:50,y:7}, LW:{x:27,y:41}, C:{x:51,y:29}, RW:{x:70,y:40}, LD:{x:23,y:23}, RD:{x:71,y:25} },
         opp: [ {id:'o1',x:20,y:30,label:'RW',hasBall:true},{id:'o2',x:48,y:36,label:'C'},{id:'o3',x:74,y:32,label:'LW'},{id:'o4',x:33,y:49,label:'RD'},{id:'o5',x:66,y:48,label:'LD'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
@@ -85,7 +85,7 @@ export const TACTICS = [
       'Guide them to the boards with your positioning, not your stick',
       'Maintain gap control — close enough to contain, not so close they burn you'
     ],
-    mistakeScene: { coverage: { LD:'o1', C:'o2', RD:'o3', RW:'o4', LW:'o5' }, phases: [
+    mistakeScene: { coverage: { LD:'o1', C:'o2', RD:'o3', LW:'o4', RW:'o5' }, phases: [
       { duration: 3.5, caption: 'Carrier enters our zone. LD steps up to challenge.',
         our: { G:{x:50,y:7}, LW:{x:31,y:41}, C:{x:52,y:42}, RW:{x:69,y:42}, LD:{x:38,y:32}, RD:{x:58,y:28} },
         opp: [ {id:'o1',x:44,y:38,label:'C',hasBall:true},{id:'o2',x:23,y:35,label:'RW'},{id:'o3',x:73,y:34,label:'LW'},{id:'o4',x:32,y:50,label:'RD'},{id:'o5',x:66,y:50,label:'LD'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
@@ -103,7 +103,7 @@ export const TACTICS = [
         opp: [ {id:'o1',x:53,y:15,label:'C'},{id:'o2',x:25,y:16,label:'RW'},{id:'o3',x:74,y:16,label:'LW'},{id:'o4',x:28,y:36,label:'RD'},{id:'o5',x:62,y:36,label:'LD'},{id:'og',x:51,y:93,label:'G',isGoalie:true} ],
         ball:{x:50,y:7}, arrows:[{from:{x:53,y:15},to:{x:50,y:7},type:'shot'}] },
     ]},
-    correctScene: { coverage: { LD:'o1', C:'o2', RD:'o3', RW:'o4', LW:'o5' }, phases: [
+    correctScene: { coverage: { LD:'o1', C:'o2', RD:'o3', LW:'o4', RW:'o5' }, phases: [
       { duration: 3.5, caption: 'Carrier enters our zone. LD steps up to challenge.',
         our: { G:{x:50,y:7}, LW:{x:31,y:41}, C:{x:26,y:28}, RW:{x:69,y:42}, LD:{x:38,y:32}, RD:{x:70,y:27} },
         opp: [ {id:'o1',x:44,y:38,label:'C',hasBall:true},{id:'o2',x:23,y:35,label:'RW'},{id:'o3',x:73,y:34,label:'LW'},{id:'o4',x:32,y:50,label:'RD'},{id:'o5',x:66,y:50,label:'LD'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
@@ -142,15 +142,15 @@ export const TACTICS = [
     ],
     mistakeScene: { coverage: { LD:'o1' }, phases: [
       { duration: 3.5, caption: 'Carrier drives toward our blue line. LD is first defender back.',
-        our: { G:{x:50,y:7}, LW:{x:24,y:58}, C:{x:52,y:56}, RW:{x:72,y:58}, LD:{x:44,y:40}, RD:{x:68,y:50} },
+        our: { G:{x:50,y:7}, LW:{x:24,y:58}, C:{x:52,y:56}, RW:{x:72,y:58}, LD:{x:44,y:42}, RD:{x:68,y:50} },
         opp: [ {id:'o1',x:44,y:52,label:'C',hasBall:true},{id:'o2',x:36,y:62,label:'LW'},{id:'o3',x:60,y:62,label:'RW'},{id:'o4',x:50,y:70,label:'LD'},{id:'o5',x:76,y:66,label:'RD'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
         ball:{x:44,y:52}, arrows:[] },
       { duration: 3, caption: 'LD backs up fast. The gap doubles. Carrier has all the space.',
-        our: { G:{x:50,y:7}, LW:{x:26,y:54}, C:{x:50,y:52}, RW:{x:70,y:54}, LD:{x:42,y:22}, RD:{x:66,y:46} },
+        our: { G:{x:50,y:7}, LW:{x:26,y:54}, C:{x:50,y:52}, RW:{x:70,y:54}, LD:{x:44,y:28}, RD:{x:66,y:46} },
         opp: [ {id:'o1',x:44,y:44,label:'C',hasBall:true},{id:'o2',x:36,y:58,label:'LW'},{id:'o3',x:60,y:58,label:'RW'},{id:'o4',x:50,y:66,label:'LD'},{id:'o5',x:74,y:62,label:'RD'},{id:'og',x:51,y:93,label:'G',isGoalie:true} ],
         ball:{x:44,y:44}, arrows:[] },
       { duration: 3, caption: 'Carrier crosses our blue line. LD is too deep to challenge.',
-        our: { G:{x:50,y:7}, LW:{x:28,y:48}, C:{x:48,y:46}, RW:{x:68,y:50}, LD:{x:40,y:14}, RD:{x:64,y:40} },
+        our: { G:{x:50,y:7}, LW:{x:28,y:48}, C:{x:48,y:46}, RW:{x:68,y:50}, LD:{x:44,y:14}, RD:{x:64,y:40} },
         opp: [ {id:'o1',x:44,y:36,label:'C',hasBall:true},{id:'o2',x:38,y:54,label:'LW'},{id:'o3',x:60,y:54,label:'RW'},{id:'o4',x:50,y:62,label:'LD'},{id:'o5',x:74,y:60,label:'RD'},{id:'og',x:52,y:93,label:'G',isGoalie:true} ],
         ball:{x:44,y:36}, arrows:[] },
       { duration: 3.5, caption: 'Over-retreating opened the inside lane. Carrier cut right and scored unchallenged.',
@@ -250,7 +250,7 @@ export const TACTICS = [
       'If neither calls it, default rule: pick up the attacker closest to the net',
       'Silent defense is the clearest sign a team is disorganized'
     ],
-    mistakeScene: { phases: [
+    mistakeScene: { coverage: { LD:'o1', C:'o2', RD:'o3', LW:'o4', RW:'o5' }, phases: [
       { duration: 3.5, caption: 'They enter our zone. Two forwards set up a crossing move.',
         our: { G:{x:50,y:7}, LW:{x:28,y:40}, C:{x:50,y:44}, RW:{x:68,y:40}, LD:{x:38,y:28}, RD:{x:62,y:28} },
         opp: [ {id:'o1',x:30,y:32,label:'RW',hasBall:true},{id:'o2',x:54,y:36,label:'C'},{id:'o3',x:74,y:32,label:'LW'},{id:'o4',x:36,y:50,label:'RD'},{id:'o5',x:66,y:50,label:'LD'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
@@ -268,7 +268,7 @@ export const TACTICS = [
         opp: [ {id:'o1',x:52,y:16,label:'LW'},{id:'o2',x:55,y:24,label:'C'},{id:'o3',x:76,y:30,label:'LW'},{id:'o4',x:40,y:44,label:'LD'},{id:'o5',x:64,y:44,label:'LD'},{id:'og',x:51,y:93,label:'G',isGoalie:true} ],
         ball:{x:50,y:7}, arrows:[{from:{x:56,y:24},to:{x:52,y:16},type:'pass'},{from:{x:52,y:16},to:{x:50,y:7},type:'shot'}] },
     ]},
-    correctScene: { coverage: { LD:'o1', C:'o2' }, phases: [
+    correctScene: { coverage: { LD:'o1', C:'o2', RD:'o3', LW:'o4', RW:'o5' }, phases: [
       { duration: 3.5, caption: 'They enter our zone. Two forwards set up a crossing move.',
         our: { G:{x:50,y:7}, LW:{x:28,y:40}, C:{x:51,y:29}, RW:{x:68,y:40}, LD:{x:38,y:28}, RD:{x:62,y:28} },
         opp: [ {id:'o1',x:30,y:32,label:'RW',hasBall:true},{id:'o2',x:54,y:36,label:'C'},{id:'o3',x:74,y:32,label:'LW'},{id:'o4',x:36,y:50,label:'RD'},{id:'o5',x:66,y:50,label:'LD'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
