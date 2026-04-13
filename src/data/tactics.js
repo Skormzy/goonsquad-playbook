@@ -91,7 +91,7 @@ export const TACTICS = [
         opp: [ {id:'o1',x:44,y:38,label:'C',hasBall:true},{id:'o2',x:23,y:35,label:'LW'},{id:'o3',x:73,y:34,label:'RW'},{id:'o4',x:32,y:50,label:'LD'},{id:'o5',x:66,y:50,label:'RD'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
         ball:{x:44,y:38}, arrows:[] },
       { duration: 3, caption: 'LD charges straight. Rest of the team ball-watches too.',
-        our: { G:{x:48,y:7}, LW:{x:55,y:27}, C:{x:36,y:30}, RW:{x:29,y:36}, LD:{x:43,y:24}, RD:{x:50,y:18} },
+        our: { G:{x:48,y:7}, LW:{x:49,y:30}, C:{x:36,y:30}, RW:{x:29,y:36}, LD:{x:43,y:24}, RD:{x:50,y:18} },
         opp: [ {id:'o1',x:47,y:33,label:'C',hasBall:true},{id:'o2',x:22,y:28,label:'LW'},{id:'o3',x:72,y:28,label:'RW'},{id:'o4',x:30,y:45,label:'LD'},{id:'o5',x:66,y:44,label:'RD'},{id:'og',x:51,y:93,label:'G',isGoalie:true} ],
         ball:{x:42,y:30}, arrows:[] },
       { duration: 3, caption: 'Carrier cuts to the middle. Entire team caught on the wrong side.',
