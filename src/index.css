@@ -23,7 +23,7 @@ body {
   border-radius: 3px;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 1024px) {
   .app-content {
     zoom: 1.5;
   }

@@ -19,7 +19,10 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    try { return localStorage.getItem('theme') || 'dark'; } catch { return 'dark'; }
+    try {
+      const stored = localStorage.getItem('theme');
+      return (stored && THEMES[stored]) ? stored : 'dark';
+    } catch { return 'dark'; }
   });
 
   useEffect(() => {
