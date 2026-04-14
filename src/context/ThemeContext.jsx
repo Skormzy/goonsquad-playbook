@@ -18,10 +18,11 @@ export const THEMES = {
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
+  const validThemes = Object.keys(THEMES);
   const [theme, _setTheme] = useState(() => {
     try {
       const stored = localStorage.getItem('theme');
-      return Object.hasOwn(THEMES, stored) ? stored : 'dark';
+      return validThemes.includes(stored) ? stored : 'dark';
     } catch { return 'dark'; }
   });
 
@@ -29,7 +30,11 @@ export function ThemeProvider({ children }) {
     try { localStorage.setItem('theme', theme); } catch {}
   }, [theme]);
 
-  const setTheme = next => { if (Object.hasOwn(THEMES, next)) _setTheme(next); };
+  // Accepts both value ('dark') and updater function (t => ...) — validates resolved value.
+  const setTheme = next => {
+    const val = typeof next === 'function' ? next(theme) : next;
+    if (validThemes.includes(val)) _setTheme(val);
+  };
   const toggleTheme = () => _setTheme(t => t === 'dark' ? 'light' : 'dark');
 
   return (
