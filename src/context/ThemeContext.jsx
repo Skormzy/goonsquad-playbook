@@ -18,10 +18,10 @@ export const THEMES = {
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
+  const [theme, _setTheme] = useState(() => {
     try {
       const stored = localStorage.getItem('theme');
-      return (stored && THEMES[stored]) ? stored : 'dark';
+      return Object.hasOwn(THEMES, stored) ? stored : 'dark';
     } catch { return 'dark'; }
   });
 
@@ -29,7 +29,8 @@ export function ThemeProvider({ children }) {
     try { localStorage.setItem('theme', theme); } catch {}
   }, [theme]);
 
-  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+  const setTheme = next => { if (Object.hasOwn(THEMES, next)) _setTheme(next); };
+  const toggleTheme = () => _setTheme(t => t === 'dark' ? 'light' : 'dark');
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, themes: THEMES }}>
