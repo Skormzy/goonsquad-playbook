@@ -22,3 +22,9 @@ body {
   background: #334155;
   border-radius: 3px;
 }
+
+@media (min-width: 769px) {
+  .app-content {
+    zoom: 1.5;
+  }
+}

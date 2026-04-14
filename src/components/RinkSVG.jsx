@@ -186,7 +186,7 @@ function OpponentDots({ rph, t, theme }) {
 
     return (
       <g key={o.id} style={{ filter: theme === 'dark' ? 'url(#ng)' : 'none' }}>
-        <motion.circle animate={{ cx: ox, cy: oy }} transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }} r={10} fill={t.rk} opacity={0.9} />
+        <motion.circle animate={{ cx: ox, cy: oy }} transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }} r={10} fill="#dfe6f0" opacity={0.9} />
         <motion.circle animate={{ cx: ox, cy: oy }} transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }} r={10} fill="none" stroke={neon} strokeWidth={2} opacity={theme === 'dark' ? 0.95 : 0.75} />
         <motion.circle animate={{ cx: ox, cy: oy }} transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }} r={9} fill={neon} opacity={0.08} />
         <motion.text
@@ -317,15 +317,15 @@ export default function RinkSVG({ mode, phaseData, prevPhaseData, coverage }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxWidth: 380 }}>
       <defs>
         <radialGradient id="rg">
-          <stop offset="0%" stopColor={theme === 'dark' ? '#141e33' : '#dae2ee'} />
-          <stop offset="100%" stopColor={t.rk} />
+          <stop offset="0%" stopColor="#dae2ee" />
+          <stop offset="100%" stopColor="#dfe6f0" />
         </radialGradient>
         <filter id="ng">
           <feGaussianBlur stdDeviation="2" result="b" />
           <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
-      <rect x={4} y={4} width={W - 8} height={H - 8} rx={52} fill="url(#rg)" stroke={t.rs} strokeWidth={2.5} />
+      <rect x={4} y={4} width={W - 8} height={H - 8} rx={52} fill="url(#rg)" stroke="#bcc8d8" strokeWidth={2.5} />
       <RinkMarkings t={t} glY1={glY1} glY2={glY2} cx={cx} />
       <image
         href="/goonsquad.png"
@@ -333,7 +333,7 @@ export default function RinkSVG({ mode, phaseData, prevPhaseData, coverage }) {
         y={H * 0.32}
         width={306}
         height={H * 0.34}
-        opacity={theme === 'dark' ? 0.08 : 0.12}
+        opacity={0.12}
         preserveAspectRatio="xMidYMid meet"
         style={{ pointerEvents: 'none' }}
       />

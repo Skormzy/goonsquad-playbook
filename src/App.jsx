@@ -81,7 +81,7 @@ export default function App() {
     }}>
       <StrategyModal />
       <Header />
-      <div style={{ flex: 1, display: 'flex', position: 'relative' }}>
+      <div className="app-content" style={{ flex: 1, display: 'flex', position: 'relative' }}>
         {activeView === 'playbook' ? (
           <>
             {sidebarOpen && <Sidebar />}
