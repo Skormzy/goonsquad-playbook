@@ -30,10 +30,12 @@ export function ThemeProvider({ children }) {
     try { localStorage.setItem('theme', theme); } catch {}
   }, [theme]);
 
-  // Accepts both value ('dark') and updater function (t => ...) — validates resolved value.
+  // Accepts both value ('dark') and updater function (t => ...) — validates through _setTheme.
   const setTheme = next => {
-    const val = typeof next === 'function' ? next(theme) : next;
-    if (validThemes.includes(val)) _setTheme(val);
+    _setTheme(prev => {
+      const val = typeof next === 'function' ? next(prev) : next;
+      return validThemes.includes(val) ? val : prev;
+    });
   };
   const toggleTheme = () => _setTheme(t => t === 'dark' ? 'light' : 'dark');
 
