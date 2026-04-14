@@ -226,7 +226,7 @@ export const TACTICS = [
         our: { G:{x:50,y:8}, LW:{x:28,y:18}, C:{x:58,y:20}, LD:{x:28,y:10}, RD:{x:58,y:10} },
         opp: [ {id:'o1',x:18,y:36,label:'D1',hasBall:true},{id:'o2',x:78,y:36,label:'D2'},{id:'o3',x:12,y:14,label:'LW'},{id:'o4',x:82,y:24,label:'RW'},{id:'o5',x:20,y:4,label:'C'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
         ball:{x:18,y:36}, arrows:[{from:{x:12,y:14},to:{x:18,y:36},type:'pass'}] },
-      { duration: 3.5, caption: 'D1 tries the slot pass. LW is in the lane — picks it off. Box never broke.',
+      { duration: 3.5, caption: 'D1 tries the slot pass. Our LW is in the lane — picks it off. Box never broke.',
         our: { G:{x:50,y:8}, LW:{x:34,y:22,ball:true}, C:{x:62,y:22}, LD:{x:34,y:12}, RD:{x:62,y:12} },
         opp: [ {id:'o1',x:18,y:36,label:'D1'},{id:'o2',x:78,y:36,label:'D2'},{id:'o3',x:14,y:24,label:'LW'},{id:'o4',x:82,y:24,label:'RW'},{id:'o5',x:44,y:14,label:'C'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
         ball:{x:34,y:22}, arrows:[{from:{x:18,y:36},to:{x:44,y:14},type:'pass'}] },
