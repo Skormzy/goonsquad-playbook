@@ -36,15 +36,16 @@ function opp(phase, id) { return phase.opp.find(o => o.id === id); }
 }
 
 // ── btn Ph2 ───────────────────────────────────────────────────────────────────
-// C(65,92)↔RW(62,87)=5.8 | C↔D2(60,88)=6.4 | RW↔D2=2.2 | LW(32,84)↔F2(30,78)=6.3
-// LD(35,72)↔F2=7.8 | RD(65,72)↔F3(66,78)=6.1
+// Adversarial fix: RW was moved away from net-front by previous commit.
+// Restore RW to {62,87} (net-front). Slide C to right post {70,92} to clear C↔RW.
+// D2 → {55,92}. F2/F3 already at correct positions from previous commit.
 {
   const p = ph('btn', 2);
-  p.pos.RW = { ...p.pos.RW, x: 68, y: 82 };  // RW → {68,82}  C dist=10.4
-  opp(p, 'o2').x = 60; opp(p, 'o2').y = 82;  // D2 → {60,82}  C dist=11.2, RW dist=8.0
-  opp(p, 'o4').x = 24; opp(p, 'o4').y = 76;  // F2 → {24,76}  LW dist=11.3, LD dist=11.7
-  opp(p, 'o5').x = 75; opp(p, 'o5').y = 78;  // F3 → {75,78}  RD dist=11.7
-  console.log('✓ btn Ph2: RW/D2/F2/F3 spread');
+  p.pos.C = { ...p.pos.C, x: 70, y: 92 };    // C → right post
+  p.ball = { x: 70, y: 92 };                  // ball follows C (ball:true)
+  p.pos.RW = { ...p.pos.RW, x: 62, y: 87 };  // RW back at net-front
+  opp(p, 'o2').x = 55; opp(p, 'o2').y = 92;  // D2 → {55,92}  C=15, RW=8.6, F1=11.2
+  console.log('✓ btn Ph2: C right-post, RW restored net-front, D2 spread');
 }
 
 // ── brk Ph0 ───────────────────────────────────────────────────────────────────
@@ -89,12 +90,14 @@ function opp(phase, id) { return phase.opp.find(o => o.id === id); }
 }
 
 // ── nfd Ph1 ───────────────────────────────────────────────────────────────────
-// C(48,18)↔F2(52,14)=5.7 | LD(35,4)↔F1(42,2)=7.3
+// Adversarial fix: F1 was moved off the ball by previous commit. Restore F1 to {42,2}.
+// LD(35,4)↔F1(42,2)=7.3 — fix by moving LD to left post {28,4}.
+// F2 already at {62,12} from previous commit.
 {
   const p = ph('nfd', 1);
-  opp(p, 'o1').x = 28; opp(p, 'o1').y = 10;  // F1 → {28,10}  LD dist=9.2
-  opp(p, 'o2').x = 62; opp(p, 'o2').y = 12;  // F2 → {62,12}  C dist=15.2, RD dist=8.9
-  console.log('✓ nfd Ph1: F1/F2 spread');
+  opp(p, 'o1').x = 42; opp(p, 'o1').y = 2;   // F1 restored to ball {42,2}
+  p.pos.LD = { ...p.pos.LD, x: 28, y: 4 };   // LD → {28,4}   F1(42,2) dist=14.1
+  console.log('✓ nfd Ph1: F1 restored to ball, LD to left post');
 }
 
 // ── dzr Ph0 ───────────────────────────────────────────────────────────────────
