@@ -99,19 +99,20 @@ play('nzfc').phases[0].ball = { x:50, y:50 };
 // Our wings at y=80 (just above dot, attacking side).
 // Opp defending wings at y=71 (their side, 9-unit gap from ours).
 // Our D at point just inside offensive zone (y≈68). Their blue line is y≈64-65.
+// LD at x:12 (near left boards) — the natural left-point position. This achieves 8.54 clearance
+// from opp F1(20,71) at the correct hash position without displacing their alignment.
 // Opp D close to their own net (y≈86-88).
-// Opp F2(center) shifted to x:30 and F1(left wing) to x:14 to maintain 8-unit gap from our LD(22,68).
 play('ozfl').phases[0].pos = {
   LW: { x:18, y:80, role:"Boards-side hash, attack side. Battle for loose ball on the draw.", u:"hold" },
   C:  { x:28, y:82, role:"At the dot, attack side. Win draw back to LD.", u:"hold" },
   RW: { x:38, y:80, role:"Slot-side hash, attack side. Screen and battle.", u:"hold" },
-  LD: { x:22, y:68, role:"Strong-side point. Primary draw target. Receive and SHOOT.", u:"hold" },
+  LD: { x:12, y:68, role:"Strong-side point. Primary draw target. Receive and SHOOT.", u:"hold" },
   RD: { x:64, y:66, role:"Weak-side point. D-to-D option. Keep zone.", u:"hold" },
   G:  GK,
 };
 play('ozfl').phases[0].opp = [
-  { id:"o1", x:30, y:73, l:"F2" },
-  { id:"o2", x:14, y:71, l:"F1" },
+  { id:"o1", x:28, y:73, l:"F2" },
+  { id:"o2", x:20, y:71, l:"F1" },
   { id:"o3", x:38, y:71, l:"F3" },
   { id:"o4", x:12, y:88, l:"D1" },
   { id:"o5", x:68, y:86, l:"D2" },
@@ -126,13 +127,13 @@ play('ppfo').phases[0].pos = {
   LW: { x:18, y:80, role:"Boards-side hash, attack side. Retrieve if draw is messy.", u:"hold" },
   C:  { x:28, y:82, role:"At the dot, attack side. Win draw back to LD.", u:"hold" },
   RW: { x:50, y:86, role:"Net-front screen. Stay put.", u:"hold" },
-  LD: { x:22, y:68, role:"Strong-side point. Primary draw target. Receive and SHOOT.", u:"hold" },
+  LD: { x:12, y:68, role:"Strong-side point. Primary draw target. Receive and SHOOT.", u:"hold" },
   RD: { x:64, y:66, role:"Weak-side point. D-to-D option.", u:"hold" },
   G:  GK,
 };
 play('ppfo').phases[0].opp = [
-  { id:"o1", x:30, y:73, l:"PK" },  // PK center at dot — shifted to x:30 to clear our LD(22,68)
-  { id:"o2", x:14, y:71, l:"PK" },  // PK wing, boards-side hash — shifted to x:14 to clear our LD
+  { id:"o1", x:28, y:73, l:"PK" },  // PK center at dot axis
+  { id:"o2", x:20, y:71, l:"PK" },  // PK wing at correct boards-side hash mark
   { id:"o3", x:38, y:71, l:"PK" },  // PK wing, right hash
   { id:"o4", x:62, y:86, l:"PK" },  // PK back defender
   { id:"og", x:50, y:96, l:"G" },
