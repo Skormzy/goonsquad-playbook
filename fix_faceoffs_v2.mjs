@@ -35,9 +35,9 @@ function play(id) { return PLAYS.find(p => p.id === id); }
 // Opp wings face ours at same x, 9 y-units higher.
 // Our D behind C toward our net (y<19). Opp D near our blue line (y≈36).
 play('dzfl').phases[0].pos = {
-  LW: { x:18, y:21, role:"Left hash mark. Face their wing. Tie them up on the draw.", u:"hold" },
+  LW: { x:18, y:21, role:"Boards-side hash mark. Face their wing. Tie them up on the draw.", u:"hold" },
   C:  { x:28, y:19, role:"At the faceoff dot, our side. Win draw back to LD.", u:"hold" },
-  RW: { x:38, y:21, role:"Right hash mark. Face their wing. Block on the draw.", u:"hold" },
+  RW: { x:38, y:21, role:"Slot-side hash mark. Face their wing. Block on the draw.", u:"hold" },
   LD: { x:16, y:11, role:"Draw target, strong side behind C. Receive and move fast.", u:"hold" },
   RD: { x:48, y:16, role:"Between the circles. Weak-side coverage. Read and react.", u:"hold" },
   G:  GK,
@@ -55,9 +55,9 @@ play('dzfl').phases[0].ball = { x:28, y:21 };
 // Mirror of dzfl. Hash marks at x=64 and x=80.
 // RD is draw target (right side). LD is between circles.
 play('dzfr').phases[0].pos = {
-  LW: { x:62, y:21, role:"Left hash mark. Slot side. Tie up their wing.", u:"hold" },
+  LW: { x:62, y:21, role:"Slot-side hash mark. Tie up their wing.", u:"hold" },
   C:  { x:72, y:19, role:"At the faceoff dot, our side. Win draw back to RD.", u:"hold" },
-  RW: { x:82, y:21, role:"Right hash mark. Boards side. Tie up their wing.", u:"hold" },
+  RW: { x:82, y:21, role:"Boards-side hash mark. Tie up their wing.", u:"hold" },
   LD: { x:50, y:16, role:"Between circles. Weak-side coverage.", u:"hold" },
   RD: { x:84, y:11, role:"Draw target, strong side behind C. Receive and move fast.", u:"hold" },
   G:  GK,
@@ -98,19 +98,20 @@ play('nzfc').phases[0].ball = { x:50, y:50 };
 // Opp C on LOW y side (defend side, y=73).
 // Our wings at y=80 (just above dot, attacking side).
 // Opp defending wings at y=71 (their side, 9-unit gap from ours).
-// Our D at left/right point (y≈62-66), near their blue line.
+// Our D at point just inside offensive zone (y≈68). Their blue line is y≈64-65.
 // Opp D close to their own net (y≈86-88).
+// Opp F2(center) shifted to x:30 and F1(left wing) to x:14 to maintain 8-unit gap from our LD(22,68).
 play('ozfl').phases[0].pos = {
-  LW: { x:18, y:80, role:"Left hash, attack side. Battle for loose ball on the draw.", u:"hold" },
+  LW: { x:18, y:80, role:"Boards-side hash, attack side. Battle for loose ball on the draw.", u:"hold" },
   C:  { x:28, y:82, role:"At the dot, attack side. Win draw back to LD.", u:"hold" },
-  RW: { x:38, y:80, role:"Right hash, attack side. Screen and battle.", u:"hold" },
-  LD: { x:22, y:62, role:"Left point. Primary draw target. Receive and SHOOT.", u:"hold" },
-  RD: { x:64, y:66, role:"Right point. D-to-D option. Keep puck in zone.", u:"hold" },
+  RW: { x:38, y:80, role:"Slot-side hash, attack side. Screen and battle.", u:"hold" },
+  LD: { x:22, y:68, role:"Strong-side point. Primary draw target. Receive and SHOOT.", u:"hold" },
+  RD: { x:64, y:66, role:"Weak-side point. D-to-D option. Keep zone.", u:"hold" },
   G:  GK,
 };
 play('ozfl').phases[0].opp = [
-  { id:"o1", x:28, y:73, l:"F2" },
-  { id:"o2", x:18, y:71, l:"F1" },
+  { id:"o1", x:30, y:73, l:"F2" },
+  { id:"o2", x:14, y:71, l:"F1" },
   { id:"o3", x:38, y:71, l:"F3" },
   { id:"o4", x:12, y:88, l:"D1" },
   { id:"o5", x:68, y:86, l:"D2" },
@@ -122,16 +123,16 @@ play('ozfl').phases[0].ball = { x:28, y:79 };
 // Same dot as ozfl. RW is in screener position (intentional — not at hash mark).
 // PK team has only 4 skaters. PK1=center, PK2/3=wings, PK4=back defender.
 play('ppfo').phases[0].pos = {
-  LW: { x:18, y:80, role:"Left hash, attack side. Retrieve if draw is messy.", u:"hold" },
+  LW: { x:18, y:80, role:"Boards-side hash, attack side. Retrieve if draw is messy.", u:"hold" },
   C:  { x:28, y:82, role:"At the dot, attack side. Win draw back to LD.", u:"hold" },
   RW: { x:50, y:86, role:"Net-front screen. Stay put.", u:"hold" },
-  LD: { x:22, y:62, role:"Left point. Primary draw target. Receive and SHOOT.", u:"hold" },
-  RD: { x:64, y:66, role:"Right point. D-to-D option.", u:"hold" },
+  LD: { x:22, y:68, role:"Strong-side point. Primary draw target. Receive and SHOOT.", u:"hold" },
+  RD: { x:64, y:66, role:"Weak-side point. D-to-D option.", u:"hold" },
   G:  GK,
 };
 play('ppfo').phases[0].opp = [
-  { id:"o1", x:28, y:73, l:"PK" },  // PK center at dot
-  { id:"o2", x:18, y:71, l:"PK" },  // PK wing, left hash
+  { id:"o1", x:30, y:73, l:"PK" },  // PK center at dot — shifted to x:30 to clear our LD(22,68)
+  { id:"o2", x:14, y:71, l:"PK" },  // PK wing, boards-side hash — shifted to x:14 to clear our LD
   { id:"o3", x:38, y:71, l:"PK" },  // PK wing, right hash
   { id:"o4", x:62, y:86, l:"PK" },  // PK back defender
   { id:"og", x:50, y:96, l:"G" },
@@ -142,9 +143,9 @@ play('ppfo').phases[0].ball = { x:28, y:79 };
 // Short-handed (4v5). RW is in penalty box (kept at center ice as placeholder).
 // Same positions as dzfl but RW absent. RD protects net.
 play('pkfo').phases[0].pos = {
-  LW: { x:18, y:21, role:"Left hash mark. Battle for the draw. Get ball OUT.", u:"hold" },
+  LW: { x:18, y:21, role:"Boards-side hash mark. Battle for the draw. Get ball OUT.", u:"hold" },
   C:  { x:28, y:19, role:"At the dot, our side. Win draw to LD.", u:"hold" },
-  RW: { x:50, y:50, role:"Penalty box — off the ice.", u:"hold" },
+  RW: { x:50, y:50, role:"In the penalty box.", u:"hold" },
   LD: { x:16, y:11, role:"Draw target. Receive and CLEAR immediately.", u:"hold" },
   RD: { x:48, y:9,  role:"Net-front protection. Nobody scores unchecked.", u:"hold" },
   G:  GK,
