@@ -106,7 +106,7 @@ play('ozfl').phases[0].pos = {
   LW: { x:18, y:80, role:"Boards-side hash, attack side. Battle for loose ball on the draw.", u:"hold" },
   C:  { x:28, y:82, role:"At the dot, attack side. Win draw back to LD.", u:"hold" },
   RW: { x:38, y:80, role:"Slot-side hash, attack side. Screen and battle.", u:"hold" },
-  LD: { x:12, y:68, role:"Strong-side point. Primary draw target. Receive and SHOOT.", u:"hold" },
+  LD: { x:12, y:68, role:"Left boards at the blue line. Step to the point on the draw. Receive and SHOOT.", u:"hold" },
   RD: { x:64, y:66, role:"Weak-side point. D-to-D option. Keep zone.", u:"hold" },
   G:  GK,
 };
@@ -127,7 +127,7 @@ play('ppfo').phases[0].pos = {
   LW: { x:18, y:80, role:"Boards-side hash, attack side. Retrieve if draw is messy.", u:"hold" },
   C:  { x:28, y:82, role:"At the dot, attack side. Win draw back to LD.", u:"hold" },
   RW: { x:50, y:86, role:"Net-front screen. Stay put.", u:"hold" },
-  LD: { x:12, y:68, role:"Strong-side point. Primary draw target. Receive and SHOOT.", u:"hold" },
+  LD: { x:12, y:68, role:"Left boards at the blue line. Step to the point on the draw. Receive and SHOOT.", u:"hold" },
   RD: { x:64, y:66, role:"Weak-side point. D-to-D option.", u:"hold" },
   G:  GK,
 };
