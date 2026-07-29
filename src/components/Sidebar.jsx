@@ -137,8 +137,8 @@ export default function Sidebar({ embedded = false }) {
               border: `1px solid ${tab.active ? t.ac : t.bd}`,
               background: tab.active ? t.ab : 'transparent',
               color: tab.active ? t.ac : t.td,
-              fontSize: 8.5, fontWeight: 700, fontFamily: 'monospace',
-              cursor: 'pointer', letterSpacing: 0.5, transition: 'all .15s',
+              fontSize: 10, fontWeight: 800, fontFamily: 'var(--font-display)',
+              cursor: 'pointer', letterSpacing: 0, transition: 'all .15s',
             }}
           >
             {tab.label}
