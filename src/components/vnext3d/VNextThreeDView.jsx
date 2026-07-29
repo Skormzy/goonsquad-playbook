@@ -2,9 +2,7 @@ import { lazy, Suspense } from 'react';
 import { useApp } from '../../context/AppContext';
 import { VNEXT_3D_GATES, VNEXT_3D_RELEASE } from '../../vnext3d/productionReadiness';
 
-const TacticalReplayPreview = import.meta.env.DEV
-  ? lazy(() => import('../../tactical3d/TacticalReplayPreview'))
-  : null;
+const TacticalReplayPreview = lazy(() => import('../../tactical3d/TacticalReplayPreview'));
 
 const STATUS_LABELS = Object.freeze({
   accepted: 'ACCEPTED',
@@ -23,7 +21,7 @@ export default function VNextThreeDView() {
     setActiveView,
   } = useApp();
 
-  if (import.meta.env.DEV && TacticalReplayPreview) {
+  if (import.meta.env.DEV || VNEXT_3D_RELEASE.acceptedForPublicRuntime) {
     return (
       <Suspense fallback={<main className="vnext3d-preview-empty"><strong>Loading strategy replay...</strong></main>}>
         <TacticalReplayPreview />

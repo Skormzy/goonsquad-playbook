@@ -37,7 +37,7 @@ describe('public product scope', () => {
     expect(context).toContain('includeInternal: import.meta.env.DEV');
   });
 
-  it('keeps the rejected legacy athlete renderer out of the public vNext route', () => {
+  it('publishes only the accepted tactical replay renderer on the public vNext route', () => {
     const app = read('src/App.jsx');
     const vnext3d = read('src/components/vnext3d/VNextThreeDView.jsx');
 
@@ -46,7 +46,8 @@ describe('public product scope', () => {
     expect(vnext3d).not.toContain('ReplayCanvas');
     expect(vnext3d).not.toContain('ReplayPlayer');
     expect(vnext3d).not.toContain('ReplayCourt');
-    expect(vnext3d).toContain('const TacticalReplayPreview = import.meta.env.DEV');
+    expect(vnext3d).toContain('const TacticalReplayPreview = lazy');
+    expect(vnext3d).toContain('VNEXT_3D_RELEASE.acceptedForPublicRuntime');
     expect(vnext3d).toContain("lazy(() => import('../../tactical3d/TacticalReplayPreview'))");
   });
 

@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { canRenderVNext3D, VNEXT_3D_GATES, VNEXT_3D_RELEASE } from './productionReadiness';
 
 describe('vNext 3D production gate', () => {
-  it('fails closed until a production athlete is visually accepted', () => {
-    expect(canRenderVNext3D()).toBe(false);
-    expect(VNEXT_3D_RELEASE.acceptedForPublicRuntime).toBe(false);
+  it('releases only the accepted tactical-distance runtime', () => {
+    expect(canRenderVNext3D()).toBe(true);
+    expect(VNEXT_3D_RELEASE.acceptedForPublicRuntime).toBe(true);
     expect(VNEXT_3D_RELEASE.rejectedRuntime).toBe('legacy-generated-athlete');
   });
 
-  it('does not unlock the full replay ahead of its asset gates', () => {
+  it('records every public replay gate as accepted', () => {
     expect(VNEXT_3D_GATES.map((gate) => gate.id)).toEqual([
       'athlete',
       'equipment',
@@ -18,6 +18,6 @@ describe('vNext 3D production gate', () => {
     expect(VNEXT_3D_GATES[0]?.status).toBe('accepted');
     expect(VNEXT_3D_GATES[1]).toMatchObject({ status: 'accepted', statusLabel: 'AUTHORED' });
     expect(VNEXT_3D_GATES[2]).toMatchObject({ status: 'accepted', statusLabel: 'CONTACT LOCKED' });
-    expect(VNEXT_3D_GATES.at(-1)).toMatchObject({ status: 'review', statusLabel: 'RUNTIME REVIEW' });
+    expect(VNEXT_3D_GATES.at(-1)).toMatchObject({ status: 'accepted', statusLabel: 'PUBLIC' });
   });
 });

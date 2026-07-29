@@ -80,9 +80,9 @@ describe('vNext production athlete runtime', () => {
     expect(preview).toContain('gl={{ antialias: renderProfile.antialias');
   });
 
-  it('keeps the runtime in review until visual and performance gates finish', () => {
-    expect(VNEXT_3D_RELEASE.acceptedForPublicRuntime).toBe(false);
-    expect(VNEXT_3D_GATES.at(-1)).toMatchObject({ status: 'review', statusLabel: 'RUNTIME REVIEW' });
+  it('publishes the runtime after visual and performance gates finish', () => {
+    expect(VNEXT_3D_RELEASE.acceptedForPublicRuntime).toBe(true);
+    expect(VNEXT_3D_GATES.at(-1)).toMatchObject({ status: 'accepted', statusLabel: 'PUBLIC' });
   });
 
   it('records nonblank desktop, tablet, mobile, and paired close-camera evidence', () => {
