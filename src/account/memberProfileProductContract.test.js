@@ -25,6 +25,8 @@ describe('member profile product contract', () => {
     expect(workspace).toContain('UsernameField');
     expect(cloud).toContain("provider: 'google'");
     expect(cloud).toContain('resetPasswordForEmail');
+    expect(cloud).toContain("window.location.origin");
+    expect(cloud).toContain('runtimeOrigin || publicAppUrl');
   });
 
   it('routes members through dedicated account and profile workspaces', () => {

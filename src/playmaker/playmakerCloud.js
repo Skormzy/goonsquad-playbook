@@ -39,8 +39,8 @@ export function watchPlaymakerCloudSession(callback) {
 }
 
 function appRedirectUrl(params = {}) {
-  const configuredOrigin = import.meta.env.PROD ? publicAppUrl : null;
-  const origin = String(configuredOrigin || window.location.origin).replace(/\/$/u, '');
+  const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const origin = String(runtimeOrigin || publicAppUrl).replace(/\/$/u, '');
   const url = new URL(`${origin}/`);
   Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
   return url.toString();
