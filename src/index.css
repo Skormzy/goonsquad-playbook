@@ -25,12 +25,12 @@
   --gs-shadow: rgba(0, 0, 0, 0.34);
   --font-body: "Manrope Variable", "Segoe UI Variable", sans-serif;
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
-  --type-micro: 10px;
-  --type-label: 11px;
-  --type-small: 12px;
-  --type-body: 13px;
-  --type-control: 12px;
-  --type-data: 12px;
+  --type-micro: 11px;
+  --type-label: 12px;
+  --type-small: 13px;
+  --type-body: 14px;
+  --type-control: 13px;
+  --type-data: 13px;
 }
 
 :root[data-theme="light"] {
@@ -52,6 +52,14 @@
   --gs-overlay-muted: #59616a;
   --gs-scrim: rgba(20, 23, 27, 0.28);
   --gs-shadow: rgba(31, 41, 55, 0.16);
+}
+
+:root[data-theme="dark"] .workspace-switcher {
+  --ws-muted: #a2acb7 !important;
+}
+
+:root[data-theme="light"] .workspace-switcher {
+  --ws-muted: #52606c !important;
 }
 
 * {
@@ -996,6 +1004,12 @@ input:focus:not(:focus-visible) { outline: none; }
   font: 900 10px/1.25 var(--font-display);
   letter-spacing: 0;
   text-transform: uppercase;
+}
+
+:root[data-theme="light"] .team-job-lenses button.is-active,
+:root[data-theme="light"] .team-job-card > span,
+:root[data-theme="light"] .team-job-detail-heading > span {
+  color: color-mix(in srgb, var(--job-accent) 54%, #071014);
 }
 
 .team-job-card > div {
@@ -2363,7 +2377,7 @@ input:focus:not(:focus-visible) { outline: none; }
   --guide-border: #2a2e34;
   --guide-text: #f4f6f7;
   --guide-muted: #9aa3ad;
-  --guide-dim: #626c77;
+  --guide-dim: #919ca7;
   --guide-accent: #38d7ff;
   --guide-accent-bg: #38d7ff14;
   --guide-brand: #e3263f;
@@ -2376,7 +2390,7 @@ input:focus:not(:focus-visible) { outline: none; }
   --guide-border: #cfd3d8;
   --guide-text: #14171b;
   --guide-muted: #59616a;
-  --guide-dim: #87909a;
+  --guide-dim: #56616c;
   --guide-accent: #007f9d;
   --guide-accent-bg: #007f9d12;
   --guide-brand: #c91835;
@@ -3629,6 +3643,15 @@ input:focus:not(:focus-visible) { outline: none; }
   gap: 4px;
 }
 
+.playmaker-3d-tools .vnext3d-camera-gesture-control {
+  position: static;
+  display: flex;
+  gap: 3px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .playmaker-3d-tools button,
 .playmaker-fullscreen-transport button {
   display: inline-flex;
@@ -3715,7 +3738,7 @@ input:focus:not(:focus-visible) { outline: none; }
   left: max(12px, env(safe-area-inset-left));
   z-index: 8;
   display: grid;
-  grid-template-columns: 34px 34px minmax(0, 1fr) auto 70px;
+  grid-template-columns: 34px 34px minmax(196px, auto) minmax(0, 1fr) auto 70px;
   gap: 7px;
   align-items: center;
   padding: 8px;
@@ -3726,11 +3749,40 @@ input:focus:not(:focus-visible) { outline: none; }
   box-shadow: 0 12px 30px var(--gs-shadow);
 }
 
-.playmaker-fullscreen-transport span {
+.playmaker-fullscreen-transport > span {
   min-width: 74px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: var(--type-micro);
   text-align: right;
+}
+
+.playmaker-fullscreen-moment-nav {
+  display: grid;
+  grid-template-columns: 34px minmax(110px, 1fr) 34px;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+}
+
+.playmaker-fullscreen-moment-nav output {
+  display: grid;
+  min-width: 0;
+  line-height: 1.05;
+}
+
+.playmaker-fullscreen-moment-nav output span {
+  color: var(--pm-accent);
+  font-family: var(--font-display);
+  font-size: var(--type-label);
+  font-weight: 900;
+  text-align: left;
+}
+
+.playmaker-fullscreen-moment-nav output strong {
+  overflow: hidden;
+  font-size: var(--type-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .playmaker-fullscreen-transport select {
@@ -4353,14 +4405,24 @@ input:focus:not(:focus-visible) { outline: none; }
   background: var(--stats-bg);
 }
 
+:root[data-theme="dark"] .stats-workspace {
+  --stats-muted: #aab3bc !important;
+  --stats-dim: #919ca7 !important;
+}
+
+:root[data-theme="light"] .stats-workspace {
+  --stats-muted: #4f5a65 !important;
+  --stats-dim: #56616c !important;
+}
+
 .stats-workspace-header {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  min-height: 112px;
-  padding: 24px clamp(14px, 3vw, 34px) 22px;
+  min-height: 98px;
+  padding: 18px clamp(14px, 3vw, 34px) 17px;
   border-bottom: 1px solid var(--stats-border);
   background: var(--stats-surface);
 }
@@ -4390,8 +4452,9 @@ input:focus:not(:focus-visible) { outline: none; }
 .stats-title h1 {
   margin: 4px 0 6px;
   font-family: var(--font-display);
-  font-size: clamp(32px, 4vw, 44px);
-  line-height: 1;
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 0.96;
 }
 
 .stats-title p {
@@ -4892,6 +4955,27 @@ input:focus:not(:focus-visible) { outline: none; }
   background: color-mix(in srgb, var(--stats-accent) 5%, transparent);
 }
 
+.stats-player-link {
+  appearance: none;
+  max-width: 100%;
+  padding: 2px 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  color: var(--stats-text);
+  font: inherit;
+  font-weight: 850;
+  text-align: left;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+
+.stats-player-link:hover,
+.stats-player-link:focus-visible {
+  border-color: var(--stats-accent);
+  color: var(--stats-accent);
+}
+
 .stats-result {
   min-width: 24px;
   display: inline-flex;
@@ -4903,9 +4987,33 @@ input:focus:not(:focus-visible) { outline: none; }
   font-weight: 900;
 }
 
-.stats-result.is-w { color: #22c55e; }
+.stats-result.is-w { color: #4ade80; }
 .stats-result.is-l { color: var(--stats-brand); }
-.stats-result.is-t { color: #f59e0b; }
+.stats-result.is-t { color: #fbbf24; }
+
+:root[data-theme="light"] .stats-result.is-w,
+:root[data-theme="light"] .stats-matchday-card[data-result='win'] .stats-matchday-main b,
+:root[data-theme="light"] .stats-schedule-status,
+:root[data-theme="light"] .stats-game-score.is-win > span {
+  color: #08783e;
+}
+
+:root[data-theme="light"] .stats-result.is-t,
+:root[data-theme="light"] .stats-schedule-status[data-complete='false'],
+:root[data-theme="light"] .stats-game-score.is-tie > span {
+  color: #9a4c00;
+}
+
+:root[data-theme="dark"] .stats-matchday-card[data-result='win'] .stats-matchday-main b,
+:root[data-theme="dark"] .stats-schedule-status,
+:root[data-theme="dark"] .stats-game-score.is-win > span {
+  color: #4ade80;
+}
+
+:root[data-theme="dark"] .stats-schedule-status[data-complete='false'],
+:root[data-theme="dark"] .stats-game-score.is-tie > span {
+  color: #fbbf24;
+}
 
 .stats-stage-label {
   color: var(--stats-muted);
@@ -5112,9 +5220,170 @@ input:focus:not(:focus-visible) { outline: none; }
   color: var(--stats-accent);
 }
 
+.stats-player-view,
 .stats-player-tables {
   display: grid;
   gap: 12px;
+}
+
+.stats-player-directory {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--stats-border);
+  border-top: 3px solid var(--stats-accent);
+  border-radius: 7px;
+  background: var(--stats-surface);
+}
+
+.stats-player-directory > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px;
+  border-bottom: 1px solid var(--stats-border);
+}
+
+.stats-player-directory > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.stats-player-directory > header span {
+  color: var(--stats-accent);
+  font-family: var(--font-display);
+  font-size: var(--type-label);
+  font-weight: 850;
+}
+
+.stats-player-directory > header strong {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.stats-player-directory > header small {
+  color: var(--stats-muted);
+  font-size: var(--type-small);
+}
+
+.stats-player-directory > header label {
+  min-width: min(330px, 42vw);
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border: 1px solid var(--stats-border);
+  border-radius: 5px;
+  background: var(--stats-panel);
+  color: var(--stats-muted);
+}
+
+.stats-player-directory > header label:focus-within {
+  border-color: var(--stats-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--stats-accent) 17%, transparent);
+}
+
+.stats-player-directory > header label svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.stats-player-directory > header input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--stats-text);
+  font-size: var(--type-control);
+}
+
+.stats-player-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stats-player-directory-grid > button {
+  min-width: 0;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-right: 1px solid var(--stats-border);
+  border-bottom: 1px solid var(--stats-border);
+  background: transparent;
+  color: var(--stats-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.stats-player-directory-grid > button:nth-child(3n) {
+  border-right: 0;
+}
+
+.stats-player-directory-grid > button:hover,
+.stats-player-directory-grid > button:focus-visible {
+  background: color-mix(in srgb, var(--stats-accent) 8%, transparent);
+  color: var(--stats-accent);
+}
+
+.stats-player-directory-number {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--stats-brand) 55%, var(--stats-border));
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--stats-brand) 10%, var(--stats-panel));
+  color: var(--stats-brand);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.stats-player-directory-grid > button > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.stats-player-directory-grid strong,
+.stats-player-directory-grid small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats-player-directory-grid strong {
+  font-size: var(--type-body);
+}
+
+.stats-player-directory-grid small {
+  color: var(--stats-muted);
+  font-size: var(--type-label);
+}
+
+.stats-player-directory-grid svg {
+  width: 17px;
+  height: 17px;
+  color: var(--stats-muted);
+}
+
+.stats-player-directory-empty,
+.stats-player-directory-count {
+  margin: 0;
+  padding: 16px;
+  color: var(--stats-muted);
+  font-size: var(--type-small);
+  text-align: center;
 }
 
 .stats-game-view {
@@ -6253,7 +6522,7 @@ input:focus:not(:focus-visible) { outline: none; }
   }
 
   .stats-title h1 {
-    font-size: 28px;
+    font-size: 34px;
   }
 
   .stats-season-controls {
@@ -6270,6 +6539,28 @@ input:focus:not(:focus-visible) { outline: none; }
 
   .stats-tabs button {
     flex: 1;
+  }
+
+  .stats-player-directory > header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .stats-player-directory > header label {
+    min-width: 0;
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .stats-player-directory-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-player-directory-grid > button,
+  .stats-player-directory-grid > button:nth-child(3n) {
+    min-height: 70px;
+    border-right: 0;
   }
 
   .stats-team-switcher,
@@ -6766,10 +7057,10 @@ input:focus:not(:focus-visible) { outline: none; }
   }
 
   .playmaker-fullscreen-transport {
-    grid-template-columns: 34px 34px minmax(0, 1fr) 58px;
+    grid-template-columns: 34px 34px minmax(180px, auto) minmax(0, 1fr) 58px;
   }
 
-  .playmaker-fullscreen-transport span {
+  .playmaker-fullscreen-transport > span {
     display: none;
   }
 
@@ -6823,7 +7114,7 @@ input:focus:not(:focus-visible) { outline: none; }
   }
 
   .playmaker-fullscreen-transport {
-    grid-template-columns: 34px 34px minmax(0, 1fr) 56px;
+    grid-template-columns: 34px 34px minmax(158px, auto) minmax(0, 1fr) 56px;
     gap: 5px;
   }
 
@@ -7693,6 +7984,14 @@ input:focus:not(:focus-visible) { outline: none; }
     bottom: 234px;
   }
 
+  .vnext3d-preview-stage.is-immersive[data-fullscreen-toolbar='expanded'] .vnext3d-camera-operator {
+    bottom: 232px;
+  }
+
+  .vnext3d-preview-stage.is-immersive[data-fullscreen-toolbar='expanded'] .vnext3d-camera-state {
+    bottom: 282px;
+  }
+
   .vnext3d-camera-operator button {
     width: 32px;
     height: 32px;
@@ -7983,6 +8282,11 @@ input:focus:not(:focus-visible) { outline: none; }
   --play-panel: var(--gs-panel);
 }
 
+.vnext3d-stage-transport .vnext3d-variant-picker.is-immersive {
+  width: min(100%, 340px);
+  margin: 0 auto 7px;
+}
+
 .vnext3d-content-picker label > span,
 .vnext3d-preview-identity > span,
 .vnext3d-role-plan span {
@@ -8097,6 +8401,16 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 @media (max-width: 760px) {
+  .vnext3d-preview-view {
+    grid-template-rows: auto auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .vnext3d-preview-stage:not(:fullscreen):not(.is-immersive) {
+    min-height: min(46svh, 420px);
+  }
+
   .vnext3d-content-picker label > span,
   .vnext3d-preview-identity > span,
   .vnext3d-role-plan span {
@@ -8621,11 +8935,11 @@ input:focus:not(:focus-visible) { outline: none; }
 
 @media (max-width: 760px) {
   .vnext3d-preview-stage .vnext3d-stage-camera-presets {
-    top: 58px;
+    top: 64px;
   }
 
   .vnext3d-preview-stage .vnext3d-role-camera-selector {
-    top: 110px;
+    top: 120px;
   }
 
   .vnext3d-preview-stage:fullscreen .vnext3d-catalog-drawer,
@@ -8645,7 +8959,7 @@ input:focus:not(:focus-visible) { outline: none; }
   }
 
   .vnext3d-preview-stage:not(:fullscreen):not(.is-immersive) {
-    height: max(260px, calc(100dvh - 107px));
+    height: max(260px, calc(100dvh - 115px));
     min-height: 260px;
   }
 }
@@ -8665,14 +8979,14 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 .tactics-desktop-workspace {
-  width: min(100%, 770px);
+  width: min(100%, 1120px);
   min-width: 0;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(350px, 430px) minmax(220px, 290px);
+  grid-template-columns: minmax(460px, 720px) minmax(292px, 340px);
   align-items: start;
   justify-content: center;
-  gap: 14px;
+  gap: 24px;
 }
 
 .tactics-rink-column,
@@ -8715,7 +9029,7 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 .tactics-mobile-rink {
-  width: min(82vw, 330px);
+  width: min(75vw, 330px);
   flex: 0 0 auto;
 }
 
@@ -8847,9 +9161,9 @@ input:focus:not(:focus-visible) { outline: none; }
 
 @media (max-width: 760px), (pointer: coarse) {
   .app-header-icon-button {
-    width: 40px;
-    height: 40px;
-    flex-basis: 40px;
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
   }
 
   .app-header-icon-button svg {
@@ -8858,22 +9172,23 @@ input:focus:not(:focus-visible) { outline: none; }
   }
 
   .workspace-segment-button {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .curriculum-lane-switch.is-compact button {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .workspace-view-group .workspace-segment-button,
   .guide-nav button {
-    min-width: 40px;
+    min-width: 44px;
   }
 
   .stats-team-switcher button,
   .stats-stage-switcher button,
   .stats-tabs button,
   .stats-manager-tabs button,
+  .stats-season-controls select,
   .stats-game-opponent,
   .stats-game-detail-button,
   .stats-game-page-toolbar button,
@@ -8884,14 +9199,14 @@ input:focus:not(:focus-visible) { outline: none; }
   .guide-nav button,
   .guide-icon-button,
   .guide-primary-action {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .stats-game-detail-button,
   .account-icon-button,
   .guide-icon-button {
-    min-width: 40px;
-    height: 40px;
+    min-width: 44px;
+    height: 44px;
   }
 
   .stats-game-detail-button {
@@ -8902,38 +9217,43 @@ input:focus:not(:focus-visible) { outline: none; }
 
   .account-icon-button,
   .guide-icon-button {
-    width: 40px;
+    width: 44px;
   }
 
   .stats-game-opponent {
-    min-width: 40px;
+    min-width: 44px;
   }
 
   .play-library-overlay {
     width: min(88vw, 320px) !important;
   }
 
+  .play-library-overlay button[aria-label='Close play library'] {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
   .play-library-search {
-    min-height: 42px;
+    min-height: 44px;
   }
 
   .play-library-search input,
   .play-library-tabs button,
   .play-library-filter,
   .play-library-favorite {
-    min-height: 40px !important;
+    min-height: 44px !important;
   }
 
   .play-library-filter,
   .play-library-favorite {
-    min-width: 40px !important;
+    min-width: 44px !important;
   }
 
   .play-library-favorite {
     top: 50% !important;
     right: 2px !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 44px !important;
+    height: 44px !important;
     transform: translateY(-50%);
   }
 
@@ -8946,7 +9266,7 @@ input:focus:not(:focus-visible) { outline: none; }
   .faceoff-outcome-options button,
   .team-job-lenses button,
   .play-strategy-button {
-    min-height: 40px !important;
+    min-height: 44px !important;
   }
 
   .play-bottom-sheet.is-open {
@@ -8968,8 +9288,8 @@ input:focus:not(:focus-visible) { outline: none; }
   .playback-phase-markers button {
     top: 50%;
     left: clamp(20px, var(--playback-marker-position), calc(100% - 20px));
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border: 0;
     background: transparent;
     transform: translate(-50%, -50%);
@@ -9003,17 +9323,17 @@ input:focus:not(:focus-visible) { outline: none; }
   .tactics-speed-button,
   .tactics-neighbor-nav button,
   .tactics-linked-play {
-    min-height: 40px !important;
+    min-height: 44px !important;
   }
 
   .tactics-playback-button {
-    min-width: 40px;
+    min-width: 44px;
   }
 
   .tactics-phase-dot {
-    width: 40px;
-    height: 40px;
-    flex-basis: 40px;
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
   }
 
   .tactics-playback {
@@ -9023,7 +9343,7 @@ input:focus:not(:focus-visible) { outline: none; }
 
   .tactics-playback > [role='group'] {
     display: grid !important;
-    grid-template-columns: repeat(3, 40px);
+    grid-template-columns: repeat(3, 44px);
   }
 
   .tactics-speed-button {
@@ -9041,7 +9361,7 @@ input:focus:not(:focus-visible) { outline: none; }
 
   .playmaker-title-input,
   .playmaker-description-input {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .playmaker-view-switch {
@@ -9064,13 +9384,13 @@ input:focus:not(:focus-visible) { outline: none; }
   .playmaker-modal button,
   .playmaker-modal input,
   .playmaker-tutorial-card button {
-    min-height: 40px !important;
+    min-height: 44px !important;
   }
 
   .playmaker-context-help summary,
   .playmaker-add-moment,
   .playmaker-tutorial-header button {
-    min-width: 40px !important;
+    min-width: 44px !important;
   }
 
   .playmaker-toolbar-actions {
@@ -9083,9 +9403,9 @@ input:focus:not(:focus-visible) { outline: none; }
   .playmaker-transport .playmaker-icon-button,
   .playmaker-moment-actions .playmaker-icon-button,
   .playmaker-modal .playmaker-icon-button {
-    width: 40px !important;
-    height: 40px !important;
-    flex-basis: 40px !important;
+    width: 44px !important;
+    height: 44px !important;
+    flex-basis: 44px !important;
   }
 
   .playmaker-moments > button {
@@ -9104,7 +9424,7 @@ input:focus:not(:focus-visible) { outline: none; }
   .vnext3d-catalog-heading button,
   .vnext3d-catalog-search,
   .vnext3d-catalog-item {
-    min-height: 40px !important;
+    min-height: 44px !important;
   }
 
   .playmaker-3d-cameras button {
@@ -9113,27 +9433,65 @@ input:focus:not(:focus-visible) { outline: none; }
 
   .playmaker-3d-tools button,
   .playmaker-fullscreen-transport button {
-    min-width: 40px;
+    min-width: 44px;
   }
 
   .playmaker-speed-control select {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .playmaker-layer-panel label {
-    min-height: 40px;
+    min-height: 44px;
   }
 
   .vnext3d-preview-view button,
   .vnext3d-catalog-search,
   .vnext3d-catalog-search input {
-    min-height: 40px !important;
+    min-height: 44px !important;
   }
 
   .vnext3d-sequence-step,
   .vnext3d-camera-operator button,
   .vnext3d-catalog-heading button {
-    min-width: 40px;
+    min-width: 44px;
+  }
+
+  .play-mobile-view-tools button,
+  .playback-icon-button,
+  .playback-play-button,
+  .playback-speed-control select,
+  .stats-player-link,
+  .vnext3d-role-camera-selector button {
+    min-height: 44px !important;
+  }
+
+  .playback-icon-button,
+  .vnext3d-role-camera-selector button {
+    min-width: 44px;
+  }
+
+  .playback-range-wrap,
+  .playback-range-wrap input[type='range'] {
+    min-height: 44px;
+  }
+
+  .playback-range-wrap input[type='range']::-webkit-slider-thumb {
+    width: 19px;
+    height: 19px;
+    margin-top: -8px;
+  }
+
+  .playback-range-wrap input[type='range']::-moz-range-thumb {
+    width: 17px;
+    height: 17px;
+  }
+
+  .playback-transport-buttons {
+    grid-template-columns: 44px 44px 44px 84px 44px;
+  }
+
+  .playback-play-button {
+    width: 84px;
   }
 
   .guide-panel {
@@ -9147,19 +9505,70 @@ input:focus:not(:focus-visible) { outline: none; }
 
 @media (max-width: 380px) {
   .playback-transport-buttons {
-    grid-template-columns: 40px 40px 40px 70px 40px;
+    grid-template-columns: repeat(5, 44px);
   }
 
   .playback-icon-button {
-    width: 40px;
+    width: 44px;
   }
 
   .playback-play-button {
-    width: 70px;
+    width: 44px;
+  }
+
+  .playback-play-button span {
+    display: none;
   }
 }
 
 @media (max-height: 520px) and (orientation: landscape) {
+  .play-mobile-timeline,
+  .tactics-mobile-transport,
+  .playmaker-timeline {
+    position: sticky;
+    z-index: 8;
+    bottom: 0;
+    padding: 4px 8px max(4px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--gs-border);
+    background: color-mix(in srgb, var(--gs-overlay-solid) 96%, transparent);
+    box-shadow: 0 -8px 22px var(--gs-shadow);
+  }
+
+  .play-mobile-timeline .play-neighbor-nav {
+    display: none;
+  }
+
+  .play-mobile-timeline .play-phase-summary {
+    display: block;
+    overflow: hidden;
+    max-height: 22px;
+    margin: 0;
+    font-size: var(--type-small);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .vnext3d-stage-transport {
+    padding: 4px max(8px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  }
+
+  .vnext3d-stage-transport .playback-controls {
+    gap: 4px;
+  }
+
+  .vnext3d-stage-transport .playback-phase-selector {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .vnext3d-stage-transport .playback-phase-rail button {
+    min-width: 112px;
+    height: 44px;
+  }
+
+  .vnext3d-stage-transport .playback-transport-row {
+    min-height: 44px;
+  }
+
   .playmaker-workspace {
     grid-template-rows: auto minmax(148px, 1fr) auto;
   }
@@ -9211,12 +9620,22 @@ input:focus:not(:focus-visible) { outline: none; }
   }
 
   .playmaker-preview-caption {
-    display: none;
+    position: absolute;
+    z-index: 7;
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    display: grid;
+    min-height: 34px;
+    padding: 5px 8px;
+    border: 1px solid var(--pm-border);
+    background: var(--gs-overlay);
+    pointer-events: none;
   }
 
   .playmaker-timeline {
     grid-template-columns: auto minmax(140px, 1fr) auto;
-    grid-template-rows: 40px;
+    grid-template-rows: 44px;
     gap: 4px 8px;
     padding: 4px 8px max(4px, env(safe-area-inset-bottom));
   }
@@ -9263,9 +9682,12 @@ input:focus:not(:focus-visible) { outline: none; }
     grid-row: 4;
   }
 
-  .tactics-mobile-transport > div:first-child,
-  .tactics-phase-dots {
-    display: none !important;
+  .tactics-mobile-transport > div:first-child {
+    overflow: hidden;
+    min-height: 28px !important;
+    max-height: 32px;
+    padding: 4px 6px !important;
+    text-overflow: ellipsis;
   }
 
   .tactics-neighbor-nav {

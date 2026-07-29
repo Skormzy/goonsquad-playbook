@@ -22,7 +22,7 @@ export const PLAYMAKER_TUTORIAL_STEPS = Object.freeze([
     target: '[data-tutorial="court"]',
     eyebrow: 'STARTING SHAPE',
     title: 'Place all 12 players',
-    body: 'Drag players on the vertical court or select them and enter Width and Depth. Start with both goalies, then place pressure, the ball carrier, and support.',
+    body: 'Drag players on the vertical rink or select them and enter Width and Depth. Start with both goalies, then place pressure, the ball carrier, and support.',
     detail: 'Our net is at the bottom. Every player should shift between moments, even when the change is small.',
   },
   {
@@ -47,7 +47,7 @@ export const PLAYMAKER_TUTORIAL_STEPS = Object.freeze([
     eyebrow: 'BALL CONTRACT',
     title: 'Set possession, then the next decision',
     body: 'First select the carrier at this moment. Then define carry, direct pass, boards pass, shot, or loose ball into the next moment.',
-    detail: 'For every pass, select the exact receiver. That identity controls the 2D line, destination possession, and all 3D cameras.',
+    detail: 'For every pass, select the exact receiver. That identity controls the 2D line and destination possession, and remains the destination in all 3D cameras.',
   },
   {
     id: 'timeline',
@@ -63,15 +63,15 @@ export const PLAYMAKER_TUTORIAL_STEPS = Object.freeze([
     eyebrow: 'SHARED REPLAY',
     title: 'Check the same play in 3D',
     body: 'Open Preview after the 2D sequence is coherent. Inspect Broadcast, Overhead, and Bench, then use Role to follow each exact position through its ball reads. Orbit, pan, zoom, and toggle only the coaching layers you need.',
-    detail: 'The 3D view is generated from the same player and ball decisions. It should never reinterpret the receiver.',
+    detail: 'The 3D view uses the same player identities and ball decisions. Confirm that the selected receiver remains the destination.',
   },
   {
     id: 'readiness',
     target: '[data-tutorial="readiness"]',
     eyebrow: 'VALIDATION',
     title: 'Resolve issues before sharing',
-    body: 'Readiness checks movement for all 12 players and validates the ball path. Fix the first reported issue, replay from the start, and confirm the final possession.',
-    detail: 'A valid play is deterministic: every camera and every device must show the same decision.',
+    body: 'Readiness checks movement for all 12 players and validates ball continuity. Fix the first reported issue, replay from the start, and confirm the final possession.',
+    detail: 'Readiness confirms animation structure. It does not replace a teammate or coach reviewing the tactical decision.',
   },
   {
     id: 'save',

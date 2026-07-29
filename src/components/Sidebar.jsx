@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -7,6 +7,7 @@ import { DIFFICULTY_COLORS } from '../data/plays';
 import { CORE_PLAYS, itemsForCurriculumLane } from '../data/coreCatalog';
 import { CAT_COLORS } from '../context/ThemeContext';
 import CurriculumLaneSwitch from './CurriculumLaneSwitch';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 const MotionDiv = motion.div;
 
@@ -22,6 +23,12 @@ export default function Sidebar({ embedded = false }) {
   const [laneOverride, setLaneOverride] = useState(null);
   const [showFavs, setShowFavs] = useState(false);
   const [search, setSearch] = useState('');
+  const searchInputRef = useRef(null);
+  const dialogRef = useDialogFocus({
+    active: !embedded,
+    initialFocusRef: searchInputRef,
+    onClose: () => setSidebarOpen(false),
+  });
   const lane = laneOverride?.playId === currentPlay?.id
     ? laneOverride.lane
     : currentPlay?.lane ?? 'defence';
@@ -54,11 +61,16 @@ export default function Sidebar({ embedded = false }) {
 
   return (
     <MotionDiv
+      ref={dialogRef}
       initial={embedded ? false : { x: -18, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={embedded ? undefined : { x: -18, opacity: 0 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className={embedded ? 'play-library-embedded' : 'play-library-overlay'}
+      role={embedded ? undefined : 'dialog'}
+      aria-modal={embedded ? undefined : 'true'}
+      aria-label={embedded ? undefined : 'Play library'}
+      tabIndex={embedded ? undefined : -1}
       data-testid={embedded ? 'desktop-play-library' : 'overlay-play-library'}
       style={{
         position: embedded ? 'relative' : 'absolute',
@@ -71,6 +83,43 @@ export default function Sidebar({ embedded = false }) {
         zIndex: embedded ? 1 : 20, display: 'flex', flexDirection: 'column',
       }}
     >
+      {!embedded && (
+        <div
+          style={{
+            minHeight: 44,
+            padding: '7px 8px 7px 12px',
+            borderBottom: `1px solid ${t.bd}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            color: t.tx,
+            fontFamily: 'var(--font-display)',
+            fontSize: 12,
+            fontWeight: 800,
+          }}
+        >
+          <span>PLAY LIBRARY</span>
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close play library"
+            title="Close play library"
+            style={{
+              width: 36,
+              height: 36,
+              border: `1px solid ${t.bd}`,
+              borderRadius: 5,
+              background: t.cb,
+              color: t.tx,
+              display: 'grid',
+              placeItems: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <X aria-hidden="true" style={{ width: 17, height: 17 }} />
+          </button>
+        </div>
+      )}
       {embedded && (
         <div className="play-library-heading" style={{ color: t.td, borderBottomColor: t.bd }} data-core-play-count={CORE_PLAYS.length}>
           TEAM PLAYBOOK
@@ -97,6 +146,7 @@ export default function Sidebar({ embedded = false }) {
         }}>
           <Search aria-hidden="true" style={{ width: 13, height: 13, color: t.td, flexShrink: 0 }} />
           <input
+            ref={searchInputRef}
             type="search"
             value={search}
             onChange={e => setSearch(e.target.value)}

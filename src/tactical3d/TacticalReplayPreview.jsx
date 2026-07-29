@@ -182,19 +182,27 @@ export default function TacticalReplayPreview() {
   const handleCameraKeyDown = useCallback((event) => {
     if (event.target instanceof Element && event.target.closest('button,input,select,textarea')) return;
     const key = event.key.toLowerCase();
-    const command = event.key === 'ArrowLeft'
-      ? event.shiftKey ? 'pan-left' : 'orbit-left'
-      : event.key === 'ArrowRight'
-        ? event.shiftKey ? 'pan-right' : 'orbit-right'
-        : event.key === 'ArrowUp'
-          ? event.shiftKey ? 'pan-forward' : 'orbit-up'
-          : event.key === 'ArrowDown'
-            ? event.shiftKey ? 'pan-back' : 'orbit-down'
-            : ['+', '='].includes(event.key)
-              ? 'zoom-in'
-              : ['-', '_'].includes(event.key)
-                ? 'zoom-out'
-                : null;
+    const command = event.shiftKey && event.key === 'ArrowLeft'
+      ? 'pan-left'
+      : event.shiftKey && event.key === 'ArrowRight'
+        ? 'pan-right'
+        : event.shiftKey && event.key === 'ArrowUp'
+          ? 'pan-forward'
+          : event.shiftKey && event.key === 'ArrowDown'
+            ? 'pan-back'
+            : key === 'a'
+              ? 'orbit-left'
+              : key === 'd'
+                ? 'orbit-right'
+                : key === 'w'
+                  ? 'orbit-up'
+                  : key === 's'
+                    ? 'orbit-down'
+                    : ['+', '='].includes(event.key)
+                      ? 'zoom-in'
+                      : ['-', '_'].includes(event.key)
+                        ? 'zoom-out'
+                        : null;
 
     if (command) {
       event.preventDefault();
@@ -378,6 +386,9 @@ export default function TacticalReplayPreview() {
         aria-label={`Interactive 3D ${replay.kind === 'strategy' ? 'strategy' : 'play'} replay`}
         data-camera-control={cameraFollowing ? 'follow' : 'free-look'}
         data-camera-gesture-mode={cameraGestureMode}
+        data-fullscreen-toolbar={
+          replay.kind === 'strategy' || currentPlay?.faceoff ? 'expanded' : 'standard'
+        }
         onKeyDown={handleCameraKeyDown}
         onPointerDown={(event) => {
           if (event.target instanceof HTMLCanvasElement) stageRef.current?.focus({ preventScroll: true });
@@ -520,6 +531,24 @@ export default function TacticalReplayPreview() {
           <div className="vnext3d-stage-transport" aria-label="Full screen replay controls">
             {replay.kind === 'play' && currentPlay?.faceoff && (
               <FaceoffOutcomeControl compact className="is-immersive" />
+            )}
+            {replay.kind === 'strategy' && (
+              <div className="vnext3d-variant-picker is-immersive" role="group" aria-label="Strategy outcome">
+                <button
+                  type="button"
+                  aria-pressed={strategyVariant === 'mistake'}
+                  onClick={() => setStrategyVariant('mistake')}
+                >
+                  Mistake
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={strategyVariant === 'correct'}
+                  onClick={() => setStrategyVariant('correct')}
+                >
+                  Right way
+                </button>
+              </div>
             )}
             <PlaybackControls compact />
           </div>

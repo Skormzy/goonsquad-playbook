@@ -1,4 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   ArrowDown,
   ArrowLeft,
@@ -14,6 +19,7 @@ import {
   History,
   Layers3,
   RefreshCw,
+  Search,
   Settings2,
   ShieldCheck,
   ChevronsUpDown,
@@ -55,6 +61,11 @@ import {
   nextUpcomingGame,
   STATS_REFRESH_INTERVAL_MS,
 } from './scheduleFreshness';
+import {
+  playerRosterCandidates,
+  publicPlayerProfileSnapshot,
+} from '../profile/profileModel';
+import PlayerProfilePage from './PlayerProfilePage';
 
 const TABS = Object.freeze([
   { id: 'overview', label: 'Overview' },
@@ -65,6 +76,69 @@ const TABS = Object.freeze([
 function initialQueryValue(key) {
   if (typeof window === 'undefined') return '';
   try { return new URL(window.location.href).searchParams.get(key) || ''; } catch { return ''; }
+}
+
+// Exported for direct deep-link regression tests; the component remains the only UI export.
+// eslint-disable-next-line react-refresh/only-export-components
+export function resolvePlayerDetailState(dataset, playerId) {
+  const requestedPlayerId = String(playerId || '').trim();
+  if (!requestedPlayerId) return { status: 'idle', profile: null };
+  if (!dataset) return { status: 'loading', profile: null };
+  const profile = publicPlayerProfileSnapshot(dataset, requestedPlayerId);
+  return profile
+    ? { status: 'found', profile }
+    : { status: 'not-found', profile: null };
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function applyStatsDetailParams(url, {
+  playerId = '',
+  finalGameId = '',
+  opponent = '',
+  fixtureId = '',
+} = {}) {
+  if (playerId) {
+    url.searchParams.delete('game');
+    url.searchParams.delete('opponent');
+    url.searchParams.delete('fixture');
+    url.searchParams.set('player', playerId);
+    return url;
+  }
+  url.searchParams.delete('player');
+  if (finalGameId) {
+    url.searchParams.set('game', finalGameId);
+    url.searchParams.delete('opponent');
+    url.searchParams.delete('fixture');
+    return url;
+  }
+  url.searchParams.delete('game');
+  if (opponent) {
+    url.searchParams.set('opponent', opponent);
+    if (fixtureId) url.searchParams.set('fixture', fixtureId);
+    else url.searchParams.delete('fixture');
+    return url;
+  }
+  url.searchParams.delete('opponent');
+  url.searchParams.delete('fixture');
+  return url;
+}
+
+function PlayerNotFound({ playerId, onBack }) {
+  return (
+    <section className="public-player-not-found" aria-labelledby="player-not-found-title">
+      <UsersRound aria-hidden="true" />
+      <span>PLAYER DIRECTORY</span>
+      <h1 id="player-not-found-title">Player not found</h1>
+      <p>
+        The profile link for <code>{playerId}</code> does not match a published
+        Goon Squad roster record.
+      </p>
+      <button type="button" onClick={onBack}>
+        <ArrowLeft aria-hidden="true" />
+        Browse all players
+      </button>
+    </section>
+  );
 }
 
 function Metric({ label, value, detail }) {
@@ -93,7 +167,7 @@ const LEADERBOARD_COLUMNS = Object.freeze([
   { key: 'points', label: 'Points' },
 ]);
 
-function LeadersTable({ players }) {
+function LeadersTable({ players, onOpenPlayer }) {
   const [sort, setSort] = useState(DEFAULT_LEADERBOARD_SORT);
   const leaders = useMemo(() => sortLeaderboard(players, sort).slice(0, 5), [players, sort]);
 
@@ -139,7 +213,16 @@ function LeadersTable({ players }) {
           {leaders.map((line, index) => (
             <tr key={line.playerId}>
               <td className="stats-leaders-rank">{index + 1}</td>
-              <td className="stats-leaders-player"><strong>{line.displayName}</strong></td>
+              <td className="stats-leaders-player">
+                <button
+                  type="button"
+                  className="stats-player-link"
+                  onClick={() => onOpenPlayer(line.playerId)}
+                  aria-label={`Open player profile for ${line.displayName}`}
+                >
+                  {line.displayName}
+                </button>
+              </td>
               <td className="stats-leaders-number" data-active={sort.key === 'goals'}>{line.goals}</td>
               <td className="stats-leaders-number" data-active={sort.key === 'assists'}>{line.assists}</td>
               <td className="stats-leaders-number" data-active={sort.key === 'points'}>{line.points}</td>
@@ -223,7 +306,7 @@ function GamesTable({ games, showStage = false, showSchedule = false, schedules 
                 <td>{game.venue === 'home' ? 'Home' : game.venue === 'away' ? 'Away' : 'Neutral'}</td>
                 <td><span className={`stats-result is-${result.toLowerCase()}`}>{result}{game.overtime && final ? ' OT' : ''}</span></td>
                 <td>{final ? `${game.goalsFor}–${game.goalsAgainst}` : '—'}</td>
-                {onOpenGame && <td className="stats-game-detail-column"><button type="button" className="stats-game-detail-button" aria-label={`${final ? 'View results' : 'Open head-to-head'} against ${game.opponent}`} onClick={() => onOpenGame(game.id)}><span>{final ? 'Results' : 'Matchup'}</span><ChevronRight aria-hidden="true" /></button></td>}
+                {onOpenGame && <td className="stats-game-detail-column"><button type="button" className="stats-game-detail-button" aria-label={`${final ? 'View results' : 'Open head-to-head'} against ${game.opponent}`} onClick={() => onOpenGame(game.id)}><span>{final ? 'Results' : 'Matchup'}</span></button></td>}
               </tr>
             );
           })}
@@ -270,7 +353,14 @@ function goalieResult(line) {
   return '—';
 }
 
-function GameDetails({ game, details, onBack, onCopyLink, copied }) {
+function GameDetails({
+  game,
+  details,
+  onBack,
+  onCopyLink,
+  onOpenPlayer,
+  copied,
+}) {
   if (!game || !details) return null;
   const events = [...details.events].sort((a, b) => a.period - b.period || (a.clockSeconds ?? 0) - (b.clockSeconds ?? 0));
   const hasPublishedDetails = Boolean(details.team || details.players.length || details.goalies.length || details.events.length);
@@ -315,8 +405,8 @@ function GameDetails({ game, details, onBack, onCopyLink, copied }) {
           </section>
           <section>
             <header><span>PLAYER BOX SCORE</span><strong>Goon Squad game sheet</strong></header>
-            {details.players.length ? <div className="stats-table-scroll"><table className="stats-table is-game-players"><thead><tr><th>Player</th><th>G</th><th>A</th><th>PTS</th><th>PIM</th><th>PPG</th><th>SHG</th><th>ENG</th></tr></thead><tbody>{details.players.map((line) => <tr key={line.id}><td><strong>{line.displayName}</strong></td><td>{line.goals}</td><td>{line.assists}</td><td><b>{line.points}</b></td><td>{line.penaltyMinutes}</td><td>{line.powerPlayGoals}</td><td>{line.shortHandedGoals}</td><td>{line.emptyNetGoals}</td></tr>)}</tbody></table></div> : <p className="stats-game-detail-empty">No field-player lines were published for this game.</p>}
-            {details.goalies.length > 0 && <div className="stats-detail-goalies"><header><span>GOALTENDING</span><strong>Complete game line</strong></header><div className="stats-table-scroll"><table className="stats-table"><thead><tr><th>Goalie</th><th>Result</th><th>SA</th><th>SV</th><th>GA</th><th>SV%</th><th>MIN</th><th>SO</th></tr></thead><tbody>{details.goalies.map((line) => <tr key={line.id}><td><strong>{line.displayName}</strong></td><td>{goalieResult(line)}</td><td>{line.shotsAgainst}</td><td>{line.saves}</td><td>{line.goalsAgainst}</td><td>{formatPercentage(line.savePercentage)}</td><td>{line.minutesPlayed}</td><td>{line.shutouts}</td></tr>)}</tbody></table></div></div>}
+            {details.players.length ? <div className="stats-table-scroll"><table className="stats-table is-game-players"><thead><tr><th>Player</th><th>G</th><th>A</th><th>PTS</th><th>PIM</th><th>PPG</th><th>SHG</th><th>ENG</th></tr></thead><tbody>{details.players.map((line) => <tr key={line.id}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}>{line.displayName}</button></td><td>{line.goals}</td><td>{line.assists}</td><td><b>{line.points}</b></td><td>{line.penaltyMinutes}</td><td>{line.powerPlayGoals}</td><td>{line.shortHandedGoals}</td><td>{line.emptyNetGoals}</td></tr>)}</tbody></table></div> : <p className="stats-game-detail-empty">No field-player lines were published for this game.</p>}
+            {details.goalies.length > 0 && <div className="stats-detail-goalies"><header><span>GOALTENDING</span><strong>Complete game line</strong></header><div className="stats-table-scroll"><table className="stats-table"><thead><tr><th>Goalie</th><th>Result</th><th>SA</th><th>SV</th><th>GA</th><th>SV%</th><th>MIN</th><th>SO</th></tr></thead><tbody>{details.goalies.map((line) => <tr key={line.id}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}>{line.displayName}</button></td><td>{goalieResult(line)}</td><td>{line.shotsAgainst}</td><td>{line.saves}</td><td>{line.goalsAgainst}</td><td>{formatPercentage(line.savePercentage)}</td><td>{line.minutesPlayed}</td><td>{line.shutouts}</td></tr>)}</tbody></table></div></div>}
           </section>
         </div>}
       </article>
@@ -324,7 +414,7 @@ function GameDetails({ game, details, onBack, onCopyLink, copied }) {
   );
 }
 
-function PlayerTables({ fieldPlayers, goalies }) {
+function PlayerTables({ fieldPlayers, goalies, onOpenPlayer }) {
   if (!fieldPlayers.length && !goalies.length) return <EmptyStats section="player statistics" />;
   const leagueTotals = fieldPlayers.some((line) => line.source === 'league');
   return (
@@ -336,7 +426,7 @@ function PlayerTables({ fieldPlayers, goalies }) {
             <table className="stats-table is-players">
               <thead><tr><th>Player</th><th>GP</th><th>G</th><th>A</th><th>PTS</th><th>PTS/GP</th>{leagueTotals ? <><th>PIM</th><th>PPG</th><th>SHG</th></> : <><th>SH</th><th>SH%</th><th>PIM</th><th>+/−</th></>}</tr></thead>
               <tbody>{fieldPlayers.map((line) => (
-                <tr key={line.playerId}><td><strong>{line.displayName}</strong></td><td>{line.gamesPlayed}</td><td>{line.goals}</td><td>{line.assists}</td><td><b>{line.points}</b></td><td>{line.pointsPerGame.toFixed(2)}</td>{leagueTotals ? <><td>{line.penaltyMinutes}</td><td>{line.powerPlayGoals}</td><td>{line.shortHandedGoals}</td></> : <><td>{line.shots}</td><td>{formatPercentage(line.shootingPercentage)}</td><td>{line.penaltyMinutes}</td><td>{line.plusMinus > 0 ? `+${line.plusMinus}` : line.plusMinus}</td></>}</tr>
+                <tr key={line.playerId}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}>{line.displayName}</button></td><td>{line.gamesPlayed}</td><td>{line.goals}</td><td>{line.assists}</td><td><b>{line.points}</b></td><td>{line.pointsPerGame.toFixed(2)}</td>{leagueTotals ? <><td>{line.penaltyMinutes}</td><td>{line.powerPlayGoals}</td><td>{line.shortHandedGoals}</td></> : <><td>{line.shots}</td><td>{formatPercentage(line.shootingPercentage)}</td><td>{line.penaltyMinutes}</td><td>{line.plusMinus > 0 ? `+${line.plusMinus}` : line.plusMinus}</td></>}</tr>
               ))}</tbody>
             </table>
           </div>
@@ -349,13 +439,85 @@ function PlayerTables({ fieldPlayers, goalies }) {
             <table className="stats-table is-players">
               <thead><tr><th>Player</th><th>GP</th><th>W</th><th>L</th><th>T</th><th>SA</th><th>GA</th><th>SV%</th><th>GAA</th><th>SO</th></tr></thead>
               <tbody>{goalies.map((line) => (
-                <tr key={line.playerId}><td><strong>{line.displayName}</strong></td><td>{line.gamesPlayed}</td><td>{line.wins}</td><td>{line.losses}</td><td>{line.ties}</td><td>{line.shotsAgainst}</td><td>{line.goalsAgainst}</td><td>{formatPercentage(line.savePercentage)}</td><td>{line.goalsAgainstAverage.toFixed(2)}</td><td>{line.shutouts}</td></tr>
+                <tr key={line.playerId}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}>{line.displayName}</button></td><td>{line.gamesPlayed}</td><td>{line.wins}</td><td>{line.losses}</td><td>{line.ties}</td><td>{line.shotsAgainst}</td><td>{line.goalsAgainst}</td><td>{formatPercentage(line.savePercentage)}</td><td>{line.goalsAgainstAverage.toFixed(2)}</td><td>{line.shutouts}</td></tr>
               ))}</tbody>
             </table>
           </div>
         </section>
       )}
     </div>
+  );
+}
+
+function playerPositionLabel(position) {
+  if (position === 'G') return 'Goalie';
+  if (['D', 'LD', 'RD'].includes(position)) return 'Defence';
+  if (position === 'C') return 'Center';
+  if (['W', 'LW', 'RW'].includes(position)) return 'Winger';
+  return 'Position not published';
+}
+
+function PlayerDirectory({ dataset, onOpenPlayer }) {
+  const [query, setQuery] = useState('');
+  const allPlayers = useMemo(
+    () => playerRosterCandidates(dataset, { includeHistory: true }),
+    [dataset],
+  );
+  const matches = useMemo(
+    () => playerRosterCandidates(dataset, { includeHistory: true, query }),
+    [dataset, query],
+  );
+  const visible = matches.slice(0, query ? 60 : 30);
+
+  return (
+    <section className="stats-player-directory" aria-label="Goonsquad player archive">
+      <header>
+        <div>
+          <span>SQUAD ARCHIVE</span>
+          <strong>Every Goonsquad player</strong>
+          <small>{allPlayers.length} player profiles across the official archive</small>
+        </div>
+        <label>
+          <Search aria-hidden="true" />
+          <span className="sr-only">Search players</span>
+          <input
+            type="search"
+            value={query}
+            placeholder="Search name, number, or position"
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
+      </header>
+      <div className="stats-player-directory-grid">
+        {visible.map((candidate) => (
+          <button
+            type="button"
+            key={candidate.id}
+            onClick={() => onOpenPlayer(candidate.id)}
+            aria-label={`Open player profile for ${candidate.displayName}`}
+          >
+            <span className="stats-player-directory-number">
+              {candidate.jerseyNumber ? `#${candidate.jerseyNumber}` : candidate.displayName.slice(0, 1)}
+            </span>
+            <span>
+              <strong>{candidate.displayName}</strong>
+              <small>{playerPositionLabel(candidate.position)} · {candidate.latestSeason}</small>
+            </span>
+            <ChevronRight aria-hidden="true" />
+          </button>
+        ))}
+      </div>
+      {!matches.length && (
+        <div className="stats-player-directory-empty">
+          No player matches that search.
+        </div>
+      )}
+      {matches.length > visible.length && (
+        <p className="stats-player-directory-count">
+          Refine the search to browse the remaining {matches.length - visible.length} profiles.
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -482,10 +644,17 @@ export default function StatsWorkspace() {
   const [seasonId, setSeasonId] = useState(() => initialQueryValue('season'));
   const [teamId, setTeamId] = useState(() => initialQueryValue('team'));
   const [stage, setStage] = useState(() => initialQueryValue('stage') || 'regular');
-  const [tab, setTab] = useState(() => initialQueryValue('game') || initialQueryValue('opponent') ? 'games' : 'overview');
+  const [tab, setTab] = useState(() => (
+    initialQueryValue('player')
+      ? 'players'
+      : initialQueryValue('game') || initialQueryValue('opponent')
+        ? 'games'
+        : 'overview'
+  ));
   const [selectedGameId, setSelectedGameId] = useState(() => initialQueryValue('game'));
   const [selectedOpponentSlug, setSelectedOpponentSlug] = useState(() => initialQueryValue('opponent'));
   const [selectedFixtureId, setSelectedFixtureId] = useState(() => initialQueryValue('fixture'));
+  const [selectedPlayerId, setSelectedPlayerId] = useState(() => initialQueryValue('player'));
   const [linkCopied, setLinkCopied] = useState(false);
   const [managerOpen, setManagerOpen] = useState(false);
   const t = themes[theme];
@@ -535,9 +704,15 @@ export default function StatsWorkspace() {
 
   useEffect(() => {
     const syncStatsDetailFromHistory = () => {
-      setSelectedGameId(initialQueryValue('game'));
-      setSelectedOpponentSlug(initialQueryValue('opponent'));
-      setSelectedFixtureId(initialQueryValue('fixture'));
+      const nextGameId = initialQueryValue('game');
+      const nextOpponent = initialQueryValue('opponent');
+      const nextFixtureId = initialQueryValue('fixture');
+      const nextPlayerId = initialQueryValue('player');
+      setSelectedGameId(nextGameId);
+      setSelectedOpponentSlug(nextOpponent);
+      setSelectedFixtureId(nextFixtureId);
+      setSelectedPlayerId(nextPlayerId);
+      setTab(nextPlayerId ? 'players' : nextGameId || nextOpponent ? 'games' : 'overview');
       setLinkCopied(false);
     };
     window.addEventListener('popstate', syncStatsDetailFromHistory);
@@ -587,35 +762,35 @@ export default function StatsWorkspace() {
   }, [dataset, opponentMatchups, selectedFixtureId, selectedGameContext, selectedOpponentSlug]);
 
   const selectedFinalGameContext = selectedGameContext?.game.status === 'final' ? selectedGameContext : null;
+  const selectedPlayerDetail = useMemo(
+    () => resolvePlayerDetailState(dataset, selectedPlayerId),
+    [dataset, selectedPlayerId],
+  );
+  const selectedPlayerProfile = selectedPlayerDetail.profile;
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !seasonId) return;
+    if (typeof window === 'undefined' || !dataset || !snapshot || !seasonId) return;
     const url = new URL(window.location.href);
     url.searchParams.set('season', seasonId);
     if (snapshot?.team?.id) url.searchParams.set('team', snapshot.team.id);
     else url.searchParams.delete('team');
     if (snapshot?.stage === 'regular') url.searchParams.delete('stage');
     else url.searchParams.set('stage', snapshot?.stage || 'regular');
-    if (selectedFinalGameContext?.game.id) {
-      url.searchParams.set('game', selectedFinalGameContext.game.id);
-      url.searchParams.delete('opponent');
-      url.searchParams.delete('fixture');
-    } else if (selectedOpponentContext?.matchup.slug) {
-      url.searchParams.delete('game');
-      url.searchParams.set('opponent', selectedOpponentContext.matchup.slug);
-      if (selectedOpponentContext.fixture?.id) url.searchParams.set('fixture', selectedOpponentContext.fixture.id);
-      else url.searchParams.delete('fixture');
-    } else {
-      url.searchParams.delete('game');
-      url.searchParams.delete('opponent');
-      url.searchParams.delete('fixture');
-    }
+    applyStatsDetailParams(url, {
+      playerId: selectedPlayerId,
+      finalGameId: selectedFinalGameContext?.game.id,
+      opponent: selectedOpponentContext?.matchup.slug,
+      fixtureId: selectedOpponentContext?.fixture?.id,
+    });
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
   }, [
+    dataset,
     seasonId,
     selectedFinalGameContext?.game.id,
     selectedOpponentContext?.fixture?.id,
     selectedOpponentContext?.matchup.slug,
+    selectedPlayerId,
+    snapshot,
     snapshot?.team?.id,
     snapshot?.stage,
   ]);
@@ -630,9 +805,26 @@ export default function StatsWorkspace() {
   const completedGames = snapshot.games.filter((game) => game.status === 'final');
   const latestGame = completedGames[0] ?? null;
   const nextGame = nextUpcomingGame(snapshot.games);
+  const openPlayer = (playerId) => {
+    const player = dataset.players.find((item) => item.id === playerId);
+    if (!player) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete('game');
+    url.searchParams.delete('opponent');
+    url.searchParams.delete('fixture');
+    url.searchParams.set('player', player.id);
+    window.history.pushState({ ...window.history.state, statsDetailPage: true }, '', `${url.pathname}${url.search}${url.hash}`);
+    setSelectedGameId('');
+    setSelectedOpponentSlug('');
+    setSelectedFixtureId('');
+    setSelectedPlayerId(player.id);
+    setLinkCopied(false);
+    setTab('players');
+  };
   const openOpponent = (slug, fixtureId = '') => {
     const url = new URL(window.location.href);
     url.searchParams.delete('game');
+    url.searchParams.delete('player');
     url.searchParams.set('opponent', slug);
     if (fixtureId) url.searchParams.set('fixture', fixtureId);
     else url.searchParams.delete('fixture');
@@ -640,6 +832,7 @@ export default function StatsWorkspace() {
     setSelectedGameId('');
     setSelectedOpponentSlug(slug);
     setSelectedFixtureId(fixtureId || '');
+    setSelectedPlayerId('');
     setLinkCopied(false);
     setTab('games');
   };
@@ -652,29 +845,34 @@ export default function StatsWorkspace() {
     const url = new URL(window.location.href);
     url.searchParams.delete('opponent');
     url.searchParams.delete('fixture');
+    url.searchParams.delete('player');
     url.searchParams.set('game', gameId);
     window.history.pushState({ ...window.history.state, statsDetailPage: true }, '', `${url.pathname}${url.search}${url.hash}`);
     setSelectedGameId(gameId);
     setSelectedOpponentSlug('');
     setSelectedFixtureId('');
+    setSelectedPlayerId('');
     setLinkCopied(false);
     setTab('games');
   };
   const closeDetail = () => {
-    if (window.history.state?.statsDetailPage) {
-      window.history.back();
-    } else {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('game');
-      url.searchParams.delete('opponent');
-      url.searchParams.delete('fixture');
-      window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
-      setSelectedGameId('');
-      setSelectedOpponentSlug('');
-      setSelectedFixtureId('');
-    }
+    const returnTab = selectedPlayerId ? 'players' : 'games';
+    const url = new URL(window.location.href);
+    url.searchParams.delete('game');
+    url.searchParams.delete('opponent');
+    url.searchParams.delete('fixture');
+    url.searchParams.delete('player');
+    window.history.replaceState(
+      { ...window.history.state, statsDetailPage: false },
+      '',
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+    setSelectedGameId('');
+    setSelectedOpponentSlug('');
+    setSelectedFixtureId('');
+    setSelectedPlayerId('');
     setLinkCopied(false);
-    setTab('overview');
+    setTab(returnTab);
   };
   const copyDetailLink = async () => {
     try {
@@ -698,7 +896,7 @@ export default function StatsWorkspace() {
       '--stats-accent-bg': t.ab,
       '--stats-brand': t.br,
     }}>
-      {!selectedFinalGameContext && !selectedOpponentContext && <header className="stats-workspace-header stats-home-hero">
+      {!selectedFinalGameContext && !selectedOpponentContext && !selectedPlayerId && <header className="stats-workspace-header stats-home-hero">
         <div className="stats-title">
           <span>TEAM HOME</span>
           <h1>{snapshot.season?.name || 'Goonsquad'}</h1>
@@ -710,8 +908,19 @@ export default function StatsWorkspace() {
         </div>
       </header>}
 
-      {selectedFinalGameContext ? <section className="stats-content is-game-page">
-        <GameDetails game={selectedFinalGameContext.game} details={selectedFinalGameContext.details} onBack={closeDetail} onCopyLink={copyDetailLink} copied={linkCopied} />
+      {selectedPlayerProfile ? <section className="stats-content is-player-page">
+        <PlayerProfilePage
+          profile={selectedPlayerProfile}
+          dark={theme === 'dark'}
+          copied={linkCopied}
+          onBack={closeDetail}
+          onCopyLink={copyDetailLink}
+          onOpenGame={openGame}
+        />
+      </section> : selectedPlayerDetail.status === 'not-found' ? <section className="stats-content is-player-page">
+        <PlayerNotFound playerId={selectedPlayerId} onBack={closeDetail} />
+      </section> : selectedFinalGameContext ? <section className="stats-content is-game-page">
+        <GameDetails game={selectedFinalGameContext.game} details={selectedFinalGameContext.details} onBack={closeDetail} onCopyLink={copyDetailLink} onOpenPlayer={openPlayer} copied={linkCopied} />
       </section> : selectedOpponentContext ? <section className="stats-content is-game-page">
         <OpponentHeadToHead
           matchup={selectedOpponentContext.matchup}
@@ -758,11 +967,16 @@ export default function StatsWorkspace() {
           </section>
           <section className="stats-band">
             <header><UsersRound aria-hidden="true" /><div><span>LEADERS</span><h2>{snapshot.isSeasonAggregate ? 'All-team leaders' : 'Team leaders'}</h2></div></header>
-            {snapshot.fieldPlayers.length ? <LeadersTable players={snapshot.fieldPlayers} /> : <EmptyStats section="player statistics" />}
+            {snapshot.fieldPlayers.length ? <LeadersTable players={snapshot.fieldPlayers} onOpenPlayer={openPlayer} /> : <EmptyStats section="player statistics" />}
           </section>
         </div>}
         {tab === 'games' && <div className="stats-game-view"><section className="stats-band is-full"><header><CalendarDays aria-hidden="true" /><div><span>{snapshot.isSeasonAggregate ? 'ALL LEAGUES' : formatScheduleName(snapshot.team).toUpperCase()}</span><h2>Schedule and results</h2></div></header><GamesTable games={snapshot.games} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} onOpenOpponent={openOpponent} /></section></div>}
-        {tab === 'players' && <PlayerTables fieldPlayers={snapshot.fieldPlayers} goalies={snapshot.goalies} />}
+        {tab === 'players' && (
+          <div className="stats-player-view">
+            <PlayerTables fieldPlayers={snapshot.fieldPlayers} goalies={snapshot.goalies} onOpenPlayer={openPlayer} />
+            <PlayerDirectory dataset={dataset} onOpenPlayer={openPlayer} />
+          </div>
+        )}
       </section>
       </>}
 

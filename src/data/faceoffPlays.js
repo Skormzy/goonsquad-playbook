@@ -628,7 +628,7 @@ const dZoneLeft = defineFaceoffPlay({
       },
       opp: [
         opponentPlayer('op-c', 'C', 30, 24),
-        opponentPlayer('op-rw', 'RW', 13, 25),
+        opponentPlayer('op-rw', 'RW', 23, 26),
         opponentPlayer('op-lw', 'LW', 42, 26),
         opponentPlayer('op-rd', 'RD', 25, 36),
         opponentPlayer('op-ld', 'LD', 55, 36),
@@ -738,7 +738,7 @@ const dZoneRight = defineFaceoffPlay({
       opp: [
         opponentPlayer('op-c', 'C', 70, 24),
         opponentPlayer('op-rw', 'RW', 58, 26),
-        opponentPlayer('op-lw', 'LW', 87, 25),
+        opponentPlayer('op-lw', 'LW', 77, 26),
         opponentPlayer('op-rd', 'RD', 45, 36),
         opponentPlayer('op-ld', 'LD', 75, 36),
         OPPONENT_GOALIE,
@@ -846,8 +846,8 @@ const neutralZoneCenter = defineFaceoffPlay({
       },
       opp: [
         opponentPlayer('op-c', 'C', 50, 54),
-        opponentPlayer('op-rw', 'RW', 34, 56),
-        opponentPlayer('op-lw', 'LW', 70, 56),
+        opponentPlayer('op-rw', 'RW', 31, 51),
+        opponentPlayer('op-lw', 'LW', 69, 51),
         opponentPlayer('op-rd', 'RD', 35, 64),
         opponentPlayer('op-ld', 'LD', 65, 64),
         OPPONENT_GOALIE,
@@ -1123,7 +1123,7 @@ const penaltyKillDefensiveZone = defineFaceoffPlay({
       },
       opp: [
         opponentPlayer('op-c', 'C', 31, 24),
-        opponentPlayer('op-rw', 'RW', 14, 26),
+        opponentPlayer('op-rw', 'RW', 23, 27),
         opponentPlayer('op-lw', 'LW', 42, 26),
         opponentPlayer('op-rd', 'RD', 25, 36),
         opponentPlayer('op-ld', 'LD', 55, 36),

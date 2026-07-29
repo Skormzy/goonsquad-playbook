@@ -10,9 +10,16 @@ import { createWorkspaceUrl, readWorkspaceUrl } from '../routing/workspaceUrlSta
 import { useAccount } from '../account/AccountContext';
 import {
   loadFavoritePlayIds,
-  mergeFavoritePlayIds,
   setFavoritePlayState,
 } from '../account/accountCloud';
+import {
+  applyPendingFavoriteChanges,
+  clearPendingFavoriteChange,
+  readFavoriteIds,
+  readPendingFavoriteChanges,
+  setPendingFavoriteChange,
+  writeFavoriteIds,
+} from '../account/favoritesStorage';
 
 const AppContext = createContext();
 
@@ -184,10 +191,7 @@ export function AppProvider({ children }) {
   }, [currentReplayScene, phaseCount]);
 
   // Favorites — persisted to localStorage
-  const [favorites, setFavorites] = useState(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('gs_favs') || '[]')); }
-    catch { return new Set(); }
-  });
+  const [favorites, setFavorites] = useState(() => new Set(readFavoriteIds(null)));
   const favoritesRef = useRef(favorites);
 
   useEffect(() => {
@@ -195,20 +199,27 @@ export function AppProvider({ children }) {
   }, [favorites]);
 
   useEffect(() => {
-    if (!accountConfigured || !accountUserId) return undefined;
+    if (!accountConfigured || !accountUserId) {
+      let active = true;
+      queueMicrotask(() => {
+        if (active) setFavorites(new Set(readFavoriteIds(null)));
+      });
+      return () => { active = false; };
+    }
     let active = true;
-    const localIds = [...favoritesRef.current];
-    Promise.all([
-      loadFavoritePlayIds(accountUserId),
-      mergeFavoritePlayIds(accountUserId, localIds),
-    ]).then(([cloudIds]) => {
+    const pending = readPendingFavoriteChanges(accountUserId);
+    loadFavoritePlayIds(accountUserId).then(async (cloudIds) => {
       if (!active) return;
-      const merged = new Set([...localIds, ...cloudIds]);
-      setFavorites(merged);
-      try { localStorage.setItem('gs_favs', JSON.stringify([...merged])); } catch { /* localStorage unavailable */ }
-      return mergeFavoritePlayIds(accountUserId, [...merged]);
+      const resolved = applyPendingFavoriteChanges(cloudIds, pending);
+      setFavorites(new Set(resolved));
+      writeFavoriteIds(accountUserId, resolved);
+      await Promise.all(Object.entries(pending).map(async ([playId, favorited]) => {
+        await setFavoritePlayState(accountUserId, playId, favorited);
+        clearPendingFavoriteChange(accountUserId, playId);
+      }));
     }).catch(() => {
-      // Local favorites remain authoritative while cloud sync is unavailable.
+      if (!active) return;
+      setFavorites(new Set(readFavoriteIds(accountUserId)));
     });
     return () => { active = false; };
   }, [accountConfigured, accountUserId]);
@@ -254,11 +265,15 @@ export function AppProvider({ children }) {
     setFavorites(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
-      try { localStorage.setItem('gs_favs', JSON.stringify([...next])); } catch { /* localStorage unavailable */ }
+      writeFavoriteIds(accountUserId ?? null, next);
       if (accountConfigured && accountUserId) {
-        setFavoritePlayState(accountUserId, id, next.has(id)).catch(() => {
-          // Keep the local interaction responsive; the next session merge retries it.
-        });
+        const favorited = next.has(id);
+        setPendingFavoriteChange(accountUserId, id, favorited);
+        setFavoritePlayState(accountUserId, id, favorited)
+          .then(() => clearPendingFavoriteChange(accountUserId, id))
+          .catch(() => {
+            // The account-specific pending change is retried on the next session.
+          });
       }
       return next;
     });

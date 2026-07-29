@@ -9,6 +9,11 @@ import {
 
 const ROLES = new Set(['LW', 'C', 'RW', 'LD', 'RD', 'G']);
 const CAMERAS = new Set(['broadcast', 'bench', 'overhead', 'player']);
+const STATS_DETAIL_PARAMS = Object.freeze(['game', 'player', 'opponent', 'fixture']);
+
+function removeStatsDetailParams(url) {
+  STATS_DETAIL_PARAMS.forEach((key) => url.searchParams.delete(key));
+}
 
 function optionalNumber(params, key) {
   if (!params.has(key)) return null;
@@ -73,6 +78,7 @@ export function createWorkspaceUrl(href, state) {
   const { activeView } = state;
 
   if (activeView === 'rigreview') {
+    removeStatsDetailParams(url);
     url.searchParams.set('view', 'rigreview');
     return `${url.pathname}${url.search}${url.hash}`;
   }
@@ -80,6 +86,7 @@ export function createWorkspaceUrl(href, state) {
   const content = contentForActiveView(activeView);
   const requestedMode = modeForActiveView(activeView);
   const mode = isWorkspaceModeAvailable(content, requestedMode) ? requestedMode : '2d';
+  if (content !== 'stats') removeStatsDetailParams(url);
 
   url.searchParams.delete('view');
   url.searchParams.delete('play');
@@ -95,7 +102,7 @@ export function createWorkspaceUrl(href, state) {
   else url.searchParams.delete('faceoff');
   if (content === 'stats' || content === 'profile' || content === 'account') {
     ['phase', 'time', 'speed', 'role', 'playing', 'camera'].forEach((key) => url.searchParams.delete(key));
-    if (content === 'profile' || content === 'account') ['season', 'team', 'stage', 'game'].forEach((key) => url.searchParams.delete(key));
+    if (content === 'profile' || content === 'account') ['season', 'team', 'stage'].forEach((key) => url.searchParams.delete(key));
     return `${url.pathname}${url.search}${url.hash}`;
   }
   ['season', 'team', 'stage'].forEach((key) => url.searchParams.delete(key));

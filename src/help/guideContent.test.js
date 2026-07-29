@@ -15,7 +15,11 @@ describe('in-product guide content', () => {
       'three-d',
       'create',
       'stats',
+      'game',
+      'matchup',
+      'player-stats',
       'profile',
+      'account',
       'controls',
       'terms',
     ]);
@@ -28,7 +32,7 @@ describe('in-product guide content', () => {
       playmaker: 'create',
       stats: 'stats',
       profile: 'profile',
-      account: 'profile',
+      account: 'account',
     });
   });
 
@@ -45,8 +49,22 @@ describe('in-product guide content', () => {
     expect(GUIDE_TOPICS.create.action).toBe('Start Create tutorial');
   });
 
-  it('falls back to the quick start for an unknown view', () => {
+  it('keeps product promises aligned with the authored replay and statistics sources', () => {
+    const copy = JSON.stringify(GUIDE_TOPICS);
+    expect(copy).not.toContain('same timeline');
+    expect(copy).not.toContain('stay synchronized');
+    expect(copy).not.toContain('every 3D camera');
+    expect(copy).toContain('official league sync or authorized team entry');
+    expect(copy).toContain('may expand an authored moment');
+    expect(copy).not.toContain('court');
+  });
+
+  it('selects a guide for every primary and detailed route', () => {
     expect(guideTopicForView('playbook')).toBe('plays');
+    expect(guideTopicForView('account')).toBe('account');
+    expect(guideTopicForView('stats', '?content=stats&game=game-1')).toBe('game');
+    expect(guideTopicForView('stats', '?content=stats&opponent=red-wolves')).toBe('matchup');
+    expect(guideTopicForView('stats', '?content=stats&player=player-1')).toBe('player-stats');
     expect(guideTopicForView('unknown')).toBe('start');
   });
 });

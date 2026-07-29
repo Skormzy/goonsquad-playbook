@@ -29,6 +29,7 @@ const fallbackAccount = Object.freeze({
   username: '',
   busy: false,
   status: '',
+  statusTone: '',
   passwordRecovery: false,
   dialogOpen: false,
   openAccount: () => {},
@@ -49,12 +50,53 @@ const fallbackAccount = Object.freeze({
 
 const AccountContext = createContext(fallbackAccount);
 
+export function accountMessageForError(error) {
+  const message = String(error instanceof Error ? error.message : error || '').trim();
+  const normalized = message.toLowerCase();
+
+  if (/username.*taken|duplicate key.*username/iu.test(message)) {
+    return 'That username is already taken.';
+  }
+  if (/invalid login|invalid credentials|email or password/iu.test(message)) {
+    return 'Email or password is incorrect.';
+  }
+  if (/email.*not confirmed|confirm.*email/iu.test(message)) {
+    return 'Confirm your email before signing in.';
+  }
+  if (/already registered|user already exists|email.*already/iu.test(message)) {
+    return 'An account already exists for that email. Try signing in.';
+  }
+  if (/rate limit|too many requests|over.*email.*rate/iu.test(message)) {
+    return 'Too many attempts. Wait a moment, then try again.';
+  }
+  if (/failed to fetch|network|fetch failed|connection/iu.test(message)) {
+    return 'Could not reach the account service. Check your connection and try again.';
+  }
+  if (/oauth|google/iu.test(message)) {
+    return 'Google sign-in could not be completed. Please try again.';
+  }
+  if (/not configured|not connected/iu.test(message)) {
+    return 'Accounts are temporarily unavailable. Your local plays remain safe.';
+  }
+  if (
+    normalized === 'display name is required.'
+    || normalized === 'sign in before updating your profile.'
+    || normalized === 'sign in before syncing this play.'
+    || /^username must /u.test(normalized)
+    || /^username can /u.test(normalized)
+  ) {
+    return message;
+  }
+  return 'We could not complete that account request. Please try again.';
+}
+
 export function AccountProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [playerClaims, setPlayerClaims] = useState([]);
   const [busy, setBusy] = useState(playmakerCloudConfigured);
   const [status, setStatus] = useState('');
+  const [statusTone, setStatusTone] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
 
@@ -99,11 +141,16 @@ export function AccountProvider({ children }) {
         setSession(nextSession);
         return refreshProfileForUser(nextSession?.user?.id);
       })
-      .catch((error) => { if (active) setStatus(error.message); })
+      .catch((error) => {
+        if (!active) return;
+        setStatus(accountMessageForError(error));
+        setStatusTone('error');
+      })
       .finally(() => { if (active) setBusy(false); });
     const stop = watchPlaymakerCloudSession((nextSession, event) => {
       setSession(nextSession);
       setStatus('');
+      setStatusTone('');
       if (event === 'PASSWORD_RECOVERY') {
         setPasswordRecovery(true);
         try {
@@ -123,16 +170,17 @@ export function AccountProvider({ children }) {
   const run = useCallback(async (operation, successMessage = '') => {
     setBusy(true);
     setStatus('');
+    setStatusTone('');
     try {
       const result = await operation();
-      if (successMessage) setStatus(successMessage);
+      if (successMessage) {
+        setStatus(successMessage);
+        setStatusTone('success');
+      }
       return result;
     } catch (error) {
-      const rawMessage = error instanceof Error ? error.message : 'Account request failed.';
-      const message = /username.*taken|duplicate key.*username/iu.test(rawMessage)
-        ? 'That username is already taken.'
-        : rawMessage;
-      setStatus(message);
+      setStatus(accountMessageForError(error));
+      setStatusTone('error');
       throw error;
     } finally {
       setBusy(false);
@@ -219,11 +267,15 @@ export function AccountProvider({ children }) {
     username,
     busy,
     status,
+    statusTone,
     passwordRecovery,
     dialogOpen,
     openAccount: () => setDialogOpen(true),
     closeAccount: () => setDialogOpen(false),
-    clearStatus: () => setStatus(''),
+    clearStatus: () => {
+      setStatus('');
+      setStatusTone('');
+    },
     checkUsername,
     signIn,
     signUp,
@@ -235,7 +287,7 @@ export function AccountProvider({ children }) {
     claimPlayer,
     releasePlayer,
     refreshProfile,
-  }), [busy, checkUsername, claimPlayer, dialogOpen, displayName, passwordRecovery, playerClaims, profile, refreshProfile, releasePlayer, resetPassword, session, signIn, signInWithGoogle, signOut, signUp, saveProfile, status, updatePassword, username]);
+  }), [busy, checkUsername, claimPlayer, dialogOpen, displayName, passwordRecovery, playerClaims, profile, refreshProfile, releasePlayer, resetPassword, session, signIn, signInWithGoogle, signOut, signUp, saveProfile, status, statusTone, updatePassword, username]);
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
 }

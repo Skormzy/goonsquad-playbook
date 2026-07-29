@@ -52,7 +52,7 @@ const LEGACY_PLAYS =[
 {id:1,t:"LW Picks Up — Go North",desc:"LW meets the ball at the boards and goes.",pos:{LW:{x:8,y:42,role:"Meet the ball at the boards in stride. Pick it up and GO north.",u:"sprint",ball:true},C:{x:65,y:36,role:"Swing to the far side. Give width for the breakout.",u:"sprint"},RW:{x:88,y:42,role:"Wide right. Stretch the defense.",u:"run"},LD:{x:25,y:14,role:"After the rim, jump into the play up your side.",u:"run"},RD:{x:55,y:12,role:"Shift to middle. Cover if the rim was cut off.",u:"run"},G:GK},opp:[{id:"o1",x:22,y:22,l:"F1"},{id:"o2",x:14,y:34,l:"F2"},{id:"o3",x:52,y:28,l:"F3"},{id:"o4",x:30,y:50,l:"D1"},{id:"o5",x:65,y:50,l:"D2"},{id:"og",x:50,y:92,l:"G"}],ball:{x:8,y:42},lanes:[{f:"LW",t:"C",ty:"primary"},{f:"LW",t:"RW",ty:"secondary"}],ballPath:[{x:35,y:4},{x:8,y:4},{x:7,y:16},{x:7,y:29},{x:8,y:42}]}
 ]},
 {id:"nfd",n:"Net-Front Defense",cat:"defensive",d:"basic",desc:"Lock down when they have ball low in our zone.",strat:"(1) Nobody unchecked in front of goalie — EVER. (2) Don't chase the ball carrier into corners — contain and force wide. (3) The slot is sacred ground. (4) Wings cover their point men. (5) Communicate constantly: 'I got net-front,' 'Back door left,' 'Point man free.'",phases:[
-{id:0,t:"Lock Down — Ball in Corner",desc:"They have ball low. Everyone in defensive positions.",pos:{LW:{x:18,y:28,role:"Cover their left point man. If he walks in for a shot, that's on you.",u:"hold"},C:{x:42,y:22,role:"High slot coverage. This is the DANGER ZONE. Don't get sucked low.",u:"hold",key:"If their point man steps in, step out to challenge. Don't let him walk into a shot."},RW:{x:68,y:28,role:"Weak-side / back door. If they pass across the crease, you MUST be there.",u:"hold"},LD:{x:22,y:16,role:"Between ball carrier and net. Stick on the ball. Contain — DON'T chase into the corner.",u:"hold"},RD:{x:55,y:11,role:"Net-front. NO ONE stands in front of our goalie unchecked. Box them out.",u:"hold"},G:GK},opp:[{id:"o1",x:12,y:16,l:"F1"},{id:"o2",x:60,y:18,l:"F2"},{id:"o3",x:38,y:30,l:"F3"},{id:"o4",x:20,y:38,l:"D1"},{id:"o5",x:65,y:38,l:"D2"},{id:"og",x:50,y:92,l:"G"}],ball:{x:12,y:16},lanes:[]},
+{id:0,t:"Lock Down — Ball in Corner",desc:"They have ball low. Everyone in defensive positions.",pos:{LW:{x:18,y:28,role:"Cover their left point man. If he walks in for a shot, that's on you.",u:"hold"},C:{x:42,y:22,role:"High slot coverage. This is the DANGER ZONE. Don't get sucked low.",u:"hold",key:"If their point man steps in, step out to challenge. Don't let him walk into a shot."},RW:{x:68,y:28,role:"Weak-side / back door. If they pass across the crease, you MUST be there.",u:"hold"},LD:{x:24,y:13,role:"Stay goal-side between the carrier and our net. Contain from inside without chasing below the goal line.",u:"hold"},RD:{x:55,y:11,role:"Net-front. NO ONE stands in front of our goalie unchecked. Box them out.",u:"hold"},G:GK},opp:[{id:"o1",x:12,y:16,l:"F1"},{id:"o2",x:60,y:18,l:"F2"},{id:"o3",x:38,y:30,l:"F3"},{id:"o4",x:20,y:38,l:"D1"},{id:"o5",x:65,y:38,l:"D2"},{id:"og",x:50,y:92,l:"G"}],ball:{x:12,y:16},lanes:[]},
 {id:1,t:"Ball Moves Behind Our Net",desc:"Carrier goes behind net. Rotate to cover.",pos:{LW:{x:22,y:26,role:"Tighten up but keep an eye on your point man. Don't lose him.",u:"drift"},C:{x:48,y:18,role:"Drop lower to protect the slot. This is where goals come from.",u:"run"},RW:{x:66,y:26,role:"Close off weak side. No easy passes out front.",u:"drift"},LD:{x:34,y:4,role:"Follow carrier behind net. Mirror them. If they come out your side, guide them wide.",u:"run"},RD:{x:58,y:4,role:"Opposite post. If they try to wrap around, you're there.",u:"hold"},G:{x:48,y:8,role:"Hug post on ball side. Quick push if they come out the other side.",u:"hold"}},opp:[{id:"o1",x:42,y:2,l:"F1"},{id:"o2",x:62,y:12,l:"F2"},{id:"o3",x:38,y:28,l:"F3"},{id:"o4",x:20,y:36,l:"D1"},{id:"o5",x:65,y:36,l:"D2"},{id:"og",x:50,y:92,l:"G"}],ball:{x:42,y:2},lanes:[]}
 ]},
 {id:"ddc",n:"Defending Dump & Chase",cat:"defensive",d:"basic",desc:"They dump it in and chase. Win the race and transition to breakout.",strat:"When they dump it in: D closest to the ball turns and RACES for it. The other D covers net-front. CRITICAL: the D going for ball should stop it first, then make a play. Forwards: don't stand and watch — start breakout routes IMMEDIATELY.",phases:[
@@ -70,7 +70,7 @@ const LEGACY_PLAYS =[
 ]},
 {id:"zent",n:"Zone Entry",cat:"neutral",d:"intermediate",desc:"Read their D at the blue line. Backing up = carry in. Challenging = dump and chase.",strat:"Zone entries are about READING their D. Watch their feet: backward with space = walk it in. Squaring up to challenge = dump it deep and chase. A third option: pass to a teammate already at the line. NEVER slow down at the blue line trying to decide — that's the worst option.",phases:[
 {id:0,t:"Read Their D",desc:"LW carries up the left. Reads the D's body position.",pos:{LW:{x:10,y:62,role:"Read D's feet: backing up = carry in. Squaring up = dump or dish. Commit and GO.",u:"sprint",ball:true,key:"Backward = space to carry. Square up = dump it. Never slow down deciding."},C:{x:40,y:59,role:"Outlet if LW is pressured. Be ready to receive in the middle.",u:"run"},RW:{x:85,y:58,role:"Push HARD to the far side. Stretch their D wide.",u:"sprint"},LD:{x:30,y:53,role:"Trail the play. Point option and safety valve if entry fails.",u:"run"},RD:{x:65,y:49,role:"Stay back. If we turn it over at the line, you're the last man.",u:"hold"},G:GK},opp:[{id:"o1",x:30,y:68,l:"D1"},{id:"o2",x:65,y:68,l:"D2"},{id:"o3",x:50,y:74,l:"F1"},{id:"o4",x:25,y:76,l:"F2"},{id:"o5",x:75,y:76,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:10,y:62},lanes:[{f:"LW",t:"C",ty:"primary"},{f:"LW",t:"RW",ty:"secondary"}]},
-{id:1,t:"Carry-In — D Backing Up",desc:"Their D is giving space. Walk it in and attack.",pos:{LW:{x:12,y:74,role:"Walk it in. Drive wide then cut to net or pass to C in the slot.",u:"sprint",ball:true},C:{x:45,y:72,role:"Attack the slot area. If LW gets in, be ready for the pass.",u:"sprint"},RW:{x:66,y:88,role:"Crash the far post. Get to the right side of the net — if ball comes across, bury it.",u:"sprint"},LD:{x:28,y:68,role:"Hold the blue line. Keep it in the zone if ball comes back.",u:"run"},RD:{x:62,y:62,role:"Provide width at the line.",u:"drift"},G:GK},opp:[{id:"o1",x:32,y:78,l:"D1"},{id:"o2",x:62,y:72,l:"D2"},{id:"o3",x:52,y:82,l:"F1"},{id:"o4",x:22,y:80,l:"F2"},{id:"o5",x:72,y:80,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:12,y:74},lanes:[{f:"LW",t:"C",ty:"primary"},{f:"LW",t:"RW",ty:"secondary"}]}
+{id:1,t:"Carry-In — D Backing Up",desc:"Their D is giving space. Walk it in and attack.",pos:{LW:{x:12,y:74,role:"Walk it in. Drive wide, then find C underneath if the inside lane opens.",u:"sprint",ball:true},C:{x:45,y:72,role:"Arrive underneath the carrier as the short inside option.",u:"sprint"},RW:{x:66,y:88,role:"Crash the far post. Get to the right side of the net for a rebound or back-door touch.",u:"sprint"},LD:{x:28,y:68,role:"Hold the blue line. Keep it in the zone if ball comes back.",u:"run"},RD:{x:62,y:62,role:"Provide width at the line.",u:"drift"},G:GK},opp:[{id:"o1",x:32,y:78,l:"D1"},{id:"o2",x:62,y:72,l:"D2"},{id:"o3",x:52,y:82,l:"F1"},{id:"o4",x:22,y:80,l:"F2"},{id:"o5",x:72,y:80,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:12,y:74},lanes:[{f:"LW",t:"C",ty:"primary"}]}
 ]},
 // ═══ 12. O-ZONE FACEOFF LEFT — dot(28,79) hashes at x:20 and x:36 ═══
 {id:"ozfl",n:"O-Zone Faceoff — Left",cat:"offensive",d:"basic",desc:"Win=shot. Lost=battle for it.",strat:"WIN: C to LD, LD shoots IMMEDIATELY. LOST: wings battle at hash marks for loose ball. C ties up their center. Don't give up the zone.",phases:[
@@ -79,8 +79,8 @@ const LEGACY_PLAYS =[
 {id:2,t:"❌ LOST FACEOFF — Battle!",desc:"They win draw toward boards. Battle for possession.",pos:{LW:{x:22,y:80,role:"BATTLE for ball at the hash. Don't retreat.",u:"sprint",key:"Possession in their zone is valuable."},C:{x:32,y:82,role:"Tie up their center. Don't let them break clean.",u:"run"},RW:{x:50,y:84,role:"Stay near net. Pounce on loose ball.",u:"hold"},LD:{x:24,y:70,role:"Hold blue line. Keep it in.",u:"hold"},RD:{x:60,y:70,role:"Prevent clear.",u:"hold"},G:GK},opp:[{id:"o1",x:28,y:84,l:"F2"},{id:"o2",x:20,y:84,l:"F1"},{id:"o3",x:38,y:84,l:"F3"},{id:"o4",x:14,y:87,l:"D1"},{id:"o5",x:65,y:86,l:"D2"},{id:"og",x:50,y:92,l:"G"}],ball:{x:18,y:83},lanes:[]}
 ]},
 {id:"lcl",n:"Low Cycle — Left",cat:"offensive",d:"intermediate",desc:"Cycle low to create chances.",strat:"LW protects ball. Rotation behind net confuses D. RW NEVER leaves net-front.",phases:[
-{id:0,t:"Ball in Corner",desc:"LW protects.",pos:{LW:{x:12,y:88,role:"Protect ball.",u:"hold",ball:true},C:{x:24,y:82,role:"Support below hash.",u:"hold"},RW:{x:55,y:86,role:"Net-front.",u:"hold"},LD:{x:24,y:68,role:"Left point.",u:"hold"},RD:{x:60,y:68,role:"Right point.",u:"hold"},G:GK},opp:[{id:"o1",x:32,y:86,l:"D1"},{id:"o2",x:65,y:80,l:"D2"},{id:"o3",x:32,y:76,l:"F1"},{id:"o4",x:52,y:76,l:"F2"},{id:"o5",x:42,y:70,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:12,y:88},lanes:[{f:"LW",t:"C",ty:"primary"},{f:"LW",t:"LD",ty:"secondary"}]},
-{id:1,t:"Cycle Behind Net",desc:"LW behind their net.",pos:{LW:{x:38,y:95,role:"Cycle behind net along the boards.",u:"sprint"},C:{x:22,y:82,role:"Receive. Distribute.",u:"hold",ball:true},RW:{x:55,y:87,role:"Stay. Be LOUD.",u:"hold",comm:"NET FRONT!"},LD:{x:24,y:70,role:"Ready for pass up.",u:"hold"},RD:{x:58,y:70,role:"Hold.",u:"hold"},G:GK},opp:[{id:"o1",x:28,y:88,l:"D1"},{id:"o2",x:64,y:80,l:"D2"},{id:"o3",x:35,y:76,l:"F1"},{id:"o4",x:50,y:78,l:"F2"},{id:"o5",x:44,y:66,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:22,y:82},lanes:[{f:"C",t:"RW",ty:"primary"},{f:"C",t:"LD",ty:"secondary"}]}
+{id:0,t:"Ball in Corner",desc:"LW protects while C supports below the hash and reads the cycle handoff.",pos:{LW:{x:12,y:88,role:"Shield the ball, then leave it down the wall for C before continuing behind the net.",u:"hold",ball:true},C:{x:24,y:82,role:"Arrive underneath with speed. Call for the cycle and receive along the wall.",u:"run",comm:"CYCLE!"},RW:{x:55,y:86,role:"Own net-front. Do not follow the ball into the corner.",u:"hold"},LD:{x:24,y:68,role:"Left point support and safe reset.",u:"hold"},RD:{x:60,y:68,role:"Right point safety.",u:"hold"},G:GK},opp:[{id:"o1",x:32,y:86,l:"D1"},{id:"o2",x:65,y:80,l:"D2"},{id:"o3",x:32,y:76,l:"F1"},{id:"o4",x:52,y:76,l:"F2"},{id:"o5",x:42,y:70,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:12,y:88},lanes:[{f:"LW",t:"C",ty:"primary"},{f:"LW",t:"LD",ty:"secondary"}]},
+{id:1,t:"Cycle Exchange — C Receives",desc:"LW leaves the ball down the wall for C, then runs behind the net while C attacks the space they created.",pos:{LW:{x:38,y:95,role:"Continue behind the net after the handoff. Become the return option on the far side.",u:"sprint"},C:{x:22,y:83,role:"Collect the cycle exchange in motion. Look net-front first, then reset to LD.",u:"run",ball:true},RW:{x:55,y:87,role:"Hold net-front and present the quick finish.",u:"hold",comm:"NET FRONT!"},LD:{x:24,y:70,role:"Stay available above the play for the reset and second ball.",u:"run"},RD:{x:58,y:70,role:"Hold weak-side safety.",u:"hold"},G:GK},opp:[{id:"o1",x:28,y:88,l:"D1"},{id:"o2",x:64,y:80,l:"D2"},{id:"o3",x:35,y:76,l:"F1"},{id:"o4",x:50,y:78,l:"F2"},{id:"o5",x:44,y:66,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:22,y:83},ballPath:[{x:12,y:88},{x:15,y:87},{x:18,y:85},{x:22,y:83}],lanes:[{f:"C",t:"RW",ty:"primary"},{f:"C",t:"LD",ty:"secondary"}]}
 ]},
 {id:"btn",n:"Behind the Net Play",cat:"offensive",d:"advanced",desc:"Control behind their net. Make them ball-watch.",strat:"Behind the net is our 'office.' The net shields you — they can't strip the ball easily. Hold it and WATCH their defenders. Almost every team ball-watches: both D drift toward the carrier and forwards forget their assignments. The moment you see a D drifting toward you, one of our forwards is walking into open space undetected. That is the play. Feed them quick, they finish. PATIENCE forces the mistake — be ready to capitalize the instant you see it.",phases:[
 {id:0,t:"Establish Behind Net",desc:"C gets ball behind their net. Hold it. Watch their D.",pos:{LW:{x:22,y:86,role:"Hold your spot left of net. Short-side option for C. Watch for your chance to cut if their D forgets you.",u:"hold"},C:{x:50,y:99,role:"Behind their net with ball. HOLD IT. Don't stare at your targets — watch their defenders. One of them will drift toward you and forget a forward.",u:"hold",ball:true,key:"Don't look where you want to pass. Watch the defenders. When a D drifts toward the ball, a forward is wide open somewhere. That's the signal."},RW:{x:78,y:86,role:"Hold your spot right of net. Their F3 is marking you right now. Stay patient — they're about to ball-watch.",u:"hold"},LD:{x:30,y:70,role:"Left point. Hold wide. Shot option if ball comes up.",u:"hold"},RD:{x:70,y:70,role:"Right point. Mirror LD. Hold wide.",u:"hold"},G:GK},opp:[{id:"o1",x:38,y:92,l:"D1"},{id:"o2",x:62,y:92,l:"D2"},{id:"o3",x:50,y:82,l:"F1"},{id:"o4",x:21,y:84,l:"F2"},{id:"o5",x:72,y:80,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:50,y:99},lanes:[{f:"C",t:"LW",ty:"primary"},{f:"C",t:"RW",ty:"primary"},{f:"C",t:"LD",ty:"secondary"}]},
@@ -90,14 +90,14 @@ const LEGACY_PLAYS =[
 ]},
 {id:"pts",n:"Point Shot & Screen",cat:"offensive",d:"basic",desc:"D shoots from the point with traffic in front. Crash for rebounds.",strat:"Point shots only work with TRAFFIC. RW MUST screen — stand in front of the goalie. C positions for deflections with stick on the floor. LW crashes for rebounds. D: shoot LOW and HARD. A high shot goes over the net. A low shot through traffic creates chaos.",phases:[
 {id:0,t:"Set Up Traffic — D Ready to Shoot",desc:"Forwards create chaos. D has a lane to shoot through.",pos:{LW:{x:20,y:86,role:"Near-side low. Crash for rebounds after the shot. Be first to loose balls.",u:"hold"},C:{x:40,y:83,role:"Deflection position. Stick on the floor. Redirect anything that comes through low.",u:"hold"},RW:{x:44,y:87,role:"SCREEN the goalie. Get between the shooter and the goalie — stand directly in front and be a wall. Don't move.",u:"hold"},LD:{x:28,y:68,role:"Get it through. LOW and HARD. Quick release through traffic. If your lane is sealed, D-to-D to RD.",u:"hold",ball:true,key:"Shot first — quick release, low, through traffic. If their D seals your lane, D-to-D to RD for a new angle. RD can either shoot or find a forward."},RD:{x:62,y:68,role:"D-to-D option if LD's lane is blocked. Slide toward the middle to open a new angle. Receive and shoot immediately.",u:"hold"},G:GK},opp:[{id:"o1",x:18,y:74,l:"D1"},{id:"o2",x:64,y:78,l:"D2"},{id:"o3",x:34,y:74,l:"F1"},{id:"o4",x:52,y:72,l:"F2"},{id:"o5",x:34,y:82,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:28,y:68},lanes:[{f:"LD",t:"RD",ty:"secondary"}]},
-{id:1,t:"Shot — Crash for Rebound",desc:"Shot goes through. Everyone crashes the net.",pos:{LW:{x:32,y:90,role:"CRASH. Get to the net. Rebound. Garbage goal. Be relentless.",u:"sprint"},C:{x:46,y:88,role:"Tip if you can. Get in front of the goalie. Crash for the rebound immediately.",u:"sprint"},RW:{x:52,y:88,role:"Stay screening. If the rebound comes to you, shoot FAST.",u:"hold"},LD:{x:40,y:83,role:"Crash toward the slot. Second shot opportunity.",u:"sprint"},RD:{x:58,y:70,role:"Hold the line. If the ball comes out high, get another shot off.",u:"hold"},G:GK},opp:[{id:"o1",x:26,y:80,l:"D1"},{id:"o2",x:62,y:82,l:"D2"},{id:"o3",x:42,y:78,l:"F1"},{id:"o4",x:50,y:74,l:"F2"},{id:"o5",x:34,y:84,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:44,y:94},lanes:[]}
+{id:1,t:"Shot — Forwards Crash, D Hold",desc:"The shot reaches the net. Forwards attack the rebound while both defenders preserve the zone.",pos:{LW:{x:32,y:90,role:"Crash the near-side rebound lane and arrive under control.",u:"sprint"},C:{x:46,y:88,role:"Tip if available, then locate the rebound immediately.",u:"sprint"},RW:{x:52,y:88,role:"Keep the screen, then turn to the loose ball.",u:"hold"},LD:{x:38,y:74,role:"Stay above the circles for a cleared rebound or immediate second shot.",u:"run"},RD:{x:60,y:70,role:"Hold weak-side safety and protect against the counterattack.",u:"hold"},G:GK},opp:[{id:"o1",x:26,y:80,l:"D1"},{id:"o2",x:62,y:82,l:"D2"},{id:"o3",x:42,y:78,l:"F1"},{id:"o4",x:50,y:74,l:"F2"},{id:"o5",x:34,y:84,l:"F3"},{id:"og",x:50,y:92,l:"G"}],ball:{x:44,y:94},lanes:[]}
 ]},
 // ═══ SPECIAL TEAMS ═══
 {id:"ppum",n:"PP — Umbrella (2-1-2)",cat:"special",d:"intermediate",desc:"Move the ball to shift the PK box. C sneaks into the open slot.",strat:"Two D at the points, LW and C at the half-walls, RW at net-front. Move the ball point-to-point to force the PK box to shift. When a PK player steps up to pressure RD, they open the slot behind them — that is the play. C drifts quietly from the right half-wall into the gap. One pass, one shot. PATIENCE: don't go early, wait until the slot is actually open before you move.",phases:[
-{id:0,t:"Umbrella Setup",desc:"D at both points. LW and C at half-walls. RW at net-front. Make the PK box choose.",pos:{LW:{x:18,y:78,role:"Left half-wall. Keep them honest on your side. Be ready to receive and move it.",u:"hold"},C:{x:75,y:78,role:"Right half-wall. Hold your position for now. Watch their top-right PK player — when they step up to pressure RD, the slot opens behind them. That is your cue.",u:"hold",key:"Don't go early. If you drift before the slot is open, you pull a PK player with you. Wait for PK2 to step up, THEN go."},RW:{x:50,y:88,role:"Net-front. Plant yourself in front of the goalie. Tip anything. Be a distraction.",u:"hold"},LD:{x:32,y:68,role:"Left point QB. Ball to RD — get the PK box moving right.",u:"hold",ball:true},RD:{x:68,y:68,role:"Right point. Ready to receive. When you get it, hold it — let C start moving before you pass.",u:"hold"},G:GK},opp:[{id:"o1",x:36,y:76,l:"PK"},{id:"o2",x:62,y:76,l:"PK"},{id:"o3",x:40,y:85,l:"PK"},{id:"o4",x:60,y:85,l:"PK"},{id:"og",x:50,y:92,l:"G"}],ball:{x:32,y:68},lanes:[{f:"LD",t:"RD",ty:"primary"},{f:"LD",t:"LW",ty:"secondary"}]},
-{id:1,t:"Ball to RD — PK Over-Commits — C Sneaks",desc:"PK2 steps up to pressure RD. The slot opens. C drifts in quietly — completely unmarked.",pos:{LW:{x:18,y:78,role:"Stay wide. You're occupying PK1 on the left. Don't move into the slot — that's C's lane.",u:"hold"},C:{x:56,y:83,role:"PK2 stepped up — the slot is open. Slide down and in. Stay controlled. You're invisible right now.",u:"run",comm:"HERE!"},RW:{x:50,y:88,role:"Stay at net-front. Goalie is watching RD. You're the rebound threat.",u:"hold"},LD:{x:32,y:70,role:"Step toward center. If RD can't find C, you're the reset option.",u:"drift"},RD:{x:68,y:68,role:"You have the ball. Hold it one beat — let C get all the way into the slot. Then thread the pass.",u:"hold",ball:true,key:"Don't force it. If PK4 is blocking the lane, reset to LD. Wait for C to confirm they're open."},G:GK},opp:[{id:"o1",x:38,y:76,l:"PK"},{id:"o2",x:64,y:71,l:"PK"},{id:"o3",x:46,y:84,l:"PK"},{id:"o4",x:64,y:83,l:"PK"},{id:"og",x:50,y:92,l:"G"}],ball:{x:68,y:68},ballPath:[{x:32,y:68},{x:48,y:68},{x:68,y:68}],lanes:[{f:"RD",t:"C",ty:"primary"},{f:"RD",t:"LD",ty:"secondary"}]},
-{id:2,t:"RD Threads the Pass to C",desc:"RD finds C in the slot. Pass through the seam. C is alone with a wide-open look.",pos:{LW:{x:18,y:78,role:"Hold wide. If the shot gets blocked, you're the outlet to reset.",u:"hold"},C:{x:54,y:83,role:"Ball is coming. Stick DOWN. FIRST TOUCH SHOOT — catch and release in one motion. No extra handles.",u:"hold",ball:true,comm:"HERE! HERE!"},RW:{x:50,y:88,role:"Stay at net-front. Crash for any rebound the instant C shoots.",u:"sprint"},LD:{x:34,y:70,role:"Hold the point. If C's shot is blocked or goes wide, you're the second shot.",u:"hold"},RD:{x:68,y:68,role:"Pass is away. Follow your pass — step toward the slot for a rebound or reset.",u:"run",key:"Thread the pass through the seam between PK3 and PK4. Flat and quick — do not lob it."},G:GK},opp:[{id:"o1",x:38,y:76,l:"PK"},{id:"o2",x:62,y:74,l:"PK"},{id:"o3",x:48,y:84,l:"PK"},{id:"o4",x:64,y:83,l:"PK"},{id:"og",x:50,y:92,l:"G"}],ball:{x:54,y:83},ballPath:[{x:68,y:68},{x:64,y:75},{x:58,y:80},{x:54,y:83}],lanes:[]},
-{id:3,t:"✅ C One-Times It — Goal",desc:"C catches in the slot. No pressure. Quick release low to the far post. Ball-watching on the PK cost them.",pos:{LW:{x:20,y:80,role:"Hold your lane. If the shot rebounds out wide, you're the second attack.",u:"hold"},C:{x:54,y:83,role:"SHOOT the moment it touches your stick. Low, far post. Goalie is flat-footed — they were watching RD.",u:"hold",key:"One-time shot or quick release — don't take a second look. Goalies save what they see coming; quick shots beat them."},RW:{x:50,y:89,role:"Crash hard. Tip it if you can. If the shot misses, you're on the rebound.",u:"sprint"},LD:{x:44,y:83,role:"Crash toward the slot. Get to the net — second shot if C's goes wide.",u:"sprint"},RD:{x:64,y:72,role:"Follow into the play. Hold the zone and be ready for a reset if needed.",u:"run"},G:GK},opp:[{id:"o1",x:38,y:78,l:"PK"},{id:"o2",x:60,y:76,l:"PK"},{id:"o3",x:48,y:86,l:"PK"},{id:"o4",x:62,y:85,l:"PK"},{id:"og",x:52,y:92,l:"G"}],ball:{x:51,y:93},ballPath:[{x:54,y:83},{x:52,y:88},{x:51,y:93}],lanes:[]}
+{id:0,t:"Umbrella Setup",desc:"D at both points. LW and C at half-walls. RW at net-front. Make the PK box choose.",pos:{LW:{x:18,y:78,role:"Left half-wall. Keep them honest on your side. Be ready to receive and move it.",u:"hold"},C:{x:75,y:78,role:"Right half-wall. Hold your position for now. Watch their top-right penalty killer — when they step up to pressure RD, the slot opens behind them. That is your cue.",u:"hold",key:"Don't go early. If you drift before the slot is open, you pull a defender with you. Wait for their left wing to step up, then go."},RW:{x:50,y:88,role:"Net-front. Plant yourself in front of the goalie. Tip anything. Be a distraction.",u:"hold"},LD:{x:32,y:68,role:"Left point QB. Ball to RD — get the box moving right.",u:"hold",ball:true},RD:{x:68,y:68,role:"Right point. Ready to receive. When you get it, hold it — let C start moving before you pass.",u:"hold"},G:GK},opp:[{id:"o1",x:36,y:76,l:"RW"},{id:"o2",x:64,y:76,l:"LW"},{id:"o3",x:42,y:85,l:"RD"},{id:"o4",x:60,y:85,l:"LD"},{id:"o6",x:98,y:50,l:"C",inactive:true,status:"penalty-box"},{id:"og",x:50,y:92,l:"G"}],ball:{x:32,y:68},lanes:[{f:"LD",t:"RD",ty:"primary"},{f:"LD",t:"LW",ty:"secondary"}]},
+{id:1,t:"Ball to RD — Box Shifts — C Sneaks",desc:"Their LW steps out to pressure RD. The slot opens behind them and C moves into it.",pos:{LW:{x:17,y:79,role:"Stay wide and occupy their RW. Keep C's route into the slot clear.",u:"drift"},C:{x:56,y:80,role:"Their LW stepped out. Slide behind that pressure into the open seam.",u:"run",comm:"HERE!"},RW:{x:49,y:89,role:"Stay net-front and move with the goalie's sightline.",u:"drift"},LD:{x:34,y:70,role:"Slide toward center as the safe reset.",u:"drift"},RD:{x:68,y:69,role:"Hold one beat, confirm the seam, then pass. Reset to LD if it closes.",u:"hold",ball:true,key:"Read the lane. The pass only goes when C is clear of both low defenders."},G:GK},opp:[{id:"o1",x:35,y:77,l:"RW"},{id:"o2",x:73,y:73,l:"LW"},{id:"o3",x:42,y:86,l:"RD"},{id:"o4",x:64,y:85,l:"LD"},{id:"o6",x:98,y:50,l:"C",inactive:true,status:"penalty-box"},{id:"og",x:51,y:92,l:"G"}],ball:{x:68,y:69},ballPath:[{x:32,y:68},{x:49,y:69},{x:68,y:69}],lanes:[{f:"RD",t:"C",ty:"primary"},{f:"RD",t:"LD",ty:"secondary"}]},
+{id:2,t:"RD Hits the Open Slot",desc:"RD passes inside the pressure. C receives between the two layers with room to release.",pos:{LW:{x:16,y:80,role:"Stay available on the wall for a missed shot or reset.",u:"drift"},C:{x:54,y:81,role:"Receive on your forehand and release immediately. No extra handle.",u:"run",ball:true,comm:"HERE!"},RW:{x:50,y:90,role:"Screen, then drive the rebound lane without blocking C's shot.",u:"sprint"},LD:{x:35,y:72,role:"Hold the middle of the line for the second ball.",u:"drift"},RD:{x:65,y:72,role:"Follow your pass inside while keeping the right point covered.",u:"run"},G:GK},opp:[{id:"o1",x:34,y:78,l:"RW"},{id:"o2",x:74,y:74,l:"LW"},{id:"o3",x:43,y:86,l:"RD"},{id:"o4",x:65,y:86,l:"LD"},{id:"o6",x:98,y:50,l:"C",inactive:true,status:"penalty-box"},{id:"og",x:51,y:92,l:"G"}],ball:{x:54,y:81},ballPath:[{x:68,y:69},{x:62,y:74},{x:57,y:78},{x:54,y:81}],lanes:[]},
+{id:3,t:"✅ Quick Release Through the Screen",desc:"C shoots before the box can recover. RW screens and all four teammates move into rebound or reset positions.",pos:{LW:{x:20,y:82,role:"Close toward the weak-side rebound while preserving the wall reset.",u:"run"},C:{x:53,y:83,role:"Shoot immediately through the screen, low to the far side.",u:"hold",key:"The advantage is the early release, before their LW can recover inside."},RW:{x:49,y:90,role:"Screen, tip, then locate the rebound.",u:"sprint"},LD:{x:42,y:78,role:"Step into the high slot for a cleared rebound.",u:"run"},RD:{x:63,y:75,role:"Hold the zone and protect the counterattack.",u:"run"},G:GK},opp:[{id:"o1",x:36,y:80,l:"RW"},{id:"o2",x:69,y:77,l:"LW"},{id:"o3",x:43,y:87,l:"RD"},{id:"o4",x:63,y:87,l:"LD"},{id:"o6",x:98,y:50,l:"C",inactive:true,status:"penalty-box"},{id:"og",x:52,y:92,l:"G"}],ball:{x:51,y:93},ballPath:[{x:53,y:83},{x:52,y:88},{x:51,y:93}],lanes:[]}
 ]},
 {id:"ppfo",n:"PP Faceoff — O-Zone",cat:"special",d:"basic",desc:"Win=shot. Lost=set up umbrella.",strat:"Win: shoot with traffic. Lost: don't panic, set up umbrella.",phases:[
 {id:0,t:"PP Faceoff",desc:"C at left dot.",pos:{LW:{x:20,y:78,role:"Boards-side hash, attack side. Retrieve if draw is messy.",u:"hold"},C:{x:28,y:77,role:"At the dot, attack side. Win draw back to LD.",u:"hold"},RW:{x:50,y:76,role:"High slot. Drive to net-front on the draw.",u:"hold"},LD:{x:12,y:68,role:"Strong-side point. Boards start — step out to the point on the draw. Receive and SHOOT.",u:"hold"},RD:{x:64,y:66,role:"Weak-side point. D-to-D option.",u:"hold"},G:GK},opp:[{id:"o1",x:28,y:82,l:"PK"},{id:"o2",x:20,y:82,l:"PK"},{id:"o3",x:36,y:82,l:"PK"},{id:"o4",x:62,y:86,l:"PK"},{id:"og",x:50,y:92,l:"G"}],ball:{x:28,y:79},lanes:[]},
@@ -164,11 +164,143 @@ const LEGACY_PLAYS =[
 ]}
 ];
 
+const REVIEWED_PHASE_CORRECTIONS = Object.freeze({
+  brk: {
+    1: {
+      lanes: [
+        { f: "LD", t: "C", ty: "secondary" },
+        { f: "LD", t: "RD", ty: "outlet" },
+      ],
+      pos: {
+        LD: {
+          role: "The wall lane is sealed. Use the short middle support or reverse behind the net.",
+        },
+      },
+    },
+  },
+  ddc: {
+    1: {
+      opp: {
+        o2: { x: 29, y: 30 },
+      },
+    },
+  },
+  btn: {
+    0: {
+      lanes: [],
+    },
+    1: {
+      desc: "F3 drifts toward the ball. RW slides into the slot, but C waits until the route around the post is clear.",
+      lanes: [
+        { f: "C", t: "LD", ty: "outlet" },
+      ],
+      opp: {
+        o5: { x: 50, y: 87 },
+      },
+    },
+    2: {
+      opp: {
+        o2: { x: 49, y: 92 },
+        o5: { x: 52, y: 86 },
+      },
+    },
+    3: {
+      opp: {
+        o2: { x: 74, y: 90 },
+        o5: { x: 58, y: 80 },
+      },
+    },
+  },
+  pkcl: {
+    0: {
+      pos: {
+        RW: {
+          x: 98,
+          y: 50,
+          role: "Serve the penalty in the box while the four-player unit clears.",
+          inactive: true,
+          status: "penalty-box",
+        },
+      },
+      opp: {
+        o3: { x: 33, y: 24 },
+      },
+    },
+  },
+  qu: {
+    1: {
+      lanes: [
+        { f: "LW", t: "C", ty: "secondary" },
+        { f: "LW", t: "RW", ty: "secondary" },
+      ],
+    },
+  },
+  o21: {
+    1: {
+      opp: {
+        o1: { x: 27, y: 77 },
+      },
+    },
+  },
+  o32: {
+    1: {
+      opp: {
+        o1: { x: 38, y: 74 },
+      },
+    },
+  },
+  lcs: {
+    2: {
+      opp: {
+        o4: { x: 25, y: 31 },
+      },
+    },
+  },
+});
+
+function mergeRolePatches(players, patches = {}) {
+  return Object.fromEntries(
+    Object.entries(players).map(([role, player]) => [
+      role,
+      patches[role] ? { ...player, ...patches[role] } : player,
+    ]),
+  );
+}
+
+function mergeOpponentPatches(players, patches = {}) {
+  return players.map((player) => (
+    patches[player.id] ? { ...player, ...patches[player.id] } : player
+  ));
+}
+
+function applyReviewedCorrections(play) {
+  const corrections = REVIEWED_PHASE_CORRECTIONS[play.id];
+  if (!corrections) return play;
+
+  return {
+    ...play,
+    phases: play.phases.map((phase) => {
+      const correction = corrections[phase.id];
+      if (!correction) return phase;
+      return {
+        ...phase,
+        ...correction,
+        pos: correction.pos
+          ? mergeRolePatches(phase.pos, correction.pos)
+          : phase.pos,
+        opp: correction.opp
+          ? mergeOpponentPatches(phase.opp, correction.opp)
+          : phase.opp,
+      };
+    }),
+  };
+}
+
 export const PLAYS = [
-  ...LEGACY_PLAYS.map((play) => (
+  ...LEGACY_PLAYS.map((play) => applyReviewedCorrections(
     STRATEGY_FIRST_PLAY_OVERRIDES[play.id]
     ?? FACE_OFF_PLAY_BY_ID[play.id]
-    ?? play
+    ?? play,
   )),
-  ...STRATEGY_FIRST_PLAY_ADDITIONS,
+  ...STRATEGY_FIRST_PLAY_ADDITIONS.map(applyReviewedCorrections),
 ];

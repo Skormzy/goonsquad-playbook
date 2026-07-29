@@ -88,19 +88,19 @@ export const standardBreakout3dReplay = {
       keyframes: [kf(0, 40, 18, 3), kf(1.7, 32, 20, -1.4), kf(3.1, 25, 22, -1.2), kf(5.2, 17, 34, -0.6), kf(8.8, 24, 48, 0.4)],
     },
     {
-      id: 'OP_F2', label: 'LW', role: 'LW', team: 'opponent', uniform: opponentUniform,
+      id: 'OP_F2', label: 'RW', role: 'RW', team: 'opponent', uniform: opponentUniform,
       keyframes: [kf(0, 15, 30, 0.1), kf(1.9, 12, 34, 0.2), kf(3.4, 10, 40, 0.4), kf(6, 15, 50, 0.2), kf(8.8, 24, 60, 0.1)],
     },
     {
-      id: 'OP_F3', label: 'RW', role: 'RW', team: 'opponent', uniform: opponentUniform,
+      id: 'OP_F3', label: 'LW', role: 'LW', team: 'opponent', uniform: opponentUniform,
       keyframes: [kf(0, 75, 30, -0.1), kf(1.9, 70, 36, -0.2), kf(3.5, 64, 39, -0.35), kf(6, 59, 49, -0.1), kf(8.8, 58, 58, 0.15)],
     },
     {
-      id: 'OP_D1', label: 'LD', role: 'LD', team: 'opponent', uniform: opponentUniform,
+      id: 'OP_D1', label: 'RD', role: 'RD', team: 'opponent', uniform: opponentUniform,
       keyframes: [kf(0, 30, 48, 3.1), kf(2.2, 30, 52, 3.05), kf(4.5, 28, 56, 2.8), kf(6.4, 30, 61, 2.7), kf(8.8, 34, 68, 2.8)],
     },
     {
-      id: 'OP_D2', label: 'RD', role: 'RD', team: 'opponent', uniform: opponentUniform,
+      id: 'OP_D2', label: 'LD', role: 'LD', team: 'opponent', uniform: opponentUniform,
       keyframes: [kf(0, 65, 48, 3.15), kf(2.2, 62, 52, 3), kf(4.5, 60, 55, 2.9), kf(6.4, 59, 60, 2.8), kf(8.8, 61, 67, 2.8)],
     },
   ],

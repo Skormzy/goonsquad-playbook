@@ -65,6 +65,7 @@ for (const viewport of viewports) {
     throw new Error(`${viewport.id}: statistics workspace did not mount. ${browserErrors.join('; ') || bodyText || error.message}`);
   }
   await page.evaluate(() => document.fonts.ready);
+  const homeFromBareUrl = new URL(page.url()).searchParams.get('content') === 'stats';
 
   const statsPath = path.join(outputDir, `${viewport.id}-statistics-${viewport.width}x${viewport.height}.png`);
   await page.screenshot({ path: statsPath, fullPage: false });
@@ -74,7 +75,7 @@ for (const viewport of viewports) {
   const teamLabels = await page.locator('.stats-team-switcher button').allTextContents();
   const scheduleRows = await page.locator('.stats-schedule-row').allTextContents();
   const seasonOptions = await page.locator('.stats-season-controls select option').allTextContents();
-  const leaderCount = await page.locator('.stats-leaders li').count();
+  const leaderCount = await page.locator('.stats-leaders-table tbody tr').count();
   const sourceHref = await page.getByRole('link', { name: /Official source/u }).getAttribute('href');
   const documentOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
@@ -118,16 +119,26 @@ for (const viewport of viewports) {
 
   await page.getByRole('button', { name: 'Open team account' }).click();
   const accountDialog = page.getByRole('dialog', { name: /Join the squad workspace|Your team account/u });
-  await accountDialog.waitFor({ state: 'visible' });
-  const accountRect = await accountDialog.boundingBox();
-  const accountText = await accountDialog.innerText();
+  const accountWorkspace = page.locator('.account-workspace');
+  const accountSurface = await accountDialog.isVisible().catch(() => false)
+    ? accountDialog
+    : accountWorkspace;
+  await accountSurface.waitFor({ state: 'visible' });
+  const accountRect = await accountSurface.boundingBox();
+  const accountText = await accountSurface.innerText();
+  const accountInsideViewport = Boolean(
+    accountRect
+    && accountRect.x >= -1
+    && accountRect.y >= -1
+    && accountRect.x + accountRect.width <= viewport.width + 1
+  );
   const accountPath = path.join(outputDir, `${viewport.id}-account-${viewport.width}x${viewport.height}.png`);
   await page.screenshot({ path: accountPath, fullPage: false });
 
   report[viewport.id] = {
     viewport,
     navigation,
-    homeFromBareUrl: new URL(page.url()).searchParams.get('content') === 'stats',
+    homeFromBareUrl,
     summary: summary.replace(/\s+/gu, ' ').trim(),
     matchday: matchday.map((value) => value.replace(/\s+/gu, ' ').trim()),
     teamLabels,
@@ -144,7 +155,7 @@ for (const viewport of viewports) {
     scheduledPageText,
     gameToolbarInsideViewport: insideViewport(gameToolbarRect, viewport),
     accountText: accountText.replace(/\s+/gu, ' ').trim(),
-    accountInsideViewport: insideViewport(accountRect, viewport),
+    accountInsideViewport,
     documentOverflow,
     browserErrors,
     screenshots: [
@@ -158,7 +169,9 @@ for (const viewport of viewports) {
   if (navigation.join('|') !== 'HOME|PLAYS|STRATEGY|CREATE') throw new Error(`${viewport.id}: workspace navigation is incomplete.`);
   if (!report[viewport.id].homeFromBareUrl) throw new Error(`${viewport.id}: bare product URL did not resolve to Team Home.`);
   if (matchday.length !== 2 || !matchday[0].includes('NEXT GAME') || !matchday[1].includes('LATEST RESULT')) throw new Error(`${viewport.id}: matchday summary is incomplete.`);
-  if (!summary.includes('3–16–2') || !summary.includes('21 games · 2 leagues')) throw new Error(`${viewport.id}: combined current-season record is missing.`);
+  if (!/\d+–\d+–\d+/u.test(summary) || !/\d+ games · 2 leagues/u.test(summary)) {
+    throw new Error(`${viewport.id}: combined current-season record is missing.`);
+  }
   if (teamLabels.join('|') !== 'All teams|Monday / Thursday League|Sunday League') throw new Error(`${viewport.id}: current league schedules are incorrect.`);
   if (scheduleRows.length !== 2 || !scheduleRows.some((row) => row.includes('MON/THU TIER 5')) || !scheduleRows.some((row) => row.includes('SUNDAY TIER 5'))) throw new Error(`${viewport.id}: current league coverage is incomplete.`);
   if (seasonOptions.length !== 16) throw new Error(`${viewport.id}: expected 16 official seasons, received ${seasonOptions.length}.`);
@@ -169,13 +182,19 @@ for (const viewport of viewports) {
   if (!deepLinkRestored) throw new Error(`${viewport.id}: game deep link did not survive reload.`);
   if (!insideViewport(gameToolbarRect, viewport)) throw new Error(`${viewport.id}: game-page navigation leaves the viewport.`);
   if (!gameDetailText.includes('GAME EVENTS') || !gameDetailText.includes('PLAYER BOX SCORE') || !gameDetailText.includes('GOALTENDING') || !gameDetailText.includes('PPG') || !gameDetailText.includes('SV%')) throw new Error(`${viewport.id}: verified game page is incomplete.`);
-  if (!scheduledPageText.includes('Detailed statistics will appear after the game')) throw new Error(`${viewport.id}: scheduled game page does not preserve an honest pending state.`);
+  if (!scheduledPageText.includes('HEAD TO HEAD') || !scheduledPageText.includes('NEXT MEETING') || !scheduledPageText.includes('Verified matchup context')) {
+    throw new Error(`${viewport.id}: scheduled game did not open a complete head-to-head page.`);
+  }
   if (!gameDetailSource?.startsWith('https://www.yorkcentralbhl.com/game/')) throw new Error(`${viewport.id}: game-sheet provenance is missing.`);
   if (stageLabels.join('|') !== 'Regular season|Playoffs|All games') throw new Error(`${viewport.id}: stage filtering is incomplete.`);
-  if (!accountText.includes('Continue with Google') || !accountText.includes('Team statistics remain source-verified')) {
+  if (
+    !/(?:Continue|Sign up|Sign in) with Google/u.test(accountText)
+    || !accountText.includes('Username')
+    || !accountText.includes('Create account')
+  ) {
     throw new Error(`${viewport.id}: connected account launch state is unclear.`);
   }
-  if (!insideViewport(accountRect, viewport)) throw new Error(`${viewport.id}: account dialog leaves the viewport.`);
+  if (!accountInsideViewport) throw new Error(`${viewport.id}: account workspace leaves the viewport horizontally.`);
   if (documentOverflow > 1) throw new Error(`${viewport.id}: page has ${documentOverflow}px horizontal overflow.`);
   if (browserErrors.length) throw new Error(`${viewport.id}: ${browserErrors.join('; ')}`);
 

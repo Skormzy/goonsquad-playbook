@@ -1,0 +1,886 @@
+.public-player-page {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.public-player-toolbar {
+  margin-bottom: 0;
+}
+
+.public-player-hero {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(340px, 0.9fr) minmax(420px, 1.1fr);
+  border: 1px solid var(--stats-border);
+  border-top: 3px solid var(--stats-brand);
+  background: var(--stats-surface);
+  overflow: hidden;
+}
+
+.public-player-render {
+  min-width: 0;
+  min-height: 390px;
+  border-right: 1px solid var(--stats-border);
+  background: var(--stats-panel);
+}
+
+.player-profile-3d {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 390px;
+  overflow: hidden;
+  background: var(--stats-panel);
+  touch-action: pan-y;
+}
+
+.player-profile-3d:focus-visible {
+  outline: 3px solid var(--stats-accent);
+  outline-offset: -3px;
+}
+
+.player-profile-3d canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.player-profile-3d-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+}
+
+.player-profile-3d-controls button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--stats-border);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--stats-surface) 92%, transparent);
+  color: var(--stats-text);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.player-profile-3d-controls button:hover,
+.player-profile-3d-controls button:focus-visible {
+  border-color: var(--stats-accent);
+  background: var(--stats-accent-bg);
+  color: var(--stats-accent);
+}
+
+.player-profile-3d-controls svg {
+  width: 18px;
+  height: 18px;
+}
+
+.player-profile-3d-state {
+  min-height: 390px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px;
+  background: var(--stats-panel);
+  color: var(--stats-muted);
+  text-align: center;
+}
+
+.player-profile-3d-state > svg {
+  width: 34px;
+  height: 34px;
+  color: var(--stats-accent);
+}
+
+.player-profile-3d-state strong {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.player-profile-3d-state span {
+  max-width: 320px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.player-profile-3d-state button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 7px;
+  margin-top: 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--stats-accent);
+  border-radius: 4px;
+  background: var(--stats-accent-bg);
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.player-profile-3d-state button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.player-profile-3d-label {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--stats-border) 72%, transparent);
+  border-left: 3px solid var(--stats-brand);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--stats-surface) 88%, transparent);
+  color: var(--stats-text);
+  backdrop-filter: blur(10px);
+  pointer-events: none;
+}
+
+.player-profile-3d-label span {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.player-profile-3d-label small {
+  color: var(--stats-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.public-player-identity {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: clamp(28px, 4vw, 64px);
+  background: var(--stats-surface);
+  box-shadow: inset 4px 0 0 color-mix(in srgb, var(--stats-brand) 72%, transparent);
+}
+
+.public-player-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  color: var(--stats-accent);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.public-player-kicker svg {
+  width: 15px;
+  height: 15px;
+}
+
+.public-player-identity h1 {
+  margin: 8px 0 3px;
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: clamp(42px, 5.2vw, 76px);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 0.94;
+  text-wrap: balance;
+}
+
+.public-player-identity > p {
+  margin: 8px 0 0;
+  color: var(--stats-muted);
+  font-size: clamp(14px, 1.35vw, 18px);
+  font-weight: 750;
+}
+
+.public-player-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 18px;
+}
+
+.public-player-badges span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 1px solid var(--stats-border);
+  border-radius: 4px;
+  background: var(--stats-panel);
+  color: var(--stats-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.public-player-badges svg {
+  width: 14px;
+  height: 14px;
+  color: var(--stats-accent);
+}
+
+.public-player-next-game {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 11px;
+  width: min(100%, 430px);
+  min-height: 58px;
+  margin-top: 22px;
+  padding: 9px 11px;
+  border: 1px solid var(--stats-border);
+  border-left: 3px solid var(--stats-accent);
+  border-radius: 4px;
+  background: var(--stats-panel);
+  color: var(--stats-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.public-player-next-game:hover,
+.public-player-next-game:focus-visible {
+  border-color: var(--stats-accent);
+  background: var(--stats-accent-bg);
+}
+
+.public-player-next-game > svg:first-child {
+  width: 22px;
+  height: 22px;
+  color: var(--stats-accent);
+}
+
+.public-player-next-game > svg:last-child {
+  width: 17px;
+  height: 17px;
+}
+
+.public-player-next-game span {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1px 10px;
+}
+
+.public-player-next-game small {
+  grid-column: 1 / -1;
+  color: var(--stats-accent);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.public-player-next-game strong {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-player-next-game b {
+  color: var(--stats-muted);
+  font-size: 10px;
+}
+
+.public-player-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--stats-border);
+  background: var(--stats-surface);
+}
+
+.public-player-metric {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  padding: 15px 18px 14px;
+  border-right: 1px solid var(--stats-border);
+}
+
+.public-player-metric:last-child {
+  border-right: 0;
+}
+
+.public-player-metric span,
+.public-player-metric small {
+  color: var(--stats-muted);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.public-player-metric span {
+  font-family: var(--font-display);
+  color: var(--stats-accent);
+}
+
+.public-player-metric strong {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: clamp(27px, 2.8vw, 39px);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.public-player-dashboard {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(340px, 0.82fr) minmax(480px, 1.18fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.public-player-band {
+  min-width: 0;
+  border: 1px solid var(--stats-border);
+  background: var(--stats-surface);
+}
+
+.public-player-band > header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--stats-border);
+}
+
+.public-player-band > header > svg {
+  width: 20px;
+  height: 20px;
+  color: var(--stats-accent);
+}
+
+.public-player-band > header div {
+  display: grid;
+}
+
+.public-player-band > header span {
+  color: var(--stats-accent);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.public-player-band > header h2 {
+  margin: 0;
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.public-player-history {
+  grid-row: span 2;
+}
+
+.public-player-season-list,
+.public-player-game-list {
+  display: grid;
+}
+
+.public-player-season-list article {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(120px, 0.9fr) minmax(230px, 1.1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 70px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--stats-border);
+}
+
+.public-player-season-list article:last-child {
+  border-bottom: 0;
+}
+
+.public-player-season-list article[data-current='true'] {
+  box-shadow: inset 3px 0 0 var(--stats-accent);
+  background: var(--stats-accent-bg);
+}
+
+.public-player-season-list article > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.public-player-season-list article > div:first-child strong {
+  overflow: hidden;
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-player-season-list article > div:first-child small {
+  overflow: hidden;
+  color: var(--stats-muted);
+  font-size: 9px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-player-season-list article > em {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  color: var(--stats-accent);
+  font-family: var(--font-display);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.public-player-season-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(44px, 1fr));
+  gap: 3px;
+}
+
+.public-player-season-metrics span {
+  display: grid;
+  justify-items: center;
+  padding: 5px 3px;
+  border-left: 1px solid var(--stats-border);
+}
+
+.public-player-season-metrics b {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.public-player-season-metrics small {
+  color: var(--stats-muted);
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.public-player-pulse {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.85fr);
+}
+
+.public-player-pulse > header {
+  grid-column: 1 / -1;
+}
+
+.public-player-highlight {
+  display: grid;
+  align-content: center;
+  padding: 18px;
+  border-right: 1px solid var(--stats-border);
+}
+
+.public-player-highlight strong {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 900;
+  line-height: 0.9;
+}
+
+.public-player-highlight span {
+  margin-top: 6px;
+  color: var(--stats-accent);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.public-player-highlight p {
+  margin: 8px 0 0;
+  color: var(--stats-muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.public-player-best {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px;
+  background: var(--stats-panel);
+}
+
+.public-player-best > svg {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  color: #e7aa15;
+}
+
+.public-player-best span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.public-player-best small {
+  color: var(--stats-muted);
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.public-player-best strong {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.public-player-best b {
+  color: var(--stats-accent);
+  font-size: 10px;
+}
+
+.public-player-game-list button {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 52px 16px;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 8px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--stats-border);
+  background: transparent;
+  color: var(--stats-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.public-player-game-list button:last-child {
+  border-bottom: 0;
+}
+
+.public-player-game-list button:hover,
+.public-player-game-list button:focus-visible {
+  background: var(--stats-accent-bg);
+}
+
+.public-player-game-list button > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.public-player-game-list button > span:nth-child(2) strong,
+.public-player-game-list button > span:nth-child(2) small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-player-game-list button > span:nth-child(2) strong {
+  font-size: 11px;
+}
+
+.public-player-game-list button > span:nth-child(2) small {
+  color: var(--stats-muted);
+  font-size: 9px;
+}
+
+.public-player-game-list button > span:nth-child(3) {
+  display: grid;
+  justify-items: end;
+}
+
+.public-player-game-list button > span:nth-child(3) b {
+  font-family: var(--font-display);
+  font-size: 16px;
+}
+
+.public-player-game-list button > span:nth-child(3) small {
+  color: var(--stats-muted);
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.public-player-game-list button > svg {
+  width: 15px;
+  height: 15px;
+}
+
+.public-player-empty {
+  padding: 24px;
+  color: var(--stats-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.public-player-not-found {
+  min-height: min(560px, 68vh);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 9px;
+  padding: 32px 20px;
+  border: 1px solid var(--stats-border);
+  border-top: 3px solid var(--stats-brand);
+  background: var(--stats-surface);
+  color: var(--stats-muted);
+  text-align: center;
+}
+
+.public-player-not-found > svg {
+  width: 42px;
+  height: 42px;
+  color: var(--stats-accent);
+}
+
+.public-player-not-found > span {
+  color: var(--stats-accent);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.public-player-not-found h1 {
+  margin: 0;
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: clamp(34px, 5vw, 58px);
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.public-player-not-found p {
+  max-width: 540px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.public-player-not-found code {
+  color: var(--stats-text);
+  font-size: 12px;
+}
+
+.public-player-not-found button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 9px 14px;
+  border: 1px solid var(--stats-accent);
+  border-radius: 4px;
+  background: var(--stats-accent-bg);
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.public-player-not-found button svg {
+  width: 17px;
+  height: 17px;
+}
+
+@media (max-width: 980px) {
+  .public-player-hero,
+  .public-player-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .public-player-render {
+    min-height: 360px;
+    border-right: 0;
+    border-bottom: 1px solid var(--stats-border);
+  }
+
+  .player-profile-3d {
+    min-height: 360px;
+  }
+
+  .public-player-identity {
+    padding: 28px;
+  }
+
+  .public-player-history {
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .public-player-page {
+    gap: 8px;
+  }
+
+  .public-player-toolbar {
+    gap: 6px;
+  }
+
+  .public-player-toolbar > div {
+    width: auto;
+  }
+
+  .public-player-toolbar a {
+    display: none;
+  }
+
+  .public-player-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .public-player-render,
+  .player-profile-3d {
+    min-height: 300px;
+  }
+
+  .player-profile-3d-state {
+    min-height: 300px;
+  }
+
+  .player-profile-3d-label {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+  }
+
+  .player-profile-3d-label small {
+    max-width: 180px;
+    text-align: right;
+  }
+
+  .public-player-identity {
+    padding: 22px 16px;
+  }
+
+  .public-player-identity h1 {
+    font-size: clamp(42px, 15vw, 62px);
+  }
+
+  .public-player-next-game {
+    width: 100%;
+  }
+
+  .public-player-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .public-player-metric:nth-child(2) {
+    border-right: 0;
+  }
+
+  .public-player-metric:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--stats-border);
+  }
+
+  .public-player-metric {
+    padding: 12px;
+  }
+
+  .public-player-dashboard {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .public-player-season-list article {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .public-player-season-metrics span:first-child {
+    border-left: 0;
+  }
+
+  .public-player-pulse {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .public-player-highlight {
+    border-right: 0;
+    border-bottom: 1px solid var(--stats-border);
+  }
+
+  .public-player-game-list button {
+    grid-template-columns: 30px minmax(0, 1fr) 44px 14px;
+    gap: 7px;
+    padding: 8px;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .public-player-hero {
+    grid-template-columns: minmax(230px, 34vw) minmax(0, 1fr);
+  }
+
+  .public-player-render,
+  .player-profile-3d,
+  .player-profile-3d-state {
+    height: min(64vh, 280px);
+    min-height: 220px;
+    max-height: 280px;
+  }
+
+  .public-player-render {
+    border-right: 1px solid var(--stats-border);
+    border-bottom: 0;
+  }
+
+  .public-player-identity {
+    padding: 18px 22px;
+  }
+
+  .public-player-identity h1 {
+    margin-top: 5px;
+    font-size: clamp(34px, 6.5vw, 54px);
+  }
+
+  .public-player-badges {
+    margin-top: 10px;
+  }
+
+  .public-player-next-game {
+    min-height: 48px;
+    margin-top: 12px;
+  }
+
+  .player-profile-3d-label {
+    bottom: 8px;
+  }
+}
+
+@media (pointer: coarse) {
+  .player-profile-3d-controls button,
+  .player-profile-3d-state button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-profile-3d {
+    scroll-behavior: auto;
+  }
+}

@@ -86,7 +86,15 @@ function RosterPicker({ account, claims, dataset, onClose, onLinked, open }) {
         ))}
         {!candidates.length && <div className="profile-roster-empty"><UsersRound aria-hidden="true" /><strong>No matching squad record</strong><p>Check the spelling or search all seasons. A team manager can add a missing record.</p></div>}
       </div>
-      {account.status && <p className="profile-inline-status" role="status">{account.status}</p>}
+      {account.status && (
+        <p
+          className="profile-inline-status"
+          data-tone={account.statusTone || 'info'}
+          role={account.statusTone === 'error' ? 'alert' : 'status'}
+        >
+          {account.status}
+        </p>
+      )}
       <footer><ShieldCheck aria-hidden="true" /><span>Linking is immediate and does not change official statistics. You can add older league records or remove a link at any time.</span></footer>
     </section>
   );
@@ -97,9 +105,9 @@ function ProfileGate({ account, onAccount }) {
     <section className="profile-gate">
       <span className="profile-gate-icon"><CircleUserRound aria-hidden="true" /></span>
       <span>YOUR GOONSQUAD ID</span>
-      <h1>{account.configured ? 'Sign in to build your player profile' : 'Free team accounts need one connection'}</h1>
-      <p>{account.configured ? 'Save plays across devices, link your official squad statistics, and keep every created play under one identity.' : 'The account experience is built. Connect one free Supabase project to activate email registration, Google sign-in, and player profiles.'}</p>
-      <button type="button" onClick={onAccount}>{account.configured ? <><LogIn aria-hidden="true" /> Sign in or create account</> : <><Settings2 aria-hidden="true" /> What is left?</>}</button>
+      <h1>{account.configured ? 'Sign in to build your player profile' : 'Team accounts are temporarily unavailable'}</h1>
+      <p>{account.configured ? 'Save plays across devices, link your official squad statistics, and keep every created play under one identity.' : 'Your local plays remain safe. You can keep using the playbook and Create while account access is restored.'}</p>
+      <button type="button" onClick={onAccount}>{account.configured ? <><LogIn aria-hidden="true" /> Sign in or create account</> : <><Settings2 aria-hidden="true" /> View account status</>}</button>
     </section>
   );
 }

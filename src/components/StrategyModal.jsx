@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
 import { CAT_COLORS } from '../context/ThemeContext';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 const MotionDiv = motion.div;
 
@@ -11,24 +12,11 @@ export default function StrategyModal() {
   const t = themes[theme];
   const { currentPlay, strategyOpen, setStrategyOpen } = useApp();
   const closeButtonRef = useRef(null);
-
-  // Close on Escape
-  useEffect(() => {
-    if (!strategyOpen) return;
-    const handler = (e) => { if (e.key === 'Escape') setStrategyOpen(false); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [strategyOpen, setStrategyOpen]);
-
-  useEffect(() => {
-    if (!strategyOpen) return undefined;
-    const previouslyFocused = document.activeElement;
-    const frameId = requestAnimationFrame(() => closeButtonRef.current?.focus());
-    return () => {
-      cancelAnimationFrame(frameId);
-      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
-    };
-  }, [strategyOpen]);
+  const dialogRef = useDialogFocus({
+    active: strategyOpen,
+    initialFocusRef: closeButtonRef,
+    onClose: () => setStrategyOpen(false),
+  });
 
   const catColor = CAT_COLORS[currentPlay?.cat] || t.ac;
   const FF = "'Trebuchet MS','Lucida Grande',sans-serif";
@@ -52,10 +40,12 @@ export default function StrategyModal() {
           onClick={() => setStrategyOpen(false)}
         >
           <MotionDiv
+            ref={dialogRef}
             key="strategy-panel"
             role="dialog"
             aria-modal="true"
             aria-label={`${currentPlay?.n ?? 'Play'} strategy`}
+            tabIndex={-1}
             initial={{ scale: 0.92, opacity: 0, y: 12 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 6 }}

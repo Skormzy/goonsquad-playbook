@@ -23,23 +23,19 @@ describe('3D tactical layers', () => {
     });
   });
 
-  it('uses authored strategy assignments and stable play fallbacks', () => {
+  it('uses only authored assignments for strategies and plays', () => {
     const strategy = getStrategyScene('watch-your-man', 'correct');
     const play = getPlayScene('brk');
     expect(tacticalMatchupsForReplay(strategy)).toHaveLength(5);
     expect(tacticalMatchupsForReplay(strategy).every(({ source }) => source === 'authored')).toBe(true);
-    expect(tacticalMatchupsForReplay(play)).toHaveLength(5);
-    expect(tacticalMatchupsForReplay(play).every(({ source }) => source === 'role-fallback')).toBe(true);
+    expect(tacticalMatchupsForReplay(play)).toEqual(play.presentation?.matchups ?? []);
   });
 
-  it('fills every partial strategy assignment without replacing authored matchups', () => {
+  it('never invents missing strategy assignments', () => {
     getRegisteredStrategyScenes().forEach((strategy) => {
       const matchups = tacticalMatchupsForReplay(strategy);
-      expect(matchups).toHaveLength(5);
-      expect(new Set(matchups.map(({ homePlayerId }) => homePlayerId)).size).toBe(5);
-      (strategy.presentation.matchups ?? []).forEach((authored) => {
-        expect(matchups).toContainEqual(authored);
-      });
+      expect(matchups).toEqual(strategy.presentation.matchups ?? []);
+      expect(matchups.every(({ source }) => source === 'authored')).toBe(true);
     });
   });
 

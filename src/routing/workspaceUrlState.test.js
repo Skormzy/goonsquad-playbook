@@ -172,6 +172,37 @@ describe('workspace URL state', () => {
     expect(playUrl.searchParams.get('stage')).toBeNull();
   });
 
+  it('keeps player and matchup details inside stats and removes them from every other workspace', () => {
+    const detailHref = 'https://goonsquad.app/?content=stats&player=player-19&opponent=red-wolves&fixture=game-8&game=game-7';
+    const statsUrl = new URL(createWorkspaceUrl(detailHref, {
+      activeView: 'stats',
+    }), 'https://goonsquad.app');
+    expect(statsUrl.searchParams.get('player')).toBe('player-19');
+    expect(statsUrl.searchParams.get('opponent')).toBe('red-wolves');
+    expect(statsUrl.searchParams.get('fixture')).toBe('game-8');
+    expect(statsUrl.searchParams.get('game')).toBe('game-7');
+
+    for (const activeView of ['app', 'replay3d', 'tactics', 'strategy3d', 'playmaker', 'profile', 'account']) {
+      const url = new URL(createWorkspaceUrl(detailHref, {
+        activeView,
+        playId: 'brk',
+        tacticId: 'gap-control',
+        strategyVariant: 'correct',
+        faceoffOutcome: 'won',
+        phase: 0,
+        time: 0,
+        speed: 1,
+        role: 'C',
+        playing: false,
+        camera: 'broadcast',
+      }), 'https://goonsquad.app');
+      expect(
+        ['game', 'player', 'opponent', 'fixture'].every((key) => !url.searchParams.has(key)),
+        `${activeView} should not retain stats details`,
+      ).toBe(true);
+    }
+  });
+
   it('restores a clean standalone member profile surface', () => {
     const state = readWorkspaceUrl('https://goonsquad.app/?content=profile&phase=4&camera=bench');
     expect(state).toMatchObject({ activeView: 'profile', content: 'profile', mode: '2d' });

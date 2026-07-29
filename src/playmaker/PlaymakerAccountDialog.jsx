@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Cloud,
   CloudOff,
@@ -19,6 +19,13 @@ import {
   savePlaymakerDraftToCloud,
   updatePlaymakerDraftVisibility,
 } from './playmakerCloud';
+import {
+  currentPlaymakerStorageOwnerId,
+  inspectGuestPlaymakerMigration,
+  isPlaymakerDraftOwnedBy,
+  migrateGuestPlaymakerDraftsToAccount,
+  setPlaymakerStorageOwner,
+} from './playmakerStorage';
 
 async function copyText(value) {
   if (navigator.clipboard?.writeText) {
@@ -40,9 +47,24 @@ export default function PlaymakerAccountDialog({ draft, onClose, onOpenDraft, op
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
   const [cloudDrafts, setCloudDrafts] = useState([]);
+  const [guestMigration, setGuestMigration] = useState({ alreadyClaimed: false, draftCount: 0 });
+  const storageOwnerRef = useRef(currentPlaymakerStorageOwnerId());
+
+  useEffect(() => {
+    if (account.busy) return;
+    const nextOwnerId = account.user?.id ?? null;
+    const previousOwnerId = storageOwnerRef.current;
+    setPlaymakerStorageOwner(nextOwnerId);
+    storageOwnerRef.current = nextOwnerId;
+
+    if (previousOwnerId !== nextOwnerId && typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  }, [account.busy, account.user?.id]);
 
   useEffect(() => {
     if (!open || !account.user) return;
+    setGuestMigration(inspectGuestPlaymakerMigration(account.user.id));
     loadPlaymakerDraftRecordsFromCloud()
       .then(setCloudDrafts)
       .catch((error) => setStatus(error.message));
@@ -81,6 +103,16 @@ export default function PlaymakerAccountDialog({ draft, onClose, onOpenDraft, op
     await deletePlaymakerDraftFromCloud(record.id);
     setCloudDrafts(await loadPlaymakerDraftRecordsFromCloud());
   }, 'Cloud play removed.');
+
+  const claimGuestDrafts = () => run(async () => {
+    const result = migrateGuestPlaymakerDraftsToAccount(account.user.id);
+    setGuestMigration(inspectGuestPlaymakerMigration(account.user.id));
+    if (result.activeDraft) onOpenDraft(result.activeDraft);
+  }, 'Guest plays moved into your account workspace.');
+
+  const currentDraftOwned = Boolean(
+    account.user && isPlaymakerDraftOwnedBy(draft.id, account.user.id),
+  );
 
   return (
     <div className="playmaker-modal-backdrop" role="presentation" onMouseDown={onClose}>
@@ -131,7 +163,7 @@ export default function PlaymakerAccountDialog({ draft, onClose, onOpenDraft, op
               </div>
             </div>
             <div className="playmaker-cloud-actions">
-              <button type="button" disabled={busy} onClick={() => run(
+              <button type="button" disabled={busy || !currentDraftOwned} onClick={() => run(
                 async () => {
                   await savePlaymakerDraftToCloud(draft);
                   setCloudDrafts(await loadPlaymakerDraftRecordsFromCloud());
@@ -145,6 +177,25 @@ export default function PlaymakerAccountDialog({ draft, onClose, onOpenDraft, op
                 <RefreshCw aria-hidden="true" />
               </button>
             </div>
+
+            {!guestMigration.alreadyClaimed && guestMigration.draftCount > 0 && (
+              <div className="playmaker-cloud-unavailable">
+                <Save aria-hidden="true" />
+                <div>
+                  <strong>{guestMigration.draftCount} guest {guestMigration.draftCount === 1 ? 'play is' : 'plays are'} waiting</strong>
+                  <p>Move them once into this account before syncing. They will no longer appear for other people using this browser.</p>
+                  <button type="button" disabled={busy} onClick={claimGuestDrafts}>
+                    Move guest plays to my account
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!currentDraftOwned && (
+              <p className="playmaker-modal-status">
+                Sync is locked until this play is saved in your account workspace.
+              </p>
+            )}
 
             <div className="playmaker-cloud-library" aria-label="Cloud play library">
               {cloudDrafts.length === 0 && <p>No cloud plays yet.</p>}

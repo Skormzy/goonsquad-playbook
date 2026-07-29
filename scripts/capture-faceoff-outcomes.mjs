@@ -61,6 +61,11 @@ async function analyzePngPixels(page, pngBuffer) {
 }
 
 async function seekToSecuredDraw(page) {
+  const namedPhaseButton = page.getByTestId('playback-phase-2').first();
+  if (await namedPhaseButton.count()) {
+    await namedPhaseButton.click();
+    return;
+  }
   await page.getByRole('button', { name: /^Go to phase 3:/ }).first().click();
 }
 
@@ -86,7 +91,7 @@ async function waitForJourney(page, journey) {
 async function waitForOutcome(page, mode, outcome) {
   const expectedOwner = mode === '3d'
     ? (outcome === 'won' ? 'US_LD' : 'OP_RD')
-    : (outcome === 'won' ? 'US_LD' : 'op-rd');
+    : (outcome === 'won' ? 'US_LD' : 'OP_RD');
   await page.waitForFunction(({ requestedMode, requestedOutcome, owner }) => {
     const control = document.querySelector('[data-testid="faceoff-outcome-control"]');
     const activeButton = control?.querySelector(`button[data-outcome="${requestedOutcome}"]`);

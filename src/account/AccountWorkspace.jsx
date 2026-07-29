@@ -213,8 +213,8 @@ export default function AccountWorkspace() {
             <div className="account-workspace-unavailable">
               <ShieldCheck aria-hidden="true" />
               <span>ACCOUNT SERVICE</span>
-              <h2 id="account-workspace-title">Connection required</h2>
-              <p>The public account service is not configured for this build.</p>
+              <h2 id="account-workspace-title">Accounts are temporarily unavailable</h2>
+              <p>Your local plays remain safe. You can keep using the playbook and Create.</p>
             </div>
           ) : account.passwordRecovery ? (
             <form className="account-workspace-form" onSubmit={(event) => {
@@ -266,7 +266,15 @@ export default function AccountWorkspace() {
             </div>
           )}
 
-          {account.status && <p className="account-workspace-status" role="status">{account.status}</p>}
+          {account.status && (
+            <p
+              className="account-workspace-status"
+              data-tone={account.statusTone || 'info'}
+              role={account.statusTone === 'error' ? 'alert' : 'status'}
+            >
+              {account.status}
+            </p>
+          )}
         </section>
       </div>
     </main>

@@ -8,6 +8,8 @@ const strategy = readFileSync(new URL('./TacticsLearn.jsx', import.meta.url), 'u
 const playmaker = readFileSync(new URL('../playmaker/PlaymakerWorkspace.jsx', import.meta.url), 'utf8');
 const playmakerCourt = readFileSync(new URL('../playmaker/PlaymakerCourt.jsx', import.meta.url), 'utf8');
 const playmaker3d = readFileSync(new URL('../playmaker/Playmaker3DPreview.jsx', import.meta.url), 'utf8');
+const production3d = readFileSync(new URL('./vnext3d/ProductionReplayPreview.jsx', import.meta.url), 'utf8');
+const tactical3d = readFileSync(new URL('../tactical3d/TacticalReplayPreview.jsx', import.meta.url), 'utf8');
 const audit = readFileSync(new URL('../../scripts/capture-mobile-product-audit.mjs', import.meta.url), 'utf8');
 
 describe('mobile product hardening contracts', () => {
@@ -21,7 +23,7 @@ describe('mobile product hardening contracts', () => {
   it('keeps the complete strategy rink ahead of optional coaching detail', () => {
     expect(strategy).toContain('data-mobile-strategy-rink');
     expect(strategy).toContain('<details className="tactics-mobile-coaching">');
-    expect(css).toContain('width: min(82vw, 330px)');
+    expect(css).toContain('width: min(75vw, 330px)');
     expect(css).toContain('width: min(74vw, 290px)');
     expect(css).toContain('.tactics-phase-dot');
   });
@@ -29,7 +31,7 @@ describe('mobile product hardening contracts', () => {
   it('clamps mobile phase targets inside the timeline while preserving their exact phase value', () => {
     expect(playback).toContain("'--playback-marker-position': `${markerPosition}%`");
     expect(css).toContain('left: clamp(20px, var(--playback-marker-position), calc(100% - 20px))');
-    expect(css).toMatch(/\.playback-phase-markers button\s*\{[^}]*width:\s*40px;[^}]*height:\s*40px;/s);
+    expect(css).toMatch(/\.playback-phase-markers button\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px;/s);
     expect(css).toMatch(/\.playback-phase-markers button\.is-active\s*\{\s*background:\s*transparent;/);
   });
 
@@ -38,6 +40,16 @@ describe('mobile product hardening contracts', () => {
     expect(playmaker).toContain('aria-label="Play purpose"');
     expect(playmakerCourt).toContain('className="playmaker-player-hit-target" r="8.5"');
     expect(playmaker3d).toContain("useState('broadcast')");
+  });
+
+  it('keeps named replay navigation and camera controls available in every 3D workspace', () => {
+    expect(production3d).toContain("key === 'a'");
+    expect(tactical3d).toContain("key === 'a'");
+    expect(playmaker3d).toContain('cameraGestureMode={cameraGestureMode}');
+    expect(playmaker3d).toContain('tabIndex={0}');
+    expect(playmaker3d).toContain('className="playmaker-fullscreen-moment-nav"');
+    expect(playmaker3d).toContain('aria-label="Previous moment"');
+    expect(playmaker3d).toContain('aria-label="Next moment"');
   });
 
   it('fails the hidden browser audit for undersized controls, blank 3D, and incomplete strategy rinks', () => {

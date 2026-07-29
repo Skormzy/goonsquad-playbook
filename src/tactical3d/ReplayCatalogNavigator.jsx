@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   ChevronDown,
   ChevronLeft,
@@ -10,6 +10,7 @@ import {
 import CurriculumLaneSwitch from '../components/CurriculumLaneSwitch';
 import { itemsForCurriculumLane } from '../data/coreCatalog';
 import { catalogSequence } from './replayCatalogNavigation';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 
 function itemTitle(item) {
   return item.title ?? item.n ?? 'Untitled';
@@ -52,6 +53,11 @@ export default function ReplayCatalogNavigator({
     ? searchContext.value
     : '';
   const searchRef = useRef(null);
+  const drawerRef = useDialogFocus({
+    active: open,
+    initialFocusRef: searchRef,
+    onClose: () => setOpen(false),
+  });
   const sequenceItems = useMemo(
     () => itemsForCurriculumLane(items, currentLane),
     [currentLane, items],
@@ -75,19 +81,6 @@ export default function ReplayCatalogNavigator({
       item.situation,
     ].some((value) => value?.toLocaleLowerCase().includes(query)));
   }, [browseItems, query]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const frame = requestAnimationFrame(() => searchRef.current?.focus({ preventScroll: true }));
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      cancelAnimationFrame(frame);
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [open]);
 
   const select = (item) => {
     if (!item || item.id === currentId) {
@@ -160,10 +153,14 @@ export default function ReplayCatalogNavigator({
       />
 
       <aside
+        ref={drawerRef}
         id={drawerId}
         className="vnext3d-catalog-drawer"
+        role={open ? 'dialog' : undefined}
+        aria-modal={open ? 'true' : undefined}
         aria-label={`3D ${singular} library`}
         aria-hidden={!open}
+        tabIndex={open ? -1 : undefined}
         data-testid="vnext3d-catalog-drawer"
       >
         <header className="vnext3d-catalog-heading">

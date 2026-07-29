@@ -95,7 +95,7 @@ export default function Header() {
               className={`app-header-icon-button app-header-menu ${sidebarOpen ? 'is-active' : ''}`}
               onClick={() => setSidebarOpen(!sidebarOpen)}
               title="Browse plays"
-              aria-label={sidebarOpen ? 'Close play library' : 'Open play library'}
+              aria-label={sidebarOpen ? 'Hide play library' : 'Open play library'}
               aria-expanded={sidebarOpen}
             >
               {sidebarOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
@@ -165,7 +165,7 @@ export default function Header() {
             className={`app-header-icon-button ${account.user ? 'is-account-active' : ''} ${activeView === 'profile' || activeView === 'account' ? 'is-active' : ''}`}
             onClick={openAccountOrProfile}
             title={account.user ? activeView === 'profile' ? 'Account settings' : `Open ${account.displayName}'s profile` : 'Create account or sign in'}
-            aria-label={account.user ? activeView === 'profile' ? `Open account settings for ${account.displayName}` : `Open player profile for ${account.displayName}` : 'Create account or sign in'}
+            aria-label={account.user ? activeView === 'profile' ? `Open account settings for ${account.displayName}` : `Open player profile for ${account.displayName}` : 'Open team account'}
             aria-pressed={account.dialogOpen || activeView === 'profile' || activeView === 'account'}
           >
             <UserRound aria-hidden="true" />

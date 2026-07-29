@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { memberProfileSnapshot, playerRosterCandidates } from './profileModel';
+import {
+  memberProfileSnapshot,
+  playerRosterCandidates,
+  publicPlayerProfileSnapshot,
+} from './profileModel';
+import { OFFICIAL_STATS_DATASET } from '../stats/statsSeed';
 
 const dataset = {
   seasons: [
@@ -70,5 +75,58 @@ describe('member profile model', () => {
     const profile = memberProfileSnapshot(dataset, claims, '2026-07-29T12:00:00Z');
 
     expect(profile.nextGame).toBeNull();
+  });
+
+  it('builds a shareable official profile for one exact roster identity', () => {
+    const profile = publicPlayerProfileSnapshot(
+      dataset,
+      'current-id',
+      '2026-06-30T12:00:00Z',
+    );
+
+    expect(profile.primaryPlayer.displayName).toBe('Sam Member');
+    expect(profile.players.map((player) => player.id)).toEqual(['current-id']);
+    expect(profile.jerseyNumber).toBe('19');
+    expect(profile.position).toBe('W');
+    expect(profile.careerField).toMatchObject({
+      gamesPlayed: 4,
+      goals: 3,
+      assists: 5,
+      points: 8,
+    });
+  });
+
+  it('returns null for an unknown public player route', () => {
+    expect(publicPlayerProfileSnapshot(dataset, 'missing')).toBeNull();
+  });
+
+  it('builds a durable public profile for every published roster identity', () => {
+    const profiles = OFFICIAL_STATS_DATASET.players.map((player) => (
+      publicPlayerProfileSnapshot(OFFICIAL_STATS_DATASET, player.id, '2026-07-29T12:00:00Z')
+    ));
+
+    expect(profiles).toHaveLength(OFFICIAL_STATS_DATASET.players.length);
+    profiles.forEach((profile, index) => {
+      const sourcePlayer = OFFICIAL_STATS_DATASET.players[index];
+      expect(profile).not.toBeNull();
+      expect(profile.primaryPlayer).toMatchObject({
+        id: sourcePlayer.id,
+        displayName: sourcePlayer.displayName,
+      });
+      expect(profile.players.map((player) => player.id)).toEqual([sourcePlayer.id]);
+      expect(profile.careerField.points).toBe(
+        profile.careerField.goals + profile.careerField.assists,
+      );
+      expect(profile.seasonsPlayed).toBeGreaterThanOrEqual(0);
+      expect(new Set(profile.recentGames.map(({ game }) => game.id)).size).toBe(
+        profile.recentGames.length,
+      );
+      expect(profile.recentGames.map(({ game }) => game.scheduledAt)).toEqual(
+        profile.recentGames
+          .map(({ game }) => game.scheduledAt)
+          .slice()
+          .sort((a, b) => String(b).localeCompare(String(a))),
+      );
+    });
   });
 });

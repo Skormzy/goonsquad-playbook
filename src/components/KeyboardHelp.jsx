@@ -11,10 +11,17 @@ import {
 
 const MotionDiv = motion.div;
 
-function workspaceLabel(activeView) {
+function workspaceLabel(activeView, search = '') {
   if (activeView === 'playmaker') return 'Create';
-  if (activeView === 'stats') return 'Stats';
+  if (activeView === 'stats') {
+    const topic = guideTopicForView(activeView, search);
+    if (topic === 'game') return 'Game result';
+    if (topic === 'matchup') return 'Opponent matchup';
+    if (topic === 'player-stats') return 'Player stats';
+    return 'Stats';
+  }
   if (activeView === 'profile') return 'Profile';
+  if (activeView === 'account') return 'Account';
   if (activeView === 'tactics') return 'Strategy 2D';
   if (activeView === 'strategy3d') return 'Strategy 3D';
   if (activeView === 'replay3d') return 'Plays 3D';
@@ -35,7 +42,8 @@ export default function KeyboardHelp() {
   const panelRef = useRef(null);
   const closeButtonRef = useRef(null);
   const restoreFocusRef = useRef(true);
-  const selectedTopic = selectedTopicOverride ?? guideTopicForView(activeView);
+  const routeSearch = typeof window === 'undefined' ? '' : window.location.search;
+  const selectedTopic = selectedTopicOverride ?? guideTopicForView(activeView, routeSearch);
   const topic = GUIDE_TOPICS[selectedTopic] ?? GUIDE_TOPICS.start;
   const closeGuide = useCallback(() => {
     setSelectedTopicOverride(null);
@@ -124,7 +132,7 @@ export default function KeyboardHelp() {
                 </div>
               </div>
               <div className="guide-header-actions">
-                <span className="guide-context">{workspaceLabel(activeView)}</span>
+                <span className="guide-context">{workspaceLabel(activeView, routeSearch)}</span>
                 <button
                   ref={closeButtonRef}
                   type="button"

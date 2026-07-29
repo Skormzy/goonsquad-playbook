@@ -41,6 +41,45 @@ describe('statistics model', () => {
     ], players)[0]).toMatchObject({ gamesPlayed: 1, wins: 1, savePercentage: 0.9, goalsAgainstAverage: 2 });
   });
 
+  it('keeps unavailable game-line statistics null while preserving published zeroes', () => {
+    const players = [
+      { id: 'unknown', displayName: 'Unknown totals' },
+      { id: 'zero', displayName: 'Published zero' },
+      { id: 'goalie', displayName: 'Goalie' },
+    ];
+    const fieldPlayers = aggregatePlayerStats([
+      { playerId: 'unknown', goals: null, assists: null, shots: null, penaltyMinutes: null, plusMinus: null },
+      { playerId: 'zero', goals: 0, assists: 0, shots: 0, penaltyMinutes: 0, plusMinus: 0 },
+    ], players);
+    const unknown = fieldPlayers.find((line) => line.playerId === 'unknown');
+    const zero = fieldPlayers.find((line) => line.playerId === 'zero');
+
+    expect(unknown).toMatchObject({
+      goals: null,
+      assists: null,
+      points: null,
+      shots: null,
+      shootingPercentage: null,
+    });
+    expect(zero).toMatchObject({
+      goals: 0,
+      assists: 0,
+      points: 0,
+      shots: 0,
+      shootingPercentage: 0,
+    });
+
+    expect(aggregateGoalieStats([
+      { playerId: 'goalie', goalsAgainst: null, shotsAgainst: null, saves: null, minutesPlayed: null },
+    ], players)[0]).toMatchObject({
+      goalsAgainst: null,
+      shotsAgainst: null,
+      saves: null,
+      savePercentage: null,
+      goalsAgainstAverage: null,
+    });
+  });
+
   it('uses published season totals and keeps regular-season and playoff stages separate', () => {
     const players = [{ id: 'p1', displayName: 'Alex' }, { id: 'g1', displayName: 'Sam' }];
     expect(aggregatePlayerSeasonStats([
@@ -71,6 +110,49 @@ describe('statistics model', () => {
     expect(playoffs.games.map((game) => game.id)).toEqual(['p1']);
     expect(playoffs.summary).toMatchObject({ gamesPlayed: 1, wins: 1 });
     expect(playoffs.availableStages).toEqual(['regular', 'playoffs', 'all']);
+  });
+
+  it('does not derive official season totals from unavailable source fields', () => {
+    const players = [{ id: 'p1', displayName: 'Alex' }, { id: 'g1', displayName: 'Sam' }];
+    expect(aggregatePlayerSeasonStats([
+      {
+        playerId: 'p1',
+        gamesPlayed: 8,
+        goals: null,
+        assists: null,
+        points: null,
+        penaltyMinutes: null,
+        powerPlayGoals: null,
+        shortHandedGoals: null,
+        emptyNetGoals: null,
+      },
+    ], players)[0]).toMatchObject({
+      gamesPlayed: 8,
+      goals: null,
+      assists: null,
+      points: null,
+      pointsPerGame: null,
+      penaltyMinutes: null,
+    });
+
+    expect(aggregateGoalieSeasonStats([
+      {
+        playerId: 'g1',
+        gamesPlayed: 2,
+        wins: null,
+        losses: null,
+        ties: null,
+        shotsAgainst: null,
+        goalsAgainst: null,
+        minutesPlayed: null,
+      },
+    ], players)[0]).toMatchObject({
+      gamesPlayed: 2,
+      wins: null,
+      saves: null,
+      savePercentage: null,
+      goalsAgainstAverage: null,
+    });
   });
 
   it('selects a season and team while preserving an honest empty state', () => {

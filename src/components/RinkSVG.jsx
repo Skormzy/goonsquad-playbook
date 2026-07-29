@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import { mirrorPhase } from '../utils/mirror';
 import { POSITIONS, BALL_COLOR } from '../data/plays';
 import { isPenaltyBoxPlayer } from '../play-engine/penaltyBox';
+import { coverageGapColor, rinkDistanceMeters } from '../play-engine/movementMetrics';
 import { rolesForRoleLens } from '../play-engine/teamJobs';
 
 const W = 380, H = 660, PD = 14;
@@ -13,10 +14,11 @@ const hasPoint = p => p && Number.isFinite(p.x) && Number.isFinite(p.y);
 const PLAYER_ANIM_S = 0.6;
 const MotionLine = motion.line;
 const MotionCircle = motion.circle;
+const MotionRect = motion.rect;
 const MotionText = motion.text;
 const MotionG = motion.g;
 
-function CoverageLines({ coverage, rph }) {
+function CoverageLines({ coverage, rph, motionDuration }) {
   if (!coverage) return null;
   return POSITIONS.filter(p => p !== 'G').map(pos => {
     const oppId = coverage[pos];
@@ -26,9 +28,7 @@ function CoverageLines({ coverage, rph }) {
     if (!our || !opp || isPenaltyBoxPlayer(our) || isPenaltyBoxPlayer(opp)) return null;
     const x1 = toX(our.x), y1 = toY(our.y);
     const x2 = toX(opp.x), y2 = toY(opp.y);
-    const dx = our.x - opp.x, dy = our.y - opp.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const color = dist < 15 ? '#16a34a' : dist < 25 ? '#d97706' : '#dc2626';
+    const color = coverageGapColor(rinkDistanceMeters(our, opp));
     return (
       <MotionLine
         key={`cov-${pos}`}
@@ -39,7 +39,7 @@ function CoverageLines({ coverage, rph }) {
         stroke={color}
         initial={{ x1, y1, x2, y2, stroke: color }}
         animate={{ x1, y1, x2, y2, stroke: color }}
-        transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }}
+        transition={{ duration: motionDuration, ease: 'easeOut' }}
         strokeWidth={1.2}
         strokeDasharray="4,4"
         opacity={0.55}
@@ -159,7 +159,7 @@ function TacticalArrows({ arrows }) {
   });
 }
 
-function PlayerDots({ focusedRoles, rph, t, theme, reducedMotion }) {
+function PlayerDots({ focusedRoles, rph, t, theme, reducedMotion, motionDuration }) {
   return POSITIONS.map(pos => {
     const p = rph.pos[pos];
     if (!hasPoint(p) || isPenaltyBoxPlayer(p)) return null;
@@ -188,20 +188,38 @@ function PlayerDots({ focusedRoles, rph, t, theme, reducedMotion }) {
             )}
           </circle>
         )}
-        <MotionCircle
-          cx={ox}
-          cy={oy}
-          initial={{ cx: ox, cy: oy }}
-          animate={{ cx: ox, cy: oy }}
-          transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }}
-          r={r} fill={c} opacity={s ? 1 : 0.88}
-          stroke={s ? (theme === 'dark' ? '#fff' : '#0a0e1a') : 'rgba(255,255,255,0.2)'}
-          strokeWidth={s ? 2 : 1}
-          style={{ filter: s ? `drop-shadow(0 0 6px ${t.sc})` : 'none' }}
-        />
+        {pos === 'G' ? (
+          <MotionRect
+            x={ox - r - 2}
+            y={oy - r + 1}
+            initial={{ x: ox - r - 2, y: oy - r + 1 }}
+            animate={{ x: ox - r - 2, y: oy - r + 1 }}
+            transition={{ duration: motionDuration, ease: 'easeOut' }}
+            width={(r + 2) * 2}
+            height={(r - 1) * 2}
+            rx={4}
+            fill={c}
+            opacity={s ? 1 : 0.92}
+            stroke={s ? (theme === 'dark' ? '#fff' : '#0a0e1a') : 'rgba(255,255,255,0.45)'}
+            strokeWidth={s ? 2 : 1.4}
+            style={{ filter: s ? `drop-shadow(0 0 6px ${t.sc})` : 'none' }}
+          />
+        ) : (
+          <MotionCircle
+            cx={ox}
+            cy={oy}
+            initial={{ cx: ox, cy: oy }}
+            animate={{ cx: ox, cy: oy }}
+            transition={{ duration: motionDuration, ease: 'easeOut' }}
+            r={r} fill={c} opacity={s ? 1 : 0.88}
+            stroke={s ? (theme === 'dark' ? '#fff' : '#0a0e1a') : 'rgba(255,255,255,0.2)'}
+            strokeWidth={s ? 2 : 1}
+            style={{ filter: s ? `drop-shadow(0 0 6px ${t.sc})` : 'none' }}
+          />
+        )}
         <MotionText
           animate={{ x: ox, y: oy + 1 }}
-          transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }}
+          transition={{ duration: motionDuration, ease: 'easeOut' }}
           textAnchor="middle" dominantBaseline="central"
           fill={s ? t.dt : '#fff'} fontSize={s ? 9 : 8}
           fontWeight="bold" fontFamily="monospace"
@@ -211,7 +229,7 @@ function PlayerDots({ focusedRoles, rph, t, theme, reducedMotion }) {
   });
 }
 
-function OpponentDots({ rph, t, theme }) {
+function OpponentDots({ rph, t, theme, motionDuration }) {
   if (!rph.opp) return null;
   const neon = t.oc;
   const oppFill = theme === 'dark' ? '#c8d5e8' : '#dfe6f0';
@@ -228,12 +246,21 @@ function OpponentDots({ rph, t, theme }) {
         data-player-id={o.id}
         style={{ filter: theme === 'dark' ? 'url(#ng)' : 'none' }}
       >
-        <MotionCircle cx={ox} cy={oy} initial={{ cx: ox, cy: oy }} animate={{ cx: ox, cy: oy }} transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }} r={10} fill={oppFill} opacity={0.92} />
-        <MotionCircle cx={ox} cy={oy} initial={{ cx: ox, cy: oy }} animate={{ cx: ox, cy: oy }} transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }} r={10} fill="none" stroke={neon} strokeWidth={2} opacity={theme === 'dark' ? 0.95 : 0.78} />
-        <MotionCircle cx={ox} cy={oy} initial={{ cx: ox, cy: oy }} animate={{ cx: ox, cy: oy }} transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }} r={9} fill={neon} opacity={0.1} />
+        {(o.isGoalie || label === 'G') ? (
+          <>
+            <MotionRect x={ox - 12} y={oy - 9} initial={{ x: ox - 12, y: oy - 9 }} animate={{ x: ox - 12, y: oy - 9 }} transition={{ duration: motionDuration, ease: 'easeOut' }} width={24} height={18} rx={4} fill={oppFill} opacity={0.96} />
+            <MotionRect x={ox - 12} y={oy - 9} initial={{ x: ox - 12, y: oy - 9 }} animate={{ x: ox - 12, y: oy - 9 }} transition={{ duration: motionDuration, ease: 'easeOut' }} width={24} height={18} rx={4} fill="none" stroke={neon} strokeWidth={2} opacity={theme === 'dark' ? 0.95 : 0.82} />
+          </>
+        ) : (
+          <>
+            <MotionCircle cx={ox} cy={oy} initial={{ cx: ox, cy: oy }} animate={{ cx: ox, cy: oy }} transition={{ duration: motionDuration, ease: 'easeOut' }} r={10} fill={oppFill} opacity={0.92} />
+            <MotionCircle cx={ox} cy={oy} initial={{ cx: ox, cy: oy }} animate={{ cx: ox, cy: oy }} transition={{ duration: motionDuration, ease: 'easeOut' }} r={10} fill="none" stroke={neon} strokeWidth={2} opacity={theme === 'dark' ? 0.95 : 0.78} />
+            <MotionCircle cx={ox} cy={oy} initial={{ cx: ox, cy: oy }} animate={{ cx: ox, cy: oy }} transition={{ duration: motionDuration, ease: 'easeOut' }} r={9} fill={neon} opacity={0.1} />
+          </>
+        )}
         <MotionText
           animate={{ x: ox, y: oy + 1 }}
-          transition={{ duration: PLAYER_ANIM_S, ease: 'easeOut' }}
+          transition={{ duration: motionDuration, ease: 'easeOut' }}
           textAnchor="middle" dominantBaseline="central"
           fill={neon} fontSize={8} fontWeight="bold" fontFamily="monospace" opacity={0.95}
         >{label}</MotionText>
@@ -334,7 +361,7 @@ function PenaltyBox2D({ players, t, theme }) {
   );
 }
 
-function BallIndicator({ focusedRoles, rph, mode, reducedMotion }) {
+function BallIndicator({ focusedRoles, rph, mode, reducedMotion, sampled, motionDuration }) {
   if (!hasPoint(rph.ball)) return null;
   let bx = toX(rph.ball.x), by = toY(rph.ball.y);
 
@@ -351,7 +378,7 @@ function BallIndicator({ focusedRoles, rph, mode, reducedMotion }) {
     by = cpy + uy * (r + 4);
   }
 
-  if (mode === 'tactics' && !carrier) {
+  if ((mode === 'tactics' || mode === 'scene-tactics') && !carrier) {
     const oppCarrier = rph.opp?.find(o => o.hasBall);
     if (oppCarrier) {
       const cx = toX(oppCarrier.x), cy = toY(oppCarrier.y);
@@ -369,7 +396,10 @@ function BallIndicator({ focusedRoles, rph, mode, reducedMotion }) {
 
   let animX, animY, transition;
 
-  if (rph.ballPath && rph.ballPath.length >= 2) {
+  if (sampled) {
+    animX = bx; animY = by;
+    transition = { duration: motionDuration, ease: 'linear' };
+  } else if (rph.ballPath && rph.ballPath.length >= 2) {
     const xk = rph.ballPath.map(wp => toX(wp.x));
     const yk = rph.ballPath.map(wp => toY(wp.y));
     xk[xk.length - 1] = bx;
@@ -422,9 +452,10 @@ export default function RinkSVG({
   const appCtx = useApp();
   const reducedMotion = useReducedMotion();
 
-  const isTactics = mode === 'tactics';
-  const isScene = mode === 'scene';
+  const isScene = mode === 'scene' || mode === 'scene-tactics';
+  const isTactics = mode === 'tactics' || mode === 'scene-tactics';
   const isDark = theme === 'dark';
+  const motionDuration = isScene ? 0.04 : PLAYER_ANIM_S;
 
   let rph, rprev, focusedRoles, showOpp;
 
@@ -515,14 +546,14 @@ export default function RinkSVG({
         style={{ pointerEvents: 'none' }}
       />
 
-      {isTactics && <CoverageLines coverage={coverage} rph={rph} />}
+      {isTactics && <CoverageLines coverage={coverage} rph={rph} motionDuration={motionDuration} />}
       {isTactics && <TacticalArrows arrows={rph.arrows} />}
       <MovementTrails focusedRoles={focusedRoles} prev={rprev} rph={rph} t={t} />
       {!isTactics && <PassingLanes rph={rph} />}
-      <PlayerDots focusedRoles={focusedRoles} rph={rph} t={t} theme={theme} reducedMotion={reducedMotion} />
-      {showOpp && <OpponentDots rph={rph} t={t} theme={theme} />}
+      <PlayerDots focusedRoles={focusedRoles} rph={rph} t={t} theme={theme} reducedMotion={reducedMotion} motionDuration={motionDuration} />
+      {showOpp && <OpponentDots rph={rph} t={t} theme={theme} motionDuration={motionDuration} />}
       <PenaltyBox2D players={boxedPlayers} t={t} theme={theme} />
-      <BallIndicator focusedRoles={focusedRoles} rph={rph} mode={mode} reducedMotion={reducedMotion} />
+      <BallIndicator focusedRoles={focusedRoles} rph={rph} mode={mode} reducedMotion={reducedMotion} sampled={isScene} motionDuration={motionDuration} />
     </svg>
   );
 }

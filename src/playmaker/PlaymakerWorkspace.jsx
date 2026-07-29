@@ -598,7 +598,10 @@ export default function PlaymakerWorkspace() {
           ) : (
             <>
               <Playmaker3DPreview
+                currentMomentIndex={selectedFrameIndex}
                 isPlaying={isPlaying}
+                moments={draft.frames}
+                onMomentChange={goToMoment}
                 onPlayingChange={setIsPlaying}
                 onRestart={() => restart({ play: false })}
                 onSpeedChange={setSpeed}
@@ -803,9 +806,9 @@ export default function PlaymakerWorkspace() {
         <label className="playmaker-speed-control">
           <span>Speed</span>
           <select value={speed} onChange={(event) => setSpeed(Number(event.target.value))}>
+            <option value="0.25">0.25×</option>
             <option value="0.5">0.5×</option>
             <option value="1">1×</option>
-            <option value="1.5">1.5×</option>
           </select>
         </label>
         <div className="playmaker-moments" aria-label="Authored moments">

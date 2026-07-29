@@ -9,6 +9,8 @@ import {
 import { Canvas } from '@react-three/fiber';
 import {
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Crosshair,
   Maximize2,
   Minimize2,
@@ -20,10 +22,14 @@ import {
 } from 'lucide-react';
 import { ACESFilmicToneMapping, SRGBColorSpace } from 'three';
 import { ACCEPTED_ATHLETE_ASSETS } from '../components/vnext3d/acceptedAthleteAssets';
+import CameraGestureControl from '../components/vnext3d/CameraGestureControl';
 import RoleCameraSelector from '../components/vnext3d/RoleCameraSelector';
 import { useTheme } from '../context/ThemeContext';
 import { roleLensForPosition } from '../play-engine/teamJobs';
-import { productionCameraPose } from '../vnext3d/cameraSystem';
+import {
+  CAMERA_GESTURE_MODES,
+  productionCameraPose,
+} from '../vnext3d/cameraSystem';
 import { productionRenderProfile } from '../vnext3d/renderProfile';
 import TacticalReplayScene from '../tactical3d/TacticalReplayScene';
 import { TACTICAL_LAYER_DEFAULTS } from '../tactical3d/tacticalLayers';
@@ -38,6 +44,9 @@ const CAMERAS = Object.freeze([
 
 export default function Playmaker3DPreview({
   isPlaying,
+  currentMomentIndex,
+  moments,
+  onMomentChange,
   onPlayingChange,
   onRestart,
   onSpeedChange,
@@ -52,6 +61,7 @@ export default function Playmaker3DPreview({
   const [cameraId, setCameraId] = useState('broadcast');
   const [cameraFollowing, setCameraFollowing] = useState(true);
   const [cameraCommand, setCameraCommand] = useState({ revision: 0, type: 'reframe' });
+  const [cameraGestureMode, setCameraGestureMode] = useState(CAMERA_GESTURE_MODES.ORBIT);
   const [selectedPosition, setSelectedPosition] = useState('C');
   const [fullscreen, setFullscreen] = useState(false);
   const [layerPanelOpen, setLayerPanelOpen] = useState(false);
@@ -95,10 +105,82 @@ export default function Playmaker3DPreview({
     replay: scene,
   });
 
-  const reframe = useCallback(() => {
-    setCameraFollowing(true);
-    setCameraCommand((current) => ({ revision: current.revision + 1, type: 'reframe' }));
+  const handleCameraCommand = useCallback((type) => {
+    setCameraFollowing(type === 'reframe');
+    setCameraCommand((current) => ({ revision: current.revision + 1, type }));
   }, []);
+
+  const reframe = useCallback(() => {
+    handleCameraCommand('reframe');
+  }, [handleCameraCommand]);
+
+  const handleCameraGestureMode = useCallback((mode) => {
+    setCameraGestureMode(mode);
+    setCameraFollowing(false);
+  }, []);
+
+  const handleCameraKeyDown = useCallback((event) => {
+    if (event.target instanceof Element && event.target.closest('button,input,select,textarea')) return;
+    const key = event.key.toLowerCase();
+    const command = event.shiftKey && event.key === 'ArrowLeft'
+      ? 'pan-left'
+      : event.shiftKey && event.key === 'ArrowRight'
+        ? 'pan-right'
+        : event.shiftKey && event.key === 'ArrowUp'
+          ? 'pan-forward'
+          : event.shiftKey && event.key === 'ArrowDown'
+            ? 'pan-back'
+            : key === 'a'
+              ? 'orbit-left'
+              : key === 'd'
+                ? 'orbit-right'
+                : key === 'w'
+                  ? 'orbit-up'
+                  : key === 's'
+                    ? 'orbit-down'
+                    : ['+', '='].includes(event.key)
+                      ? 'zoom-in'
+                      : ['-', '_'].includes(event.key)
+                        ? 'zoom-out'
+                        : null;
+
+    if (command) {
+      event.preventDefault();
+      event.stopPropagation();
+      handleCameraCommand(command);
+      return;
+    }
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      onMomentChange(currentMomentIndex + (event.key === 'ArrowLeft' ? -1 : 1));
+      return;
+    }
+    if (key === 'f') {
+      event.preventDefault();
+      setCameraFollowing((value) => !value);
+      return;
+    }
+    if (key === 'p') {
+      event.preventDefault();
+      handleCameraGestureMode(
+        cameraGestureMode === CAMERA_GESTURE_MODES.PAN
+          ? CAMERA_GESTURE_MODES.ORBIT
+          : CAMERA_GESTURE_MODES.PAN,
+      );
+      return;
+    }
+    if (key === '0' || event.key === 'Home') {
+      event.preventDefault();
+      reframe();
+    }
+  }, [
+    cameraGestureMode,
+    currentMomentIndex,
+    handleCameraCommand,
+    handleCameraGestureMode,
+    onMomentChange,
+    reframe,
+  ]);
 
   const selectCamera = (nextCamera) => {
     setCameraId(nextCamera);
@@ -132,6 +214,7 @@ export default function Playmaker3DPreview({
       ref={stageRef}
       className={`playmaker-3d-stage ${fullscreen ? 'is-fullscreen' : ''}`}
       aria-label="Interactive 3D preview of the authored play"
+      data-camera-gesture-mode={cameraGestureMode}
       data-ball-from={sampled.ball.fromPlayerId ?? ''}
       data-ball-owner={sampled.ball.ownerId ?? ''}
       data-ball-segment={sampled.ball.segmentType}
@@ -140,6 +223,8 @@ export default function Playmaker3DPreview({
       data-role-camera-position={selectedPosition}
       data-role-camera-target={roleCameraState.targetPlayerId ?? 'ball'}
       data-player-count={scene.players.length}
+      onKeyDown={handleCameraKeyDown}
+      tabIndex={0}
     >
       <Canvas
         key={renderProfile.id}
@@ -156,6 +241,7 @@ export default function Playmaker3DPreview({
             athleteAssets={athleteAssets}
             cameraCommand={cameraCommand}
             cameraFollowing={cameraFollowing}
+            cameraGestureMode={cameraGestureMode}
             cameraId={cameraId}
             isPlaying={isPlaying}
             onFrameStats={() => {}}
@@ -203,6 +289,10 @@ export default function Playmaker3DPreview({
       )}
 
       <div className="playmaker-3d-tools" role="toolbar" aria-label="3D preview navigation">
+        <CameraGestureControl
+          mode={cameraGestureMode}
+          onChange={handleCameraGestureMode}
+        />
         <button
           type="button"
           className={layerPanelOpen ? 'is-active' : ''}
@@ -271,6 +361,28 @@ export default function Playmaker3DPreview({
           >
             {isPlaying ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
           </button>
+          <div className="playmaker-fullscreen-moment-nav" aria-label="Authored moments">
+            <button
+              type="button"
+              disabled={currentMomentIndex <= 0}
+              aria-label="Previous moment"
+              onClick={() => onMomentChange(currentMomentIndex - 1)}
+            >
+              <ChevronLeft aria-hidden="true" />
+            </button>
+            <output aria-live="polite">
+              <span>MOMENT {currentMomentIndex + 1}/{moments.length}</span>
+              <strong>{moments[currentMomentIndex]?.label ?? `Moment ${currentMomentIndex + 1}`}</strong>
+            </output>
+            <button
+              type="button"
+              disabled={currentMomentIndex >= moments.length - 1}
+              aria-label="Next moment"
+              onClick={() => onMomentChange(currentMomentIndex + 1)}
+            >
+              <ChevronRight aria-hidden="true" />
+            </button>
+          </div>
           <input
             type="range"
             min="0"
@@ -282,9 +394,9 @@ export default function Playmaker3DPreview({
           />
           <span>{time.toFixed(1)} / {scene.duration.toFixed(1)}</span>
           <select value={speed} aria-label="Preview speed" onChange={(event) => onSpeedChange(Number(event.target.value))}>
+            <option value="0.25">0.25×</option>
             <option value="0.5">0.5×</option>
             <option value="1">1×</option>
-            <option value="1.5">1.5×</option>
           </select>
         </div>
       )}

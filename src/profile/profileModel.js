@@ -239,6 +239,16 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now()) {
     nextGame,
     currentTeams: currentMemberships.map((membership) => teamsById.get(membership.seasonTeamId)).filter(Boolean),
     jerseyNumber: latestMembership?.jerseyNumber || primaryPlayer.jerseyNumber || null,
-    position: latestMembership?.position || primaryPlayer.primaryPosition || (careerGoalie.gamesPlayed && !careerField.gamesPlayed ? 'G' : null),
+    position: latestMembership?.position || primaryPlayer.primaryPosition || null,
   };
+}
+
+export function publicPlayerProfileSnapshot(dataset, playerId, now = Date.now()) {
+  const player = dataset?.players?.find((candidate) => candidate.id === playerId) ?? null;
+  if (!player) return null;
+  return memberProfileSnapshot(dataset, [{
+    playerId: player.id,
+    primary: true,
+    player,
+  }], now);
 }

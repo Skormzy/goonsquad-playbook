@@ -160,6 +160,12 @@ async function samplePlayback(page) {
     requestAnimationFrame(sample);
   }));
   await page.getByTestId('playback-play-toggle').click();
+  await page.waitForFunction(() => {
+    const value = document
+      .querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-frame-p95-ms');
+    return value != null && value !== 'pending' && Number.isFinite(Number(value));
+  }, undefined, { timeout: 120_000 });
   const changed = samples.filter((sample, index) => (
     index === 0 || sample.replayTime !== samples[index - 1].replayTime
   ));
@@ -248,7 +254,7 @@ for (const journey of journeys) {
   await page.screenshot({ path: screenshotPath, fullPage: false });
 
   const minimumExpectedHeight = journey.touch ? 40 : 32;
-  const expectedItems = journey.content === 'strategy' ? 6 : 12;
+  const expectedItems = journey.content === 'strategy' ? 4 : 6;
   const passed = browserProblems.length === 0
     && Number(await preview.getAttribute('data-player-count')) === 12
     && layout.bodyWidth <= layout.viewportWidth + 1

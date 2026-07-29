@@ -9,7 +9,7 @@ import { roleLensLabel } from '../play-engine/teamJobs';
 import PhaseControls from './PhaseControls';
 import FaceoffOutcomeControl from './FaceoffOutcomeControl';
 import ResponsibilityPanel from './ResponsibilityPanel';
-import RinkSVG from './RinkSVG';
+import SceneRink2D from './SceneRink2D';
 import Sidebar from './Sidebar';
 
 function truncate(value, limit = 20) {
@@ -91,6 +91,7 @@ export default function PlayViewer() {
   const {
     currentPlay,
     currentReplayPlay,
+    currentReplayScene,
     currentReplayPhases,
     setCurrentPlay,
     currentPhase,
@@ -105,6 +106,7 @@ export default function PlayViewer() {
     cancelPlaybackRestart,
     selectedPosition,
     roleFocusMode,
+    playbackTime,
   } = useApp();
   const layout = useWorkspaceLayout();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -152,7 +154,14 @@ export default function PlayViewer() {
 
         <section className="play-region play-region-rink" data-region="rink" aria-label="Rink view">
           <div className="play-rink-frame">
-            <RinkSVG />
+            <SceneRink2D
+              scene={currentReplayScene}
+              time={playbackTime}
+              roleFocusMode={roleFocusMode}
+              selectedPosition={selectedPosition}
+              showOpponents={showOpponents}
+              mirrored={isMirrored}
+            />
           </div>
         </section>
 
@@ -188,7 +197,14 @@ export default function PlayViewer() {
 
       <section className="play-mobile-rink" data-region="rink" aria-label="Rink view">
         <div className="play-rink-frame">
-          <RinkSVG />
+          <SceneRink2D
+            scene={currentReplayScene}
+            time={playbackTime}
+            roleFocusMode={roleFocusMode}
+            selectedPosition={selectedPosition}
+            showOpponents={showOpponents}
+            mirrored={isMirrored}
+          />
         </div>
       </section>
 

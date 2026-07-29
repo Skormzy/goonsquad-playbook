@@ -162,7 +162,7 @@ export function OpponentHeadToHead({
   return (
     <section className="stats-game-page stats-matchup-page" aria-label={`Head-to-head comparison against ${matchup.name}`}>
       <div className="stats-game-page-toolbar">
-        <button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> Team home</button>
+        <button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> All games</button>
         <div>
           <button type="button" onClick={onCopyLink}><Copy aria-hidden="true" /> {copied ? 'Link copied' : 'Copy matchup'}</button>
           {fixture?.sourceUrl && <a href={fixture.sourceUrl} target="_blank" rel="noreferrer">Official fixture <ExternalLink aria-hidden="true" /></a>}
@@ -215,7 +215,7 @@ export function OpponentHeadToHead({
                   <td>{siteLabel(game)}</td>
                   <td><span className={`stats-result is-${result.toLowerCase()}`}>{result}</span></td>
                   <td><strong>{game.goalsFor}–{game.goalsAgainst}</strong></td>
-                  <td><button type="button" className="stats-game-detail-button" onClick={() => onOpenGame(game.id)}>Results <ChevronRight aria-hidden="true" /></button></td>
+                  <td><button type="button" className="stats-game-detail-button" onClick={() => onOpenGame(game.id)}>Results</button></td>
                 </tr>;
               })}</tbody>
             </table></div> : <p className="stats-matchup-empty">No completed meeting has been published yet. The scheduled fixture above is the verified starting point.</p>}

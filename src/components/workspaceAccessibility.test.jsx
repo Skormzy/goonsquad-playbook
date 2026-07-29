@@ -36,10 +36,8 @@ describe('workspace accessibility contract', () => {
 
   it('names strategy controls and exposes their selected state', () => {
     expect(strategySource).toContain('aria-label="Strategy principle"');
-    expect(strategySource).toContain('aria-label="Previous strategy phase"');
-    expect(strategySource).toContain('aria-label={`Go to strategy phase ${i + 1}`}');
+    expect(strategySource).toContain('<PlaybackControls compact />');
     expect(strategySource).toContain('aria-pressed={activeTab === tab.id}');
-    expect(strategySource).toContain('aria-pressed={speed === s}');
   });
 
   it('honors reduced-motion preferences in CSS, Framer Motion, and rink pulses', () => {

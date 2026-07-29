@@ -1,6 +1,7 @@
 import { calculateBoardBounce } from './boardBounce';
 import { rinkDistanceMeters } from './movementMetrics';
 import { isPenaltyBoxPlayer, PENALTY_BOX_STATUS } from './penaltyBox';
+import { samplePlayerKeyframes } from './samplePlayScene';
 
 const ROLES = ['LW', 'C', 'RW', 'LD', 'RD', 'G'];
 const FIELD_ROLES = ROLES.filter((role) => role !== 'G');
@@ -606,6 +607,14 @@ function phaseEndsWithShot(phase) {
   return phase.arrows.some((arrow) => arrow.type === 'shot');
 }
 
+function phaseHasAuthoredShot(phase) {
+  if (phaseEndsWithShot(phase)) return true;
+  const nearEitherNet = phase.ball?.y <= 9 || phase.ball?.y >= 91;
+  const authoredRead = `${phase.title ?? ''} ${phase.description ?? ''}`;
+  return nearEitherNet
+    && /\b(shot|shoot|shoots|one[- ]timer|finish|finishes|release|goal)\b/i.test(authoredRead);
+}
+
 function resolvedPhaseBall(phase) {
   const finalShot = phase.arrows.filter((arrow) => arrow.type === 'shot').at(-1);
   return finalShot ? position(finalShot.to, phase.ball) : phase.ball;
@@ -613,7 +622,7 @@ function resolvedPhaseBall(phase) {
 
 function ownerForPhase(phases, roleMap, phaseIndex) {
   const phase = phases[phaseIndex];
-  if (phaseEndsWithShot(phase)) return null;
+  if (phaseHasAuthoredShot(phase)) return null;
 
   if (phase.hasExplicitBallOwner) {
     if (!phase.ballOwner) return null;
@@ -632,7 +641,6 @@ function ownerForPhase(phases, roleMap, phaseIndex) {
     if (role) return `OP_${role}`;
   }
 
-  if (phase.ball?.y <= 9 || phase.ball?.y >= 91) return null;
   const candidates = generatedPlayerPositions(phases, roleMap, phaseIndex)
     .filter((player) => player.role !== 'G')
     .map((player) => ({ ...player, ballDistance: distance(player.position, phase.ball) }))
@@ -643,6 +651,26 @@ function ownerForPhase(phases, roleMap, phaseIndex) {
 function authoredPathForTransition(nextPhase) {
   if (!Array.isArray(nextPhase?.ballPath) || nextPhase.ballPath.length < 2) return null;
   return nextPhase.ballPath.map((point) => position(point, nextPhase.ball));
+}
+
+function anchoredPath(path, start, end) {
+  if (!path || path.length < 2) return null;
+  const points = path.map((point) => ({ ...point }));
+  points[0] = { ...start };
+  points[points.length - 1] = { ...end };
+  return points;
+}
+
+function playerPositionAtTime(players, playerId, time, fallback) {
+  const player = players.find((candidate) => candidate.id === playerId);
+  if (!player) return fallback;
+  return samplePlayerKeyframes(player.keyframes, time).position;
+}
+
+function playerTeam(playerId) {
+  if (playerId?.startsWith('US_')) return 'us';
+  if (playerId?.startsWith('OP_')) return 'opponent';
+  return null;
 }
 
 function nearestFieldPlayerId(phases, roleMap, phaseIndex, target, excludedId = null) {
@@ -682,6 +710,7 @@ function authoredArrowActions(phases, roleMap, nextPhaseIndex, fromOwner, toOwne
       end,
       fromPlayerId,
       toPlayerId,
+      path: arrows.length === 1 ? authoredPathForTransition(next) : null,
     };
   });
 
@@ -719,8 +748,21 @@ function createFlightSegment({
   type = null,
   faceoffState = null,
 }) {
+  const changesTeams = Boolean(
+    fromOwner
+    && toOwner
+    && playerTeam(fromOwner)
+    && playerTeam(toOwner)
+    && playerTeam(fromOwner) !== playerTeam(toOwner),
+  );
   const segment = {
-    type: type ?? (shot ? 'shot' : fromOwner && toOwner ? 'pass' : 'loose'),
+    type: type ?? (
+      shot
+        ? 'shot'
+        : fromOwner && toOwner && !changesTeams
+          ? 'pass'
+          : 'loose'
+    ),
     from,
     to,
     start,
@@ -730,6 +772,8 @@ function createFlightSegment({
   if (toOwner) segment.toPlayerId = toOwner;
   if (path) segment.path = path;
   if (faceoffState) segment.faceoffState = faceoffState;
+  if (changesTeams) segment.transitionType = 'interception';
+  if (changesTeams) return segment;
   return realisticBoardSegment(segment, path) ?? segment;
 }
 
@@ -739,6 +783,7 @@ function appendAuthoredArrowTimeline({
   current,
   from,
   fromOwner,
+  players,
   to,
 }) {
   if (!actions) return false;
@@ -760,13 +805,19 @@ function appendAuthoredArrowTimeline({
 
   if (preActionSeconds > 0) {
     cursor = roundTime(from + preActionSeconds);
+    const releasePoint = playerPositionAtTime(
+      players,
+      actions[0].fromPlayerId,
+      cursor,
+      actions[0].start,
+    );
     add({
       type: 'carry',
       from,
       to: cursor,
       ownerId: fromOwner,
       start: resolvedPhaseBall(current),
-      end: actions[0].start,
+      end: releasePoint,
     });
   }
 
@@ -775,14 +826,23 @@ function appendAuthoredArrowTimeline({
     const flightEnd = finalAction && controlWeights[index] === undefined
       ? to
       : roundTime(cursor + flightWeights[index] * secondsPerWeight);
+    const actionStart = playerPositionAtTime(
+      players,
+      action.fromPlayerId,
+      cursor,
+      action.start,
+    );
+    const actionEnd = action.toPlayerId
+      ? playerPositionAtTime(players, action.toPlayerId, flightEnd, action.end)
+      : action.end;
     add(createFlightSegment({
       from: cursor,
       to: flightEnd,
       fromOwner: action.fromPlayerId,
       toOwner: action.toPlayerId,
-      start: action.start,
-      end: action.end,
-      path: null,
+      start: actionStart,
+      end: actionEnd,
+      path: anchoredPath(action.path, actionStart, actionEnd),
       shot: action.type === 'shot',
     }));
     cursor = flightEnd;
@@ -790,13 +850,19 @@ function appendAuthoredArrowTimeline({
     const controlWeight = controlWeights[index] ?? 0;
     if (!finalAction && controlWeight > 0) {
       const controlEnd = roundTime(cursor + controlWeight * secondsPerWeight);
+      const nextReleasePoint = playerPositionAtTime(
+        players,
+        actions[index + 1].fromPlayerId,
+        controlEnd,
+        actions[index + 1].start,
+      );
       add({
         type: 'carry',
         from: cursor,
         to: controlEnd,
         ownerId: action.toPlayerId,
-        start: action.end,
-        end: actions[index + 1].start,
+        start: actionEnd,
+        end: nextReleasePoint,
       });
       cursor = controlEnd;
     }
@@ -804,7 +870,7 @@ function appendAuthoredArrowTimeline({
   return true;
 }
 
-function createBallTimeline(phases, roleMap, phaseTimes, duration) {
+function createBallTimeline(phases, roleMap, phaseTimes, duration, players) {
   const owners = phases.map((_, index) => ownerForPhase(phases, roleMap, index));
   const segments = [];
 
@@ -824,15 +890,22 @@ function createBallTimeline(phases, roleMap, phaseTimes, duration) {
 
     if (current.faceoffState === 'draw') {
       const contactEnd = roundTime(Math.min(to, from + FACEOFF_CONTACT_SECONDS));
+      const drawStart = resolvedPhaseBall(current);
+      const receiverContact = playerPositionAtTime(
+        players,
+        toOwner,
+        contactEnd,
+        resolvedPhaseBall(next),
+      );
       add(createFlightSegment({
         type: 'faceoff',
         from,
         to: contactEnd,
         fromOwner: null,
         toOwner,
-        start: resolvedPhaseBall(current),
-        end: resolvedPhaseBall(next),
-        path: authoredPathForTransition(next),
+        start: drawStart,
+        end: receiverContact,
+        path: anchoredPath(authoredPathForTransition(next), drawStart, receiverContact),
         shot: false,
         faceoffState: 'draw',
       }));
@@ -842,7 +915,7 @@ function createBallTimeline(phases, roleMap, phaseTimes, duration) {
           from: contactEnd,
           to,
           ownerId: toOwner,
-          start: resolvedPhaseBall(next),
+          start: receiverContact,
           end: resolvedPhaseBall(next),
           faceoffState: 'secured',
         });
@@ -863,6 +936,7 @@ function createBallTimeline(phases, roleMap, phaseTimes, duration) {
       current,
       from,
       fromOwner,
+      players,
       to,
     })) continue;
 
@@ -882,6 +956,18 @@ function createBallTimeline(phases, roleMap, phaseTimes, duration) {
     const ballDistance = rinkDistanceMeters(current.ball, next.ball);
     const flightDuration = clamp(ballDistance / 13, 0.6, Math.max(0.65, (to - from) * 0.58));
     const flightStart = fromOwner ? roundTime(to - flightDuration) : from;
+    const releasePoint = playerPositionAtTime(
+      players,
+      fromOwner,
+      flightStart,
+      resolvedPhaseBall(current),
+    );
+    const receiverContact = playerPositionAtTime(
+      players,
+      toOwner,
+      to,
+      resolvedPhaseBall(next),
+    );
     if (fromOwner && flightStart > from + 0.02) {
       add({
         type: 'carry',
@@ -889,18 +975,23 @@ function createBallTimeline(phases, roleMap, phaseTimes, duration) {
         to: flightStart,
         ownerId: fromOwner,
         start: resolvedPhaseBall(current),
-        end: resolvedPhaseBall(current),
+        end: releasePoint,
       });
     }
+    const authoredPath = anchoredPath(
+      authoredPathForTransition(next),
+      releasePoint,
+      receiverContact,
+    );
     add(createFlightSegment({
       from: flightStart,
       to,
       fromOwner,
       toOwner,
-      start: resolvedPhaseBall(current),
-      end: resolvedPhaseBall(next),
-      path: authoredPathForTransition(next),
-      shot: !toOwner && (phaseEndsWithShot(next) || next.ball.y <= 9 || next.ball.y >= 91),
+      start: releasePoint,
+      end: receiverContact,
+      path: authoredPath,
+      shot: !toOwner && phaseHasAuthoredShot(next),
       faceoffState: current.faceoffState,
     }));
   }
@@ -1023,6 +1114,13 @@ export function compilePlayThreeDScene(play) {
   const timing = playTiming(phases);
   const roleMap = createOpponentRoleMap(phases);
   const penaltyAssignment = penaltyBoxAssignment(play, phases, roleMap);
+  const players = createPlayers(
+    phases,
+    roleMap,
+    timing.phaseTimes,
+    timing.duration,
+    penaltyAssignment,
+  );
   return {
     ...baseScene({
       id: `${play.id}-generated-3d`,
@@ -1030,14 +1128,14 @@ export function compilePlayThreeDScene(play) {
       title: play.n,
       duration: timing.duration,
       phaseTimes: timing.phaseTimes,
-      players: createPlayers(
+      players,
+      ball: createBallTimeline(
         phases,
         roleMap,
         timing.phaseTimes,
         timing.duration,
-        penaltyAssignment,
+        players,
       ),
-      ball: createBallTimeline(phases, roleMap, timing.phaseTimes, timing.duration),
       presentation: {
         purpose: play.desc,
         responsibilities: playResponsibilities(play),
@@ -1060,6 +1158,7 @@ export function compileStrategyThreeDScene(tactic, requestedVariant = 'correct')
   const timing = strategyTiming(phases);
   const roleMap = createOpponentRoleMap(phases);
   const variantLabel = variant === 'mistake' ? 'The Mistake' : 'The Right Way';
+  const players = createPlayers(phases, roleMap, timing.phaseTimes, timing.duration);
   return {
     ...baseScene({
       id: `${tactic.id}-${variant}-generated-3d`,
@@ -1067,8 +1166,14 @@ export function compileStrategyThreeDScene(tactic, requestedVariant = 'correct')
       title: `${tactic.title}: ${variantLabel}`,
       duration: timing.duration,
       phaseTimes: timing.phaseTimes,
-      players: createPlayers(phases, roleMap, timing.phaseTimes, timing.duration),
-      ball: createBallTimeline(phases, roleMap, timing.phaseTimes, timing.duration),
+      players,
+      ball: createBallTimeline(
+        phases,
+        roleMap,
+        timing.phaseTimes,
+        timing.duration,
+        players,
+      ),
       presentation: {
         purpose: tactic.principle,
         responsibilities: strategyResponsibilities(tactic),

@@ -5,7 +5,11 @@ export const GUIDE_TOPIC_ORDER = Object.freeze([
   'three-d',
   'create',
   'stats',
+  'game',
+  'matchup',
+  'player-stats',
   'profile',
+  'account',
   'controls',
   'terms',
 ]);
@@ -18,7 +22,7 @@ export const DEFAULT_GUIDE_TOPIC_BY_VIEW = Object.freeze({
   playmaker: 'create',
   stats: 'stats',
   profile: 'profile',
-  account: 'profile',
+  account: 'account',
 });
 
 export const GUIDE_TOPICS = Object.freeze({
@@ -41,13 +45,13 @@ export const GUIDE_TOPICS = Object.freeze({
         body: 'Replay, scrub, or switch to 3D. Use camera angles and optional coaching layers only when they answer a specific question.',
       },
     ],
-    note: 'The court always shows 5v5 plus both goalies. Our net is at the bottom in 2D.',
+    note: 'The rink always shows 5v5 plus both goalies. Our net is at the bottom in 2D.',
   },
   plays: {
     label: 'Plays',
     eyebrow: 'PLAYBOOK',
     title: 'Learn a complete team sequence',
-    intro: 'The Core 12 combine the most important team routes, ball decisions, and coaching cues. The 2D and 3D views use the same timeline.',
+    intro: 'The Core 12 combine the most important team routes, ball decisions, and coaching cues. Both views teach the same tactical sequence.',
     sections: [
       {
         title: 'Choose and scan',
@@ -63,7 +67,7 @@ export const GUIDE_TOPICS = Object.freeze({
       },
       {
         title: 'Move between 2D and 3D',
-        body: 'Switch modes at any time. Play, moment, role, time, and speed stay synchronized so the second view explains the same decision.',
+        body: 'Switch modes without changing the selected play or coaching intent. A 3D replay may expand an authored moment to make movement easier to read.',
       },
     ],
     note: 'A route is not a fixed lane. Read pressure first, then preserve the spacing and responsibility the play teaches.',
@@ -84,7 +88,7 @@ export const GUIDE_TOPICS = Object.freeze({
       },
       {
         title: 'Check every job',
-        body: 'Use the team responsibilities below the court to connect the principle to Defense, Center, Winger, and Goalie jobs.',
+        body: 'Use the team responsibilities below the rink to connect the principle to defenders, center, wingers, and goalie.',
       },
       {
         title: 'Inspect in 3D',
@@ -97,7 +101,7 @@ export const GUIDE_TOPICS = Object.freeze({
     label: '3D',
     eyebrow: '3D REVIEW',
     title: 'Inspect spacing without losing the whole play',
-    intro: 'Every camera is a starting angle, not a locked view. Orbit, pan, and zoom remain available on desktop and touch interfaces.',
+    intro: 'Camera presets are starting angles, not locked views. Orbit, pan, and zoom remain available on desktop and touch interfaces.',
     sections: [
       {
         title: 'Pick the camera for the question',
@@ -130,7 +134,7 @@ export const GUIDE_TOPICS = Object.freeze({
     sections: [
       {
         title: 'Build the starting shape',
-        body: 'Drag or select all 12 players into the intended setup. Set each player intent so the generated motion communicates the tactical job.',
+        body: 'Drag or select all 12 players into the intended setup on the vertical rink. Set each player intent so the generated motion communicates the tactical job.',
       },
       {
         title: 'Add the next moment',
@@ -142,7 +146,7 @@ export const GUIDE_TOPICS = Object.freeze({
       },
       {
         title: 'Select the exact receiver',
-        body: 'For a pass, select the receiving teammate explicitly. The same identity drives the 2D intent line, destination possession, and every 3D camera.',
+        body: 'For a pass, select the receiving teammate explicitly. That identity drives the 2D intent line, destination possession, and generated 3D replay.',
       },
       {
         title: 'Preview and share',
@@ -156,7 +160,7 @@ export const GUIDE_TOPICS = Object.freeze({
     label: 'Stats',
     eyebrow: 'TEAM PERFORMANCE',
     title: 'Follow each team one season at a time',
-    intro: 'Statistics are separated by season and team, so Monday and Sunday squads never blend into one record. Only verified manager entries affect totals.',
+    intro: 'Statistics are separated by season and team, so Monday and Sunday squads never blend into one record. Totals come from official league sync or authorized team entry.',
     sections: [
       {
         title: 'Choose the season and team',
@@ -175,7 +179,70 @@ export const GUIDE_TOPICS = Object.freeze({
         body: 'Members can view statistics. Authorized statistics managers record results, maintain rosters, and enter player lines after each game.',
       },
     ],
-    note: 'An empty table means no verified result has been entered. The app never estimates or fills missing team statistics.',
+    note: 'An empty table means no result has been published from either trusted source. The app never estimates or fills missing team statistics.',
+  },
+  game: {
+    label: 'Game result',
+    eyebrow: 'GAME REVIEW',
+    title: 'Read one game from score to player detail',
+    intro: 'The game page keeps the final score, scoring sequence, penalties, and published player lines in one review.',
+    sections: [
+      {
+        title: 'Start with the result',
+        body: 'Confirm the opponent, date, league, venue, and final score before reading the details below.',
+      },
+      {
+        title: 'Follow the game events',
+        body: 'Read goals and penalties in order to understand when the game changed and which situations mattered.',
+      },
+      {
+        title: 'Open a player',
+        body: 'Select a player name in the game sheet to open that player profile and season history.',
+      },
+    ],
+    note: 'A blank field means the official source did not publish that detail. It is not treated as zero.',
+  },
+  matchup: {
+    label: 'Matchup',
+    eyebrow: 'OPPONENT SCOUT',
+    title: 'Prepare for the next opponent',
+    intro: 'The matchup page combines upcoming fixture details with available head-to-head form and team trends.',
+    sections: [
+      {
+        title: 'Confirm the fixture',
+        body: 'Check the league, date, venue, and home or away status before sharing the matchup.',
+      },
+      {
+        title: 'Read the history',
+        body: 'Use completed meetings and recent form as context, not as a guarantee of the next result.',
+      },
+      {
+        title: 'Turn the scout into a plan',
+        body: 'Open the relevant play or strategy after identifying the pressure, spacing, or transition read to prepare.',
+      },
+    ],
+    note: 'Only published results appear. Future games open this preparation view instead of an empty result page.',
+  },
+  'player-stats': {
+    label: 'Player stats',
+    eyebrow: 'PLAYER PROFILE',
+    title: 'See one player across every published season',
+    intro: 'Public player pages combine identity, current team context, career totals, season history, and recent games.',
+    sections: [
+      {
+        title: 'Read the identity',
+        body: 'Number and position appear only when the official record publishes them. Missing details stay clearly marked.',
+      },
+      {
+        title: 'Compare seasons',
+        body: 'Use season rows to separate schedules and roles instead of blending every appearance into one line.',
+      },
+      {
+        title: 'Open recent games',
+        body: 'Select a recent appearance to review the complete game page and published player line.',
+      },
+    ],
+    note: 'Public profiles show official team records. They do not expose account details or private created plays.',
   },
   profile: {
     label: 'Profile',
@@ -202,6 +269,27 @@ export const GUIDE_TOPICS = Object.freeze({
     ],
     note: 'Selecting a player never edits official statistics. Remove or change a linked record from the profile at any time.',
   },
+  account: {
+    label: 'Account',
+    eyebrow: 'GOONSQUAD ID',
+    title: 'Control your team identity',
+    intro: 'Your account keeps favorites, profile links, and created plays attached to the same sign-in.',
+    sections: [
+      {
+        title: 'Sign in your way',
+        body: 'Use email and password or continue with Google. Choose a username your teammates will recognize.',
+      },
+      {
+        title: 'Keep your local work safe',
+        body: 'If accounts are temporarily unavailable, local plays remain on this device and the playbook still works.',
+      },
+      {
+        title: 'Manage your profile',
+        body: 'Update your display name and username, then open your player profile to manage linked league records.',
+      },
+    ],
+    note: 'Account details and official team statistics are stored separately. Linking a player does not edit the team record.',
+  },
   controls: {
     label: 'Controls',
     eyebrow: 'INPUT',
@@ -221,7 +309,7 @@ export const GUIDE_TOPICS = Object.freeze({
         title: 'Library and view',
         shortcuts: [
           ['[ / ]', 'Previous or next play or strategy'],
-          ['M', 'Mirror the 2D play court'],
+          ['M', 'Mirror the 2D rink'],
           ['O', 'Show or hide opponents in 2D'],
           ['T', 'Toggle the color theme'],
         ],
@@ -229,10 +317,11 @@ export const GUIDE_TOPICS = Object.freeze({
       {
         title: '3D camera',
         shortcuts: [
-          ['Drag / arrows', 'Orbit the camera'],
-          ['Shift + arrows', 'Pan the camera'],
+          ['Drag / W A S D', 'Orbit while the 3D rink has focus'],
+          ['P', 'Switch one-finger drag between orbit and pan'],
+          ['Two fingers / Shift + arrows', 'Pan the camera'],
           ['Wheel / pinch / + -', 'Zoom'],
-          ['0', 'Recenter the camera'],
+          ['0 / Home', 'Recenter the camera'],
           ['F', 'Toggle action follow'],
         ],
       },
@@ -244,7 +333,7 @@ export const GUIDE_TOPICS = Object.freeze({
         ],
       },
     ],
-    note: 'On touch screens, swipe only changes an authored moment when the gesture begins away from a control.',
+    note: 'Play swipes change moments only in Plays 2D and only when the gesture begins away from a control. Two fingers pan the 3D camera.',
   },
   terms: {
     label: 'Terms',
@@ -259,12 +348,19 @@ export const GUIDE_TOPICS = Object.freeze({
       { title: 'Loose ball', body: 'A ball target with no owner until a later authored possession event.' },
       { title: 'Role lens', body: 'A focused explanation for one position while the complete team remains visible.' },
       { title: 'Coaching layer', body: 'An optional 3D overlay for coverage, routes, the next ball lane, or next-position targets.' },
-      { title: 'Readiness', body: 'Create validation for player movement, ball continuity, and a deterministic 3D replay.' },
+      { title: 'Readiness', body: 'Create validation for player movement, ball continuity, and a structured 3D replay.' },
+      { title: 'Stats shorthand', body: 'GP is games played, G is goals, A is assists, PTS is points, and PIM is penalty minutes.' },
     ],
     note: 'Position labels identify responsibility; the tactical cue should still explain the read, timing, and support relationship.',
   },
 });
 
-export function guideTopicForView(activeView) {
+export function guideTopicForView(activeView, search = '') {
+  if (activeView === 'stats') {
+    const params = new URLSearchParams(search);
+    if (params.has('player')) return 'player-stats';
+    if (params.has('game')) return 'game';
+    if (params.has('opponent')) return 'matchup';
+  }
   return DEFAULT_GUIDE_TOPIC_BY_VIEW[activeView] ?? 'start';
 }

@@ -35,10 +35,20 @@ describe('Create guided tutorial contract', () => {
     });
   });
 
-  it('teaches exact receiver identity and remains restartable and keyboard accessible', () => {
+  it('teaches exact receiver identity across the authored 2D and 3D views without promising universal device behavior', () => {
     const ballStep = PLAYMAKER_TUTORIAL_STEPS.find((step) => step.id === 'ball');
     expect(`${ballStep.body} ${ballStep.detail}`).toContain('exact receiver');
+    expect(`${ballStep.body} ${ballStep.detail}`).toContain('2D line');
+    expect(`${ballStep.body} ${ballStep.detail}`).toContain('destination possession');
     expect(`${ballStep.body} ${ballStep.detail}`).toContain('all 3D cameras');
+    const tutorialCopy = JSON.stringify(PLAYMAKER_TUTORIAL_STEPS);
+    expect(tutorialCopy).not.toContain('every camera');
+    expect(tutorialCopy).not.toContain('every device');
+    expect(tutorialCopy).not.toContain('never reinterpret');
+    expect(tutorialCopy).toContain('does not replace a teammate or coach');
+  });
+
+  it('remains restartable and keyboard accessible', () => {
     expect(tutorialSource).toContain("event.key === 'Escape'");
     expect(tutorialSource).toContain("event.key === 'ArrowRight'");
     expect(tutorialSource).toContain('setStepIndex(0)');

@@ -1,14 +1,6 @@
 import { rinkPositionToWorld } from '../vnext3d/runtimeMapping';
+import { coverageGapColor } from '../play-engine/movementMetrics';
 import { sampleTacticalReplay } from './sampleTacticalReplay';
-
-const FIELD_ROLES = ['LW', 'C', 'RW', 'LD', 'RD'];
-const DEFAULT_OPPONENT_ROLE = Object.freeze({
-  LW: 'RD',
-  C: 'C',
-  RW: 'LD',
-  LD: 'RW',
-  RD: 'LW',
-});
 
 export const TACTICAL_LAYER_DEFAULTS = Object.freeze({
   matchups: false,
@@ -28,10 +20,6 @@ export const ROLE_LAYER_COLORS = Object.freeze({
   G: '#f4f7fb',
 });
 
-function playerByRole(replay, team, role) {
-  return replay.players.find((player) => player.team === team && player.role === role);
-}
-
 function validMatchup(replay, matchup) {
   const home = replay.players.find((player) => player.id === matchup.homePlayerId);
   const opponent = replay.players.find((player) => player.id === matchup.opponentPlayerId);
@@ -47,29 +35,12 @@ function authoredMatchupsAtTime(replay, requestedTime) {
 }
 
 export function tacticalMatchupsForReplay(replay, requestedTime = 0) {
-  const authored = authoredMatchupsAtTime(replay, requestedTime)
+  return authoredMatchupsAtTime(replay, requestedTime)
     .filter((matchup) => validMatchup(replay, matchup));
-  const authoredByHomePlayer = new Map(
-    (authored ?? []).map((matchup) => [matchup.homePlayerId, matchup]),
-  );
-
-  return FIELD_ROLES.map((role) => {
-    const home = playerByRole(replay, 'us', role);
-    if (home && authoredByHomePlayer.has(home.id)) return authoredByHomePlayer.get(home.id);
-    const opponent = playerByRole(replay, 'opponent', DEFAULT_OPPONENT_ROLE[role]);
-    if (!home || !opponent) return null;
-    return {
-      homePlayerId: home.id,
-      opponentPlayerId: opponent.id,
-      source: 'role-fallback',
-    };
-  }).filter(Boolean);
 }
 
 export function matchupGapColor(distanceMeters) {
-  if (distanceMeters <= 4.5) return '#42df91';
-  if (distanceMeters <= 7) return '#f5bc58';
-  return '#ff6468';
+  return coverageGapColor(distanceMeters);
 }
 
 export function tacticalRoutePoints(player) {

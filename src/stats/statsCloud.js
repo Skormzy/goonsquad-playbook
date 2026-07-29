@@ -1,5 +1,60 @@
 import { getPlaymakerCloudClient, playmakerCloudConfigured } from '../playmaker/playmakerCloud';
 
+export const PUBLIC_STATISTICS_QUERIES = Object.freeze({
+  seasons: Object.freeze({
+    relation: 'public_stats_seasons',
+    columns: 'id,slug,name,start_date,end_date,status,is_current,source,external_id,source_url',
+  }),
+  teams: Object.freeze({
+    relation: 'public_stats_teams',
+    columns: 'id,season_id,name,schedule_label,division,source,external_id,source_url',
+  }),
+  players: Object.freeze({
+    relation: 'public_stats_players',
+    columns: 'id,display_name,jersey_number,primary_position,source,external_id,source_url',
+  }),
+  memberships: Object.freeze({
+    relation: 'public_stats_memberships',
+    columns: 'id,season_team_id,player_id,jersey_number,position,active',
+  }),
+  games: Object.freeze({
+    relation: 'public_stats_games',
+    columns: 'id,season_team_id,stage,scheduled_at,opponent,venue,location,status,goals_for,goals_against,overtime,source,external_id,source_url,verified_at',
+  }),
+  teamGameStats: Object.freeze({
+    relation: 'public_stats_team_game_stats',
+    columns: 'game_id,shots_for,shots_against,power_play_goals,power_play_opportunities,penalty_kill_goals_against,times_shorthanded,faceoff_wins,faceoff_attempts,blocks,takeaways,turnovers,source',
+  }),
+  playerGameStats: Object.freeze({
+    relation: 'public_stats_player_game_stats',
+    columns: 'id,game_id,player_id,games_played,goals,assists,shots,penalty_minutes,plus_minus,blocks,takeaways,turnovers,power_play_goals,short_handed_goals,empty_net_goals,source',
+  }),
+  goalieGameStats: Object.freeze({
+    relation: 'public_stats_goalie_game_stats',
+    columns: 'id,game_id,player_id,games_played,wins,losses,ties,goals_against,shots_against,saves,shutouts,minutes_played,source',
+  }),
+  gameEvents: Object.freeze({
+    relation: 'public_stats_game_events',
+    columns: 'id,game_id,period,clock_seconds,event_type,team_side,primary_player_id,secondary_player_id,detail,source',
+  }),
+  teamSeasonSummaries: Object.freeze({
+    relation: 'public_stats_team_season_summaries',
+    columns: 'season_team_id,games_played,wins,losses,ties,points,source,source_url',
+  }),
+  playerSeasonStats: Object.freeze({
+    relation: 'public_stats_player_season_stats',
+    columns: 'id,season_team_id,stage,player_id,games_played,goals,assists,points,penalty_minutes,power_play_goals,short_handed_goals,empty_net_goals,source',
+  }),
+  goalieSeasonStats: Object.freeze({
+    relation: 'public_stats_goalie_season_stats',
+    columns: 'id,season_team_id,stage,player_id,games_played,wins,losses,ties,shutouts,shots_against,goals_against,minutes_played,goals_against_average,save_percentage,goals,assists,penalty_minutes,source',
+  }),
+});
+
+export const PUBLIC_STATISTICS_PROJECTION_ENABLED = (
+  import.meta.env.VITE_PUBLIC_STATS_PROJECTION_ENABLED === 'true'
+);
+
 async function loadBundledStatisticsDataset() {
   const { OFFICIAL_STATS_DATASET } = await import('./statsSeed');
   return OFFICIAL_STATS_DATASET;
@@ -54,7 +109,6 @@ function mapMembership(row) {
     jerseyNumber: row.jersey_number,
     position: row.position,
     active: row.active,
-    notes: row.notes || '',
     persisted: true,
   };
 }
@@ -72,7 +126,6 @@ function mapGame(row) {
     goalsFor: row.goals_for,
     goalsAgainst: row.goals_against,
     overtime: Boolean(row.overtime),
-    notes: row.notes || '',
     externalId: row.external_id || null,
     sourceUrl: row.source_url || null,
     source: row.source || 'team',
@@ -273,6 +326,18 @@ async function checked(query) {
   return data ?? [];
 }
 
+export async function readAllPages(queryFactory, pageSize = 1000) {
+  if (typeof queryFactory !== 'function') throw new TypeError('A statistics query factory is required.');
+  if (!Number.isInteger(pageSize) || pageSize < 1) throw new RangeError('Statistics page size must be a positive integer.');
+
+  const rows = [];
+  for (let from = 0; ; from += pageSize) {
+    const page = await checked(queryFactory().range(from, from + pageSize - 1));
+    rows.push(...page);
+    if (page.length < pageSize) return rows;
+  }
+}
+
 function isStatisticsDataset(value) {
   return value
     && Array.isArray(value.seasons)
@@ -301,24 +366,27 @@ export async function loadRuntimeStatisticsDataset(fetcher = globalThis.fetch) {
   }
 }
 
-export async function loadStatisticsDataset() {
+export async function loadStatisticsDataset({
+  useCloudProjection = PUBLIC_STATISTICS_PROJECTION_ENABLED,
+} = {}) {
   const runtimeDataset = await loadRuntimeStatisticsDataset();
   const cloud = getPlaymakerCloudClient();
-  if (!playmakerCloudConfigured || !cloud) return runtimeDataset;
+  if (!useCloudProjection || !playmakerCloudConfigured || !cloud) return runtimeDataset;
   try {
+    const queries = PUBLIC_STATISTICS_QUERIES;
     const [seasons, teams, players, memberships, games, teamGameStats, playerGameStats, goalieGameStats, gameEvents, teamSeasonSummaries, playerSeasonStats, goalieSeasonStats] = await Promise.all([
-      checked(cloud.from('seasons').select('*').eq('is_visible', true).order('start_date', { ascending: false })),
-      checked(cloud.from('season_teams').select('*').order('schedule_label', { ascending: true })),
-      checked(cloud.from('players').select('*').order('display_name', { ascending: true })),
-      checked(cloud.from('roster_memberships').select('*')),
-      checked(cloud.from('games').select('*').order('scheduled_at', { ascending: false })),
-      checked(cloud.from('team_game_stats').select('*')),
-      checked(cloud.from('player_game_stats').select('*')),
-      checked(cloud.from('goalie_game_stats').select('*')),
-      checked(cloud.from('game_events').select('*')),
-      checked(cloud.from('team_season_summaries').select('*')),
-      checked(cloud.from('player_season_stats').select('*')),
-      checked(cloud.from('goalie_season_stats').select('*')),
+      readAllPages(() => cloud.from(queries.seasons.relation).select(queries.seasons.columns).order('start_date', { ascending: false }).order('id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.teams.relation).select(queries.teams.columns).order('schedule_label', { ascending: true }).order('id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.players.relation).select(queries.players.columns).order('display_name', { ascending: true }).order('id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.memberships.relation).select(queries.memberships.columns).order('id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.games.relation).select(queries.games.columns).order('scheduled_at', { ascending: false }).order('id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.teamGameStats.relation).select(queries.teamGameStats.columns).order('game_id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.playerGameStats.relation).select(queries.playerGameStats.columns).order('id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.goalieGameStats.relation).select(queries.goalieGameStats.columns).order('id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.gameEvents.relation).select(queries.gameEvents.columns).order('id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.teamSeasonSummaries.relation).select(queries.teamSeasonSummaries.columns).order('season_team_id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.playerSeasonStats.relation).select(queries.playerSeasonStats.columns).order('id', { ascending: true })),
+      readAllPages(() => cloud.from(queries.goalieSeasonStats.relation).select(queries.goalieSeasonStats.columns).order('id', { ascending: true })),
     ]);
     return mergeStatisticsDatasets(runtimeDataset, {
       source: 'cloud',

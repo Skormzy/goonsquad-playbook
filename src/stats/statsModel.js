@@ -1,6 +1,22 @@
-function number(value) {
+function publishedNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function number(value) {
+  return publishedNumber(value) ?? 0;
+}
+
+function addPublished(total, value) {
+  const parsed = publishedNumber(value);
+  if (total === null || parsed === null) return null;
+  return total + parsed;
+}
+
+function publishedRate(numerator, denominator, zeroValue = 0) {
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator)) return null;
+  return denominator ? numerator / denominator : zeroValue;
 }
 
 function finalGames(games) {
@@ -118,22 +134,24 @@ export function aggregatePlayerStats(lines, players) {
       penaltyMinutes: 0,
       plusMinus: 0,
     };
-    current.gamesPlayed += number(line.gamesPlayed || 1);
-    current.goals += number(line.goals);
-    current.assists += number(line.assists);
-    current.points = current.goals + current.assists;
-    current.shots += number(line.shots);
-    current.penaltyMinutes += number(line.penaltyMinutes);
-    current.plusMinus += number(line.plusMinus);
+    current.gamesPlayed += publishedNumber(line.gamesPlayed) ?? 1;
+    current.goals = addPublished(current.goals, line.goals);
+    current.assists = addPublished(current.assists, line.assists);
+    current.points = Number.isFinite(current.goals) && Number.isFinite(current.assists)
+      ? current.goals + current.assists
+      : null;
+    current.shots = addPublished(current.shots, line.shots);
+    current.penaltyMinutes = addPublished(current.penaltyMinutes, line.penaltyMinutes);
+    current.plusMinus = addPublished(current.plusMinus, line.plusMinus);
     aggregate.set(line.playerId, current);
   });
   return [...aggregate.values()]
     .map((line) => ({
       ...line,
-      pointsPerGame: line.gamesPlayed ? line.points / line.gamesPlayed : 0,
-      shootingPercentage: line.shots ? line.goals / line.shots : 0,
+      pointsPerGame: publishedRate(line.points, line.gamesPlayed),
+      shootingPercentage: publishedRate(line.goals, line.shots),
     }))
-    .sort((a, b) => b.points - a.points || b.goals - a.goals || a.displayName.localeCompare(b.displayName));
+    .sort((a, b) => number(b.points) - number(a.points) || number(b.goals) - number(a.goals) || a.displayName.localeCompare(b.displayName));
 }
 
 export function aggregateGoalieStats(lines, players) {
@@ -152,24 +170,24 @@ export function aggregateGoalieStats(lines, players) {
       shutouts: 0,
       minutesPlayed: 0,
     };
-    current.gamesPlayed += number(line.gamesPlayed || 1);
-    current.wins += number(line.wins);
-    current.losses += number(line.losses);
-    current.ties += number(line.ties);
-    current.goalsAgainst += number(line.goalsAgainst);
-    current.shotsAgainst += number(line.shotsAgainst);
-    current.saves += number(line.saves);
-    current.shutouts += number(line.shutouts);
-    current.minutesPlayed += number(line.minutesPlayed);
+    current.gamesPlayed += publishedNumber(line.gamesPlayed) ?? 1;
+    current.wins = addPublished(current.wins, line.wins);
+    current.losses = addPublished(current.losses, line.losses);
+    current.ties = addPublished(current.ties, line.ties);
+    current.goalsAgainst = addPublished(current.goalsAgainst, line.goalsAgainst);
+    current.shotsAgainst = addPublished(current.shotsAgainst, line.shotsAgainst);
+    current.saves = addPublished(current.saves, line.saves);
+    current.shutouts = addPublished(current.shutouts, line.shutouts);
+    current.minutesPlayed = addPublished(current.minutesPlayed, line.minutesPlayed);
     aggregate.set(line.playerId, current);
   });
   return [...aggregate.values()]
     .map((line) => ({
       ...line,
-      savePercentage: line.shotsAgainst ? line.saves / line.shotsAgainst : 0,
-      goalsAgainstAverage: line.minutesPlayed ? (line.goalsAgainst * 30) / line.minutesPlayed : 0,
+      savePercentage: publishedRate(line.saves, line.shotsAgainst),
+      goalsAgainstAverage: publishedRate(Number.isFinite(line.goalsAgainst) ? line.goalsAgainst * 30 : null, line.minutesPlayed),
     }))
-    .sort((a, b) => b.savePercentage - a.savePercentage || b.wins - a.wins);
+    .sort((a, b) => number(b.savePercentage) - number(a.savePercentage) || number(b.wins) - number(a.wins));
 }
 
 export function aggregatePlayerSeasonStats(lines, players) {
@@ -188,25 +206,29 @@ export function aggregatePlayerSeasonStats(lines, players) {
       emptyNetGoals: 0,
       source: line.source || 'league',
     };
-    current.gamesPlayed += number(line.gamesPlayed);
-    current.goals += number(line.goals);
-    current.assists += number(line.assists);
-    current.points += Number.isFinite(Number(line.points)) ? number(line.points) : number(line.goals) + number(line.assists);
-    current.penaltyMinutes += number(line.penaltyMinutes);
-    current.powerPlayGoals += number(line.powerPlayGoals);
-    current.shortHandedGoals += number(line.shortHandedGoals);
-    current.emptyNetGoals += number(line.emptyNetGoals);
+    const lineGoals = publishedNumber(line.goals);
+    const lineAssists = publishedNumber(line.assists);
+    const linePoints = publishedNumber(line.points)
+      ?? (lineGoals !== null && lineAssists !== null ? lineGoals + lineAssists : null);
+    current.gamesPlayed = addPublished(current.gamesPlayed, line.gamesPlayed);
+    current.goals = addPublished(current.goals, line.goals);
+    current.assists = addPublished(current.assists, line.assists);
+    current.points = addPublished(current.points, linePoints);
+    current.penaltyMinutes = addPublished(current.penaltyMinutes, line.penaltyMinutes);
+    current.powerPlayGoals = addPublished(current.powerPlayGoals, line.powerPlayGoals);
+    current.shortHandedGoals = addPublished(current.shortHandedGoals, line.shortHandedGoals);
+    current.emptyNetGoals = addPublished(current.emptyNetGoals, line.emptyNetGoals);
     aggregate.set(line.playerId, current);
   });
   return [...aggregate.values()]
     .map((line) => ({
       ...line,
-      pointsPerGame: line.gamesPlayed ? line.points / line.gamesPlayed : 0,
+      pointsPerGame: publishedRate(line.points, line.gamesPlayed),
       shots: null,
       shootingPercentage: null,
       plusMinus: null,
     }))
-    .sort((a, b) => b.points - a.points || b.goals - a.goals || a.displayName.localeCompare(b.displayName));
+    .sort((a, b) => number(b.points) - number(a.points) || number(b.goals) - number(a.goals) || a.displayName.localeCompare(b.displayName));
 }
 
 export function aggregateGoalieSeasonStats(lines, players) {
@@ -225,24 +247,29 @@ export function aggregateGoalieSeasonStats(lines, players) {
       minutesPlayed: 0,
       source: line.source || 'league',
     };
-    current.gamesPlayed += number(line.gamesPlayed);
-    current.wins += number(line.wins);
-    current.losses += number(line.losses);
-    current.ties += number(line.ties);
-    current.shutouts += number(line.shutouts);
-    current.shotsAgainst += number(line.shotsAgainst);
-    current.goalsAgainst += number(line.goalsAgainst);
-    current.minutesPlayed += number(line.minutesPlayed);
+    current.gamesPlayed = addPublished(current.gamesPlayed, line.gamesPlayed);
+    current.wins = addPublished(current.wins, line.wins);
+    current.losses = addPublished(current.losses, line.losses);
+    current.ties = addPublished(current.ties, line.ties);
+    current.shutouts = addPublished(current.shutouts, line.shutouts);
+    current.shotsAgainst = addPublished(current.shotsAgainst, line.shotsAgainst);
+    current.goalsAgainst = addPublished(current.goalsAgainst, line.goalsAgainst);
+    current.minutesPlayed = addPublished(current.minutesPlayed, line.minutesPlayed);
     aggregate.set(line.playerId, current);
   });
   return [...aggregate.values()]
-    .map((line) => ({
-      ...line,
-      saves: Math.max(0, line.shotsAgainst - line.goalsAgainst),
-      savePercentage: line.shotsAgainst ? (line.shotsAgainst - line.goalsAgainst) / line.shotsAgainst : 0,
-      goalsAgainstAverage: line.minutesPlayed ? (line.goalsAgainst * 30) / line.minutesPlayed : 0,
-    }))
-    .sort((a, b) => b.savePercentage - a.savePercentage || b.wins - a.wins || a.displayName.localeCompare(b.displayName));
+    .map((line) => {
+      const saves = Number.isFinite(line.shotsAgainst) && Number.isFinite(line.goalsAgainst)
+        ? Math.max(0, line.shotsAgainst - line.goalsAgainst)
+        : null;
+      return {
+        ...line,
+        saves,
+        savePercentage: publishedRate(saves, line.shotsAgainst),
+        goalsAgainstAverage: publishedRate(Number.isFinite(line.goalsAgainst) ? line.goalsAgainst * 30 : null, line.minutesPlayed),
+      };
+    })
+    .sort((a, b) => number(b.savePercentage) - number(a.savePercentage) || number(b.wins) - number(a.wins) || a.displayName.localeCompare(b.displayName));
 }
 
 function includesStage(item, stage) {
@@ -342,12 +369,14 @@ export function statsSnapshot(dataset, seasonId, teamId, stage = 'regular') {
       players: playerLines.filter((line) => line.gameId === game.id).map((line) => ({
         ...line,
         displayName: playerName(dataset.players, line.playerId),
-        points: number(line.goals) + number(line.assists),
+        points: publishedNumber(line.goals) !== null && publishedNumber(line.assists) !== null
+          ? publishedNumber(line.goals) + publishedNumber(line.assists)
+          : null,
       })),
       goalies: goalieLines.filter((line) => line.gameId === game.id).map((line) => ({
         ...line,
         displayName: playerName(dataset.players, line.playerId),
-        savePercentage: number(line.shotsAgainst) ? number(line.saves) / number(line.shotsAgainst) : 0,
+        savePercentage: publishedRate(publishedNumber(line.saves), publishedNumber(line.shotsAgainst)),
       })),
       events: gameEvents.filter((event) => event.gameId === game.id),
     }])),

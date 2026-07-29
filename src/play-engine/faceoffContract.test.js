@@ -7,7 +7,8 @@ import {
 import { PLAYS } from '../data/plays';
 import { compilePlayThreeDScene } from './compileThreeDScene';
 import { auditFaceoffPlay } from './faceoffContract';
-import { samplePlayScene } from './samplePlayScene';
+import { rinkDistanceMeters } from './movementMetrics';
+import { samplePlayerKeyframes, samplePlayScene } from './samplePlayScene';
 
 describe('faceoff replay contract', () => {
   const outcomeCases = FACE_OFF_PLAY_IDS.flatMap((playId) => (
@@ -37,10 +38,17 @@ describe('faceoff replay contract', () => {
     const beforeContact = samplePlayScene(scene, Math.max(0, draw.from - 0.01));
     const duringContact = samplePlayScene(scene, draw.from + (draw.to - draw.from) * 0.5);
     const afterContact = samplePlayScene(scene, Math.min(scene.duration, draw.to + 0.03));
+    const receiver = scene.players.find((player) => player.id === draw.toPlayerId);
+    const receiverContact = samplePlayerKeyframes(receiver.keyframes, draw.to).position;
+    const securedCarry = scene.ball.segments.find((segment) => (
+      segment.faceoffState === 'secured' && segment.from === draw.to
+    ));
 
     expect(beforeContact.ball.ownerId).toBeNull();
     expect(duringContact.ball).toMatchObject({ segmentType: 'faceoff', ownerId: null });
     expect(afterContact.ball.ownerId).toBe(play.faceoff.outcomeTarget);
+    expect(rinkDistanceMeters(draw.end, receiverContact)).toBeLessThan(0.01);
+    expect(securedCarry?.start).toEqual(draw.end);
     expect(duringContact.players.filter((player) => player.role === 'C').map((player) => player.action))
       .toEqual(['forehand-pass', 'forehand-pass']);
   });

@@ -4,6 +4,7 @@ import { useTheme } from './context/ThemeContext';
 import { useApp } from './context/AppContext';
 import { CORE_PLAYS, CORE_TACTICS, itemsForCurriculumLane } from './data/coreCatalog';
 import Header from './components/Header';
+import SkipLink from './components/accessibility/SkipLink';
 import Sidebar from './components/Sidebar';
 import PlayViewer from './components/PlayViewer';
 import StrategyModal from './components/StrategyModal';
@@ -56,6 +57,8 @@ export default function App() {
   );
   const playIdx = currentPlay ? lanePlays.findIndex(p => p.id === currentPlay.id) : -1;
   const tacticIdx = laneTactics.findIndex((tactic) => tactic.id === selectedTacticId);
+  const appOwnsMainLandmark = activeView === 'playbook' || activeView === 'tactics';
+  const mainLabel = activeView === 'tactics' ? 'Strategy workspace' : 'Playbook workspace';
 
   useEffect(() => {
     playbackTimeRef.current = playbackTime;
@@ -221,12 +224,17 @@ export default function App() {
         transition: 'background .3s, color .3s',
       }}
     >
+      <SkipLink />
       <StrategyModal />
       <KeyboardHelp />
       <AccountDialog />
       <Header />
 
       <div
+        id="main-content"
+        tabIndex={-1}
+        role={appOwnsMainLandmark ? 'main' : undefined}
+        aria-label={appOwnsMainLandmark ? mainLabel : undefined}
         className={`app-content ${activeView === 'replay3d' || activeView === 'strategy3d' || (import.meta.env.DEV && activeView === 'rigreview') ? 'app-content-replay3d' : ''} ${activeView === 'playmaker' ? 'app-content-playmaker' : ''} ${activeView === 'stats' ? 'app-content-stats' : ''} ${activeView === 'profile' ? 'app-content-profile' : ''} ${activeView === 'account' ? 'app-content-account' : ''}`}
         style={{ flex: 1, display: 'flex', position: 'relative', minHeight: 0, overflow: 'hidden' }}
         onTouchStart={handleTouchStart}

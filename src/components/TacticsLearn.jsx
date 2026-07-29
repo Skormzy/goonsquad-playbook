@@ -10,7 +10,8 @@ import {
 } from '../data/coreCatalog';
 import { CAT_COLORS } from '../context/ThemeContext';
 import CurriculumLaneSwitch from './CurriculumLaneSwitch';
-import RinkSVG from './RinkSVG';
+import PlaybackControls from './PlaybackControls';
+import SceneRink2D from './SceneRink2D';
 
 const TC = TACTICAL_COLORS;
 
@@ -51,12 +52,9 @@ export default function TacticsLearn() {
     setStrategyVariant,
     currentPhase,
     setCurrentPhase,
+    currentReplayScene,
     playbackTime,
-    setPlaybackTime,
-    isPlaying,
     setIsPlaying,
-    speed,
-    setSpeed,
     setCurrentPlay,
     setActiveView,
     cancelPlaybackRestart,
@@ -71,9 +69,6 @@ export default function TacticsLearn() {
   const scene = activeTab === 'mistake' ? principle.mistakeScene : principle.correctScene;
   const phase = scene.phases[currentPhase] ?? scene.phases[0];
   const totalPhases = scene.phases.length;
-  const prevPhasePositions = currentPhase > 0 ? scene.phases[currentPhase - 1]?.our ?? null : null;
-
-  const phaseData = { pos: phase.our, opp: phase.opp, ball: phase.ball, arrows: phase.arrows };
   const coverage = phase.coverage || scene.coverage || null;
   const tabAccent = activeTab === 'mistake' ? TC.mistake : TC.defense;
   const rinkMax = isDesktop ? 420 : 430;
@@ -81,8 +76,7 @@ export default function TacticsLearn() {
   const selectPrinciple = useCallback((i) => {
     cancelPlaybackRestart();
     setSelectedTacticId(laneTactics[i]?.id);
-    setStrategyVariant('mistake');
-  }, [cancelPlaybackRestart, laneTactics, setSelectedTacticId, setStrategyVariant]);
+  }, [cancelPlaybackRestart, laneTactics, setSelectedTacticId]);
 
   const selectLane = useCallback((nextLane) => {
     if (nextLane === lane) return;
@@ -90,33 +84,13 @@ export default function TacticsLearn() {
     if (first) {
       cancelPlaybackRestart();
       setSelectedTacticId(first.id);
-      setStrategyVariant('mistake');
     }
-  }, [cancelPlaybackRestart, lane, setSelectedTacticId, setStrategyVariant]);
+  }, [cancelPlaybackRestart, lane, setSelectedTacticId]);
 
   const switchTab = useCallback((tab) => {
     cancelPlaybackRestart();
     setStrategyVariant(tab);
   }, [cancelPlaybackRestart, setStrategyVariant]);
-
-  const goPhase = useCallback((n) => {
-    cancelPlaybackRestart();
-    if (n < 0 || n >= totalPhases) return;
-    setIsPlaying(false);
-    setCurrentPhase(n);
-  }, [cancelPlaybackRestart, totalPhases, setCurrentPhase, setIsPlaying]);
-
-  const togglePlay = useCallback(() => {
-    cancelPlaybackRestart();
-    if (isPlaying) {
-      setIsPlaying(false);
-      return;
-    }
-    if (playbackTime >= scene.phases.reduce((sum, item) => sum + item.duration, 0) - 0.05) {
-      setPlaybackTime(0);
-    }
-    setIsPlaying(true);
-  }, [cancelPlaybackRestart, isPlaying, playbackTime, scene.phases, setIsPlaying, setPlaybackTime]);
 
   const navigateToPlay = useCallback((playId) => {
     const play = PLAYS.find(p => p.id === playId);
@@ -183,11 +157,12 @@ export default function TacticsLearn() {
 
   const rinkBlock = (
     <div className="tactics-rink" style={{ width: '100%' }}>
-      <RinkSVG
-        mode="tactics"
-        phaseData={phaseData}
-        prevPhaseData={prevPhasePositions}
+      <SceneRink2D
+        scene={currentReplayScene}
+        time={playbackTime}
+        tactical
         coverage={coverage}
+        arrows={phase.arrows}
       />
     </div>
   );
@@ -211,72 +186,8 @@ export default function TacticsLearn() {
   );
 
   const controlsBlock = (
-    <div className="tactics-playback" role="group" aria-label="Strategy playback" style={{ display: 'flex', gap: 5, alignItems: 'center', margin: '2px 0 4px' }}>
-      <button
-        type="button"
-        className="tactics-playback-button"
-        onClick={() => goPhase(currentPhase - 1)}
-        disabled={currentPhase === 0}
-        aria-label="Previous strategy phase"
-        style={{ padding: '6px 10px', borderRadius: 5, fontFamily: FF, border: `1px solid ${t.bd}`, background: t.cb, color: currentPhase === 0 ? t.td : t.tx, cursor: currentPhase === 0 ? 'default' : 'pointer', fontSize: 12, fontWeight: 700 }}
-      >◀</button>
-      <button
-        type="button"
-        className="tactics-playback-button is-primary"
-        onClick={togglePlay}
-        aria-pressed={isPlaying}
-        aria-label={isPlaying ? 'Pause strategy playback' : 'Play strategy playback'}
-        style={{ padding: '6px 16px', borderRadius: 5, fontFamily: 'var(--font-display)', border: `2px solid ${tabAccent}`, background: isPlaying ? tabAccent : 'transparent', color: isPlaying ? '#fff' : tabAccent, fontSize: 13, fontWeight: 800, boxShadow: isPlaying ? `0 0 10px ${tabAccent}44` : 'none', transition: 'all .12s' }}
-      >
-        {isPlaying ? '⏸ PAUSE' : '▶ PLAY'}
-      </button>
-      <button
-        type="button"
-        className="tactics-playback-button"
-        onClick={() => goPhase(currentPhase + 1)}
-        disabled={currentPhase >= totalPhases - 1}
-        aria-label="Next strategy phase"
-        style={{ padding: '6px 10px', borderRadius: 5, fontFamily: FF, border: `1px solid ${t.bd}`, background: t.cb, color: currentPhase >= totalPhases - 1 ? t.td : t.tx, cursor: currentPhase >= totalPhases - 1 ? 'default' : 'pointer', fontSize: 12, fontWeight: 700 }}
-      >▶</button>
-      <div role="group" aria-label="Strategy playback speed" style={{ display: 'flex' }}>
-        {[0.5, 1, 2].map((s, i) => (
-          <button
-            type="button"
-            className="tactics-speed-button"
-            key={s}
-            onClick={() => setSpeed(s)}
-            aria-label={`${s}x strategy speed`}
-            aria-pressed={speed === s}
-            style={{ padding: '4px 7px', borderStyle: 'solid', borderWidth: 1, borderColor: speed === s ? tabAccent : t.bd, borderLeftWidth: i !== 0 ? 0 : 1, background: speed === s ? `${tabAccent}22` : t.cb, color: speed === s ? tabAccent : t.td, fontSize: 10, fontWeight: 800, fontFamily: 'var(--font-display)', cursor: 'pointer', borderRadius: i === 0 ? '4px 0 0 4px' : i === 2 ? '0 4px 4px 0' : '0', transition: 'all .1s' }}
-          >
-            {s === 0.5 ? '½×' : `${s}×`}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const phaseDotsBlock = (
-    <div className="tactics-phase-dots" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 2, padding: '0 4px', margin: '4px 0 8px', minWidth: 40 }}>
-      {totalPhases > 1 && (
-        <>
-          <div style={{ position: 'absolute', left: 10, right: 10, top: '50%', height: 2, background: t.bd, transform: 'translateY(-50%)', borderRadius: 1, zIndex: 0 }} />
-          <div style={{ position: 'absolute', left: 10, top: '50%', height: 2, width: `calc(${(currentPhase / Math.max(totalPhases - 1, 1)) * 100}% - 20px)`, background: tabAccent, transform: 'translateY(-50%)', borderRadius: 1, zIndex: 0, transition: 'width .3s ease', opacity: 0.7 }} />
-        </>
-      )}
-      {scene.phases.map((_, i) => (
-        <button
-          type="button"
-          className="tactics-phase-dot"
-          data-active={i === currentPhase}
-          data-complete={i < currentPhase}
-          key={i}
-          onClick={() => goPhase(i)}
-          aria-label={`Go to strategy phase ${i + 1}`}
-          aria-current={i === currentPhase ? 'step' : undefined}
-          style={{ '--tactics-dot': i === currentPhase ? tabAccent : i < currentPhase ? `${t.tm}aa` : t.bd }}
-        />
-      ))}
+    <div className="tactics-playback-shell" aria-label="Strategy playback">
+      <PlaybackControls compact />
     </div>
   );
 
@@ -390,7 +301,6 @@ export default function TacticsLearn() {
             {captionBlock}
             {phaseIndicatorBlock}
             {controlsBlock}
-            {phaseDotsBlock}
             {legendBlock}
             {navBlock}
           </div>
@@ -417,7 +327,6 @@ export default function TacticsLearn() {
             {captionBlock}
             {phaseIndicatorBlock}
             {controlsBlock}
-            {phaseDotsBlock}
           </div>
           {navBlock}
           <details className="tactics-mobile-coaching">

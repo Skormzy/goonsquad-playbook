@@ -59,6 +59,11 @@ describe('team account and statistics product contract', () => {
     expect(workspaceSource).toContain("url.searchParams.set('game'");
     expect(workspaceSource).toContain("initialQueryValue('opponent')");
     expect(workspaceSource).toContain("url.searchParams.set('opponent'");
+    expect(workspaceSource).toContain("initialQueryValue('player')");
+    expect(workspaceSource).toContain("url.searchParams.set('player'");
+    expect(workspaceSource).toContain('PlayerProfilePage');
+    expect(workspaceSource).toContain('Every Goonsquad player');
+    expect(workspaceSource).toContain('playerRosterCandidates');
     expect(workspaceSource).toContain("game?.status !== 'final'");
     expect(workspaceSource).toContain('OpponentDirectory');
     expect(workspaceSource).toContain('OpponentHeadToHead');

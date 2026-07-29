@@ -84,8 +84,8 @@ export default function AccountDialog() {
           <div className="account-connection-state is-offline">
             <CloudOff aria-hidden="true" />
             <div>
-              <strong>Free account service not connected</strong>
-              <p>Create one Supabase Free project and provide its public project URL and publishable key. No paid plan is required.</p>
+              <strong>Accounts are temporarily unavailable</strong>
+              <p>Your local plays remain safe. You can keep using the playbook and Create.</p>
             </div>
           </div>
         )}
@@ -177,7 +177,15 @@ export default function AccountDialog() {
           </div>
         )}
 
-        {account.status && <p className="account-status" role="status">{account.status}</p>}
+        {account.status && (
+          <p
+            className="account-status"
+            data-tone={account.statusTone || 'info'}
+            role={account.statusTone === 'error' ? 'alert' : 'status'}
+          >
+            {account.status}
+          </p>
+        )}
       </section>
     </div>
   );

@@ -9,6 +9,12 @@ export function rinkDistanceMeters(from, to) {
   return Math.hypot(xMeters, zMeters);
 }
 
+export function coverageGapColor(distanceMeters) {
+  if (distanceMeters <= 4.5) return '#42df91';
+  if (distanceMeters <= 7) return '#f5bc58';
+  return '#ff6468';
+}
+
 export function fieldMovementAction(speedMps) {
   if (speedMps > FIELD_SPRINT_SPEED_THRESHOLD_MPS) {
     return { action: 'sprint-forward', actionIntensity: 1 };

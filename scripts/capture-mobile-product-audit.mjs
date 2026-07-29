@@ -331,7 +331,7 @@ for (const device of devices) {
   await page.getByRole('tab', { name: 'Players', exact: true }).click();
   states.push(await capture(page, device, 'home-players'));
 
-  await page.getByRole('button', { name: 'Create account or sign in' }).click();
+  await page.getByRole('button', { name: 'Open team account' }).click();
   await page.locator('.account-workspace').waitFor({ state: 'visible' });
   await settleInteraction(page);
   states.push(await capture(page, device, 'account-workspace'));

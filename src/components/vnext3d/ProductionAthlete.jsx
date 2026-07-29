@@ -41,6 +41,7 @@ export default function ProductionAthlete({
   contactPoints,
   groundContacts,
   groundSampleInterval = NORMAL_GROUND_SAMPLE_INTERVAL_SECONDS,
+  hideJerseyNumber = false,
   motionPhaseCycles,
   motionCyclesPerSecond = 0,
   onClipTransition,
@@ -120,6 +121,10 @@ export default function ProductionAthlete({
         return;
       }
       if (!object.isMesh) return;
+      if (hideJerseyNumber && /jersey_back_number/i.test(object.name)) {
+        object.visible = false;
+        return;
+      }
       if (!isTacticalDistanceMeshVisible(object.name)) {
         object.visible = false;
         return;
@@ -129,7 +134,7 @@ export default function ProductionAthlete({
       object.receiveShadow = false;
       object.frustumCulled = false;
     });
-  }, [model]);
+  }, [hideJerseyNumber, model]);
 
   useEffect(() => {
     const requestedClip = source.animations.find((candidate) => candidate.name === clipName)

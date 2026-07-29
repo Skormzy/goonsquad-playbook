@@ -6,7 +6,10 @@ import { createPlaymakerDraft, PLAYMAKER_TEMPLATES } from '../playmaker/playmake
 import { rinkDistanceMeters } from './movementMetrics';
 import { compilePlayThreeDScene, compileStrategyThreeDScene } from './compileThreeDScene';
 import { samplePlayScene } from './samplePlayScene';
-import { auditTacticalCatalog } from './tacticalGeometryAudit';
+import {
+  auditPrimaryPassingLanes,
+  auditTacticalCatalog,
+} from './tacticalGeometryAudit';
 
 const HOME_ROLES = ['LW', 'C', 'RW', 'LD', 'RD', 'G'];
 
@@ -47,8 +50,25 @@ function expectCompiledPhaseParity(scene, sourcePhases, homeKey) {
 }
 
 describe('catalog-wide tactical geometry', () => {
-  it('keeps opponent identities stable and mirrors their handed roles on every phase', () => {
+  it('keeps every phase complete, spaced, role-stable, and tactically clear', () => {
     expect(auditTacticalCatalog(PLAYS, TACTICS)).toEqual([]);
+  });
+
+  it('rejects a primary pass lane that runs through a defender', () => {
+    expect(auditPrimaryPassingLanes([{
+      pos: {
+        LW: { x: 10, y: 50 },
+        C: { x: 70, y: 50 },
+      },
+      opp: [
+        { id: 'op-c', l: 'C', x: 40, y: 50 },
+      ],
+      lanes: [
+        { f: 'LW', t: 'C', ty: 'primary' },
+      ],
+    }], 'test play')).toEqual([
+      'test play phase 1: LW to C primary lane is blocked by op-c at 0.00m',
+    ]);
   });
 
   it('uses the same mirrored opponent orientation in every Create template', () => {

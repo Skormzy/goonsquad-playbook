@@ -9,7 +9,10 @@ describe('playSceneToRinkPhase', () => {
 
     expect(Object.keys(phase.pos)).toEqual(['LW', 'C', 'RW', 'LD', 'RD', 'G']);
     expect(phase.opp).toHaveLength(6);
-    expect(phase.opp.map((player) => player.l)).toEqual(['G', 'C', 'LW', 'RW', 'LD', 'RD']);
+    expect(phase.opp.map((player) => player.l)).toEqual(['G', 'C', 'RW', 'LW', 'RD', 'LD']);
+    const opponentByRole = Object.fromEntries(phase.opp.map((player) => [player.l, player]));
+    expect(opponentByRole.RW.x).toBeLessThan(opponentByRole.LW.x);
+    expect(opponentByRole.RD.x).toBeLessThan(opponentByRole.LD.x);
     expect(phase.ball).toMatchObject({ x: expect.any(Number), y: expect.any(Number) });
     expect(phase.ballPath).toHaveLength(3);
     expect(phase.lanes).toEqual([{ f: 'LD', t: 'LW', ty: 'primary' }]);

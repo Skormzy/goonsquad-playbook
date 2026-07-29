@@ -99,7 +99,7 @@ function stickPocketPosition(player, progress = 0) {
   };
 }
 
-function sampleKeyframes(keyframes, time) {
+export function samplePlayerKeyframes(keyframes, time) {
   if (time <= keyframes[0].time) return { ...keyframes[0], speedMps: 0 };
 
   for (let i = 0; i < keyframes.length - 1; i += 1) {
@@ -120,6 +120,69 @@ function sampleKeyframes(keyframes, time) {
   }
 
   return { ...keyframes.at(-1), speedMps: 0 };
+}
+
+function samePosition(first, second) {
+  return Math.abs(first.x - second.x) < 0.001
+    && Math.abs(first.y - second.y) < 0.001;
+}
+
+function segmentPath(segment) {
+  const authored = Array.isArray(segment.path) && segment.path.length >= 2
+    ? segment.path
+    : [segment.start, segment.end];
+  const path = authored.map((point) => ({ x: point.x, y: point.y }));
+
+  if (!samePosition(path[0], segment.start)) path.unshift(segment.start);
+  if (!samePosition(path.at(-1), segment.end)) path.push(segment.end);
+
+  return path.filter((point, index) => (
+    index === 0 || !samePosition(point, path[index - 1])
+  ));
+}
+
+function samplePolyline(segment, progress, duration) {
+  const path = segmentPath(segment);
+  const legs = path.slice(1).map((end, index) => {
+    const start = path[index];
+    return {
+      start,
+      end,
+      distance: rinkDistanceMeters(start, end),
+    };
+  }).filter((leg) => leg.distance > 0.0001);
+  const totalDistance = legs.reduce((sum, leg) => sum + leg.distance, 0);
+
+  if (totalDistance <= 0.0001) {
+    return {
+      position: { ...segment.end },
+      path,
+      velocity: { x: 0, y: 0 },
+    };
+  }
+
+  const requestedDistance = totalDistance * progress;
+  let distanceBeforeLeg = 0;
+  let activeLeg = legs.at(-1);
+  for (const leg of legs) {
+    if (requestedDistance <= distanceBeforeLeg + leg.distance) {
+      activeLeg = leg;
+      break;
+    }
+    distanceBeforeLeg += leg.distance;
+  }
+
+  const legProgress = clamp(
+    (requestedDistance - distanceBeforeLeg) / activeLeg.distance,
+    0,
+    1,
+  );
+  const legDuration = duration * activeLeg.distance / totalDistance;
+  return {
+    position: lerpPosition(activeLeg.start, activeLeg.end, legProgress),
+    path,
+    velocity: velocityBetween(activeLeg.start, activeLeg.end, legDuration),
+  };
 }
 
 function sampleBallSegment(segment, time) {
@@ -150,19 +213,23 @@ function sampleBallSegment(segment, time) {
     };
   }
 
+  const sampledPath = samplePolyline(segment, progress, duration);
+  const transfersToReceiver = ['pass', 'faceoff'].includes(segment.type)
+    || (segment.type === 'loose' && segment.toPlayerId);
   return {
-    position: lerpPosition(segment.start, segment.end, progress),
-    path: [segment.start, segment.end],
-    ownerId: ['pass', 'faceoff'].includes(segment.type)
+    position: sampledPath.position,
+    path: sampledPath.path,
+    ownerId: transfersToReceiver
       ? (progress >= 0.92 ? segment.toPlayerId : null)
       : (segment.ownerId ?? null),
     fromPlayerId: segment.fromPlayerId,
     toPlayerId: segment.toPlayerId,
     segmentType: segment.type,
+    transitionType: segment.transitionType ?? null,
     faceoffState: segment.faceoffState ?? null,
     segmentDuration: duration,
     progress,
-    velocity: velocityBetween(segment.start, segment.end, duration),
+    velocity: sampledPath.velocity,
   };
 }
 
@@ -190,7 +257,12 @@ function resolveBallStickContext(ball, players) {
     };
   }
 
-  if (ball.segmentType === 'pass' || ball.segmentType === 'board-pass' || ball.segmentType === 'shot' || ball.segmentType === 'faceoff') {
+  const contactFlight = ball.segmentType === 'pass'
+    || ball.segmentType === 'board-pass'
+    || ball.segmentType === 'shot'
+    || ball.segmentType === 'faceoff'
+    || (ball.segmentType === 'loose' && ball.fromPlayerId);
+  if (contactFlight) {
     const passer = players.find((player) => player.id === ball.fromPlayerId);
     const receiver = players.find((player) => player.id === ball.toPlayerId);
     const releaseWindow = ballTimingProgressWindow(
@@ -276,11 +348,18 @@ function ballSkillAction(player, ball) {
     }
   }
 
-  if ((ball.segmentType === 'board-pass' || ball.segmentType === 'pass' || ball.segmentType === 'shot') && player.id === ball.fromPlayerId && progress <= releaseWindow) {
+  const releasesFromPlayer = ball.segmentType === 'board-pass'
+    || ball.segmentType === 'pass'
+    || ball.segmentType === 'shot'
+    || (ball.segmentType === 'loose' && ball.fromPlayerId);
+  if (releasesFromPlayer && player.id === ball.fromPlayerId && progress <= releaseWindow) {
     return { action: 'forehand-pass', actionIntensity: 1 - clamp(progress / releaseWindow, 0, 1) * 0.35 };
   }
 
-  if ((ball.segmentType === 'board-pass' || ball.segmentType === 'pass') && player.id === ball.toPlayerId && progress >= 1 - receivePrepWindow) {
+  const receivesFromFlight = ball.segmentType === 'board-pass'
+    || ball.segmentType === 'pass'
+    || (ball.segmentType === 'loose' && ball.toPlayerId);
+  if (receivesFromFlight && player.id === ball.toPlayerId && progress >= 1 - receivePrepWindow) {
     return {
       action: 'receive-pass',
       actionIntensity: clamp((progress - (1 - receivePrepWindow)) / receivePrepWindow, 0.2, 1),
@@ -298,7 +377,7 @@ export function samplePlayScene(scene, requestedTime) {
   const time = clamp(requestedTime, 0, scene.duration);
   const sampledPlayers = scene.players.map((player) => ({
     ...player,
-    ...sampleKeyframes(player.keyframes, time),
+    ...samplePlayerKeyframes(player.keyframes, time),
   }));
   const ball = resolveBallStickContext(sampleBall(scene, time), sampledPlayers);
   const players = sampledPlayers.map((sampled) => {
