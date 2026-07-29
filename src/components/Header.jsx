@@ -1,98 +1,197 @@
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
-import { POSITIONS, PLAYS } from '../data/plays';
+import { CORE_PLAYS } from '../data/coreCatalog';
+import {
+  CircleHelp,
+  FlipHorizontal2,
+  Menu,
+  Moon,
+  Sun,
+  UserRound,
+  UsersRound,
+  X,
+} from 'lucide-react';
+import skullUpper from '../assets/skull_upper.png';
+import {
+  activeViewForWorkspace,
+  contentForActiveView,
+  isWorkspaceModeAvailable,
+  modeForActiveView,
+} from '../routing/workspaceModes';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
+import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout';
+import { useAccount } from '../account/AccountContext';
 
 export default function Header() {
   const { theme, themes, toggleTheme } = useTheme();
   const t = themes[theme];
-  const { activeView, setActiveView, selectedPosition, setSelectedPosition, showOpponents, setShowOpponents, isMirrored, setIsMirrored, sidebarOpen, setSidebarOpen, setIsPlaying, cancelPlaybackRestart } = useApp();
+  const workspaceLayout = useWorkspaceLayout();
+  const account = useAccount();
+  const {
+    activeView, setActiveView,
+    showOpponents, setShowOpponents,
+    isMirrored, setIsMirrored,
+    sidebarOpen, setSidebarOpen,
+    setIsPlaying, cancelPlaybackRestart,
+    keyboardHelpOpen, setKeyboardHelpOpen,
+    favorites,
+  } = useApp();
 
-  const switchView = (view) => {
+  const activateView = (view, { preservePlayback = false } = {}) => {
     if (view === activeView) return;
     cancelPlaybackRestart();
-    setIsPlaying(false);
-    if (view === 'tactics') setSidebarOpen(false);
+    if (!preservePlayback) setIsPlaying(false);
+    if (view === 'tactics' || view === 'replay3d' || view === 'strategy3d' || view === 'playmaker' || view === 'stats' || view === 'profile' || view === 'account') setSidebarOpen(false);
     setActiveView(view);
   };
 
-  const viewTab = (view) => ({
-    flex: 1, maxWidth: 90, padding: '5px 0', borderRadius: 5, cursor: 'pointer',
-    fontSize: 10, fontWeight: 700, letterSpacing: 1.5, fontFamily: 'monospace',
-    border: `2px solid ${activeView === view ? t.ac : t.bd}`,
-    background: activeView === view ? t.ab : 'transparent',
-    color: activeView === view ? t.ac : t.td,
-    transition: 'all .15s',
-  });
+  const contentMode = contentForActiveView(activeView);
+  const viewMode = modeForActiveView(activeView);
+  const brandMeta = contentMode === 'playmaker'
+    ? 'PLAYMAKER / AUTHORING'
+    : contentMode === 'stats'
+      ? 'TEAM HOME / PERFORMANCE'
+    : contentMode === 'profile'
+      ? 'PLAYER PROFILE / MY TEAM'
+    : contentMode === 'account'
+      ? 'GOONSQUAD ID / ACCOUNT'
+    : contentMode === 'strategy'
+      ? 'TACTICAL IQ / STRATEGY'
+      : `PLAYBOOK / OFFENCE + DEFENCE`;
+
+  const switchContent = (content) => {
+    const nextMode = isWorkspaceModeAvailable(content, viewMode) ? viewMode : '2d';
+    activateView(activeViewForWorkspace(content, nextMode));
+  };
+
+  const switchMode = (mode) => {
+    if (!isWorkspaceModeAvailable(contentMode, mode)) return;
+    activateView(activeViewForWorkspace(contentMode, mode), { preservePlayback: true });
+  };
+  const visibleFavoriteCount = CORE_PLAYS.filter((play) => favorites.has(play.id)).length;
+  const openAccountOrProfile = () => {
+    if (!account.user || activeView === 'profile') activateView('account');
+    else if (activeView !== 'account') activateView('profile');
+  };
 
   return (
-    <div style={{ background: t.sf, borderBottom: `1px solid ${t.bd}`, padding: '8px 12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          {activeView === 'playbook' && (
+    <header
+      className="app-header"
+      style={{
+        '--header-surface': t.sf,
+        '--header-border': t.bd,
+        '--header-text': t.tx,
+        '--header-muted': t.td,
+        '--header-accent': t.ac,
+        '--header-accent-bg': t.ab,
+        '--header-brand': t.br,
+      }}
+    >
+      <div className="app-header-main">
+        <div className="app-header-left">
+          {activeView === 'playbook' && workspaceLayout !== 'desktop' && (
             <button
+              type="button"
+              className={`app-header-icon-button app-header-menu ${sidebarOpen ? 'is-active' : ''}`}
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              style={{ background: 'none', border: `1px solid ${t.bd}`, color: t.tm, padding: '4px 9px', borderRadius: 5, cursor: 'pointer', fontSize: 12 }}
+              title="Browse plays"
+              aria-label={sidebarOpen ? 'Close play library' : 'Open play library'}
+              aria-expanded={sidebarOpen}
             >
-              {sidebarOpen ? '✕' : '☰'}
+              {sidebarOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+              {!sidebarOpen && visibleFavoriteCount > 0 && (
+                <span className="app-header-badge">{visibleFavoriteCount}</span>
+              )}
             </button>
           )}
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 2, color: t.ac, lineHeight: 1 }}>THE GOONSQUAD</div>
-            <div style={{ fontSize: 8, letterSpacing: 3, color: t.td, fontWeight: 600 }}>PLAYBOOK • {PLAYS.length} PLAYS</div>
+
+          <div className="app-brand-lockup" aria-label="Goonsquad ball hockey playbook">
+            <span className="app-brand-crest" aria-hidden="true">
+              <img src={skullUpper} alt="" />
+            </span>
+            <span className="app-brand-copy">
+              <span className="app-brand-name"><b>GOON</b><em>SQUAD</em></span>
+              <span className="app-brand-meta">{brandMeta}</span>
+            </span>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 3 }}>
-          {activeView === 'playbook' && (
+
+        <div className="app-header-workspace">
+          <WorkspaceSwitcher
+            allowStrategy3d
+            content={contentMode}
+            mode={viewMode}
+            onContentChange={switchContent}
+            onModeChange={switchMode}
+            colors={{
+              accent: t.ac,
+              accentBackground: t.ab,
+              brand: t.br,
+              border: t.bd,
+              track: t.cb,
+              text: t.tx,
+              muted: t.td,
+            }}
+          />
+        </div>
+
+        <div className="app-header-actions" role="toolbar" aria-label="Workspace actions">
+          {activeView === 'playbook' && workspaceLayout === 'desktop' && (
             <>
               <button
+                type="button"
+                className={`app-header-icon-button is-opponent ${showOpponents ? 'is-active' : ''}`}
                 onClick={() => setShowOpponents(!showOpponents)}
-                style={{ background: showOpponents ? 'rgba(255,45,120,.1)' : 'none', border: `1px solid ${t.bd}`, color: showOpponents ? t.oc : t.td, padding: '3px 7px', borderRadius: 4, cursor: 'pointer', fontSize: 9, fontWeight: 600 }}
+                title={showOpponents ? 'Hide opponents' : 'Show opponents'}
+                aria-label={showOpponents ? 'Hide opponents' : 'Show opponents'}
+                aria-pressed={showOpponents}
               >
-                {showOpponents ? '◉' : '○'} OPP
+                <UsersRound aria-hidden="true" />
               </button>
               <button
+                type="button"
+                className={`app-header-icon-button ${isMirrored ? 'is-active' : ''}`}
                 onClick={() => setIsMirrored(!isMirrored)}
-                style={{ background: isMirrored ? t.ab : 'none', border: `1px solid ${t.bd}`, color: isMirrored ? t.ac : t.td, padding: '3px 7px', borderRadius: 4, cursor: 'pointer', fontSize: 9, fontWeight: 600 }}
+                title="Mirror the rink (M)"
+                aria-label="Mirror the rink"
+                aria-pressed={isMirrored}
               >
-                ↔ FLIP
+                <FlipHorizontal2 aria-hidden="true" />
               </button>
             </>
           )}
           <button
-            onClick={toggleTheme}
-            style={{ background: 'none', border: `1px solid ${t.bd}`, color: t.td, padding: '3px 7px', borderRadius: 4, cursor: 'pointer', fontSize: 9 }}
+            type="button"
+            className={`app-header-icon-button ${account.user ? 'is-account-active' : ''} ${activeView === 'profile' || activeView === 'account' ? 'is-active' : ''}`}
+            onClick={openAccountOrProfile}
+            title={account.user ? activeView === 'profile' ? 'Account settings' : `Open ${account.displayName}'s profile` : 'Create account or sign in'}
+            aria-label={account.user ? activeView === 'profile' ? `Open account settings for ${account.displayName}` : `Open player profile for ${account.displayName}` : 'Create account or sign in'}
+            aria-pressed={account.dialogOpen || activeView === 'profile' || activeView === 'account'}
           >
-            {theme === 'dark' ? '☀' : '🌙'}
+            <UserRound aria-hidden="true" />
+            {account.user && <span className="app-header-status-dot" aria-hidden="true" />}
+          </button>
+          <button
+            type="button"
+            className={`app-header-icon-button ${keyboardHelpOpen ? 'is-active' : ''}`}
+            onClick={() => setKeyboardHelpOpen(true)}
+            title="Open guide (?)"
+            aria-label="Open product guide"
+            aria-pressed={keyboardHelpOpen}
+          >
+            <CircleHelp aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            className="app-header-icon-button"
+            onClick={toggleTheme}
+            title="Toggle theme (T)"
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+          >
+            {theme === 'dark' ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
           </button>
         </div>
       </div>
-      {/* View tabs */}
-      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: activeView === 'playbook' ? 7 : 0 }}>
-        <button onClick={() => switchView('playbook')} style={viewTab('playbook', 'PLAYS')}>PLAYS</button>
-        <button onClick={() => switchView('tactics')} style={viewTab('tactics', 'TACTICS')}>TACTICS</button>
-      </div>
-      {/* Position selector (playbook only) */}
-      {activeView === 'playbook' && (
-        <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-          {POSITIONS.map(pos => (
-            <button
-              key={pos}
-              onClick={() => setSelectedPosition(pos)}
-              style={{
-                flex: 1, maxWidth: 50, padding: '6px 0', borderRadius: 6, cursor: 'pointer',
-                fontSize: 11, fontWeight: 700, fontFamily: 'monospace', letterSpacing: 1,
-                border: `2px solid ${selectedPosition === pos ? t.sc : t.bd}`,
-                background: selectedPosition === pos ? t.ab : t.cb,
-                color: selectedPosition === pos ? t.sc : t.tm,
-                transition: 'all .15s',
-                boxShadow: selectedPosition === pos ? `0 0 8px ${t.sc}33` : 'none',
-              }}
-            >
-              {pos}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    </header>
   );
 }

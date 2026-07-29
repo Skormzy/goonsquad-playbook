@@ -1,0 +1,46 @@
+export const PLAYER_RIG_ASSETS = {
+  detailedRunner: {
+    url: '/models/players/goon-player.glb',
+    source: 'Converted and optimized project FBX player asset.',
+    purpose: 'Higher-detail human body, clothing, and shoes while production ball hockey rigs are authored.',
+    animationSource: '/models/players/goon-player.glb',
+    sourcePrefix: 'mixamorig5:',
+  },
+  temporaryRunner: {
+    url: '/models/players/animated-runner.glb',
+    source: 'three.js example Soldier.glb',
+    purpose: 'Animated stand-in until sport-specific Goon Squad runner and goalie rigs are available.',
+    sourcePrefix: 'mixamorig:',
+    clips: ['Idle', 'Walk', 'Run'],
+  },
+  productionTargets: {
+    runnerHome: '/models/players/goon-runner-home.glb',
+    runnerAway: '/models/players/goon-runner-away.glb',
+    goalieHome: '/models/players/goon-goalie-home.glb',
+    goalieAway: '/models/players/goon-goalie-away.glb',
+    runnerRequiredClips: [
+      'idle-ready',
+      'jog-forward',
+      'sprint-forward',
+      'stick-handle',
+      'forehand-pass',
+      'wrist-shot',
+      'receive-pass',
+    ],
+    goalieRequiredClips: [
+      'goalie-ready',
+      'goalie-slide',
+    ],
+    requiredClips: [
+      'idle-ready',
+      'jog-forward',
+      'sprint-forward',
+      'stick-handle',
+      'forehand-pass',
+      'wrist-shot',
+      'receive-pass',
+      'goalie-ready',
+      'goalie-slide',
+    ],
+  },
+};

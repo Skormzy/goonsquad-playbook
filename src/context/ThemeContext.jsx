@@ -1,17 +1,31 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
+// Category color palette — used in sidebar cards and phase badges
+export const CAT_COLORS = {
+  defensive:  '#0ea5e9',
+  neutral:    '#a78bfa',
+  offensive:  '#fb923c',
+  special:    '#facc15',
+  transition: '#34d399',
+  systems:    '#818cf8',
+};
+
 export const THEMES = {
   dark: {
-    bg: '#0a0e1a', sf: '#111827', bd: '#1e293b', tx: '#e2e8f0', tm: '#94a3b8', td: '#64748b',
-    rk: '#0f1729', rs: '#334155', ac: '#22d3ee', ab: '#22d3ee18', cb: '#0f1729',
-    pc: { LW: '#3b82f6', C: '#6366f1', RW: '#8b5cf6', LD: '#0ea5e9', RD: '#06b6d4', G: '#64748b' },
-    oc: '#ff2d78', sc: '#22d3ee', dt: '#0a0e1a',
+    bg: '#08090b', sf: '#111317', bd: '#2a2e34',
+    tx: '#f4f6f7', tm: '#9aa3ad', td: '#626c77',
+    rk: '#171a1f', rs: '#2b3037',
+    ac: '#38d7ff', ab: '#38d7ff14', br: '#e3263f', cb: '#0c0e11',
+    pc: { LW: '#3b82f6', C: '#7dd3fc', RW: '#a5b4fc', LD: '#22d3ee', RD: '#06b6d4', G: '#8b95a3' },
+    oc: '#e3263f', sc: '#38d7ff', dt: '#08090b',
   },
   light: {
-    bg: '#f0f4f8', sf: '#fff', bd: '#dce3ed', tx: '#1e293b', tm: '#475569', td: '#94a3b8',
-    rk: '#dfe6f0', rs: '#bcc8d8', ac: '#0891b2', ab: '#0891b210', cb: '#edf1f7',
-    pc: { LW: '#2563eb', C: '#4f46e5', RW: '#7c3aed', LD: '#0284c7', RD: '#0891b2', G: '#64748b' },
-    oc: '#dc2626', sc: '#0891b2', dt: '#fff',
+    bg: '#f1f2f3', sf: '#ffffff', bd: '#cfd3d8',
+    tx: '#14171b', tm: '#59616a', td: '#87909a',
+    rk: '#e1e4e7', rs: '#bac1c8',
+    ac: '#007f9d', ab: '#007f9d12', br: '#c91835', cb: '#e9ebed',
+    pc: { LW: '#2563eb', C: '#0369a1', RW: '#4f46e5', LD: '#007f9d', RD: '#0284c7', G: '#606a75' },
+    oc: '#c91835', sc: '#007f9d', dt: '#ffffff',
   },
 };
 
@@ -27,10 +41,17 @@ export function ThemeProvider({ children }) {
   });
 
   useEffect(() => {
-    try { localStorage.setItem('theme', theme); } catch {}
+    try { localStorage.setItem('theme', theme); } catch { /* localStorage unavailable */ }
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    root.style.colorScheme = theme;
+    document.body.dataset.theme = theme;
+    document.body.style.backgroundColor = THEMES[theme].bg;
+
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) themeColor.setAttribute('content', THEMES[theme].bg);
   }, [theme]);
 
-  // Accepts both value ('dark') and updater function (t => ...) — validates through _setTheme.
   const setTheme = next => {
     _setTheme(prev => {
       const val = typeof next === 'function' ? next(prev) : next;

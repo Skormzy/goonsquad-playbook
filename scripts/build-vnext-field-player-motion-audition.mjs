@@ -1,0 +1,45 @@
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const candidates = [
+  process.env.BLENDER_EXE,
+  'C:\\Program Files\\Blender Foundation\\Blender 5.1\\blender.exe',
+  'C:\\Program Files\\Blender Foundation\\Blender 5.0\\blender.exe',
+  'C:\\Program Files\\Blender Foundation\\Blender 4.5\\blender.exe',
+].filter(Boolean);
+const blender = candidates.find((candidate) => fs.existsSync(candidate));
+if (!blender) {
+  console.error('Blender was not found. Set BLENDER_EXE to the installed blender.exe path.');
+  process.exit(1);
+}
+
+const workfile = path.join(root, 'asset-inbox', 'players', 'vnext', 'goon-field-player-equipment-v1.blend');
+if (!fs.existsSync(workfile)) {
+  console.error('The accepted vNext equipment workfile is missing.');
+  process.exit(1);
+}
+
+const result = spawnSync(blender, [
+  '--background',
+  workfile,
+  '--python',
+  path.join(root, 'scripts', 'blender', 'build_vnext_field_player_motion_audition.py'),
+  '--',
+  '--output-blend',
+  path.join(root, 'asset-inbox', 'players', 'vnext', 'goon-field-player-motion-audition.blend'),
+  '--output-report',
+  path.join(root, 'asset-inbox', 'players', 'vnext', 'motion-audition-report.json'),
+], {
+  cwd: root,
+  encoding: 'utf8',
+  stdio: 'inherit',
+});
+
+if (result.error) {
+  console.error(result.error.message);
+  process.exit(1);
+}
+process.exit(result.status ?? 1);

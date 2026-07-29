@@ -1,0 +1,82 @@
+import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, expect, it, vi } from 'vitest';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
+
+const colors = {
+  accent: '#22d3ee',
+  accentBackground: '#22d3ee18',
+  border: '#1e2d42',
+  track: '#0c1527',
+  text: '#e2e8f0',
+  muted: '#8098b5',
+};
+
+describe('WorkspaceSwitcher', () => {
+  it('renders content and view as separate accessible controls', () => {
+    const markup = renderToStaticMarkup(
+      <WorkspaceSwitcher
+        content="plays"
+        mode="2d"
+        onContentChange={vi.fn()}
+        onModeChange={vi.fn()}
+        colors={colors}
+      />,
+    );
+
+    expect(markup).toContain('aria-label="Primary navigation"');
+    expect(markup).toContain('aria-label="View"');
+    expect(markup).toContain('data-testid="workspace-content-plays"');
+    expect(markup).toContain('data-testid="workspace-content-playmaker"');
+    expect(markup).toContain('data-testid="workspace-content-stats"');
+    expect(markup).toContain('data-testid="workspace-view-3d"');
+    expect(markup).toContain('>HOME</span>');
+    expect(markup.indexOf('workspace-content-stats')).toBeLessThan(markup.indexOf('workspace-content-plays'));
+  });
+
+  it('shows Team Home as the first-class statistics surface without a view switch', () => {
+    const markup = renderToStaticMarkup(
+      <WorkspaceSwitcher
+        content="stats"
+        mode="2d"
+        onContentChange={vi.fn()}
+        onModeChange={vi.fn()}
+        colors={colors}
+      />,
+    );
+
+    expect(markup).toContain('data-content="stats"');
+    expect(markup).toContain('data-testid="workspace-content-stats"');
+    expect(markup).toContain('aria-current="page"');
+    expect(markup).not.toContain('aria-label="View"');
+  });
+
+  it('shows Playmaker as a first-class content surface without a redundant view switch', () => {
+    const markup = renderToStaticMarkup(
+      <WorkspaceSwitcher
+        content="playmaker"
+        mode="2d"
+        onContentChange={vi.fn()}
+        onModeChange={vi.fn()}
+        colors={colors}
+      />,
+    );
+
+    expect(markup).toContain('data-content="playmaker"');
+    expect(markup).toContain('data-testid="workspace-content-playmaker"');
+    expect(markup).not.toContain('aria-label="View"');
+  });
+
+  it('disables 3D while Strategy has no production scene', () => {
+    const markup = renderToStaticMarkup(
+      <WorkspaceSwitcher
+        content="strategy"
+        mode="2d"
+        onContentChange={vi.fn()}
+        onModeChange={vi.fn()}
+        colors={colors}
+      />,
+    );
+
+    expect(markup).toMatch(/data-testid="workspace-view-3d"[^>]*disabled/);
+  });
+});

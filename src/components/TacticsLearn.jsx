@@ -1,387 +1,437 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { TACTICS, TACTICAL_COLORS } from '../data/tactics';
+import { useApp } from '../context/AppContext';
+import { TACTICAL_COLORS } from '../data/tactics';
 import { BALL_COLOR } from '../data/plays';
+import {
+  CORE_PLAYS as PLAYS,
+  CORE_TACTICS as TACTICS,
+  itemsForCurriculumLane,
+} from '../data/coreCatalog';
+import { CAT_COLORS } from '../context/ThemeContext';
+import CurriculumLaneSwitch from './CurriculumLaneSwitch';
 import RinkSVG from './RinkSVG';
 
 const TC = TACTICAL_COLORS;
 
+const TABS = [
+  { id: 'mistake', label: 'The Mistake', color: TC.mistake },
+  { id: 'correct', label: 'The Right Way', color: TC.defense },
+];
+
 function LegendItem({ color, label }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-      <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, border: '1px solid rgba(255,255,255,0.3)' }} />
+      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, border: '1px solid rgba(255,255,255,0.25)' }} />
       <span>{label}</span>
     </div>
   );
 }
 
+function useIsDesktop() {
+  const [v, setV] = useState(() => window.matchMedia('(min-width: 1024px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const h = (e) => setV(e.matches);
+    mq.addEventListener('change', h);
+    return () => mq.removeEventListener('change', h);
+  }, []);
+  return v;
+}
+
 export default function TacticsLearn() {
   const { theme, themes } = useTheme();
   const t = themes[theme];
-
-  const [activePrinciple, setActivePrinciple] = useState(0);
-  const [activeTab, setActiveTab] = useState('mistake');
-  const [currentPhase, setCurrentPhase] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
-  const [prevPhasePositions, setPrevPhasePositions] = useState(null);
-  const restartTimerRef = useRef(null);
-  const cancelRestartTimer = useCallback(() => {
-    clearTimeout(restartTimerRef.current);
-    restartTimerRef.current = null;
-  }, []);
-
-  const principle = TACTICS[activePrinciple];
+  const isDesktop = useIsDesktop();
+  const {
+    selectedTactic: principle,
+    selectedTacticId,
+    setSelectedTacticId,
+    strategyVariant: activeTab,
+    setStrategyVariant,
+    currentPhase,
+    setCurrentPhase,
+    playbackTime,
+    setPlaybackTime,
+    isPlaying,
+    setIsPlaying,
+    speed,
+    setSpeed,
+    setCurrentPlay,
+    setActiveView,
+    cancelPlaybackRestart,
+    setPreviousPositions,
+  } = useApp();
+  const lane = principle?.lane ?? 'defence';
+  const laneTactics = useMemo(
+    () => itemsForCurriculumLane(TACTICS, lane),
+    [lane],
+  );
+  const activePrinciple = Math.max(0, laneTactics.findIndex((tactic) => tactic.id === selectedTacticId));
   const scene = activeTab === 'mistake' ? principle.mistakeScene : principle.correctScene;
-  const phase = scene.phases[currentPhase];
+  const phase = scene.phases[currentPhase] ?? scene.phases[0];
   const totalPhases = scene.phases.length;
+  const prevPhasePositions = currentPhase > 0 ? scene.phases[currentPhase - 1]?.our ?? null : null;
 
-  const phaseData = {
-    pos: phase.our,
-    opp: phase.opp,
-    ball: phase.ball,
-    arrows: phase.arrows,
-  };
-
+  const phaseData = { pos: phase.our, opp: phase.opp, ball: phase.ball, arrows: phase.arrows };
   const coverage = scene.coverage || null;
-
-  // Unmount cleanup: cancel any pending restart timer
-  useEffect(() => cancelRestartTimer, [cancelRestartTimer]);
-
-  useEffect(() => {
-    if (!isPlaying) return;
-    const ms = (phase.duration * 1000) / speed;
-    const timer = setTimeout(() => {
-      if (currentPhase < totalPhases - 1) {
-        setPrevPhasePositions(scene.phases[currentPhase].our);
-        setCurrentPhase(p => p + 1);
-      } else {
-        setIsPlaying(false);
-      }
-    }, ms);
-    return () => clearTimeout(timer);
-  }, [isPlaying, currentPhase, speed, phase.duration, totalPhases, scene]);
+  const tabAccent = activeTab === 'mistake' ? TC.mistake : TC.defense;
+  const rinkMax = isDesktop ? 420 : 430;
 
   const selectPrinciple = useCallback((i) => {
-    cancelRestartTimer();
-    setActivePrinciple(i);
-    setActiveTab('mistake');
-    setCurrentPhase(0);
-    setIsPlaying(false);
-    setPrevPhasePositions(null);
-  }, [cancelRestartTimer]);
+    cancelPlaybackRestart();
+    setSelectedTacticId(laneTactics[i]?.id);
+    setStrategyVariant('mistake');
+  }, [cancelPlaybackRestart, laneTactics, setSelectedTacticId, setStrategyVariant]);
+
+  const selectLane = useCallback((nextLane) => {
+    if (nextLane === lane) return;
+    const first = itemsForCurriculumLane(TACTICS, nextLane)[0];
+    if (first) {
+      cancelPlaybackRestart();
+      setSelectedTacticId(first.id);
+      setStrategyVariant('mistake');
+    }
+  }, [cancelPlaybackRestart, lane, setSelectedTacticId, setStrategyVariant]);
 
   const switchTab = useCallback((tab) => {
-    cancelRestartTimer();
-    setActiveTab(tab);
-    setCurrentPhase(0);
-    setIsPlaying(false);
-    setPrevPhasePositions(null);
-  }, [cancelRestartTimer]);
+    cancelPlaybackRestart();
+    setStrategyVariant(tab);
+  }, [cancelPlaybackRestart, setStrategyVariant]);
 
   const goPhase = useCallback((n) => {
-    // Cancel before bounds check: any navigation intent during the 80ms
-    // restart window should suppress the pending restart.
-    cancelRestartTimer();
+    cancelPlaybackRestart();
     if (n < 0 || n >= totalPhases) return;
-    setPrevPhasePositions(scene.phases[currentPhase].our);
+    setIsPlaying(false);
     setCurrentPhase(n);
-  }, [cancelRestartTimer, totalPhases, scene, currentPhase]);
+  }, [cancelPlaybackRestart, totalPhases, setCurrentPhase, setIsPlaying]);
 
   const togglePlay = useCallback(() => {
+    cancelPlaybackRestart();
     if (isPlaying) {
-      cancelRestartTimer();
       setIsPlaying(false);
-    } else {
-      if (currentPhase >= totalPhases - 1) {
-        setPrevPhasePositions(null);
-        setCurrentPhase(0);
-        cancelRestartTimer();
-        const id = setTimeout(() => { if (restartTimerRef.current === id) { restartTimerRef.current = null; setIsPlaying(true); } }, 80);
-        restartTimerRef.current = id;
-      } else {
-        setIsPlaying(true);
-      }
+      return;
     }
-  }, [cancelRestartTimer, isPlaying, currentPhase, totalPhases]);
+    if (playbackTime >= scene.phases.reduce((sum, item) => sum + item.duration, 0) - 0.05) {
+      setPlaybackTime(0);
+    }
+    setIsPlaying(true);
+  }, [cancelPlaybackRestart, isPlaying, playbackTime, scene.phases, setIsPlaying, setPlaybackTime]);
 
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.target instanceof Element && e.target.closest('button,input,select,textarea,[contenteditable="true"]')) return;
-      if (e.key === 'ArrowRight') goPhase(currentPhase + 1);
-      else if (e.key === 'ArrowLeft') goPhase(currentPhase - 1);
-      else if (e.key === ' ') {
-        e.preventDefault();
-        togglePlay();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [currentPhase, goPhase, togglePlay]);
+  const navigateToPlay = useCallback((playId) => {
+    const play = PLAYS.find(p => p.id === playId);
+    if (!play) return;
+    cancelPlaybackRestart();
+    setPreviousPositions(null);
+    setCurrentPlay(play);
+    setCurrentPhase(0);
+    setIsPlaying(false);
+    setActiveView('playbook');
+  }, [cancelPlaybackRestart, setPreviousPositions, setCurrentPlay, setCurrentPhase, setIsPlaying, setActiveView]);
 
-  const tabAccent = activeTab === 'mistake' ? TC.mistake : TC.defense;
-  const phaseColor = activeTab === 'mistake' ? TC.mistake : TC.defense;
+  const FF = "'Trebuchet MS','Lucida Grande',sans-serif";
+  const truncP = (title, n = 26) => title.length > n ? title.slice(0, n) + '…' : title;
 
-  const btnBase = {
-    borderRadius: 5, cursor: 'pointer', fontSize: 11, fontWeight: 600,
-    fontFamily: "'Trebuchet MS','Lucida Grande',sans-serif",
-  };
+  // ─── UI blocks ───
+
+  const selectorBlock = (
+    <div className="tactics-selector" style={{ width: '100%', padding: isDesktop ? '0 0 6px' : '0 6px 6px' }}>
+      <CurriculumLaneSwitch
+        compact
+        items={TACTICS}
+        onChange={selectLane}
+        value={lane}
+      />
+      <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 2, color: t.td, fontFamily: 'monospace', marginBottom: 4 }}>
+        {lane.toUpperCase()} PRINCIPLE {activePrinciple + 1} OF {laneTactics.length}
+      </div>
+      <select
+        value={activePrinciple}
+        onChange={(e) => selectPrinciple(Number(e.target.value))}
+        aria-label="Strategy principle"
+        style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${t.bd}`, background: t.cb, color: t.tx, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: FF }}
+      >
+        {laneTactics.map((tactic, i) => (
+          <option key={tactic.id} value={i}>{tactic.title}</option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const tabToggleBlock = (
+    <div className="tactics-comparison" role="group" aria-label="Strategy comparison" style={{ display: 'flex', background: t.cb, borderRadius: 8, padding: 2, marginBottom: 8, width: '100%' }}>
+      {TABS.map(tab => (
+        <button
+          type="button"
+          key={tab.id}
+          onClick={() => switchTab(tab.id)}
+          aria-pressed={activeTab === tab.id}
+          style={{
+            flex: 1, padding: '6px 8px', borderRadius: 6,
+            fontSize: isDesktop ? 9.5 : 10.5, fontWeight: 700, cursor: 'pointer',
+            border: activeTab === tab.id ? `1px solid ${tab.color}44` : '1px solid transparent',
+            background: activeTab === tab.id ? `${tab.color}22` : 'transparent',
+            color: activeTab === tab.id ? tab.color : t.td,
+            transition: 'all .15s', fontFamily: FF,
+          }}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const rinkBlock = (
+    <div className="tactics-rink" style={{ width: '100%' }}>
+      <RinkSVG
+        mode="tactics"
+        phaseData={phaseData}
+        prevPhaseData={prevPhasePositions}
+        coverage={coverage}
+      />
+    </div>
+  );
+
+  const captionBlock = (
+    <div style={{
+      textAlign: 'center', padding: '8px 12px', minHeight: 36,
+      fontFamily: 'monospace', fontSize: isDesktop ? 10 : 11, fontWeight: 600,
+      color: tabAccent, lineHeight: 1.4,
+      background: `${tabAccent}0a`,
+      borderRadius: 6, marginTop: 2, width: '100%',
+    }} aria-live="polite">
+      "{phase.caption}"
+    </div>
+  );
+
+  const phaseIndicatorBlock = (
+    <div style={{ fontSize: 8.5, color: t.tm, letterSpacing: 1, fontFamily: 'monospace', marginTop: 6, marginBottom: 3 }}>
+      PHASE {currentPhase + 1} / {totalPhases}
+    </div>
+  );
+
+  const controlsBlock = (
+    <div className="tactics-playback" role="group" aria-label="Strategy playback" style={{ display: 'flex', gap: 5, alignItems: 'center', margin: '2px 0 4px' }}>
+      <button
+        type="button"
+        className="tactics-playback-button"
+        onClick={() => goPhase(currentPhase - 1)}
+        disabled={currentPhase === 0}
+        aria-label="Previous strategy phase"
+        style={{ padding: '6px 10px', borderRadius: 5, fontFamily: FF, border: `1px solid ${t.bd}`, background: t.cb, color: currentPhase === 0 ? t.td : t.tx, cursor: currentPhase === 0 ? 'default' : 'pointer', fontSize: 11, fontWeight: 600 }}
+      >◀</button>
+      <button
+        type="button"
+        className="tactics-playback-button is-primary"
+        onClick={togglePlay}
+        aria-pressed={isPlaying}
+        aria-label={isPlaying ? 'Pause strategy playback' : 'Play strategy playback'}
+        style={{ padding: '6px 16px', borderRadius: 5, fontFamily: FF, border: `2px solid ${tabAccent}`, background: isPlaying ? tabAccent : 'transparent', color: isPlaying ? '#fff' : tabAccent, fontSize: 11, fontWeight: 800, boxShadow: isPlaying ? `0 0 10px ${tabAccent}44` : 'none', transition: 'all .12s' }}
+      >
+        {isPlaying ? '⏸ PAUSE' : '▶ PLAY'}
+      </button>
+      <button
+        type="button"
+        className="tactics-playback-button"
+        onClick={() => goPhase(currentPhase + 1)}
+        disabled={currentPhase >= totalPhases - 1}
+        aria-label="Next strategy phase"
+        style={{ padding: '6px 10px', borderRadius: 5, fontFamily: FF, border: `1px solid ${t.bd}`, background: t.cb, color: currentPhase >= totalPhases - 1 ? t.td : t.tx, cursor: currentPhase >= totalPhases - 1 ? 'default' : 'pointer', fontSize: 11, fontWeight: 600 }}
+      >▶</button>
+      <div role="group" aria-label="Strategy playback speed" style={{ display: 'flex' }}>
+        {[0.5, 1, 2].map((s, i) => (
+          <button
+            type="button"
+            className="tactics-speed-button"
+            key={s}
+            onClick={() => setSpeed(s)}
+            aria-label={`${s}x strategy speed`}
+            aria-pressed={speed === s}
+            style={{ padding: '4px 7px', borderStyle: 'solid', borderWidth: 1, borderColor: speed === s ? tabAccent : t.bd, borderLeftWidth: i !== 0 ? 0 : 1, background: speed === s ? `${tabAccent}22` : t.cb, color: speed === s ? tabAccent : t.td, fontSize: 9, fontWeight: 700, fontFamily: 'monospace', cursor: 'pointer', borderRadius: i === 0 ? '4px 0 0 4px' : i === 2 ? '0 4px 4px 0' : '0', transition: 'all .1s' }}
+          >
+            {s === 0.5 ? '½×' : `${s}×`}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const phaseDotsBlock = (
+    <div className="tactics-phase-dots" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 2, padding: '0 4px', margin: '4px 0 8px', minWidth: 40 }}>
+      {totalPhases > 1 && (
+        <>
+          <div style={{ position: 'absolute', left: 10, right: 10, top: '50%', height: 2, background: t.bd, transform: 'translateY(-50%)', borderRadius: 1, zIndex: 0 }} />
+          <div style={{ position: 'absolute', left: 10, top: '50%', height: 2, width: `calc(${(currentPhase / Math.max(totalPhases - 1, 1)) * 100}% - 20px)`, background: tabAccent, transform: 'translateY(-50%)', borderRadius: 1, zIndex: 0, transition: 'width .3s ease', opacity: 0.7 }} />
+        </>
+      )}
+      {scene.phases.map((_, i) => (
+        <button
+          type="button"
+          className="tactics-phase-dot"
+          data-active={i === currentPhase}
+          data-complete={i < currentPhase}
+          key={i}
+          onClick={() => goPhase(i)}
+          aria-label={`Go to strategy phase ${i + 1}`}
+          aria-current={i === currentPhase ? 'step' : undefined}
+          style={{ '--tactics-dot': i === currentPhase ? tabAccent : i < currentPhase ? `${t.tm}aa` : t.bd }}
+        />
+      ))}
+    </div>
+  );
+
+  const navBlock = (
+    <div className="tactics-neighbor-nav" style={{ display: 'flex', gap: 6, width: '100%', margin: '2px 0 8px', padding: isDesktop ? 0 : '0 8px' }}>
+      {activePrinciple > 0 ? (
+        <button onClick={() => selectPrinciple(activePrinciple - 1)} style={{ flex: 1, padding: '5px 8px', textAlign: 'left', borderRadius: 5, border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FF }}>
+          ← {truncP(laneTactics[activePrinciple - 1].title)}
+        </button>
+      ) : <div style={{ flex: 1 }} />}
+      {activePrinciple < laneTactics.length - 1 ? (
+        <button onClick={() => selectPrinciple(activePrinciple + 1)} style={{ flex: 1, padding: '5px 8px', textAlign: 'right', borderRadius: 5, border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FF }}>
+          {truncP(laneTactics[activePrinciple + 1].title)} →
+        </button>
+      ) : <div style={{ flex: 1 }} />}
+    </div>
+  );
+
+  const laneAccent = principle.lane === 'offence' ? '#e3263f' : '#39d7ff';
+  const categoryBadgeBlock = (
+    <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 2, color: laneAccent, background: `${laneAccent}18`, border: `1px solid ${laneAccent}33`, padding: '2px 10px', borderRadius: 10, marginBottom: 4, fontFamily: 'monospace', alignSelf: isDesktop ? 'flex-start' : 'center' }}>
+      {principle.lane.toUpperCase()} / {principle.situation.toUpperCase()}
+    </div>
+  );
+
+  const titleBlock = (
+    <div style={{ textAlign: isDesktop ? 'left' : 'center', marginBottom: 4 }}>
+      <div style={{ fontSize: 15, fontWeight: 800, color: t.tx, lineHeight: 1.2 }}>{principle.title}</div>
+      <div style={{ fontSize: 10, color: t.tm, marginTop: 2, fontFamily: FF }}>{principle.subtitle}</div>
+    </div>
+  );
+
+  const principleTextBlock = (
+    <div style={{ fontSize: 10, color: t.tm, textAlign: isDesktop ? 'left' : 'center', maxWidth: isDesktop ? undefined : 340, lineHeight: 1.5, margin: '2px 0 8px', fontFamily: FF }}>
+      {principle.principle}
+    </div>
+  );
+
+  const legendBlock = (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: isDesktop ? 'flex-start' : 'center', padding: '6px 0', fontSize: 9, color: t.tm, fontFamily: 'monospace', borderTop: `1px solid ${t.bd}`, width: '100%', marginBottom: isDesktop ? 0 : 8 }}>
+      <LegendItem color={t.pc.C} label="Our Team" />
+      <LegendItem color={t.oc} label="Opponent" />
+      <LegendItem color={BALL_COLOR} label="Ball" />
+      {coverage && <LegendItem color="#16a34a" label="Tight" />}
+      {coverage && <LegendItem color="#d97706" label="Drifting" />}
+      {coverage && <LegendItem color="#dc2626" label="Lost" />}
+    </div>
+  );
+
+  const whyBlock = (
+    <div style={{ width: '100%', paddingBottom: 4 }}>
+      <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 2, color: t.td, fontFamily: 'monospace', marginBottom: 4 }}>WHY IT MATTERS</div>
+      <div style={{ fontSize: 11, color: t.tm, lineHeight: 1.55, fontFamily: FF }}>{principle.why}</div>
+    </div>
+  );
+
+  const keyPointsBlock = (
+    <div style={{ width: '100%', paddingBottom: isDesktop ? 8 : 16 }}>
+      <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 2, color: t.td, fontFamily: 'monospace', marginBottom: 6 }}>KEY POINTS</div>
+      {principle.keyPoints.map((kp, i) => (
+        <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 7, fontSize: 11, color: t.tx, lineHeight: 1.4, fontFamily: FF }}>
+          <span style={{ color: TC.defense, fontWeight: 800, flexShrink: 0, fontFamily: 'monospace', fontSize: 10.5 }}>{i + 1}.</span>
+          <span>{kp}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  const linkedPlaysBlock = principle.linkedPlays.length > 0 && (
+    <div style={{ width: '100%', paddingBottom: isDesktop ? 8 : 24, borderTop: `1px solid ${t.bd}`, paddingTop: 10 }}>
+      <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: 2, color: t.td, fontFamily: 'monospace', marginBottom: 7 }}>SEE IT IN PLAYS</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+        {principle.linkedPlays.map(playId => {
+          const play = PLAYS.find(p => p.id === playId);
+          if (!play) return null;
+          const cc = CAT_COLORS[play.cat] || t.ac;
+          return (
+            <button
+              className="tactics-linked-play"
+              key={playId}
+              onClick={() => navigateToPlay(playId)}
+              style={{
+                padding: '3px 10px', borderRadius: 12,
+                border: `1px solid ${cc}55`,
+                background: `${cc}14`,
+                color: cc, cursor: 'pointer',
+                fontSize: 9.5, fontWeight: 700, fontFamily: FF,
+                transition: 'all .15s',
+              }}
+            >
+              {play.n}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-      padding: '8px 6px', overflowY: 'auto', maxHeight: '100vh',
-    }}>
-      {/* Principle selector — full-width dropdown, works at any screen size */}
-      <div style={{ width: '100%', maxWidth: 380, padding: '0 8px 8px' }}>
-        <div style={{
-          fontSize: 9, fontWeight: 700, letterSpacing: 2, color: t.td,
-          fontFamily: 'monospace', marginBottom: 4,
-        }}>
-          PRINCIPLE {activePrinciple + 1} OF {TACTICS.length}
-        </div>
-        <select
-          value={activePrinciple}
-          onChange={(e) => selectPrinciple(Number(e.target.value))}
-          style={{
-            width: '100%', padding: '8px 10px', borderRadius: 6,
-            border: `1px solid ${t.bd}`, background: t.cb,
-            color: t.tx, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-            fontFamily: "'Trebuchet MS','Lucida Grande',sans-serif",
-          }}
-        >
-          {TACTICS.map((tactic, i) => (
-            <option key={tactic.id} value={i}>
-              {tactic.title}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className="tactics-learn" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 6px', overflowY: 'auto', maxHeight: '100%' }}>
 
-      {/* Category badge */}
-      <div style={{
-        fontSize: 9, fontWeight: 700, letterSpacing: 2, color: TC.defense,
-        background: `${TC.defense}18`, padding: '2px 10px', borderRadius: 10,
-        marginBottom: 4, fontFamily: 'monospace',
-      }}>
-        {principle.category.toUpperCase()}
-      </div>
+      {isDesktop ? (
+        // ─── DESKTOP: two-column ───
+        <div className="tactics-desktop-workspace">
 
-      {/* Title and subtitle */}
-      <div style={{ textAlign: 'center', marginBottom: 2 }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: t.tx, lineHeight: 1.2 }}>
-          {principle.title}
-        </div>
-        <div style={{ fontSize: 10, color: t.tm, marginTop: 2 }}>
-          {principle.subtitle}
-        </div>
-      </div>
-
-      {/* Principle brief */}
-      <div style={{
-        fontSize: 10, color: t.tm, textAlign: 'center', maxWidth: 340,
-        lineHeight: 1.45, margin: '4px 0 8px', padding: '0 8px',
-      }}>
-        {principle.principle}
-      </div>
-
-      {/* Tab toggle */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-        <button
-          onClick={() => switchTab('mistake')}
-          style={{
-            ...btnBase,
-            padding: '6px 14px',
-            border: `2px solid ${activeTab === 'mistake' ? TC.mistake : t.bd}`,
-            background: activeTab === 'mistake' ? `${TC.mistake}20` : 'transparent',
-            color: activeTab === 'mistake' ? TC.mistake : t.tm,
-          }}
-        >
-          The Mistake
-        </button>
-        <button
-          onClick={() => switchTab('correct')}
-          style={{
-            ...btnBase,
-            padding: '6px 14px',
-            border: `2px solid ${activeTab === 'correct' ? TC.defense : t.bd}`,
-            background: activeTab === 'correct' ? `${TC.defense}20` : 'transparent',
-            color: activeTab === 'correct' ? TC.defense : t.tm,
-          }}
-        >
-          The Right Way
-        </button>
-      </div>
-
-      {/* Rink — same RinkSVG as the Plays section */}
-      <div style={{ width: '100%', maxWidth: 380, margin: '0 auto' }}>
-        <RinkSVG
-          mode="tactics"
-          phaseData={phaseData}
-          prevPhaseData={prevPhasePositions}
-          coverage={coverage}
-        />
-      </div>
-
-      {/* Caption below rink */}
-      <div style={{
-        textAlign: 'center', padding: '8px 12px', minHeight: 36, maxWidth: 380,
-        fontFamily: 'monospace', fontSize: 11, fontWeight: 600,
-        color: tabAccent, lineHeight: 1.4,
-      }}>
-        &ldquo;{phase.caption}&rdquo;
-      </div>
-
-      {/* Phase indicator */}
-      <div style={{
-        fontSize: 9, color: t.tm, letterSpacing: 1, fontFamily: 'monospace', marginBottom: 4,
-      }}>
-        PHASE {currentPhase + 1}/{totalPhases}
-      </div>
-
-      {/* Playback controls */}
-      <div style={{ display: 'flex', gap: 5, alignItems: 'center', margin: '2px 0' }}>
-        <button
-          onClick={() => goPhase(currentPhase - 1)}
-          disabled={currentPhase === 0}
-          style={{
-            ...btnBase,
-            padding: '6px 10px',
-            border: `1px solid ${t.bd}`, background: t.cb,
-            color: currentPhase === 0 ? t.td : t.tx,
-            cursor: currentPhase === 0 ? 'default' : 'pointer',
-          }}
-        >&#9664;</button>
-        <button
-          onClick={togglePlay}
-          style={{
-            ...btnBase,
-            padding: '6px 16px', fontWeight: 700,
-            border: `2px solid ${tabAccent}`,
-            background: isPlaying ? tabAccent : 'transparent',
-            color: isPlaying ? '#fff' : tabAccent,
-          }}
-        >{isPlaying ? '\u23F8' : '\u25B6'}</button>
-        <button
-          onClick={() => goPhase(currentPhase + 1)}
-          disabled={currentPhase >= totalPhases - 1}
-          style={{
-            ...btnBase,
-            padding: '6px 10px',
-            border: `1px solid ${t.bd}`, background: t.cb,
-            color: currentPhase >= totalPhases - 1 ? t.td : t.tx,
-            cursor: currentPhase >= totalPhases - 1 ? 'default' : 'pointer',
-          }}
-        >&#9654;</button>
-        <select
-          value={speed}
-          onChange={e => setSpeed(Number(e.target.value))}
-          style={{
-            padding: '4px 6px', borderRadius: 4,
-            border: `1px solid ${t.bd}`, background: t.cb,
-            color: t.tm, fontSize: 10, cursor: 'pointer',
-            fontFamily: 'monospace',
-          }}
-        >
-          <option value={0.5}>0.5x</option>
-          <option value={1}>1x</option>
-          <option value={2}>2x</option>
-        </select>
-      </div>
-
-      {/* Phase dots */}
-      <div style={{ display: 'flex', gap: 6, margin: '6px 0 10px' }}>
-        {scene.phases.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goPhase(i)}
-            style={{
-              width: 10, height: 10, borderRadius: '50%',
-              border: 'none', cursor: 'pointer', padding: 0,
-              background: i === currentPhase ? phaseColor : i < currentPhase ? t.tm : t.bd,
-              boxShadow: i === currentPhase ? `0 0 6px ${phaseColor}` : 'none',
-              transition: 'all .2s',
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Prev / Next tactic nav */}
-      <div style={{ display: 'flex', gap: 6, width: '100%', maxWidth: 380, margin: '2px 0 8px', padding: '0 8px' }}>
-        {activePrinciple > 0 ? (
-          <button
-            onClick={() => selectPrinciple(activePrinciple - 1)}
-            style={{
-              ...btnBase, flex: 1, padding: '5px 8px', textAlign: 'left',
-              border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, fontSize: 10,
-            }}
-          >
-            {'← '}{TACTICS[activePrinciple - 1].title.length > 25
-              ? TACTICS[activePrinciple - 1].title.slice(0, 25) + '…'
-              : TACTICS[activePrinciple - 1].title}
-          </button>
-        ) : <div style={{ flex: 1 }} />}
-        {activePrinciple < TACTICS.length - 1 ? (
-          <button
-            onClick={() => selectPrinciple(activePrinciple + 1)}
-            style={{
-              ...btnBase, flex: 1, padding: '5px 8px', textAlign: 'right',
-              border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, fontSize: 10,
-            }}
-          >
-            {TACTICS[activePrinciple + 1].title.length > 25
-              ? TACTICS[activePrinciple + 1].title.slice(0, 25) + '…'
-              : TACTICS[activePrinciple + 1].title}{' →'}
-          </button>
-        ) : <div style={{ flex: 1 }} />}
-      </div>
-
-      {/* Color legend */}
-      <div style={{
-        display: 'flex', flexWrap: 'wrap', gap: 14, justifyContent: 'center',
-        padding: '6px 10px', fontSize: 9, color: t.tm, fontFamily: 'monospace',
-        borderTop: `1px solid ${t.bd}`, borderBottom: `1px solid ${t.bd}`,
-        width: '100%', maxWidth: 380,
-      }}>
-        <LegendItem color={t.pc.C} label="Our Team" />
-        <LegendItem color={t.oc} label="Opponent" />
-        <LegendItem color={BALL_COLOR} label="Ball" />
-        {coverage && <LegendItem color="#16a34a" label="Tight" />}
-        {coverage && <LegendItem color="#d97706" label="Drifting" />}
-        {coverage && <LegendItem color="#dc2626" label="Lost" />}
-      </div>
-
-      {/* Why it matters */}
-      <div style={{ maxWidth: 380, width: '100%', padding: '10px 8px 4px' }}>
-        <div style={{
-          fontSize: 9, fontWeight: 700, letterSpacing: 2, color: t.td,
-          fontFamily: 'monospace', marginBottom: 4,
-        }}>
-          WHY IT MATTERS
-        </div>
-        <div style={{ fontSize: 11, color: t.tm, lineHeight: 1.5 }}>
-          {principle.why}
-        </div>
-      </div>
-
-      {/* Key points */}
-      <div style={{ maxWidth: 380, width: '100%', padding: '8px 8px 20px' }}>
-        <div style={{
-          fontSize: 9, fontWeight: 700, letterSpacing: 2, color: t.td,
-          fontFamily: 'monospace', marginBottom: 6,
-        }}>
-          KEY POINTS
-        </div>
-        {principle.keyPoints.map((kp, i) => (
-          <div key={i} style={{
-            display: 'flex', gap: 8, marginBottom: 6, fontSize: 11,
-            color: t.tx, lineHeight: 1.4,
-          }}>
-            <span style={{ color: TC.defense, fontWeight: 700, flexShrink: 0 }}>{i + 1}.</span>
-            <span>{kp}</span>
+          {/* Left column: selector, tabs, rink, caption, controls, legend, nav */}
+          <div className="tactics-rink-column" style={{ width: rinkMax }}>
+            {selectorBlock}
+            {tabToggleBlock}
+            {rinkBlock}
+            {captionBlock}
+            {phaseIndicatorBlock}
+            {controlsBlock}
+            {phaseDotsBlock}
+            {legendBlock}
+            {navBlock}
           </div>
-        ))}
-      </div>
+
+          {/* Right column: principle info */}
+          <div className="tactics-coaching-column">
+            {categoryBadgeBlock}
+            {titleBlock}
+            {principleTextBlock}
+            {whyBlock}
+            {keyPointsBlock}
+            {linkedPlaysBlock}
+          </div>
+        </div>
+      ) : (
+        // ─── MOBILE: single column ───
+        <div className="tactics-mobile-workspace" style={{ width: '100%', maxWidth: 430, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {selectorBlock}
+          {tabToggleBlock}
+          <div className="tactics-mobile-rink" data-mobile-strategy-rink>
+            {rinkBlock}
+          </div>
+          <div className="tactics-mobile-transport">
+            {captionBlock}
+            {phaseIndicatorBlock}
+            {controlsBlock}
+            {phaseDotsBlock}
+          </div>
+          {navBlock}
+          <details className="tactics-mobile-coaching">
+            <summary>Coaching notes</summary>
+            <div>
+              {principleTextBlock}
+              {legendBlock}
+              {whyBlock}
+              {keyPointsBlock}
+              {linkedPlaysBlock}
+            </div>
+          </details>
+        </div>
+      )}
     </div>
   );
 }
