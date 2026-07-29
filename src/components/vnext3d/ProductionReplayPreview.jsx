@@ -59,6 +59,8 @@ import {
 } from '../../vnext3d/footSliding';
 import {
   CAMERA_TRACKING_RATE,
+  OVERHEAD_CAMERA_AIM_TRACKING_RATE,
+  OVERHEAD_CAMERA_POSITION_TRACKING_RATE,
   ROLE_CAMERA_AIM_TRACKING_RATE,
   ROLE_CAMERA_POSITION_TRACKING_RATE,
   cameraInteractionPolicy,
@@ -109,8 +111,10 @@ function CameraRig({
   const lastFocusPositionRef = useRef(new Vector3());
   const focusDeltaRef = useRef(new Vector3());
   const portrait = size.height > size.width * 1.18;
+  const compactOverhead = cameraId === 'overhead' && size.width < 640;
   const config = useMemo(() => productionCameraPose(cameraId, {
     ball,
+    compact: compactOverhead,
     portrait,
     focusPlayer,
     focusPlayerPosition: focusPlayer?.worldPosition,
@@ -122,6 +126,7 @@ function CameraRig({
     ball,
     ballPosition,
     cameraId,
+    compactOverhead,
     focusPlayer,
     playbackTime,
     players,
@@ -184,10 +189,14 @@ function CameraRig({
     if (following) {
       const positionRate = cameraId === 'player'
         ? ROLE_CAMERA_POSITION_TRACKING_RATE
-        : CAMERA_TRACKING_RATE;
+        : cameraId === 'overhead'
+          ? OVERHEAD_CAMERA_POSITION_TRACKING_RATE
+          : CAMERA_TRACKING_RATE;
       const aimRate = cameraId === 'player'
         ? ROLE_CAMERA_AIM_TRACKING_RATE
-        : CAMERA_TRACKING_RATE;
+        : cameraId === 'overhead'
+          ? OVERHEAD_CAMERA_AIM_TRACKING_RATE
+          : CAMERA_TRACKING_RATE;
       const positionBlend = 1 - Math.exp(-positionRate * Math.min(delta, 0.05));
       const aimBlend = 1 - Math.exp(-aimRate * Math.min(delta, 0.05));
       camera.position.lerp(desiredPosition, positionBlend);

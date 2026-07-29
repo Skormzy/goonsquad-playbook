@@ -26,18 +26,70 @@ describe('production 3D camera system', () => {
     expect(pose.fov).toBe(44);
   });
 
-  it('keeps the overhead preset centered on the complete court', () => {
-    const pose = productionCameraPose('overhead', {
-      ballPosition: { x: -10, z: -20 },
+  it('frames active field players from a useful tactical angle', () => {
+    const options = {
+      ball: {
+        ownerId: 'US_C',
+        worldPosition: [-4, 0.052, 9],
+      },
+      players: [
+        { id: 'US_G', role: 'G', worldPosition: [0, 0, -22] },
+        { id: 'OP_G', role: 'G', worldPosition: [0, 0, 22] },
+        { id: 'US_C', role: 'C', worldPosition: [-4, 0, 9] },
+        { id: 'US_LW', role: 'LW', worldPosition: [-9, 0, 3] },
+        { id: 'US_RW', role: 'RW', worldPosition: [8, 0, 5] },
+        { id: 'US_LD', role: 'LD', worldPosition: [-5, 0, -5] },
+        { id: 'US_RD', role: 'RD', worldPosition: [5, 0, -4] },
+        { id: 'OP_C', role: 'C', worldPosition: [1, 0, 11] },
+        { id: 'OP_LW', role: 'LW', worldPosition: [-8, 0, 15] },
+        { id: 'OP_RW', role: 'RW', worldPosition: [9, 0, 14] },
+        { id: 'OP_LD', role: 'LD', worldPosition: [-5, 0, 7] },
+        { id: 'OP_RD', role: 'RD', worldPosition: [5, 0, 8] },
+      ],
+    };
+    const pose = productionCameraPose('overhead', options);
+    const compactPose = productionCameraPose('overhead', {
+      ...options,
+      compact: true,
     });
 
-    expect(pose).toMatchObject({
-      target: [0, 0, 0],
-      tracking: 'full-court',
+    expect(pose.tracking).toBe('tactical');
+    expect(pose.framedPlayerIds).toHaveLength(10);
+    expect(pose.framedPlayerIds).not.toContain('US_G');
+    expect(pose.framedPlayerIds).not.toContain('OP_G');
+    expect(pose.relevantGoalieCount).toBe(0);
+    expect(pose.target[2]).toBeGreaterThan(3);
+    expect(pose.nearSideBias).toBeGreaterThan(0);
+    expect(pose.position[1]).toBeGreaterThan(16);
+    expect(pose.position[1]).toBeLessThan(48);
+    expect(Math.abs(pose.position[2] - pose.target[2])).toBeGreaterThan(15);
+    expect(pose.position[1] / Math.abs(pose.position[2] - pose.target[2]))
+      .toBeLessThan(2);
+    expect(pose.distanceScale).toBeGreaterThanOrEqual(0.54);
+    expect(pose.distanceScale).toBeLessThanOrEqual(0.7);
+    expect(compactPose.distanceScale).toBe(0.76);
+    expect(compactPose.position[1]).toBeGreaterThan(pose.position[1]);
+    expect(compactPose.position[1]).toBeLessThan(48);
+  });
+
+  it('brings a goalie into the overhead frame when the ball makes them relevant', () => {
+    const pose = productionCameraPose('overhead', {
+      ball: {
+        ownerId: 'US_G',
+        worldPosition: [0.4, 0.052, -21],
+      },
+      players: [
+        { id: 'US_G', role: 'G', worldPosition: [0, 0, -22] },
+        { id: 'OP_G', role: 'G', worldPosition: [0, 0, 22] },
+        { id: 'US_C', role: 'C', worldPosition: [0, 0, -12] },
+        { id: 'OP_C', role: 'C', worldPosition: [2, 0, -8] },
+      ],
     });
-    expect(pose.position[1]).toBeGreaterThanOrEqual(70);
-    expect(Math.abs(pose.position[2])).toBeGreaterThanOrEqual(5);
-    expect(pose.position[1] / Math.abs(pose.position[2])).toBeGreaterThan(10);
+
+    expect(pose.framedPlayerIds).toContain('US_G');
+    expect(pose.framedPlayerIds).not.toContain('OP_G');
+    expect(pose.relevantGoalieCount).toBe(1);
+    expect(pose.target[2]).toBeLessThan(-10);
   });
 
   it('anchors the role camera behind the selected athlete while aiming at the ball', () => {
@@ -144,7 +196,7 @@ describe('production 3D camera system', () => {
   it('exposes stable tracking modes for runtime evidence', () => {
     expect(cameraTrackingMode('broadcast')).toBe('action');
     expect(cameraTrackingMode('bench')).toBe('action');
-    expect(cameraTrackingMode('overhead')).toBe('full-court');
+    expect(cameraTrackingMode('overhead')).toBe('tactical');
     expect(cameraTrackingMode('player')).toBe('role');
   });
 

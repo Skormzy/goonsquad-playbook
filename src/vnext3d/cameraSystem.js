@@ -2,6 +2,7 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const ROLE_DECISION_TYPES = new Set(['pass', 'board-pass', 'shot']);
 const ROLE_DECISION_LEAD_SECONDS = 1.2;
 const ROLE_RELEASE_GRACE_SECONDS = 0.24;
+const OVERHEAD_GOALIE_RELEVANCE_METERS = 7;
 
 function point(position, fallback = [0, 0, 0]) {
   if (!Array.isArray(position)) return fallback;
@@ -9,6 +10,8 @@ function point(position, fallback = [0, 0, 0]) {
 }
 
 export const CAMERA_TRACKING_RATE = 4.6;
+export const OVERHEAD_CAMERA_POSITION_TRACKING_RATE = 2.25;
+export const OVERHEAD_CAMERA_AIM_TRACKING_RATE = 1.85;
 export const ROLE_CAMERA_POSITION_TRACKING_RATE = 7.2;
 export const ROLE_CAMERA_AIM_TRACKING_RATE = 3.4;
 
@@ -146,7 +149,7 @@ export function stepOperatorCamera(
 }
 
 export function cameraTrackingMode(cameraId) {
-  if (cameraId === 'overhead') return 'full-court';
+  if (cameraId === 'overhead') return 'tactical';
   if (cameraId === 'player') return 'role';
   return 'action';
 }
@@ -171,6 +174,128 @@ function horizontalDirection(from, to, fallback = [0, 0, 1]) {
   const distance = Math.hypot(dx, dz);
   if (distance < 0.001) return fallback;
   return [dx / distance, 0, dz / distance];
+}
+
+function cameraPlayerPoint(player) {
+  const position = player?.worldPosition;
+  if (
+    !Array.isArray(position)
+    || !Number.isFinite(position[0])
+    || !Number.isFinite(position[2])
+  ) {
+    return null;
+  }
+  return {
+    id: player.id ?? null,
+    role: player.role ?? null,
+    position: point(position),
+  };
+}
+
+function goalieIsRelevant(player, ball, ballWorldPosition) {
+  if (player.role !== 'G') return true;
+  if (
+    [ball?.ownerId, ball?.fromPlayerId, ball?.toPlayerId].includes(player.id)
+  ) {
+    return true;
+  }
+  return Math.hypot(
+    player.position[0] - ballWorldPosition[0],
+    player.position[2] - ballWorldPosition[2],
+  ) <= OVERHEAD_GOALIE_RELEVANCE_METERS;
+}
+
+export function tacticalOverheadCameraPose({
+  ball,
+  ballPosition,
+  compact = false,
+  players = [],
+  portrait = false,
+} = {}) {
+  const ballWorldPosition = worldPoint(ball?.worldPosition ?? ballPosition);
+  const mappedPlayers = players.map(cameraPlayerPoint).filter(Boolean);
+  const fieldPlayers = mappedPlayers.filter((player) => player.role !== 'G');
+  const relevantGoalies = mappedPlayers.filter(
+    (player) => player.role === 'G' && goalieIsRelevant(player, ball, ballWorldPosition),
+  );
+  const framedPlayers = fieldPlayers.length > 0
+    ? [...fieldPlayers, ...relevantGoalies]
+    : mappedPlayers;
+  const subjectPoints = [
+    ...framedPlayers.map((player) => player.position),
+    ballWorldPosition,
+  ];
+  const minX = Math.min(...subjectPoints.map((position) => position[0]));
+  const maxX = Math.max(...subjectPoints.map((position) => position[0]));
+  const minZ = Math.min(...subjectPoints.map((position) => position[2]));
+  const maxZ = Math.max(...subjectPoints.map((position) => position[2]));
+  const boundsCenterX = (minX + maxX) / 2;
+  const boundsCenterZ = (minZ + maxZ) / 2;
+  const ballBias = portrait ? 0.08 : 0.12;
+  const nearSideBias = clamp(
+    (maxZ - minZ) * (portrait ? 0.02 : compact ? 0.04 : 0.08),
+    0,
+    portrait ? 1.2 : compact ? 1.8 : 2.4,
+  );
+  const target = [
+    boundsCenterX + clamp((ballWorldPosition[0] - boundsCenterX) * ballBias, -1.6, 1.6),
+    0.72,
+    boundsCenterZ
+      + clamp((ballWorldPosition[2] - boundsCenterZ) * ballBias, -2.2, 2.2)
+      - nearSideBias,
+  ];
+  const halfWidth = Math.max(
+    5.5,
+    ...subjectPoints.map((position) => Math.abs(position[0] - target[0])),
+  ) + (portrait ? 3.3 : 2.7);
+  const halfDepth = Math.max(
+    7,
+    ...subjectPoints.map((position) => Math.abs(position[2] - target[2])),
+  ) + (portrait ? 4.1 : 3.4);
+  const fov = portrait ? 50 : 42;
+  const fitRadius = Math.hypot(
+    halfWidth * (portrait ? 1.65 : 0.86),
+    halfDepth * (portrait ? 0.9 : 1),
+  );
+  const landscapeSafety = Math.max(
+    clamp((halfWidth - 14) / 6, 0, 1),
+    clamp((halfDepth - 12) / 6, 0, 1),
+  );
+  const distanceScale = portrait
+    ? 0.88
+    : compact
+      ? 0.76
+      : 0.54 + landscapeSafety * 0.16;
+  const cameraDistance = clamp(
+    fitRadius / Math.sin((fov * Math.PI / 180) / 2)
+      * distanceScale,
+    portrait ? 29 : compact ? 22 : 18,
+    portrait ? 52 : compact ? 46 : 40,
+  );
+  const tilt = portrait
+    ? Math.PI * 0.31
+    : compact
+      ? Math.PI * 0.26
+      : Math.PI * 0.23;
+  const cameraHeight = cameraDistance * Math.sin(tilt);
+  const trailingDistance = cameraDistance * Math.cos(tilt);
+
+  return {
+    position: [
+      target[0],
+      target[1] + cameraHeight,
+      target[2] - trailingDistance,
+    ],
+    target,
+    fov,
+    tracking: cameraTrackingMode('overhead'),
+    framedPlayerIds: framedPlayers.map((player) => player.id).filter(Boolean),
+    relevantGoalieCount: relevantGoalies.length,
+    framingWidth: halfWidth * 2,
+    framingDepth: halfDepth * 2,
+    distanceScale,
+    nearSideBias,
+  };
 }
 
 export function roleCameraDecision(
@@ -312,6 +437,7 @@ export function productionCameraPose(
   {
     ball,
     ballPosition,
+    compact = false,
     focusPlayer,
     focusPlayerPosition,
     players,
@@ -326,12 +452,13 @@ export function productionCameraPose(
   const actionZ = clamp(ballZ * 0.18 - 2, -6, 2);
 
   if (cameraId === 'overhead') {
-    return {
-      position: [0, portrait ? 78 : 74, portrait ? -5.5 : -6.5],
-      target: [0, 0, 0],
-      fov: portrait ? 44 : 40,
-      tracking: cameraTrackingMode(cameraId),
-    };
+    return tacticalOverheadCameraPose({
+      ball,
+      ballPosition,
+      compact,
+      players,
+      portrait,
+    });
   }
 
   if (cameraId === 'bench') {

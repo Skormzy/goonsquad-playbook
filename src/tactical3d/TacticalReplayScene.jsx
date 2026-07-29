@@ -13,6 +13,8 @@ import {
 import ProductionCourt from '../components/vnext3d/ProductionCourt';
 import {
   CAMERA_TRACKING_RATE,
+  OVERHEAD_CAMERA_AIM_TRACKING_RATE,
+  OVERHEAD_CAMERA_POSITION_TRACKING_RATE,
   ROLE_CAMERA_AIM_TRACKING_RATE,
   ROLE_CAMERA_POSITION_TRACKING_RATE,
   cameraInteractionPolicy,
@@ -63,6 +65,7 @@ function RuntimeCamera({
   const desiredPosition = useMemo(() => new Vector3(), []);
   const desiredTarget = useMemo(() => new Vector3(), []);
   const portrait = size.height > size.width * 1.18;
+  const compactOverhead = cameraId === 'overhead' && size.width < 640;
   const policy = useMemo(
     () => cameraInteractionPolicy(cameraId, { portrait }),
     [cameraId, portrait],
@@ -70,7 +73,7 @@ function RuntimeCamera({
 
   useEffect(() => {
     initializedRef.current = false;
-  }, [cameraId, portrait, selectedPosition]);
+  }, [cameraId, compactOverhead, portrait, selectedPosition]);
 
   useFrame((_, delta) => {
     const camera = cameraRef.current;
@@ -106,6 +109,7 @@ function RuntimeCamera({
         ?? homePlayers[0];
     const pose = productionCameraPose(cameraId, {
       ball: frame.ball,
+      compact: compactOverhead,
       portrait,
       focusPlayer: focus,
       focusPlayerPosition: focus?.worldPosition,
@@ -153,10 +157,14 @@ function RuntimeCamera({
       const safeDelta = Math.min(delta, 0.05);
       const positionRate = cameraId === 'player'
         ? ROLE_CAMERA_POSITION_TRACKING_RATE
-        : CAMERA_TRACKING_RATE;
+        : cameraId === 'overhead'
+          ? OVERHEAD_CAMERA_POSITION_TRACKING_RATE
+          : CAMERA_TRACKING_RATE;
       const aimRate = cameraId === 'player'
         ? ROLE_CAMERA_AIM_TRACKING_RATE
-        : CAMERA_TRACKING_RATE;
+        : cameraId === 'overhead'
+          ? OVERHEAD_CAMERA_AIM_TRACKING_RATE
+          : CAMERA_TRACKING_RATE;
       const positionBlend = 1 - Math.exp(-positionRate * safeDelta);
       const aimBlend = 1 - Math.exp(-aimRate * safeDelta);
       camera.position.lerp(desiredPosition, positionBlend);
