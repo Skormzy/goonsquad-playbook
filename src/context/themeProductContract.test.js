@@ -11,6 +11,14 @@ describe('application theme contract', () => {
     expect(context).toContain('document.body.style.backgroundColor = THEMES[theme].bg');
   });
 
+  it('uses light mode for first-time visitors while honoring a saved theme', () => {
+    const context = read('src/context/ThemeContext.jsx');
+    const html = read('index.html');
+    expect(context).toContain("validThemes.includes(stored) ? stored : 'light'");
+    expect(html).toContain("storedTheme === 'dark' ? 'dark' : 'light'");
+    expect(html).toContain("document.documentElement.dataset.theme = 'light'");
+  });
+
   it('defines complete root tokens for light and dark UI surfaces', () => {
     const css = read('src/index.css');
     expect(css).toContain(':root[data-theme="light"]');

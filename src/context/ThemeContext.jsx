@@ -36,8 +36,8 @@ export function ThemeProvider({ children }) {
   const [theme, _setTheme] = useState(() => {
     try {
       const stored = localStorage.getItem('theme');
-      return validThemes.includes(stored) ? stored : 'dark';
-    } catch { return 'dark'; }
+      return validThemes.includes(stored) ? stored : 'light';
+    } catch { return 'light'; }
   });
 
   useEffect(() => {

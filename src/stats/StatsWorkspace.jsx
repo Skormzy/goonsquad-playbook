@@ -199,7 +199,7 @@ function GamesTable({ games, showStage = false, showSchedule = false, schedules 
   return (
     <div className="stats-table-scroll">
       <table className="stats-table">
-        <thead><tr><th>Date</th><th>Opponent</th>{showSchedule && <th>League</th>}{showStage && <th>Stage</th>}<th>Site</th><th>Result</th><th>Score</th>{onOpenGame && <th><span className="sr-only">Open game page</span></th>}</tr></thead>
+        <thead><tr><th>Date</th><th>Opponent</th>{showSchedule && <th>League</th>}{showStage && <th>Stage</th>}<th>Site</th><th>Result</th><th>Score</th>{onOpenGame && <th className="stats-game-detail-column">Details</th>}</tr></thead>
         <tbody>
           {games.map((game) => {
             const final = game.status === 'final';
@@ -214,7 +214,7 @@ function GamesTable({ games, showStage = false, showSchedule = false, schedules 
                 <td>{game.venue === 'home' ? 'Home' : game.venue === 'away' ? 'Away' : 'Neutral'}</td>
                 <td><span className={`stats-result is-${result.toLowerCase()}`}>{result}{game.overtime && final ? ' OT' : ''}</span></td>
                 <td>{final ? `${game.goalsFor}–${game.goalsAgainst}` : '—'}</td>
-                {onOpenGame && <td><button type="button" className="stats-game-detail-button" aria-label={`Open game page against ${game.opponent}`} onClick={() => onOpenGame(game.id)}><ChevronRight aria-hidden="true" /></button></td>}
+                {onOpenGame && <td className="stats-game-detail-column"><button type="button" className="stats-game-detail-button" aria-label={`View game details against ${game.opponent}`} onClick={() => onOpenGame(game.id)}><span>Details</span><ChevronRight aria-hidden="true" /></button></td>}
               </tr>
             );
           })}

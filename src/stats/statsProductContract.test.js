@@ -58,6 +58,8 @@ describe('team account and statistics product contract', () => {
     expect(workspaceSource).toContain("url.searchParams.set('game'");
     expect(workspaceSource).toContain('stats-game-page');
     expect(workspaceSource).toContain('PLAYER BOX SCORE');
+    expect(workspaceSource).toContain('<th className="stats-game-detail-column">Details</th>');
+    expect(workspaceSource).toContain('<span>Details</span><ChevronRight');
     for (const table of ['team_game_stats', 'player_game_stats', 'goalie_game_stats', 'game_events']) {
       expect(pushSource).toContain(`upsert('${table}'`);
     }
