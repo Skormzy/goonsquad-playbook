@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { MOUSE, TOUCH } from 'three';
 import {
+  CAMERA_GESTURE_MODES,
+  cameraGestureBindings,
   cameraInteractionPolicy,
   cameraTrackingMode,
   clampCameraTarget,
@@ -9,6 +12,30 @@ import {
 } from './cameraSystem';
 
 describe('production 3D camera system', () => {
+  it('uses orbit-first gestures with two-finger pan and an explicit primary-drag pan mode', () => {
+    const orbit = cameraGestureBindings();
+    expect(orbit.mouseButtons).toEqual({
+      LEFT: MOUSE.ROTATE,
+      MIDDLE: MOUSE.DOLLY,
+      RIGHT: MOUSE.PAN,
+    });
+    expect(orbit.touches).toEqual({
+      ONE: TOUCH.ROTATE,
+      TWO: TOUCH.DOLLY_PAN,
+    });
+
+    const pan = cameraGestureBindings(CAMERA_GESTURE_MODES.PAN);
+    expect(pan.mouseButtons).toEqual({
+      LEFT: MOUSE.PAN,
+      MIDDLE: MOUSE.DOLLY,
+      RIGHT: MOUSE.ROTATE,
+    });
+    expect(pan.touches).toEqual({
+      ONE: TOUCH.PAN,
+      TWO: TOUCH.DOLLY_PAN,
+    });
+  });
+
   it('tracks the ball while preserving a side-on landscape broadcast composition', () => {
     const pose = productionCameraPose('broadcast', {
       ballPosition: { x: -9.12, z: -2.4 },

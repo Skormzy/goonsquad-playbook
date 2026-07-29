@@ -16,15 +16,14 @@ import {
 } from 'lucide-react';
 import {
   ACESFilmicToneMapping,
-  MOUSE,
   SRGBColorSpace,
-  TOUCH,
   Vector3,
 } from 'three';
 import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspaceLayout } from '../../hooks/useWorkspaceLayout';
 import PlaybackControls from '../PlaybackControls';
+import CameraGestureControl from './CameraGestureControl';
 import RoleCameraSelector from './RoleCameraSelector';
 import { getPlayScene } from '../../play-engine/sceneRegistry';
 import { samplePlayScene } from '../../play-engine/samplePlayScene';
@@ -58,11 +57,13 @@ import {
   summarizeFootSlideSamples,
 } from '../../vnext3d/footSliding';
 import {
+  CAMERA_GESTURE_MODES,
   CAMERA_TRACKING_RATE,
   OVERHEAD_CAMERA_AIM_TRACKING_RATE,
   OVERHEAD_CAMERA_POSITION_TRACKING_RATE,
   ROLE_CAMERA_AIM_TRACKING_RATE,
   ROLE_CAMERA_POSITION_TRACKING_RATE,
+  cameraGestureBindings,
   cameraInteractionPolicy,
   cameraTrackingMode,
   clampCameraTarget,
@@ -97,7 +98,9 @@ function CameraRig({
   cameraId,
   focusPlayer,
   following,
+  gestureMode,
   onManualControl,
+  onCameraPoseChange,
   playbackTime,
   players,
   replay,
@@ -137,8 +140,21 @@ function CameraRig({
     () => cameraInteractionPolicy(cameraId, { portrait }),
     [cameraId, portrait],
   );
+  const gestureBindings = useMemo(
+    () => cameraGestureBindings(gestureMode),
+    [gestureMode],
+  );
   const desiredPosition = useMemo(() => new Vector3(...config.position), [config.position]);
   const desiredTarget = useMemo(() => new Vector3(...config.target), [config.target]);
+  const publishCameraPose = useCallback(() => {
+    const camera = cameraRef.current;
+    const controls = controlsRef.current;
+    if (!camera || !controls) return;
+    onCameraPoseChange?.({
+      position: camera.position.toArray().map((value) => Number(value.toFixed(4))),
+      target: controls.target.toArray().map((value) => Number(value.toFixed(4))),
+    });
+  }, [onCameraPoseChange]);
 
   useEffect(() => {
     const camera = cameraRef.current;
@@ -152,7 +168,8 @@ function CameraRig({
     camera.fov = config.fov;
     camera.updateProjectionMatrix();
     controls.update();
-  }, [config.fov, desiredPosition, desiredTarget, focusPlayer]);
+    publishCameraPose();
+  }, [config.fov, desiredPosition, desiredTarget, focusPlayer, publishCameraPose]);
 
   useEffect(() => {
     const camera = cameraRef.current;
@@ -168,7 +185,8 @@ function CameraRig({
     controls.target.set(...next.target);
     targetRef.current.copy(controls.target);
     controls.update();
-  }, [cameraCommand, interactionPolicy]);
+    publishCameraPose();
+  }, [cameraCommand, interactionPolicy, publishCameraPose]);
 
   const keepTargetInsideCourt = useCallback(() => {
     const camera = cameraRef.current;
@@ -243,21 +261,15 @@ function CameraRig({
         maxPolarAngle={interactionPolicy.maxPolarAngle}
         minDistance={interactionPolicy.minDistance}
         minPolarAngle={interactionPolicy.minPolarAngle}
-        mouseButtons={{
-          LEFT: MOUSE.ROTATE,
-          MIDDLE: MOUSE.DOLLY,
-          RIGHT: MOUSE.PAN,
-        }}
-        panSpeed={0.72}
+        mouseButtons={gestureBindings.mouseButtons}
+        panSpeed={portrait ? 1.02 : 0.86}
         rotateSpeed={portrait ? 0.58 : 0.7}
         screenSpacePanning={false}
-        touches={{
-          ONE: TOUCH.ROTATE,
-          TWO: TOUCH.DOLLY_PAN,
-        }}
+        touches={gestureBindings.touches}
         zoomSpeed={0.88}
         zoomToCursor
         onChange={keepTargetInsideCourt}
+        onEnd={publishCameraPose}
         onStart={onManualControl}
       />
     </>
@@ -471,6 +483,7 @@ function ReplayScene({
   cameraId,
   cameraCommand,
   cameraFollowing,
+  cameraGestureMode,
   selectedPosition,
   renderProfile,
   athleteAssets,
@@ -478,6 +491,7 @@ function ReplayScene({
   motionTuning,
   onFrameSample,
   onCameraManualControl,
+  onCameraPoseChange,
   onMixerTransition,
   onTransitionSample,
   theme,
@@ -566,6 +580,8 @@ function ReplayScene({
         cameraId={cameraId}
         focusPlayer={focusPlayer}
         following={cameraFollowing}
+        gestureMode={cameraGestureMode}
+        onCameraPoseChange={onCameraPoseChange}
         onManualControl={onCameraManualControl}
         playbackTime={playbackTime}
         players={athletes}
@@ -636,7 +652,9 @@ export default function ProductionReplayPreview() {
   const [frameStats, setFrameStats] = useState(null);
   const [cameraCommand, setCameraCommand] = useState({ revision: 0, type: 'reframe' });
   const [freeLookCameraId, setFreeLookCameraId] = useState(null);
+  const [cameraGestureMode, setCameraGestureMode] = useState(CAMERA_GESTURE_MODES.ORBIT);
   const [cameraInteractionCount, setCameraInteractionCount] = useState(0);
+  const [cameraPose, setCameraPose] = useState(null);
   const [fullscreenSupported] = useState(() => Boolean(document.fullscreenEnabled));
   const [stageFullscreen, setStageFullscreen] = useState(false);
   const [mixerTransitions, setMixerTransitions] = useState(null);
@@ -697,6 +715,12 @@ export default function ProductionReplayPreview() {
     setCameraInteractionCount((count) => count + 1);
   }, [issueCameraCommand, replay3dCamera]);
 
+  const handleCameraGestureMode = useCallback((mode) => {
+    setCameraGestureMode(mode);
+    setFreeLookCameraId(replay3dCamera);
+    setCameraInteractionCount((count) => count + 1);
+  }, [replay3dCamera]);
+
   const handleCameraKeyDown = useCallback((event) => {
     if (event.target instanceof Element && event.target.closest('button,input,select,textarea')) return;
     const key = event.key.toLowerCase();
@@ -728,12 +752,29 @@ export default function ProductionReplayPreview() {
       return;
     }
 
+    if (key === 'p') {
+      event.preventDefault();
+      event.stopPropagation();
+      handleCameraGestureMode(
+        cameraGestureMode === CAMERA_GESTURE_MODES.PAN
+          ? CAMERA_GESTURE_MODES.ORBIT
+          : CAMERA_GESTURE_MODES.PAN,
+      );
+      return;
+    }
+
     if (key === '0' || event.key === 'Home') {
       event.preventDefault();
       event.stopPropagation();
       handleReframe();
     }
-  }, [handleFollowToggle, handleOperatorCommand, handleReframe]);
+  }, [
+    cameraGestureMode,
+    handleCameraGestureMode,
+    handleFollowToggle,
+    handleOperatorCommand,
+    handleReframe,
+  ]);
 
   const toggleStageFullscreen = useCallback(async () => {
     try {
@@ -849,6 +890,9 @@ export default function ProductionReplayPreview() {
         : 'pending'}
       data-camera-tracking={cameraTrackingMode(replay3dCamera)}
       data-camera-control={cameraFollowing ? 'follow' : 'free-look'}
+      data-camera-gesture-mode={cameraGestureMode}
+      data-camera-position={cameraPose?.position?.join(',') ?? 'pending'}
+      data-camera-target={cameraPose?.target?.join(',') ?? 'pending'}
       data-role-camera-position={selectedPosition}
       data-role-camera-intent={roleCameraState.intent}
       data-role-camera-target={roleCameraState.targetPlayerId ?? 'ball'}
@@ -909,6 +953,7 @@ export default function ProductionReplayPreview() {
         className="vnext3d-preview-stage"
         aria-label="Interactive production 3D replay"
         data-camera-control={cameraFollowing ? 'follow' : 'free-look'}
+        data-camera-gesture-mode={cameraGestureMode}
         onKeyDown={handleCameraKeyDown}
         onPointerDown={(event) => {
           if (event.target instanceof HTMLCanvasElement) stageRef.current?.focus({ preventScroll: true });
@@ -935,6 +980,7 @@ export default function ProductionReplayPreview() {
               cameraId={replay3dCamera}
               cameraCommand={cameraCommand}
               cameraFollowing={cameraFollowing}
+              cameraGestureMode={cameraGestureMode}
               selectedPosition={selectedPosition}
               renderProfile={renderProfile}
               athleteAssets={athleteAssets}
@@ -942,6 +988,7 @@ export default function ProductionReplayPreview() {
               motionTuning={motionTuning}
               onFrameSample={handleFrameSample}
               onCameraManualControl={handleCameraManualControl}
+              onCameraPoseChange={setCameraPose}
               onMixerTransition={handleMixerTransition}
               onTransitionSample={setTransitionStats}
               theme={theme}
@@ -989,6 +1036,10 @@ export default function ProductionReplayPreview() {
           >
             <RotateCcw aria-hidden="true" />
           </button>
+          <CameraGestureControl
+            mode={cameraGestureMode}
+            onChange={handleCameraGestureMode}
+          />
           <button
             type="button"
             aria-label="Zoom out"
@@ -1024,8 +1075,10 @@ export default function ProductionReplayPreview() {
           {replay3dCamera === 'player'
             ? `${selectedPosition} / ${cameraFollowing
               ? roleCameraIntentLabel(roleCameraState.intent)
-              : 'LOOK AROUND'}`
-            : cameraFollowing ? 'FOLLOW' : 'FREE LOOK'}
+              : cameraGestureMode === CAMERA_GESTURE_MODES.PAN ? 'PAN' : 'ORBIT'}`
+            : cameraFollowing
+              ? 'FOLLOW'
+              : cameraGestureMode === CAMERA_GESTURE_MODES.PAN ? 'PAN' : 'ORBIT'}
         </div>
       </section>
 

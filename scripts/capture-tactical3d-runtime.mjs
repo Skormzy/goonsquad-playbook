@@ -78,6 +78,8 @@ for (const viewport of viewports) {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,
+    hasTouch: viewport.id === 'mobile',
+    isMobile: viewport.id === 'mobile',
   });
   const page = await context.newPage();
   const problems = [];
@@ -146,18 +148,130 @@ for (const viewport of viewports) {
   }
 
   await page.getByRole('button', { name: 'Broadcast', exact: true }).click();
+  await page.waitForFunction(() => (
+    document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-camera-position') !== 'pending'
+  ), undefined, { timeout: 10_000 });
   const canvas = page.locator('.vnext3d-preview-stage canvas');
   const canvasBox = await canvas.boundingBox();
-  if (canvasBox) {
+  const readCameraPose = () => preview.evaluate((node) => ({
+    control: node.getAttribute('data-camera-control'),
+    gestureMode: node.getAttribute('data-camera-gesture-mode'),
+    position: node.getAttribute('data-camera-position').split(',').map(Number),
+    target: node.getAttribute('data-camera-target').split(',').map(Number),
+  }));
+  const initialCameraPose = await readCameraPose();
+  if (canvasBox && viewport.id === 'desktop') {
     await page.mouse.move(canvasBox.x + canvasBox.width * 0.58, canvasBox.y + canvasBox.height * 0.52);
-    await page.mouse.down();
+    await page.mouse.down({ button: 'left' });
     await page.mouse.move(canvasBox.x + canvasBox.width * 0.68, canvasBox.y + canvasBox.height * 0.48, { steps: 8 });
-    await page.mouse.up();
+    await page.mouse.up({ button: 'left' });
+  } else if (canvasBox) {
+    const session = await context.newCDPSession(page);
+    const centerX = canvasBox.x + canvasBox.width * 0.5;
+    const centerY = canvasBox.y + canvasBox.height * 0.52;
+    const touch = (id, x, y) => ({
+      id,
+      x,
+      y,
+      radiusX: 4,
+      radiusY: 4,
+      force: 0.7,
+      rotationAngle: 0,
+    });
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [touch(1, centerX, centerY)],
+    });
+    for (let step = 1; step <= 8; step += 1) {
+      await session.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [touch(1, centerX + step * 6, centerY - step * 3)],
+      });
+    }
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchEnd',
+      touchPoints: [],
+    });
   }
   await page.waitForFunction(() => (
     document.querySelector('[data-testid="vnext-3d-production-preview"]')
       ?.getAttribute('data-camera-control') === 'free-look'
   ), undefined, { timeout: 10_000 });
+  await page.waitForTimeout(350);
+  const orbitCameraPose = await readCameraPose();
+  await page.getByRole('button', { name: 'Recenter selected camera angle' }).click();
+  await page.waitForFunction(() => (
+    document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-camera-control') === 'follow'
+  ), undefined, { timeout: 10_000 });
+  await page.waitForTimeout(500);
+  const panStartCameraPose = await readCameraPose();
+  if (canvasBox && viewport.id === 'desktop') {
+    await page.getByRole('button', { name: 'Pan camera' }).click();
+    await page.mouse.move(canvasBox.x + canvasBox.width * 0.52, canvasBox.y + canvasBox.height * 0.52);
+    await page.mouse.down({ button: 'left' });
+    await page.mouse.move(canvasBox.x + canvasBox.width * 0.62, canvasBox.y + canvasBox.height * 0.59, { steps: 8 });
+    await page.mouse.up({ button: 'left' });
+  } else if (canvasBox) {
+    const session = await context.newCDPSession(page);
+    const centerX = canvasBox.x + canvasBox.width * 0.5;
+    const centerY = canvasBox.y + canvasBox.height * 0.52;
+    const touch = (id, x, y) => ({
+      id,
+      x,
+      y,
+      radiusX: 4,
+      radiusY: 4,
+      force: 0.7,
+      rotationAngle: 0,
+    });
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [
+        touch(1, centerX - 34, centerY),
+        touch(2, centerX + 34, centerY),
+      ],
+    });
+    for (let step = 1; step <= 8; step += 1) {
+      await session.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [
+          touch(1, centerX - 34 + step * 5, centerY + step * 3),
+          touch(2, centerX + 34 + step * 5, centerY + step * 3),
+        ],
+      });
+    }
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchEnd',
+      touchPoints: [],
+    });
+  }
+  await page.waitForFunction(() => (
+    document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-camera-control') === 'free-look'
+  ), undefined, { timeout: 10_000 });
+  await page.waitForTimeout(350);
+  const panCameraPose = await readCameraPose();
+  const cameraGestures = {
+    orbitPositionDelta: Number(distanceBetween(
+      initialCameraPose.position,
+      orbitCameraPose.position,
+    ).toFixed(4)),
+    orbitTargetDelta: Number(distanceBetween(
+      initialCameraPose.target,
+      orbitCameraPose.target,
+    ).toFixed(4)),
+    panPositionDelta: Number(distanceBetween(
+      panStartCameraPose.position,
+      panCameraPose.position,
+    ).toFixed(4)),
+    panTargetDelta: Number(distanceBetween(
+      panStartCameraPose.target,
+      panCameraPose.target,
+    ).toFixed(4)),
+    panGestureMode: panCameraPose.gestureMode,
+  };
   await page.getByRole('button', { name: 'Recenter selected camera angle' }).click();
   await page.waitForFunction(() => (
     document.querySelector('[data-testid="vnext-3d-production-preview"]')
@@ -272,6 +386,11 @@ for (const viewport of viewports) {
     && fullscreenState.rewindCount === 1
     && fullscreenState.stageCoversViewport
     && fullscreenState.transportInsideViewport
+    && cameraGestures.orbitPositionDelta > 0.5
+    && cameraGestures.orbitTargetDelta < 0.15
+    && cameraGestures.panPositionDelta > 0.4
+    && cameraGestures.panTargetDelta > 0.4
+    && cameraGestures.panGestureMode === (viewport.id === 'mobile' ? 'orbit' : 'pan')
     && Object.values(cameras).join(',') === 'broadcast,overhead,bench,player';
 
   results[viewport.id] = {
@@ -281,6 +400,7 @@ for (const viewport of viewports) {
     fullscreenScreenshotPath,
     problems,
     cameras,
+    cameraGestures,
     canvasPixels,
     layout,
     fullscreenState,

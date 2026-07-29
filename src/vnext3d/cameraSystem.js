@@ -1,3 +1,5 @@
+import { MOUSE, TOUCH } from 'three';
+
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const ROLE_DECISION_TYPES = new Set(['pass', 'board-pass', 'shot']);
 const ROLE_DECISION_LEAD_SECONDS = 1.2;
@@ -14,6 +16,10 @@ export const OVERHEAD_CAMERA_POSITION_TRACKING_RATE = 2.25;
 export const OVERHEAD_CAMERA_AIM_TRACKING_RATE = 1.85;
 export const ROLE_CAMERA_POSITION_TRACKING_RATE = 7.2;
 export const ROLE_CAMERA_AIM_TRACKING_RATE = 3.4;
+export const CAMERA_GESTURE_MODES = Object.freeze({
+  ORBIT: 'orbit',
+  PAN: 'pan',
+});
 
 export const CAMERA_OPERATOR_COMMANDS = Object.freeze([
   'orbit-left',
@@ -52,6 +58,21 @@ export function cameraInteractionPolicy(cameraId, { portrait = false } = {}) {
     minDistance: cameraId === 'overhead' ? 5.5 : portrait ? 3.8 : 3.2,
     maxDistance: cameraId === 'overhead' ? 108 : BASE_CAMERA_INTERACTION.maxDistance,
     panStepMeters: portrait ? 1 : BASE_CAMERA_INTERACTION.panStepMeters,
+  };
+}
+
+export function cameraGestureBindings(mode = CAMERA_GESTURE_MODES.ORBIT) {
+  const primaryPans = mode === CAMERA_GESTURE_MODES.PAN;
+  return {
+    mouseButtons: {
+      LEFT: primaryPans ? MOUSE.PAN : MOUSE.ROTATE,
+      MIDDLE: MOUSE.DOLLY,
+      RIGHT: primaryPans ? MOUSE.ROTATE : MOUSE.PAN,
+    },
+    touches: {
+      ONE: primaryPans ? TOUCH.PAN : TOUCH.ROTATE,
+      TWO: TOUCH.DOLLY_PAN,
+    },
   };
 }
 

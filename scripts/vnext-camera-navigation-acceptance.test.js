@@ -7,6 +7,18 @@ const preview = fs.readFileSync(
   path.join(root, 'src/components/vnext3d/ProductionReplayPreview.jsx'),
   'utf8',
 );
+const tacticalScene = fs.readFileSync(
+  path.join(root, 'src/tactical3d/TacticalReplayScene.jsx'),
+  'utf8',
+);
+const cameraSystem = fs.readFileSync(
+  path.join(root, 'src/vnext3d/cameraSystem.js'),
+  'utf8',
+);
+const gestureControl = fs.readFileSync(
+  path.join(root, 'src/components/vnext3d/CameraGestureControl.jsx'),
+  'utf8',
+);
 const evidence = JSON.parse(fs.readFileSync(
   path.join(root, 'docs/vnext/evidence/camera-navigation/camera-navigation-review.json'),
   'utf8',
@@ -16,11 +28,19 @@ describe('vNext production camera navigation', () => {
   it('provides the same direct-manipulation controls from every camera preset', () => {
     expect(preview).toContain('OrbitControls');
     expect(preview).toContain('zoomToCursor');
-    expect(preview).toContain('ONE: TOUCH.ROTATE');
-    expect(preview).toContain('TWO: TOUCH.DOLLY_PAN');
-    expect(preview).toContain('LEFT: MOUSE.ROTATE');
-    expect(preview).toContain('RIGHT: MOUSE.PAN');
+    expect(preview).toContain('cameraGestureBindings');
+    expect(preview).toContain('mouseButtons={gestureBindings.mouseButtons}');
+    expect(preview).toContain('touches={gestureBindings.touches}');
     expect(preview).toContain('onStart={onManualControl}');
+    expect(tacticalScene).toContain('cameraGestureBindings');
+    expect(tacticalScene).toContain('mouseButtons={gestureBindings.mouseButtons}');
+    expect(tacticalScene).toContain('touches={gestureBindings.touches}');
+    expect(cameraSystem).toContain('ONE: primaryPans ? TOUCH.PAN : TOUCH.ROTATE');
+    expect(cameraSystem).toContain('TWO: TOUCH.DOLLY_PAN');
+    expect(cameraSystem).toContain('LEFT: primaryPans ? MOUSE.PAN : MOUSE.ROTATE');
+    expect(cameraSystem).toContain('RIGHT: primaryPans ? MOUSE.ROTATE : MOUSE.PAN');
+    expect(gestureControl).toContain("label: 'Rotate camera'");
+    expect(gestureControl).toContain("label: 'Pan camera'");
 
     expect(evidence.allPresetFreeLook.map(({ camera }) => camera)).toEqual([
       'Broadcast',

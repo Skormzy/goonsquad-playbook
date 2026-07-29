@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -6,8 +7,6 @@ import {
 import { useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import {
-  MOUSE,
-  TOUCH,
   Vector3,
 } from 'three';
 import ProductionCourt from '../components/vnext3d/ProductionCourt';
@@ -17,7 +16,9 @@ import {
   OVERHEAD_CAMERA_POSITION_TRACKING_RATE,
   ROLE_CAMERA_AIM_TRACKING_RATE,
   ROLE_CAMERA_POSITION_TRACKING_RATE,
+  cameraGestureBindings,
   cameraInteractionPolicy,
+  clampCameraTarget,
   productionCameraPose,
   stepOperatorCamera,
 } from '../vnext3d/cameraSystem';
@@ -52,7 +53,9 @@ function RuntimeCamera({
   following,
   frameRef,
   focusRoles,
+  gestureMode,
   onManualControl,
+  onCameraPoseChange,
   replay,
   selectedPosition,
 }) {
@@ -63,6 +66,7 @@ function RuntimeCamera({
   const commandRevisionRef = useRef(-1);
   const lastFocusPositionRef = useRef(new Vector3());
   const focusDeltaRef = useRef(new Vector3());
+  const clampDeltaRef = useRef(new Vector3());
   const desiredPosition = useMemo(() => new Vector3(), []);
   const desiredTarget = useMemo(() => new Vector3(), []);
   const portrait = size.height > size.width * 1.18;
@@ -71,6 +75,29 @@ function RuntimeCamera({
     () => cameraInteractionPolicy(cameraId, { portrait }),
     [cameraId, portrait],
   );
+  const gestureBindings = useMemo(
+    () => cameraGestureBindings(gestureMode),
+    [gestureMode],
+  );
+  const publishCameraPose = useCallback(() => {
+    const camera = cameraRef.current;
+    const controls = controlsRef.current;
+    if (!camera || !controls) return;
+    onCameraPoseChange?.({
+      position: camera.position.toArray().map((value) => Number(value.toFixed(4))),
+      target: controls.target.toArray().map((value) => Number(value.toFixed(4))),
+    });
+  }, [onCameraPoseChange]);
+  const keepTargetInsideCourt = useCallback(() => {
+    const camera = cameraRef.current;
+    const controls = controlsRef.current;
+    if (!camera || !controls) return;
+    const clamped = clampCameraTarget(controls.target.toArray(), policy);
+    clampDeltaRef.current.set(...clamped).sub(controls.target);
+    if (clampDeltaRef.current.lengthSq() <= 0.000001) return;
+    controls.target.add(clampDeltaRef.current);
+    camera.position.add(clampDeltaRef.current);
+  }, [policy]);
 
   useEffect(() => {
     initializedRef.current = false;
@@ -140,6 +167,7 @@ function RuntimeCamera({
         camera.position.set(...next.position);
         controls.target.set(...next.target);
         controls.update();
+        publishCameraPose();
       }
     }
 
@@ -151,6 +179,7 @@ function RuntimeCamera({
       camera.fov = pose.fov;
       camera.updateProjectionMatrix();
       controls.update();
+      publishCameraPose();
       return;
     }
 
@@ -199,20 +228,15 @@ function RuntimeCamera({
         maxPolarAngle={policy.maxPolarAngle}
         minDistance={policy.minDistance}
         minPolarAngle={policy.minPolarAngle}
-        mouseButtons={{
-          LEFT: MOUSE.ROTATE,
-          MIDDLE: MOUSE.DOLLY,
-          RIGHT: MOUSE.PAN,
-        }}
-        panSpeed={0.72}
+        mouseButtons={gestureBindings.mouseButtons}
+        panSpeed={portrait ? 1.02 : 0.86}
         rotateSpeed={portrait ? 0.58 : 0.7}
         screenSpacePanning={false}
-        touches={{
-          ONE: TOUCH.ROTATE,
-          TWO: TOUCH.DOLLY_PAN,
-        }}
+        touches={gestureBindings.touches}
         zoomSpeed={0.88}
         zoomToCursor
+        onChange={keepTargetInsideCourt}
+        onEnd={publishCameraPose}
         onStart={onManualControl}
       />
     </>
@@ -223,10 +247,12 @@ export default function TacticalReplayScene({
   athleteAssets,
   cameraCommand,
   cameraFollowing,
+  cameraGestureMode,
   cameraId,
   isPlaying,
   onFrameStats,
   onManualCameraControl,
+  onCameraPoseChange,
   onPlaybackEnd,
   onTimeChange,
   playbackTime,
@@ -462,6 +488,8 @@ export default function TacticalReplayScene({
         following={cameraFollowing}
         frameRef={frameRef}
         focusRoles={focusRoles}
+        gestureMode={cameraGestureMode}
+        onCameraPoseChange={onCameraPoseChange}
         onManualControl={onManualCameraControl}
         replay={replay}
         selectedPosition={selectedPosition}
