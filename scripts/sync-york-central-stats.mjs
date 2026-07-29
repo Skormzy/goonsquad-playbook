@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -582,10 +582,104 @@ function auditSnapshot(dataset) {
   return warnings;
 }
 
-async function buildSnapshot() {
+async function readExistingSnapshot() {
+  try {
+    return JSON.parse(await readFile(OUTPUT_PATH, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function sameFinalGame(previous, current) {
+  return previous?.status === 'final'
+    && current.status === 'final'
+    && previous.goalsFor === current.goalsFor
+    && previous.goalsAgainst === current.goalsAgainst
+    && Boolean(previous.overtime) === Boolean(current.overtime);
+}
+
+function mergeCurrentSeasonSnapshot(existing, current) {
+  if (!existing) return current;
+  const currentSeasonIds = new Set(current.seasons.map((season) => season.id));
+  const previousTeamIds = new Set(
+    existing.teams
+      .filter((team) => currentSeasonIds.has(team.seasonId))
+      .map((team) => team.id),
+  );
+  const currentTeamIds = new Set(current.teams.map((team) => team.id));
+  const replacedTeamIds = new Set([...previousTeamIds, ...currentTeamIds]);
+  const replacedGameIds = new Set(
+    existing.games
+      .filter((game) => replacedTeamIds.has(game.seasonTeamId))
+      .map((game) => game.id),
+  );
+  current.games.forEach((game) => replacedGameIds.add(game.id));
+  const replaceTeamRows = (rows, additions) => [
+    ...additions,
+    ...rows.filter((row) => !replacedTeamIds.has(row.seasonTeamId)),
+  ];
+  const replaceGameRows = (rows = [], additions = []) => [
+    ...additions,
+    ...rows.filter((row) => !replacedGameIds.has(row.gameId ?? row.game_id)),
+  ];
+  const players = new Map(existing.players.map((player) => [player.id, player]));
+  current.players.forEach((player) => players.set(player.id, player));
+  const merged = {
+    ...existing,
+    source: current.source,
+    sourceName: current.sourceName,
+    sourceUrl: current.sourceUrl,
+    capturedAt: current.capturedAt,
+    seasons: [
+      ...current.seasons,
+      ...existing.seasons
+        .filter((season) => !currentSeasonIds.has(season.id))
+        .map((season) => season.current ? { ...season, current: false, status: 'complete' } : season),
+    ],
+    teams: [
+      ...current.teams,
+      ...existing.teams.filter((team) => !currentSeasonIds.has(team.seasonId)),
+    ],
+    players: [...players.values()].sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    memberships: replaceTeamRows(existing.memberships, current.memberships),
+    games: replaceTeamRows(existing.games, current.games),
+    teamGameStats: replaceGameRows(existing.teamGameStats, current.teamGameStats),
+    playerGameStats: replaceGameRows(existing.playerGameStats, current.playerGameStats),
+    goalieGameStats: replaceGameRows(existing.goalieGameStats, current.goalieGameStats),
+    gameEvents: replaceGameRows(existing.gameEvents, current.gameEvents),
+    teamSeasonSummaries: replaceTeamRows(existing.teamSeasonSummaries, current.teamSeasonSummaries),
+    playerSeasonStats: replaceTeamRows(existing.playerSeasonStats, current.playerSeasonStats),
+    goalieSeasonStats: replaceTeamRows(existing.goalieSeasonStats, current.goalieSeasonStats),
+  };
+  const finalGameIds = new Set(
+    merged.games
+      .filter((game) => game.status === 'final' && game.sourceUrl)
+      .map((game) => game.id),
+  );
+  merged.detailImport = {
+    requestedGames: finalGameIds.size,
+    importedGames: finalGameIds.size - (current.detailImport?.errors?.length ?? 0),
+    errors: current.detailImport?.errors ?? [],
+  };
+  return merged;
+}
+
+function comparableSnapshot(snapshot) {
+  if (!snapshot) return '';
+  const copy = { ...snapshot };
+  delete copy.capturedAt;
+  return JSON.stringify(copy);
+}
+
+async function buildSnapshot({ scope = 'all', existingSnapshot = null } = {}) {
   const startHtml = await fetchHtml(START_TEAM_PATH);
-  const history = teamHistoryLinks(startHtml);
-  if (!history.length) throw new Error('No Goonsquad team history links were found. The league page structure may have changed.');
+  const fullHistory = teamHistoryLinks(startHtml);
+  if (!fullHistory.length) throw new Error('No Goonsquad team history links were found. The league page structure may have changed.');
+  const currentSeasonName = teamMetadata(START_TEAM_PATH, startHtml).seasonName;
+  const history = scope === 'current'
+    ? fullHistory.filter((entry) => titleSeason(entry.label.split(' - ')[0]) === currentSeasonName)
+    : fullHistory;
+  if (!history.length) throw new Error(`No ${currentSeasonName} Goonsquad schedules were found.`);
 
   const seasons = new Map();
   const teams = [];
@@ -599,9 +693,8 @@ async function buildSnapshot() {
   const playerGameStats = [];
   const goalieGameStats = [];
   const gameEvents = [];
-  const currentSeasonName = titleSeason(history[0]?.label.split(' - ')[0]);
 
-  for (const [index, entry] of history.entries()) {
+  for (const entry of history) {
     const teamHtml = entry.href === START_TEAM_PATH ? startHtml : await fetchHtml(entry.href);
     const team = teamMetadata(entry.href, teamHtml);
     const [regularScheduleHtml, playoffScheduleHtml, regularPlayersHtml, playoffPlayersHtml, regularGoaliesHtml, playoffGoaliesHtml, rosterHtml] = await Promise.all([
@@ -655,8 +748,20 @@ async function buildSnapshot() {
 
   const teamById = new Map(teams.map((team) => [team.id, team]));
   const finalGames = games.filter((game) => game.status === 'final' && game.sourceUrl);
+  const existingGames = new Map((existingSnapshot?.games || []).map((game) => [game.id, game]));
+  const reusableGameIds = new Set(
+    finalGames
+      .filter((game) => sameFinalGame(existingGames.get(game.id), game))
+      .map((game) => game.id),
+  );
+  const reuseRows = (rows = []) => rows.filter((row) => reusableGameIds.has(row.gameId ?? row.game_id));
+  teamGameStats.push(...reuseRows(existingSnapshot?.teamGameStats));
+  playerGameStats.push(...reuseRows(existingSnapshot?.playerGameStats));
+  goalieGameStats.push(...reuseRows(existingSnapshot?.goalieGameStats));
+  gameEvents.push(...reuseRows(existingSnapshot?.gameEvents));
+  const gamesNeedingDetails = finalGames.filter((game) => !reusableGameIds.has(game.id));
   const detailErrors = [];
-  const details = await mapWithConcurrency(finalGames, 6, async (game) => {
+  const details = await mapWithConcurrency(gamesNeedingDetails, 6, async (game) => {
     try {
       return parseGameDetails(game, teamById.get(game.seasonTeamId), await fetchHtml(game.sourceUrl));
     } catch (error) {
@@ -691,7 +796,7 @@ async function buildSnapshot() {
     goalieSeasonStats,
     detailImport: {
       requestedGames: finalGames.length,
-      importedGames: details.filter(Boolean).length,
+      importedGames: reusableGameIds.size + details.filter(Boolean).length,
       errors: detailErrors,
     },
   };
@@ -701,7 +806,19 @@ async function buildSnapshot() {
 }
 
 async function main() {
-  const snapshot = await buildSnapshot();
+  const scope = process.env.STATS_SYNC_SCOPE === 'current' ? 'current' : 'all';
+  const existingSnapshot = await readExistingSnapshot();
+  const captured = await buildSnapshot({ scope, existingSnapshot });
+  const snapshot = scope === 'current'
+    ? mergeCurrentSeasonSnapshot(existingSnapshot, captured)
+    : captured;
+  const warnings = auditSnapshot(snapshot);
+  if (warnings.length) throw new Error(`Merged statistics audit failed:\n- ${warnings.join('\n- ')}`);
+  if (comparableSnapshot(existingSnapshot) === comparableSnapshot(snapshot)) {
+    process.stdout.write(`Official ${scope === 'current' ? 'active-season' : 'archive'} statistics are unchanged.\n`);
+    process.stdout.write(`Verified source: ${snapshot.sourceUrl}\n`);
+    return;
+  }
   await writeFile(OUTPUT_PATH, `${JSON.stringify(snapshot, null, 2)}\n`, 'utf8');
   process.stdout.write(
     `Captured ${snapshot.seasons.length} seasons, ${snapshot.teams.length} teams, ${snapshot.games.length} games, ${snapshot.players.length} players, ${snapshot.playerSeasonStats.length} field-player lines, and ${snapshot.goalieSeasonStats.length} goaltender lines.\n`,
@@ -713,6 +830,7 @@ async function main() {
 export {
   auditSnapshot,
   buildSnapshot,
+  mergeCurrentSeasonSnapshot,
   parseGameDate,
   parseGameDetails,
   parseGoalieLeaders,

@@ -52,7 +52,7 @@ describe('member profile model', () => {
       { playerId: 'cloud-current', player: { externalId: '101' }, status: 'linked', primary: true },
       { playerId: 'cloud-history', player: { externalId: '88' }, status: 'linked', primary: false },
     ];
-    const profile = memberProfileSnapshot(dataset, claims);
+    const profile = memberProfileSnapshot(dataset, claims, '2026-06-30T12:00:00Z');
 
     expect(profile.primaryPlayer.externalId).toBe('101');
     expect(profile.linkStatus).toBe('linked');
@@ -61,5 +61,14 @@ describe('member profile model', () => {
     expect(profile.careerField.points).not.toBe(55);
     expect(profile.recentGames[0]).toMatchObject({ result: 'W', points: 3 });
     expect(profile.nextGame.id).toBe('g2');
+  });
+
+  it('never labels an unresolved past fixture as the next game', () => {
+    const claims = [
+      { playerId: 'cloud-current', player: { externalId: '101' }, status: 'linked', primary: true },
+    ];
+    const profile = memberProfileSnapshot(dataset, claims, '2026-07-29T12:00:00Z');
+
+    expect(profile.nextGame).toBeNull();
   });
 });

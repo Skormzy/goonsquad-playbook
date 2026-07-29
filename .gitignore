@@ -15,6 +15,7 @@ dist-ssr
 __pycache__/
 *.py[cod]
 src/screenshots/
+public/data/team-statistics.json
 
 # Editor directories and files
 .vscode/*

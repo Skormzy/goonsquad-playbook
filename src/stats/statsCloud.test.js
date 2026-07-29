@@ -79,4 +79,26 @@ describe('statistics cloud merge', () => {
     expect(result.games.map((game) => game.id)).toEqual(['static-game']);
     expect(result.gameEvents.map((event) => event.id)).toEqual(['static-event']);
   });
+
+  it('does not let an older complete cloud import replace a fresher runtime snapshot', () => {
+    const base = dataset({
+      capturedAt: '2026-07-29T13:00:00.000Z',
+    });
+    const result = mergeStatisticsDatasets(base, dataset({
+      source: 'cloud',
+      players: [{ id: 'cloud-player', source: 'league' }],
+      memberships: [{ id: 'cloud-membership', playerId: 'cloud-player' }],
+      games: [{
+        id: 'cloud-game',
+        source: 'league',
+        verifiedAt: '2026-07-22T13:00:00.000Z',
+      }],
+      playerSeasonStats: [{ id: 'cloud-total', source: 'league' }],
+      teamSeasonSummaries: [{ seasonTeamId: 't1', source: 'league' }],
+    }));
+
+    expect(result.games.map((game) => game.id)).toEqual(['static-game']);
+    expect(result.leagueImportFresh).toBe(false);
+    expect(result.leagueImportComplete).toBe(false);
+  });
 });

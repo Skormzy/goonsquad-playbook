@@ -21,11 +21,11 @@ describe('York Central Goonsquad statistics snapshot', () => {
   });
 
   it('contains the complete verified game-sheet import without fabricated box-score fields', () => {
-    expect(snapshot.detailImport).toEqual({ requestedGames: 278, importedGames: 278, errors: [] });
-    expect(snapshot.teamGameStats).toHaveLength(274);
-    expect(snapshot.playerGameStats).toHaveLength(3376);
-    expect(snapshot.goalieGameStats).toHaveLength(277);
-    expect(snapshot.gameEvents).toHaveLength(2734);
+    expect(snapshot.detailImport).toEqual({ requestedGames: 280, importedGames: 280, errors: [] });
+    expect(snapshot.teamGameStats).toHaveLength(276);
+    expect(snapshot.playerGameStats).toHaveLength(3396);
+    expect(snapshot.goalieGameStats).toHaveLength(279);
+    expect(snapshot.gameEvents).toHaveLength(2759);
     expect(snapshot.playerGameStats.some((line) => line.shots === null && line.plusMinus === null)).toBe(true);
     expect(snapshot.teamGameStats.some((line) => line.powerPlayGoals === null && line.faceoffWins === null)).toBe(true);
   });
@@ -33,8 +33,8 @@ describe('York Central Goonsquad statistics snapshot', () => {
   it('matches the two official Summer 2026 team records at capture time', () => {
     const monThu = statsSnapshot(snapshot, 'summer-2026', 'summer-2026-mon-thu');
     const sunday = statsSnapshot(snapshot, 'summer-2026', 'summer-2026-sunday');
-    expect(monThu.summary).toMatchObject({ gamesPlayed: 10, wins: 0, losses: 10, ties: 0, points: 0 });
-    expect(sunday.summary).toMatchObject({ gamesPlayed: 11, wins: 3, losses: 6, ties: 2, points: 8 });
+    expect(monThu.summary).toMatchObject({ gamesPlayed: 11, wins: 0, losses: 11, ties: 0, points: 0 });
+    expect(sunday.summary).toMatchObject({ gamesPlayed: 12, wins: 4, losses: 6, ties: 2, points: 10 });
     expect(monThu.scheduleComplete).toBe(true);
     expect(sunday.scheduleComplete).toBe(true);
   });
@@ -58,7 +58,7 @@ describe('York Central Goonsquad statistics snapshot', () => {
       'Sunday League',
     ]);
     expect(combined.games).toHaveLength(24);
-    expect(combined.summary).toMatchObject({ gamesPlayed: 21, wins: 3, losses: 16, ties: 2, points: 8 });
+    expect(combined.summary).toMatchObject({ gamesPlayed: 23, wins: 4, losses: 17, ties: 2, points: 10 });
     expect(combined.scheduleComplete).toBe(true);
   });
 

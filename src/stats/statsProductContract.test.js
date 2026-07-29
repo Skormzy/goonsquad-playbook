@@ -15,11 +15,11 @@ describe('team account and statistics product contract', () => {
     expect(OFFICIAL_STATS_DATASET.source).toBe('league-snapshot');
     expect(OFFICIAL_STATS_DATASET.seasons).toHaveLength(16);
     expect(OFFICIAL_STATS_DATASET.teams).toHaveLength(23);
-    expect(OFFICIAL_STATS_DATASET.games).toHaveLength(281);
+    expect(OFFICIAL_STATS_DATASET.games).toHaveLength(282);
     expect(OFFICIAL_STATS_DATASET.players).toHaveLength(216);
-    expect(OFFICIAL_STATS_DATASET.playerGameStats).toHaveLength(3376);
-    expect(OFFICIAL_STATS_DATASET.goalieGameStats).toHaveLength(277);
-    expect(OFFICIAL_STATS_DATASET.gameEvents).toHaveLength(2734);
+    expect(OFFICIAL_STATS_DATASET.playerGameStats).toHaveLength(3396);
+    expect(OFFICIAL_STATS_DATASET.goalieGameStats).toHaveLength(279);
+    expect(OFFICIAL_STATS_DATASET.gameEvents).toHaveLength(2759);
     expect(OFFICIAL_STATS_DATASET.teams.filter((team) => team.seasonId === 'summer-2026').map((team) => team.name)).toEqual(['Mon/Thu Team', 'Sunday Team']);
     expect(OFFICIAL_STATS_DATASET.games.every((game) => game.sourceUrl && game.verified)).toBe(true);
     expect(OFFICIAL_STATS_DATASET.seasons.every((season) => season.startDate === null && season.endDate === null)).toBe(true);

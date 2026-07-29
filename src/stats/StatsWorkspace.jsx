@@ -42,6 +42,10 @@ import {
   nextLeaderboardSort,
   sortLeaderboard,
 } from './leaderboardSort';
+import {
+  nextUpcomingGame,
+  STATS_REFRESH_INTERVAL_MS,
+} from './scheduleFreshness';
 
 const TABS = Object.freeze([
   { id: 'overview', label: 'Overview' },
@@ -485,12 +489,38 @@ export default function StatsWorkspace() {
 
   useEffect(() => {
     let active = true;
-    loadStatisticsDataset().then((next) => {
-      if (!active) return;
-      setDataset(next);
-      setSeasonId((current) => next.seasons.some((season) => season.id === current) ? current : next.seasons.find((season) => season.current)?.id ?? next.seasons[0]?.id ?? '');
-    });
-    return () => { active = false; };
+    let loading = false;
+    let lastLoadedAt = 0;
+    const load = async (force = false) => {
+      if (loading || (!force && Date.now() - lastLoadedAt < 60_000)) return;
+      loading = true;
+      try {
+        const next = await loadStatisticsDataset();
+        if (!active) return;
+        lastLoadedAt = Date.now();
+        setDataset(next);
+        setSeasonId((current) => next.seasons.some((season) => season.id === current) ? current : next.seasons.find((season) => season.current)?.id ?? next.seasons[0]?.id ?? '');
+      } finally {
+        loading = false;
+      }
+    };
+    const loadWhenVisible = () => {
+      if (document.visibilityState === 'visible') load();
+    };
+    const scheduledLoad = () => {
+      if (document.visibilityState === 'visible') load(true);
+    };
+
+    load(true);
+    const intervalId = window.setInterval(scheduledLoad, STATS_REFRESH_INTERVAL_MS);
+    window.addEventListener('focus', loadWhenVisible);
+    document.addEventListener('visibilitychange', loadWhenVisible);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', loadWhenVisible);
+      document.removeEventListener('visibilitychange', loadWhenVisible);
+    };
   }, []);
 
   useEffect(() => {
@@ -542,11 +572,8 @@ export default function StatsWorkspace() {
   const officialSourceUrl = snapshot.isSeasonAggregate ? dataset.sourceUrl : snapshot.team?.sourceUrl;
   const scheduleCount = snapshot.seasonTeams.length;
   const completedGames = snapshot.games.filter((game) => game.status === 'final');
-  const upcomingGames = snapshot.games
-    .filter((game) => game.status !== 'final')
-    .sort((a, b) => String(a.scheduledAt).localeCompare(String(b.scheduledAt)));
   const latestGame = completedGames[0] ?? null;
-  const nextGame = upcomingGames[0] ?? null;
+  const nextGame = nextUpcomingGame(snapshot.games);
   const openGame = (gameId) => {
     const url = new URL(window.location.href);
     url.searchParams.set('game', gameId);

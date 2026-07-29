@@ -1,5 +1,9 @@
 import { getPlaymakerCloudClient, playmakerCloudConfigured } from '../playmaker/playmakerCloud';
-import { OFFICIAL_STATS_DATASET } from './statsSeed';
+
+async function loadBundledStatisticsDataset() {
+  const { OFFICIAL_STATS_DATASET } = await import('./statsSeed');
+  return OFFICIAL_STATS_DATASET;
+}
 
 function mapSeason(row) {
   return {
@@ -74,6 +78,7 @@ function mapGame(row) {
     source: row.source || 'team',
     persisted: true,
     verified: Boolean(row.verified_at),
+    verifiedAt: row.verified_at || null,
   };
 }
 
@@ -146,7 +151,14 @@ export function mergeStatisticsDatasets(base, additions) {
   const importedLeaguePlayerGameStats = additions.playerGameStats.filter((line) => line.source === 'league');
   const importedLeagueGoalieGameStats = additions.goalieGameStats.filter((line) => line.source === 'league');
   const importedLeagueEvents = (additions.gameEvents || []).filter((event) => event.source === 'league');
-  const completeLeagueImport = importedLeagueGames.length >= base.games.length
+  const baseCapturedAt = Date.parse(base.capturedAt || '');
+  const latestLeagueVerification = importedLeagueGames.reduce((latest, game) => {
+    const verifiedAt = Date.parse(game.verifiedAt || '');
+    return Number.isFinite(verifiedAt) ? Math.max(latest, verifiedAt) : latest;
+  }, Number.NEGATIVE_INFINITY);
+  const leagueImportFresh = !Number.isFinite(baseCapturedAt) || latestLeagueVerification >= baseCapturedAt;
+  const completeLeagueImport = leagueImportFresh
+    && importedLeagueGames.length >= base.games.length
     && importedLeaguePlayerTotals.length >= base.playerSeasonStats.length
     && importedLeagueGoalieTotals.length >= base.goalieSeasonStats.length
     && importedLeagueTeamGameStats.length >= base.teamGameStats.length
@@ -179,6 +191,7 @@ export function mergeStatisticsDatasets(base, additions) {
     playerSeasonStats: completeLeagueImport ? cloudPlayerTotals : mergeBy(base.playerSeasonStats, cloudPlayerTotals, (item) => item.id),
     goalieSeasonStats: completeLeagueImport ? cloudGoalieTotals : mergeBy(base.goalieSeasonStats, cloudGoalieTotals, (item) => item.id),
     leagueImportComplete: completeLeagueImport,
+    leagueImportFresh,
   };
 }
 
@@ -260,9 +273,38 @@ async function checked(query) {
   return data ?? [];
 }
 
+function isStatisticsDataset(value) {
+  return value
+    && Array.isArray(value.seasons)
+    && Array.isArray(value.teams)
+    && Array.isArray(value.games)
+    && Array.isArray(value.players);
+}
+
+export async function loadRuntimeStatisticsDataset(fetcher = globalThis.fetch) {
+  if (typeof fetcher !== 'function') return loadBundledStatisticsDataset();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  try {
+    const basePath = import.meta.env.BASE_URL || '/';
+    const response = await fetcher(`${basePath}data/team-statistics.json?refresh=${Date.now()}`, {
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+    if (!response.ok) return loadBundledStatisticsDataset();
+    const dataset = await response.json();
+    return isStatisticsDataset(dataset) ? dataset : loadBundledStatisticsDataset();
+  } catch {
+    return loadBundledStatisticsDataset();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function loadStatisticsDataset() {
+  const runtimeDataset = await loadRuntimeStatisticsDataset();
   const cloud = getPlaymakerCloudClient();
-  if (!playmakerCloudConfigured || !cloud) return OFFICIAL_STATS_DATASET;
+  if (!playmakerCloudConfigured || !cloud) return runtimeDataset;
   try {
     const [seasons, teams, players, memberships, games, teamGameStats, playerGameStats, goalieGameStats, gameEvents, teamSeasonSummaries, playerSeasonStats, goalieSeasonStats] = await Promise.all([
       checked(cloud.from('seasons').select('*').eq('is_visible', true).order('start_date', { ascending: false })),
@@ -278,7 +320,7 @@ export async function loadStatisticsDataset() {
       checked(cloud.from('player_season_stats').select('*')),
       checked(cloud.from('goalie_season_stats').select('*')),
     ]);
-    return mergeStatisticsDatasets(OFFICIAL_STATS_DATASET, {
+    return mergeStatisticsDatasets(runtimeDataset, {
       source: 'cloud',
       seasons: seasons.map(mapSeason),
       teams: teams.map(mapTeam),
@@ -294,7 +336,7 @@ export async function loadStatisticsDataset() {
       goalieSeasonStats: goalieSeasonStats.map(mapGoalieSeasonLine),
     });
   } catch {
-    return OFFICIAL_STATS_DATASET;
+    return runtimeDataset;
   }
 }
 

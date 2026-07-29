@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/write-public-stats-snapshot.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -91,6 +92,7 @@
     "qa:account": "node scripts/capture-member-profile.mjs",
     "qa:themes": "node scripts/capture-theme-integrity.mjs",
     "stats:sync:york-central": "node scripts/sync-york-central-stats.mjs",
+    "stats:publish:snapshot": "node scripts/write-public-stats-snapshot.mjs",
     "stats:push:supabase": "node scripts/push-york-central-stats-to-supabase.mjs",
     "supabase:bootstrap:build": "node scripts/build-supabase-bootstrap.mjs",
     "supabase:statistics:bridge:build": "node scripts/build-supabase-statistics-bridge.mjs",

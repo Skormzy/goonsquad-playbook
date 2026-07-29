@@ -1,3 +1,4 @@
+import { nextUpcomingGame } from '../stats/scheduleFreshness';
 import { formatScheduleName } from '../stats/statsModel';
 
 function value(number) {
@@ -131,7 +132,7 @@ function gameResult(game) {
   return 'T';
 }
 
-export function memberProfileSnapshot(dataset, claims) {
+export function memberProfileSnapshot(dataset, claims, now = Date.now()) {
   const players = resolvedPlayers(dataset, claims);
   const playerIds = new Set(players.map((player) => player.id));
   const primaryClaim = claims.find((claim) => claim.primary) ?? claims[0] ?? null;
@@ -213,9 +214,10 @@ export function memberProfileSnapshot(dataset, claims) {
   const currentTeamIds = new Set(dataset.teams.filter((team) => team.seasonId === currentSeason?.id).map((team) => team.id));
   const currentMemberships = memberships.filter((membership) => currentTeamIds.has(membership.seasonTeamId));
   const activeTeamIds = new Set(currentMemberships.map((membership) => membership.seasonTeamId));
-  const nextGame = dataset.games
-    .filter((game) => activeTeamIds.has(game.seasonTeamId) && game.status !== 'final')
-    .sort((a, b) => String(a.scheduledAt).localeCompare(String(b.scheduledAt)))[0] ?? null;
+  const nextGame = nextUpcomingGame(
+    dataset.games.filter((game) => activeTeamIds.has(game.seasonTeamId)),
+    now,
+  );
   const latestMembership = currentMemberships[0] ?? memberships
     .slice()
     .sort((a, b) => (seasonIndex.get(teamsById.get(a.seasonTeamId)?.seasonId) ?? 999) - (seasonIndex.get(teamsById.get(b.seasonTeamId)?.seasonId) ?? 999))[0] ?? null;
