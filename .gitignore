@@ -27,3 +27,5 @@ public/data/team-statistics.json
 *.njsproj
 *.sln
 *.sw?
+.vercel
+.env*

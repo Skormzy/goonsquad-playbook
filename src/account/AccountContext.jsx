@@ -5,7 +5,6 @@ import {
   playmakerCloudSession,
   sendPlaymakerPasswordReset,
   signInPlaymakerAccount,
-  signInPlaymakerWithGoogle,
   signOutPlaymakerAccount,
   updatePlaymakerPassword,
   watchPlaymakerCloudSession,
@@ -38,7 +37,6 @@ const fallbackAccount = Object.freeze({
   checkUsername: async () => ({ available: false }),
   signIn: async () => {},
   signUp: async () => {},
-  signInWithGoogle: async () => {},
   resetPassword: async () => {},
   updatePassword: async () => {},
   signOut: async () => {},
@@ -57,8 +55,8 @@ export function accountMessageForError(error) {
   if (/username.*taken|duplicate key.*username/iu.test(message)) {
     return 'That username is already taken.';
   }
-  if (/invalid login|invalid credentials|email or password/iu.test(message)) {
-    return 'Email or password is incorrect.';
+  if (/invalid login|invalid credentials|email(?:, username,)? or password/iu.test(message)) {
+    return 'Email, username, or password is incorrect.';
   }
   if (/email.*not confirmed|confirm.*email/iu.test(message)) {
     return 'Confirm your email before signing in.';
@@ -71,9 +69,6 @@ export function accountMessageForError(error) {
   }
   if (/failed to fetch|network|fetch failed|connection/iu.test(message)) {
     return 'Could not reach the account service. Check your connection and try again.';
-  }
-  if (/oauth|google/iu.test(message)) {
-    return 'Google sign-in could not be completed. Please try again.';
   }
   if (/not configured|not connected/iu.test(message)) {
     return 'Accounts are temporarily unavailable. Your local plays remain safe.';
@@ -187,23 +182,18 @@ export function AccountProvider({ children }) {
     }
   }, []);
 
-  const signIn = useCallback((email, password) => run(
-    () => signInPlaymakerAccount(email, password),
+  const signIn = useCallback((identifier, password, remember = true) => run(
+    () => signInPlaymakerAccount(identifier, password, remember),
     'Signed in.',
   ), [run]);
 
-  const signUp = useCallback((email, password, displayName, username) => run(async () => {
+  const signUp = useCallback((email, password, displayName, username, remember = true) => run(async () => {
     const availability = await checkAccountUsernameAvailability(username);
     if (availability.validationError) throw new Error(availability.validationError);
     if (!availability.available) throw new Error('That username is already taken.');
-    return createPlaymakerAccount(email, password, displayName, availability.username);
+    return createPlaymakerAccount(email, password, displayName, availability.username, remember);
   },
     'Account created. Check your email if confirmation is enabled.',
-  ), [run]);
-
-  const signInWithGoogle = useCallback(() => run(
-    signInPlaymakerWithGoogle,
-    'Opening Google sign in.',
   ), [run]);
 
   const resetPassword = useCallback((email) => run(
@@ -279,7 +269,6 @@ export function AccountProvider({ children }) {
     checkUsername,
     signIn,
     signUp,
-    signInWithGoogle,
     resetPassword,
     updatePassword,
     signOut,
@@ -287,7 +276,7 @@ export function AccountProvider({ children }) {
     claimPlayer,
     releasePlayer,
     refreshProfile,
-  }), [busy, checkUsername, claimPlayer, dialogOpen, displayName, passwordRecovery, playerClaims, profile, refreshProfile, releasePlayer, resetPassword, session, signIn, signInWithGoogle, signOut, signUp, saveProfile, status, statusTone, updatePassword, username]);
+  }), [busy, checkUsername, claimPlayer, dialogOpen, displayName, passwordRecovery, playerClaims, profile, refreshProfile, releasePlayer, resetPassword, session, signIn, signOut, signUp, saveProfile, status, statusTone, updatePassword, username]);
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
 }

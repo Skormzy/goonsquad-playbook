@@ -3339,7 +3339,6 @@ input:focus:not(:focus-visible) { outline: none; }
 .playmaker-secondary-button,
 .playmaker-target-button,
 .playmaker-auth-actions button,
-.playmaker-google-button,
 .playmaker-cloud-actions > button:not(.playmaker-icon-button),
 .playmaker-template-row button {
   display: inline-flex;
@@ -3980,22 +3979,6 @@ input:focus:not(:focus-visible) { outline: none; }
   background: var(--pm-accent-bg);
 }
 
-.playmaker-google-button {
-  width: 100%;
-}
-
-.playmaker-google-button > span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  color: #2563eb;
-  background: #ffffff;
-  font-weight: 900;
-}
-
 .playmaker-cloud-user {
   justify-content: flex-start;
   padding-bottom: 12px;
@@ -4262,17 +4245,6 @@ input:focus:not(:focus-visible) { outline: none; }
 .account-signout svg {
   width: 15px;
   height: 15px;
-}
-
-.account-google-button > span {
-  width: 19px;
-  height: 19px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: #2563eb;
-  background: #fff;
-  font-weight: 900;
 }
 
 .account-identity {

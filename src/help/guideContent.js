@@ -248,11 +248,11 @@ export const GUIDE_TOPICS = Object.freeze({
     label: 'Profile',
     eyebrow: 'YOUR GOONSQUAD ID',
     title: 'Keep your plays and team history together',
-    intro: 'Create one account with email or Google, then connect the squad record that belongs in your personal view.',
+    intro: 'Create one account with any email and a unique username, then connect the squad record that belongs in your personal view.',
     sections: [
       {
         title: 'Create your account',
-        body: 'Use email and password or continue with Google. Your saved plays, Create ownership, and profile follow the same account across devices.',
+        body: 'Register with any email, choose a username, and sign in later with either one. Your saved plays, Create ownership, and profile follow the same account across devices.',
       },
       {
         title: 'Link your squad record',
@@ -277,7 +277,7 @@ export const GUIDE_TOPICS = Object.freeze({
     sections: [
       {
         title: 'Sign in your way',
-        body: 'Use email and password or continue with Google. Choose a username your teammates will recognize.',
+        body: 'Sign in with your email or username and password. On your own device, keep the stay-signed-in option selected.',
       },
       {
         title: 'Keep your local work safe',
@@ -286,6 +286,10 @@ export const GUIDE_TOPICS = Object.freeze({
       {
         title: 'Manage your profile',
         body: 'Update your display name and username, then open your player profile to manage linked league records.',
+      },
+      {
+        title: 'Team administration',
+        body: 'Admins can manage member names, usernames, access levels, password reset emails, suspensions, and account deletion from the account workspace.',
       },
     ],
     note: 'Account details and official team statistics are stored separately. Linking a player does not edit the team record.',

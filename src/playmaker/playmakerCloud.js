@@ -8,16 +8,88 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
   || 'sb_publishable_NYkCHXiYM-eA0BSTCdxaOQ_D_vAFsw8';
 const publicAppUrl = import.meta.env.VITE_PUBLIC_APP_URL
   || 'https://goonsquad.app';
+const AUTH_PERSISTENCE_KEY = 'goonsquad:auth:persistence';
 
 export const playmakerCloudConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 let client = null;
+let rememberAuth = true;
+
+function readBrowserStorage(storage, key) {
+  try {
+    return storage?.getItem(key) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function writeBrowserStorage(storage, key, value) {
+  try {
+    storage?.setItem(key, value);
+  } catch {
+    // Storage can be unavailable in private browsing or embedded webviews.
+  }
+}
+
+function removeBrowserStorage(storage, key) {
+  try {
+    storage?.removeItem(key);
+  } catch {
+    // Storage cleanup is best effort.
+  }
+}
+
+function initializeAuthPersistence() {
+  if (typeof window === 'undefined') return;
+  rememberAuth = readBrowserStorage(window.localStorage, AUTH_PERSISTENCE_KEY) !== 'session';
+}
+
+initializeAuthPersistence();
+
+const adaptiveAuthStorage = {
+  getItem(key) {
+    if (typeof window === 'undefined') return null;
+    return readBrowserStorage(window.sessionStorage, key)
+      ?? readBrowserStorage(window.localStorage, key);
+  },
+  setItem(key, value) {
+    if (typeof window === 'undefined') return;
+    const primary = rememberAuth ? window.localStorage : window.sessionStorage;
+    const secondary = rememberAuth ? window.sessionStorage : window.localStorage;
+    writeBrowserStorage(primary, key, value);
+    removeBrowserStorage(secondary, key);
+  },
+  removeItem(key) {
+    if (typeof window === 'undefined') return;
+    removeBrowserStorage(window.localStorage, key);
+    removeBrowserStorage(window.sessionStorage, key);
+  },
+};
+
+export function setPlaymakerAuthPersistence(remember) {
+  rememberAuth = Boolean(remember);
+  if (typeof window === 'undefined') return;
+  writeBrowserStorage(
+    window.localStorage,
+    AUTH_PERSISTENCE_KEY,
+    rememberAuth ? 'local' : 'session',
+  );
+}
+
+export function getPlaymakerAuthPersistence() {
+  return rememberAuth;
+}
 
 export function getPlaymakerCloudClient() {
   if (!playmakerCloudConfigured) return null;
   if (!client) {
     client = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: adaptiveAuthStorage,
+      },
     });
   }
   return client;
@@ -46,9 +118,16 @@ function appRedirectUrl(params = {}) {
   return url.toString();
 }
 
-export async function createPlaymakerAccount(email, password, displayName = '', username = '') {
+export async function createPlaymakerAccount(
+  email,
+  password,
+  displayName = '',
+  username = '',
+  remember = true,
+) {
   const cloud = getPlaymakerCloudClient();
   if (!cloud) throw new Error('Cloud accounts are not configured.');
+  setPlaymakerAuthPersistence(remember);
   const normalizedUsername = normalizeUsername(username);
   const usernameError = usernameValidationMessage(normalizedUsername);
   if (usernameError) throw new Error(usernameError);
@@ -67,23 +146,32 @@ export async function createPlaymakerAccount(email, password, displayName = '', 
   return data;
 }
 
-export async function signInPlaymakerAccount(email, password) {
+export async function signInPlaymakerAccount(identifier, password, remember = true) {
   const cloud = getPlaymakerCloudClient();
   if (!cloud) throw new Error('Cloud accounts are not configured.');
-  const { data, error } = await cloud.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  return data;
-}
+  setPlaymakerAuthPersistence(remember);
+  const normalizedIdentifier = String(identifier || '').trim();
 
-export async function signInPlaymakerWithGoogle() {
-  const cloud = getPlaymakerCloudClient();
-  if (!cloud) throw new Error('Cloud accounts are not configured.');
-  const { data, error } = await cloud.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: appRedirectUrl({ content: 'account', auth: 'complete' }),
-      queryParams: { prompt: 'select_account' },
-    },
+  if (normalizedIdentifier.includes('@')) {
+    const { data, error } = await cloud.auth.signInWithPassword({
+      email: normalizedIdentifier,
+      password,
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  const response = await fetch('/api/auth/username-login', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier: normalizedIdentifier, password }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || 'Email, username, or password is incorrect.');
+  const { data, error } = await cloud.auth.setSession({
+    access_token: payload.accessToken,
+    refresh_token: payload.refreshToken,
   });
   if (error) throw error;
   return data;

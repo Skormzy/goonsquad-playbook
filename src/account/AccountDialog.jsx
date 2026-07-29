@@ -10,10 +10,12 @@ import {
   Mail,
   ShieldCheck,
   UserPlus,
+  Users,
   X,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
+import { getPlaymakerAuthPersistence } from '../playmaker/playmakerCloud';
 import { useAccount } from './AccountContext';
 import UsernameField from './UsernameField';
 import { isValidUsername, normalizeUsername } from './username';
@@ -33,9 +35,12 @@ export default function AccountDialog() {
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [verifiedUsername, setVerifiedUsername] = useState('');
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [remember, setRemember] = useState(getPlaymakerAuthPersistence);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState('');
   const t = themes[theme];
 
   if (!account.dialogOpen) return null;
@@ -46,6 +51,18 @@ export default function AccountDialog() {
 
   const openProfile = () => {
     setActiveView('profile');
+    account.closeAccount();
+  };
+
+  const openAdmin = () => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('content', 'account');
+      url.searchParams.set('mode', '2d');
+      url.searchParams.set('panel', 'admin');
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    } catch { /* URL state is non-critical. */ }
+    setActiveView('account');
     account.closeAccount();
   };
 
@@ -73,7 +90,7 @@ export default function AccountDialog() {
         <header className="account-dialog-header">
           <div>
             <span>GOONSQUAD ID</span>
-            <h2 id="account-dialog-title">{account.user ? 'Your team account' : 'Join the squad workspace'}</h2>
+            <h2 id="account-dialog-title">{account.user ? 'Your team account' : 'Goon with the squad'}</h2>
           </div>
           <button type="button" className="account-icon-button" onClick={account.closeAccount} aria-label="Close account" title="Close">
             <X aria-hidden="true" />
@@ -110,35 +127,56 @@ export default function AccountDialog() {
         {account.configured && !account.user && !account.passwordRecovery && (
           <div className="account-auth-shell">
             <div className="account-auth-tabs" role="tablist" aria-label="Account access">
-              <button type="button" role="tab" aria-selected={mode === 'signin'} onClick={() => { setMode('signin'); account.clearStatus(); }}>Sign in</button>
-              <button type="button" role="tab" aria-selected={mode === 'signup'} onClick={() => { setMode('signup'); account.clearStatus(); }}>Create account</button>
+              <button type="button" role="tab" aria-selected={mode === 'signin'} onClick={() => { setMode('signin'); setRecoveryOpen(false); account.clearStatus(); }}>Sign in</button>
+              <button type="button" role="tab" aria-selected={mode === 'signup'} onClick={() => { setMode('signup'); setRecoveryOpen(false); account.clearStatus(); }}>Create account</button>
             </div>
             <form className="account-auth-form" onSubmit={(event) => {
               event.preventDefault();
               submit(() => mode === 'signup'
-                ? account.signUp(email, password, displayName, username)
-                : account.signIn(email, password));
+                ? account.signUp(identifier, password, displayName, username, remember)
+                : account.signIn(identifier, password, remember));
             }}>
               {mode === 'signup' && <label><span>Your name</span><input type="text" autoComplete="name" maxLength="80" value={displayName} onChange={(event) => setDisplayName(event.target.value)} required /></label>}
               {mode === 'signup' && <UsernameField account={account} id="dialog-signup-username" value={username} onChange={setUsername} onAvailabilityChange={(available, checkedUsername) => setVerifiedUsername(available ? checkedUsername : '')} />}
               <label>
-                <span>Email</span>
-                <div className="account-input-with-icon"><Mail aria-hidden="true" /><input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></div>
+                <span>{mode === 'signup' ? 'Email' : 'Email or username'}</span>
+                <div className="account-input-with-icon">
+                  {mode === 'signup' ? <Mail aria-hidden="true" /> : <UserPlus aria-hidden="true" />}
+                  <input
+                    type={mode === 'signup' ? 'email' : 'text'}
+                    autoComplete={mode === 'signup' ? 'email' : 'username'}
+                    value={identifier}
+                    onChange={(event) => setIdentifier(event.target.value)}
+                    required
+                  />
+                </div>
               </label>
               <label>
                 <span>Password</span>
                 <div className="account-input-with-icon"><LockKeyhole aria-hidden="true" /><input type="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} minLength="8" value={password} onChange={(event) => setPassword(event.target.value)} required /></div>
               </label>
-              <button type="submit" className="account-primary-action" disabled={account.busy || !email || password.length < 8 || (mode === 'signup' && (!displayName.trim() || verifiedUsername !== username || !isValidUsername(username)))}>
+              <label className="account-remember">
+                <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
+                <span><strong>Keep me signed in on this device</strong><small>Best for your own phone or computer.</small></span>
+              </label>
+              <button type="submit" className="account-primary-action" disabled={account.busy || !identifier || password.length < 8 || (mode === 'signup' && (!identifier.includes('@') || !displayName.trim() || verifiedUsername !== username || !isValidUsername(username)))}>
                 {mode === 'signup' ? <><UserPlus aria-hidden="true" /> Create my account</> : <>Sign in <ArrowRight aria-hidden="true" /></>}
               </button>
-              {mode === 'signin' && <button type="button" className="account-forgot-button" disabled={account.busy || !email} onClick={() => submit(() => account.resetPassword(email))}>Forgot password?</button>}
+              {mode === 'signin' && !recoveryOpen && <button type="button" className="account-forgot-button" disabled={account.busy} onClick={() => {
+                setRecoveryEmail(identifier.includes('@') ? identifier : '');
+                setRecoveryOpen(true);
+              }}>Forgot password?</button>}
             </form>
-            <div className="account-auth-divider"><span>or</span></div>
-            <button type="button" className="account-google-button" disabled={account.busy} onClick={() => submit(account.signInWithGoogle)}>
-              <span aria-hidden="true">G</span>
-              Continue with Google
-            </button>
+            {mode === 'signin' && recoveryOpen && (
+              <form className="account-recovery-inline is-dialog" onSubmit={(event) => {
+                event.preventDefault();
+                submit(() => account.resetPassword(recoveryEmail));
+              }}>
+                <div><KeyRound aria-hidden="true" /><span><strong>Reset your password</strong><small>Enter the email attached to the account.</small></span></div>
+                <label><span>Email</span><input type="email" autoComplete="email" value={recoveryEmail} onChange={(event) => setRecoveryEmail(event.target.value)} required /></label>
+                <div><button type="submit" disabled={account.busy || !recoveryEmail.includes('@')}>Send reset link</button><button type="button" onClick={() => setRecoveryOpen(false)}>Cancel</button></div>
+              </form>
+            )}
             <p className="account-trust-note"><ShieldCheck aria-hidden="true" /> Your account controls only your profile, favorites, and created plays. Team statistics remain source-verified.</p>
           </div>
         )}
@@ -156,6 +194,14 @@ export default function AccountDialog() {
               <span><strong>Open my profile</strong><small>{linkedClaims ? `${linkedClaims} linked player record${linkedClaims === 1 ? '' : 's'}` : 'Link yourself to the squad roster'}</small></span>
               <ArrowRight aria-hidden="true" />
             </button>
+
+            {account.profile?.role === 'admin' && (
+              <button type="button" className="account-profile-entry" onClick={openAdmin}>
+                <span className="account-profile-entry-icon"><Users aria-hidden="true" /></span>
+                <span><strong>Manage member accounts</strong><small>Access, roles, password help, and account controls</small></span>
+                <ArrowRight aria-hidden="true" />
+              </button>
+            )}
 
             <div className="account-sync-summary">
               <Cloud aria-hidden="true" />

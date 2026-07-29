@@ -15,9 +15,12 @@ import {
   Sparkles,
   UserRound,
   UserRoundCheck,
+  Users,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
+import { getPlaymakerAuthPersistence } from '../playmaker/playmakerCloud';
+import AccountAdminPanel from './AccountAdminPanel';
 import { useAccount } from './AccountContext';
 import UsernameField from './UsernameField';
 import { isValidUsername, normalizeUsername } from './username';
@@ -41,6 +44,23 @@ function updateAuthModeInUrl(mode) {
   } catch { /* URL state is non-critical. */ }
 }
 
+function initialAdminPanel() {
+  try {
+    return new URL(window.location.href).searchParams.get('panel') === 'admin';
+  } catch {
+    return false;
+  }
+}
+
+function updateAdminPanelInUrl(open) {
+  try {
+    const url = new URL(window.location.href);
+    if (open) url.searchParams.set('panel', 'admin');
+    else url.searchParams.delete('panel');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  } catch { /* URL state is non-critical. */ }
+}
+
 function AccountValue({ children, title, text }) {
   return (
     <div className="account-value-row">
@@ -51,7 +71,7 @@ function AccountValue({ children, title, text }) {
   );
 }
 
-function SignedInAccount({ account, setActiveView }) {
+function SignedInAccount({ account, onOpenAdmin, setActiveView }) {
   const [profileName, setProfileName] = useState(account.displayName === 'Guest' ? '' : account.displayName);
   const [profileUsername, setProfileUsername] = useState(account.username || normalizeUsername(account.displayName));
   const [verifiedUsername, setVerifiedUsername] = useState('');
@@ -91,23 +111,12 @@ function SignedInAccount({ account, setActiveView }) {
       </form>
       <div className="account-workspace-session-actions">
         <button type="button" onClick={() => setActiveView('profile')}><UserRoundCheck aria-hidden="true" /> Open player profile</button>
+        {account.profile?.role === 'admin' && (
+          <button type="button" onClick={onOpenAdmin}><Users aria-hidden="true" /> Manage members</button>
+        )}
         <button type="button" onClick={() => account.signOut().catch(() => {})} disabled={account.busy}><LogOut aria-hidden="true" /> Sign out</button>
       </div>
     </div>
-  );
-}
-
-function GoogleButton({ account, label = 'Continue with Google' }) {
-  return (
-    <button
-      type="button"
-      className="account-workspace-google"
-      disabled={account.busy}
-      onClick={() => account.signInWithGoogle().catch(() => {})}
-    >
-      <span aria-hidden="true">G</span>
-      {label}
-    </button>
   );
 }
 
@@ -150,33 +159,48 @@ export default function AccountWorkspace() {
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [verifiedUsername, setVerifiedUsername] = useState('');
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [remember, setRemember] = useState(getPlaymakerAuthPersistence);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [adminOpen, setAdminOpen] = useState(initialAdminPanel);
 
   const changeMode = (nextMode) => {
     setMode(nextMode);
+    setRecoveryOpen(false);
     account.clearStatus();
     updateAuthModeInUrl(nextMode);
   };
 
   const signupReady = useMemo(
-    () => Boolean(displayName.trim() && email && password.length >= 8 && verifiedUsername === username && isValidUsername(username)),
-    [displayName, email, password.length, username, verifiedUsername],
+    () => Boolean(displayName.trim() && identifier.includes('@') && password.length >= 8 && verifiedUsername === username && isValidUsername(username)),
+    [displayName, identifier, password.length, username, verifiedUsername],
   );
 
-  const signinReady = Boolean(email && password.length >= 8);
+  const signinReady = Boolean(identifier.trim() && password.length >= 8);
 
   const submitAuth = async (event) => {
     event.preventDefault();
     try {
       if (mode === 'signup') {
-        await account.signUp(email, password, displayName, username);
+        await account.signUp(identifier, password, displayName, username, remember);
         return;
       }
-      await account.signIn(email, password);
+      await account.signIn(identifier, password, remember);
       setActiveView('profile');
     } catch { /* AccountContext exposes the message. */ }
+  };
+
+  const openAdmin = () => {
+    setAdminOpen(true);
+    updateAdminPanelInUrl(true);
+  };
+
+  const closeAdmin = () => {
+    setAdminOpen(false);
+    updateAdminPanelInUrl(false);
   };
 
   return (
@@ -195,7 +219,7 @@ export default function AccountWorkspace() {
         '--account-brand': t.br,
       }}
     >
-      <div className="account-workspace-frame">
+      <div className={`account-workspace-frame ${account.user && account.profile?.role === 'admin' && adminOpen ? 'is-admin' : ''}`}>
         <aside className="account-workspace-identity">
           <div className="account-workspace-kicker"><span /> GOONSQUAD ID</div>
           <h1>{account.user ? 'Your team identity.' : 'Goon with the squad.'}</h1>
@@ -208,7 +232,10 @@ export default function AccountWorkspace() {
           <div className="account-workspace-trust"><ShieldCheck aria-hidden="true" /><span>Official team statistics stay source-verified and separate from account details.</span></div>
         </aside>
 
-        <section className="account-workspace-panel" aria-labelledby="account-workspace-title">
+        <section
+          className={`account-workspace-panel ${account.user && account.profile?.role === 'admin' && adminOpen ? 'is-admin' : ''}`}
+          aria-labelledby={account.user && account.profile?.role === 'admin' && adminOpen ? 'account-admin-title' : 'account-workspace-title'}
+        >
           {!account.configured ? (
             <div className="account-workspace-unavailable">
               <ShieldCheck aria-hidden="true" />
@@ -225,8 +252,15 @@ export default function AccountWorkspace() {
               <PasswordInput id="account-new-password" label="New password" autoComplete="new-password" value={newPassword} onChange={setNewPassword} />
               <button type="submit" className="account-workspace-primary" disabled={account.busy || newPassword.length < 8}>Update password <ArrowRight aria-hidden="true" /></button>
             </form>
+          ) : account.user && account.profile?.role === 'admin' && adminOpen ? (
+            <AccountAdminPanel onClose={closeAdmin} />
           ) : account.user ? (
-            <SignedInAccount key={`${account.user.id}:${account.profile?.updated_at || 'new'}`} account={account} setActiveView={setActiveView} />
+            <SignedInAccount
+              key={`${account.user.id}:${account.profile?.updated_at || 'new'}`}
+              account={account}
+              onOpenAdmin={openAdmin}
+              setActiveView={setActiveView}
+            />
           ) : (
             <div className="account-workspace-auth">
               <header className="account-workspace-heading">
@@ -239,9 +273,6 @@ export default function AccountWorkspace() {
                 <button type="button" role="tab" aria-selected={mode === 'signup'} onClick={() => changeMode('signup')}>Sign up</button>
                 <button type="button" role="tab" aria-selected={mode === 'signin'} onClick={() => changeMode('signin')}>Sign in</button>
               </div>
-
-              <GoogleButton account={account} label={mode === 'signup' ? 'Sign up with Google' : 'Sign in with Google'} />
-              <div className="account-workspace-divider"><span>or use email</span></div>
 
               <form className="account-workspace-form" onSubmit={submitAuth}>
                 {mode === 'signup' && (
@@ -256,13 +287,45 @@ export default function AccountWorkspace() {
                     />
                   </>
                 )}
-                <label htmlFor="account-email"><span>Email</span><div className="account-input-with-icon"><Mail aria-hidden="true" /><input id="account-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></div></label>
+                <label htmlFor="account-identifier">
+                  <span>{mode === 'signup' ? 'Email' : 'Email or username'}</span>
+                  <div className="account-input-with-icon">
+                    {mode === 'signup' ? <Mail aria-hidden="true" /> : <UserRound aria-hidden="true" />}
+                    <input
+                      id="account-identifier"
+                      type={mode === 'signup' ? 'email' : 'text'}
+                      autoComplete={mode === 'signup' ? 'email' : 'username'}
+                      value={identifier}
+                      onChange={(event) => setIdentifier(event.target.value)}
+                      required
+                    />
+                  </div>
+                </label>
                 <PasswordInput id="account-password" label="Password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} value={password} onChange={setPassword} />
+                <label className="account-remember">
+                  <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
+                  <span><strong>Keep me signed in on this device</strong><small>Best for your own phone or computer.</small></span>
+                </label>
                 <button type="submit" className="account-workspace-primary" disabled={account.busy || (mode === 'signup' ? !signupReady : !signinReady)}>
                   {mode === 'signup' ? <><UserRoundCheck aria-hidden="true" /> Create account</> : <><LogIn aria-hidden="true" /> Sign in</>}
                 </button>
-                {mode === 'signin' && <button type="button" className="account-workspace-forgot" disabled={account.busy || !email} onClick={() => account.resetPassword(email).catch(() => {})}>Forgot password?</button>}
+                {mode === 'signin' && !recoveryOpen && (
+                  <button type="button" className="account-workspace-forgot" disabled={account.busy} onClick={() => {
+                    setRecoveryEmail(identifier.includes('@') ? identifier : '');
+                    setRecoveryOpen(true);
+                  }}>Forgot password?</button>
+                )}
               </form>
+              {mode === 'signin' && recoveryOpen && (
+                <form className="account-recovery-inline" onSubmit={(event) => {
+                  event.preventDefault();
+                  account.resetPassword(recoveryEmail).catch(() => {});
+                }}>
+                  <div><KeyRound aria-hidden="true" /><span><strong>Reset your password</strong><small>Enter the email attached to the account.</small></span></div>
+                  <label htmlFor="account-recovery-email"><span>Email</span><input id="account-recovery-email" type="email" autoComplete="email" value={recoveryEmail} onChange={(event) => setRecoveryEmail(event.target.value)} required /></label>
+                  <div><button type="submit" disabled={account.busy || !recoveryEmail.includes('@')}>Send reset link</button><button type="button" onClick={() => setRecoveryOpen(false)}>Cancel</button></div>
+                </form>
+              )}
             </div>
           )}
 

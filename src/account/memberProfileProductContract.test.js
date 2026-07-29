@@ -13,20 +13,43 @@ describe('member profile product contract', () => {
     expect(migration).not.toContain('already verified to another account');
   });
 
-  it('offers email, password recovery, and Google authentication', () => {
+  it('offers open email registration, username sign-in, and password recovery', () => {
     const dialog = read('src/account/AccountDialog.jsx');
     const workspace = read('src/account/AccountWorkspace.jsx');
     const cloud = read('src/playmaker/playmakerCloud.js');
+    const usernameLogin = read('api/auth/username-login.js');
     expect(dialog).toContain('Create my account');
-    expect(dialog).toContain('Continue with Google');
+    expect(dialog).toContain('Email or username');
+    expect(dialog).toContain('Keep me signed in on this device');
+    expect(dialog).not.toContain('Continue with Google');
     expect(dialog).toContain('Forgot password?');
     expect(workspace).toContain('Create your account');
-    expect(workspace).toContain('Sign up with Google');
+    expect(workspace).toContain('Email or username');
     expect(workspace).toContain('UsernameField');
-    expect(cloud).toContain("provider: 'google'");
+    expect(workspace).not.toContain('Sign up with Google');
+    expect(cloud).toContain('/api/auth/username-login');
+    expect(cloud).toContain('adaptiveAuthStorage');
+    expect(cloud).not.toContain("provider: 'google'");
+    expect(usernameLogin).toContain('admin.auth.admin.getUserById');
+    expect(usernameLogin).toContain('signInWithPassword');
+    expect(usernameLogin).not.toContain('response.status(200).json({ email');
     expect(cloud).toContain('resetPasswordForEmail');
     expect(cloud).toContain("window.location.origin");
     expect(cloud).toContain('runtimeOrigin || publicAppUrl');
+  });
+
+  it('keeps account administration behind a server-authorized admin console', () => {
+    const panel = read('src/account/AccountAdminPanel.jsx');
+    const api = read('api/account-admin.js');
+    const server = read('server/supabaseAdmin.js');
+    expect(panel).toContain('Member administration');
+    expect(panel).toContain('Send reset');
+    expect(panel).toContain('Confirm delete');
+    expect(api).toContain('requireAccountAdmin');
+    expect(api).toContain('Only the account owner can promote another admin.');
+    expect(server).toContain("profile?.role !== 'admin'");
+    expect(server).toContain('SUPABASE_SERVICE_ROLE_KEY');
+    expect(server).not.toContain('VITE_SUPABASE_SERVICE_ROLE_KEY');
   });
 
   it('routes members through dedicated account and profile workspaces', () => {
