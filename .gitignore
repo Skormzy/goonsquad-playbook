@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 .superpowers/
+__pycache__/
+*.py[cod]
+src/screenshots/
 
 # Editor directories and files
 .vscode/*
