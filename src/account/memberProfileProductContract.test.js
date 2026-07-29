@@ -58,6 +58,7 @@ describe('member profile product contract', () => {
     const panel = read('src/account/AccountAdminPanel.jsx');
     const api = read('api/account-admin.js');
     const server = read('server/supabaseAdmin.js');
+    const bootstrapOwner = read('api/auth/bootstrap-owner.js');
     expect(panel).toContain('Member administration');
     expect(panel).toContain('Send reset');
     expect(panel).toContain('Confirm delete');
@@ -66,6 +67,9 @@ describe('member profile product contract', () => {
     expect(server).toContain("profile?.role !== 'admin'");
     expect(server).toContain('SUPABASE_SERVICE_ROLE_KEY');
     expect(server).not.toContain('VITE_SUPABASE_SERVICE_ROLE_KEY');
+    expect(bootstrapOwner).toContain('configuredAccountOwnerEmail');
+    expect(bootstrapOwner).toContain("profile.role !== 'admin'");
+    expect(bootstrapOwner).toContain("response.status(200).json({ promoted: false })");
   });
 
   it('routes members through dedicated account and profile workspaces', () => {

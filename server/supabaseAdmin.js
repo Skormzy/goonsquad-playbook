@@ -26,6 +26,10 @@ export function createServerClients() {
   };
 }
 
+export function configuredAccountOwnerEmail() {
+  return String(process.env.ACCOUNT_OWNER_EMAIL || '').trim().toLowerCase();
+}
+
 export function parseJsonBody(request) {
   if (!request?.body) return {};
   if (typeof request.body === 'object') return request.body;
@@ -83,21 +87,41 @@ export async function requireAccountAdmin(request) {
     throw error;
   }
 
-  const { data: firstAdmin } = await clients.admin
-    .from('profiles')
-    .select('id')
-    .eq('role', 'admin')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  const ownerEmail = configuredAccountOwnerEmail();
+  const actorEmail = String(userData.user.email || '').trim().toLowerCase();
+  const isConfiguredOwner = Boolean(ownerEmail && actorEmail === ownerEmail);
+  let ownerId = null;
+
+  if (ownerEmail) {
+    if (isConfiguredOwner) {
+      ownerId = profile.id;
+    } else {
+      const { data: authUsers } = await clients.admin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+      });
+      ownerId = authUsers?.users?.find(
+        (user) => String(user.email || '').trim().toLowerCase() === ownerEmail,
+      )?.id || null;
+    }
+  } else {
+    const { data: firstAdmin } = await clients.admin
+      .from('profiles')
+      .select('id')
+      .eq('role', 'admin')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    ownerId = firstAdmin?.id || null;
+  }
 
   return {
     ...clients,
     actor: {
       ...profile,
       email: userData.user.email,
-      isOwner: firstAdmin?.id === profile.id,
-      ownerId: firstAdmin?.id || null,
+      isOwner: ownerId === profile.id,
+      ownerId,
     },
   };
 }

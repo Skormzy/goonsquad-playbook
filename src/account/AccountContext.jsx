@@ -10,6 +10,7 @@ import {
   watchPlaymakerCloudSession,
 } from '../playmaker/playmakerCloud';
 import {
+  bootstrapAccountOwner,
   checkAccountUsernameAvailability,
   loadAccountProfile,
   loadMemberPlayerClaims,
@@ -173,6 +174,24 @@ export function AccountProvider({ children }) {
       stop();
     };
   }, [refreshProfileForUser]);
+
+  useEffect(() => {
+    const accessToken = session?.access_token;
+    const userId = session?.user?.id;
+    if (!accessToken || !userId) return undefined;
+    let active = true;
+    bootstrapAccountOwner(accessToken)
+      .then((promoted) => {
+        if (active && promoted) return refreshProfileForUser(userId);
+        return null;
+      })
+      .catch(() => {
+        // Regular members do not need owner bootstrap to use their accounts.
+      });
+    return () => {
+      active = false;
+    };
+  }, [refreshProfileForUser, session?.access_token, session?.user?.id]);
 
   useEffect(() => {
     const userId = session?.user?.id;

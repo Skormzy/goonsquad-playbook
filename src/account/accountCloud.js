@@ -10,6 +10,21 @@ function requireCloud() {
   return cloud;
 }
 
+export async function bootstrapAccountOwner(accessToken) {
+  if (!accessToken) return false;
+  const response = await fetch('/api/auth/bootstrap-owner', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || 'Owner access could not be configured.');
+  return Boolean(payload.promoted);
+}
+
 export async function loadAccountProfile(userId) {
   if (!userId) return null;
   const cloud = requireCloud();

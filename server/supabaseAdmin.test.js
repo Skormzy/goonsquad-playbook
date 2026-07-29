@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import {
+  configuredAccountOwnerEmail,
   createServerClients,
   parseJsonBody,
   publicAppUrl,
@@ -7,12 +8,15 @@ import {
 
 const originalServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const originalPublicUrl = process.env.PUBLIC_APP_URL;
+const originalOwnerEmail = process.env.ACCOUNT_OWNER_EMAIL;
 
 afterEach(() => {
   if (originalServiceKey == null) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   else process.env.SUPABASE_SERVICE_ROLE_KEY = originalServiceKey;
   if (originalPublicUrl == null) delete process.env.PUBLIC_APP_URL;
   else process.env.PUBLIC_APP_URL = originalPublicUrl;
+  if (originalOwnerEmail == null) delete process.env.ACCOUNT_OWNER_EMAIL;
+  else process.env.ACCOUNT_OWNER_EMAIL = originalOwnerEmail;
 });
 
 describe('server account helpers', () => {
@@ -34,5 +38,10 @@ describe('server account helpers', () => {
   it('accepts parsed or serialized request bodies', () => {
     expect(parseJsonBody({ body: { action: 'list' } })).toEqual({ action: 'list' });
     expect(parseJsonBody({ body: '{"action":"list"}' })).toEqual({ action: 'list' });
+  });
+
+  it('normalizes the configured account owner email', () => {
+    process.env.ACCOUNT_OWNER_EMAIL = '  Owner@Example.com ';
+    expect(configuredAccountOwnerEmail()).toBe('owner@example.com');
   });
 });
