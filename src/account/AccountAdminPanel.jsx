@@ -1,23 +1,33 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  AlertTriangle,
   ArrowLeft,
+  BadgeCheck,
   Ban,
   CheckCircle2,
+  CircleX,
+  ExternalLink,
   KeyRound,
+  Link2,
   LoaderCircle,
   RefreshCcw,
   Save,
   Search,
   ShieldCheck,
   Trash2,
+  Unlink,
   UserCog,
+  UserRoundCheck,
   Users,
 } from 'lucide-react';
 import {
+  assignManagedPlayer,
   deleteManagedAccount,
   loadManagedAccounts,
+  reviewManagedPlayerClaim,
   sendManagedAccountPasswordReset,
   setManagedAccountSuspension,
+  unlinkManagedPlayer,
   updateManagedAccount,
 } from './accountAdmin';
 import { isValidUsername, normalizeUsername } from './username';
@@ -42,6 +52,8 @@ function formatActivity(value) {
 
 export default function AccountAdminPanel({ onClose }) {
   const [accounts, setAccounts] = useState([]);
+  const [claims, setClaims] = useState([]);
+  const [players, setPlayers] = useState([]);
   const [permissions, setPermissions] = useState({ isOwner: false });
   const [selectedId, setSelectedId] = useState('');
   const [draft, setDraft] = useState(null);
@@ -51,9 +63,13 @@ export default function AccountAdminPanel({ onClose }) {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [deleteArmed, setDeleteArmed] = useState(false);
+  const [assignmentPlayerId, setAssignmentPlayerId] = useState('');
+  const [confirmation, setConfirmation] = useState(null);
 
   const applySnapshot = (snapshot) => {
     setAccounts(snapshot.accounts || []);
+    setClaims(snapshot.claims || []);
+    setPlayers(snapshot.players || []);
     setPermissions(snapshot.permissions || { isOwner: false });
     if (selectedId) {
       const selected = (snapshot.accounts || []).find((account) => account.id === selectedId);
@@ -94,13 +110,34 @@ export default function AccountAdminPanel({ onClose }) {
   const summary = useMemo(() => ({
     total: accounts.length,
     admins: accounts.filter((account) => account.role === 'admin').length,
-    pending: accounts.filter((account) => !account.emailConfirmed).length,
-  }), [accounts]);
+    pending: claims.filter((claim) => claim.status === 'pending').length,
+  }), [accounts, claims]);
+
+  const pendingClaims = useMemo(
+    () => claims.filter((claim) => claim.status === 'pending'),
+    [claims],
+  );
+
+  const selectedClaims = useMemo(
+    () => claims.filter((claim) => claim.userId === draft?.id && claim.status === 'approved'),
+    [claims, draft?.id],
+  );
+
+  const assignablePlayers = useMemo(() => players.filter((player) => (
+    !player.linked || selectedClaims.some((claim) => claim.playerId === player.id)
+  )), [players, selectedClaims]);
+
+  const assignmentPlayer = useMemo(
+    () => players.find((player) => player.id === assignmentPlayerId) || null,
+    [assignmentPlayerId, players],
+  );
 
   const selectAccount = (account) => {
     setSelectedId(account.id);
     setDraft({ ...account });
     setDeleteArmed(false);
+    setAssignmentPlayerId('');
+    setConfirmation(null);
     setStatus('');
     setError('');
   };
@@ -114,6 +151,8 @@ export default function AccountAdminPanel({ onClose }) {
       if (snapshot?.accounts) applySnapshot(snapshot);
       setStatus(successMessage);
       setDeleteArmed(false);
+      setAssignmentPlayerId('');
+      setConfirmation(null);
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -131,6 +170,57 @@ export default function AccountAdminPanel({ onClose }) {
     && isValidUsername(draft?.username)
     && !working,
   );
+
+  const approveClaim = (claim) => {
+    const competing = pendingClaims.filter((candidate) => (
+      candidate.playerId === claim.playerId && candidate.userId !== claim.userId
+    )).length;
+    const operation = () => reviewManagedPlayerClaim(claim.userId, claim.playerId, 'approved');
+    const successMessage = `${claim.player?.displayName || 'Player profile'} linked to ${claim.member?.displayName || 'member'}.`;
+    if (!competing) {
+      runAction(`approve:${claim.userId}:${claim.playerId}`, operation, successMessage);
+      return;
+    }
+    setConfirmation({
+      key: `approve:${claim.userId}:${claim.playerId}`,
+      title: `Approve ${claim.member?.displayName || 'this member'}?`,
+      detail: `This will deny ${competing} competing request${competing === 1 ? '' : 's'} for ${claim.player?.displayName || 'the same player profile'}.`,
+      confirmLabel: 'Approve and resolve',
+      operation,
+      successMessage,
+    });
+  };
+
+  const confirmAssignment = () => {
+    if (!draft || !assignmentPlayer) return;
+    const memberPending = pendingClaims.filter((claim) => claim.userId === draft.id).length;
+    const details = [
+      selectedClaims.some((claim) => claim.primary) ? 'replace the current primary player' : '',
+      memberPending ? `resolve ${memberPending} pending request${memberPending === 1 ? '' : 's'}` : '',
+    ].filter(Boolean);
+    setConfirmation({
+      key: `assign:${draft.id}:${assignmentPlayer.id}`,
+      title: `Assign ${assignmentPlayer.displayName} to ${draft.displayName || draft.username}?`,
+      detail: details.length
+        ? `This will ${details.join(' and ')}. Historical approved records remain available.`
+        : 'This links the official player statistics to this account immediately.',
+      confirmLabel: 'Assign player',
+      operation: () => assignManagedPlayer(draft.id, assignmentPlayer.id),
+      successMessage: 'Player profile assigned.',
+    });
+  };
+
+  const confirmUnlink = (claim) => {
+    if (!draft) return;
+    setConfirmation({
+      key: `unlink:${draft.id}:${claim.playerId}`,
+      title: `Unlink ${claim.player?.displayName || 'this player profile'}?`,
+      detail: `The official statistics remain intact, but they will no longer appear on ${draft.displayName || draft.username}'s profile.`,
+      confirmLabel: 'Unlink player',
+      operation: () => unlinkManagedPlayer(draft.id, claim.playerId),
+      successMessage: 'Player profile unlinked.',
+    });
+  };
 
   return (
     <section className="account-admin" aria-labelledby="account-admin-title">
@@ -158,11 +248,103 @@ export default function AccountAdminPanel({ onClose }) {
       <div className="account-admin-summary" aria-label="Account summary">
         <div><Users aria-hidden="true" /><strong>{summary.total}</strong><span>Accounts</span></div>
         <div><ShieldCheck aria-hidden="true" /><strong>{summary.admins}</strong><span>Admins</span></div>
-        <div><CheckCircle2 aria-hidden="true" /><strong>{summary.pending}</strong><span>Awaiting email</span></div>
+        <div><UserRoundCheck aria-hidden="true" /><strong>{summary.pending}</strong><span>Profile requests</span></div>
       </div>
 
       {error && <p className="account-admin-notice" data-tone="error" role="alert">{error}</p>}
       {status && <p className="account-admin-notice" data-tone="success" role="status">{status}</p>}
+      {confirmation && (
+        <section className="account-admin-confirmation" role="alertdialog" aria-labelledby="account-admin-confirmation-title">
+          <AlertTriangle aria-hidden="true" />
+          <div>
+            <strong id="account-admin-confirmation-title">{confirmation.title}</strong>
+            <small>{confirmation.detail}</small>
+          </div>
+          <div>
+            <button type="button" disabled={Boolean(working)} onClick={() => setConfirmation(null)}>Cancel</button>
+            <button
+              type="button"
+              className="is-confirm"
+              disabled={Boolean(working)}
+              onClick={() => runAction(
+                confirmation.key,
+                confirmation.operation,
+                confirmation.successMessage,
+              )}
+            >
+              {working === confirmation.key && <LoaderCircle className="is-spinning" aria-hidden="true" />}
+              {confirmation.confirmLabel}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {pendingClaims.length > 0 && (
+        <section className="account-admin-claims" aria-labelledby="account-admin-claims-title">
+          <header>
+            <div>
+              <Link2 aria-hidden="true" />
+              <span>
+                <strong id="account-admin-claims-title">Player profile requests</strong>
+                <small>Confirm that each member selected their own squad record.</small>
+              </span>
+            </div>
+            <span>{pendingClaims.length} WAITING</span>
+          </header>
+          <div>
+            {pendingClaims.map((claim) => (
+              <article key={`${claim.userId}:${claim.playerId}`}>
+                <span className="account-admin-member-mark" aria-hidden="true">
+                  {(claim.member?.displayName || claim.member?.username || '?').slice(0, 1).toUpperCase()}
+                </span>
+                <div>
+                  <strong>{claim.member?.displayName || claim.member?.username || 'Member'}</strong>
+                  <small>
+                    @{claim.member?.username || 'member'} · {claim.member?.email || 'email unavailable'}
+                  </small>
+                  <small>
+                    Wants {claim.player?.displayName || 'a player profile'}
+                    {claim.player?.jerseyNumber ? ` #${claim.player.jerseyNumber}` : ''}
+                    {claim.player?.rosterLabel ? ` · ${claim.player.rosterLabel}` : ''}
+                    {claim.player?.externalId ? ` · League ID ${claim.player.externalId}` : ''}
+                  </small>
+                </div>
+                {claim.player?.sourceUrl && (
+                  <a
+                    className="account-admin-claim-source"
+                    href={claim.player.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Official profile <ExternalLink aria-hidden="true" />
+                  </a>
+                )}
+                <div>
+                  <button
+                    type="button"
+                    className="is-approve"
+                    disabled={Boolean(working)}
+                    onClick={() => approveClaim(claim)}
+                  >
+                    <BadgeCheck aria-hidden="true" /> Approve
+                  </button>
+                  <button
+                    type="button"
+                    disabled={Boolean(working)}
+                    onClick={() => runAction(
+                      `reject:${claim.userId}:${claim.playerId}`,
+                      () => reviewManagedPlayerClaim(claim.userId, claim.playerId, 'rejected'),
+                      'Player profile request denied.',
+                    )}
+                  >
+                    <CircleX aria-hidden="true" /> Deny
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       {draft && (
         <form
@@ -223,6 +405,83 @@ export default function AccountAdminPanel({ onClose }) {
               </select>
             </label>
           </div>
+          <section className="account-admin-player-assignment">
+            <header>
+              <Link2 aria-hidden="true" />
+              <span>
+                <strong>Player profile</strong>
+                <small>Assign this member directly or replace their primary player.</small>
+              </span>
+            </header>
+            {selectedClaims.length > 0 && (
+              <div className="account-admin-player-links">
+                {selectedClaims.map((claim) => (
+                  <span key={claim.playerId}>
+                    <strong>
+                      {claim.player?.displayName || 'Player record'}
+                      {claim.player?.jerseyNumber ? ` #${claim.player.jerseyNumber}` : ''}
+                    </strong>
+                    <small>{claim.primary ? 'Primary profile' : 'Linked history'}</small>
+                    {claim.player?.rosterLabel && <small>{claim.player.rosterLabel}</small>}
+                    <button
+                      type="button"
+                      disabled={Boolean(working)}
+                      aria-label={`Unlink ${claim.player?.displayName || 'player profile'}`}
+                      title="Unlink player profile"
+                      onClick={() => confirmUnlink(claim)}
+                    >
+                      <Unlink aria-hidden="true" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="account-admin-player-picker">
+              <label>
+                <span>Assign squad player</span>
+                <select
+                  value={assignmentPlayerId}
+                  onChange={(event) => setAssignmentPlayerId(event.target.value)}
+                >
+                  <option value="">Choose a player</option>
+                  {assignablePlayers.map((player) => (
+                    <option value={player.id} key={player.id}>
+                      {player.displayName}
+                      {player.jerseyNumber ? ` #${player.jerseyNumber}` : ''}
+                      {player.position ? ` · ${player.position}` : ''}
+                      {player.rosterLabel ? ` · ${player.rosterLabel}` : ''}
+                      {player.externalId ? ` · ID ${player.externalId}` : ''}
+                      {player.active ? '' : ' · historical'}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className="is-primary"
+                disabled={Boolean(working) || !assignmentPlayerId}
+                onClick={confirmAssignment}
+              >
+                <UserRoundCheck aria-hidden="true" /> Assign player
+              </button>
+            </div>
+            {assignmentPlayer && (
+              <div className="account-admin-player-preview">
+                <div>
+                  <strong>{assignmentPlayer.displayName}</strong>
+                  <small>
+                    {assignmentPlayer.rosterLabel || 'No season context'}
+                    {assignmentPlayer.externalId ? ` · League ID ${assignmentPlayer.externalId}` : ''}
+                  </small>
+                </div>
+                {assignmentPlayer.sourceUrl && (
+                  <a href={assignmentPlayer.sourceUrl} target="_blank" rel="noreferrer">
+                    Verify official profile <ExternalLink aria-hidden="true" />
+                  </a>
+                )}
+              </div>
+            )}
+          </section>
           <div className="account-admin-editor-actions">
             <button type="submit" className="is-primary" disabled={!draftReady}>
               {working === 'save' ? <LoaderCircle className="is-spinning" aria-hidden="true" /> : <Save aria-hidden="true" />}
@@ -314,7 +573,11 @@ export default function AccountAdminPanel({ onClose }) {
                 </span>
                 <div role="cell">
                   <strong>{member.suspended ? 'Suspended' : member.emailConfirmed ? 'Active' : 'Email pending'}</strong>
-                  <small>{formatActivity(member.lastSignInAt)}</small>
+                  <small>
+                    {claims.some((claim) => claim.userId === member.id && claim.status === 'approved')
+                      ? 'Player linked'
+                      : formatActivity(member.lastSignInAt)}
+                  </small>
                 </div>
                 <button type="button" role="cell" onClick={() => selectAccount(member)}>
                   <UserCog aria-hidden="true" /> Manage

@@ -11,6 +11,9 @@ describe('account error copy', () => {
     ['Failed to fetch', 'Could not reach the account service. Check your connection and try again.'],
     ['Cloud accounts are not configured.', 'Accounts are temporarily unavailable. Your local plays remain safe.'],
     ['duplicate key value violates unique constraint username', 'That username is already taken.'],
+    ['That player profile is already linked to another account.', 'That player profile is already linked to another account.'],
+    ['You already have a player-link request awaiting review.', 'You already have a player-link request awaiting review.'],
+    ['That squad player could not be found.', 'That squad player could not be found. Ask an admin to check the roster.'],
   ])('maps "%s" to player-facing guidance', (rawMessage, expected) => {
     expect(accountMessageForError(new Error(rawMessage))).toBe(expected);
   });

@@ -11,6 +11,7 @@ import {
   LoaderCircle,
   LogIn,
   Medal,
+  RefreshCcw,
   Search,
   Settings2,
   ShieldCheck,
@@ -38,18 +39,22 @@ function positionLabel(position) {
 }
 
 function linkCopy() {
-  return { label: 'Squad stats linked', detail: 'Your profile reads the official team archive. You can change this link at any time.' };
+  return { label: 'Player profile approved', detail: 'Your account is linked to the official team archive. An admin can update this assignment at any time.' };
 }
 
 function ProfileMetric({ detail, label, value }) {
   return <div className="profile-metric"><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>;
 }
 
-function RosterPicker({ account, claims, dataset, onClose, onLinked, open }) {
+function RosterPicker({ account, claims, requests = [], dataset, onClose, onLinked, open }) {
   const [query, setQuery] = useState('');
   const [includeHistory, setIncludeHistory] = useState(false);
   if (!open) return null;
-  const claimedExternalIds = new Set(claims.map((claim) => claim.player?.externalId).filter(Boolean));
+  const claimedExternalIds = new Set(
+    [...claims, ...requests.filter((request) => request.status === 'pending')]
+      .map((claim) => claim.player?.externalId)
+      .filter(Boolean),
+  );
   const candidates = playerRosterCandidates(dataset, { includeHistory, query })
     .filter((candidate) => !claimedExternalIds.has(candidate.externalId))
     .slice(0, query ? 40 : 24);
@@ -57,7 +62,7 @@ function RosterPicker({ account, claims, dataset, onClose, onLinked, open }) {
   return (
     <section className="profile-roster-picker" aria-labelledby="profile-roster-picker-title">
       <header>
-        <div><span>LINK PLAYER RECORD</span><h2 id="profile-roster-picker-title">Find yourself on the squad</h2><p>Start with the current roster. Historical records stay separate until you explicitly add them.</p></div>
+        <div><span>REQUEST PLAYER PROFILE</span><h2 id="profile-roster-picker-title">Find yourself on the squad</h2><p>Choose your player record. A team admin will confirm the link before statistics appear on your profile.</p></div>
         {onClose && <button type="button" onClick={onClose} aria-label="Close player selector" title="Close"><X aria-hidden="true" /></button>}
       </header>
       <div className="profile-roster-tools">
@@ -95,7 +100,48 @@ function RosterPicker({ account, claims, dataset, onClose, onLinked, open }) {
           {account.status}
         </p>
       )}
-      <footer><ShieldCheck aria-hidden="true" /><span>Linking is immediate and does not change official statistics. You can add older league records or remove a link at any time.</span></footer>
+      <footer><ShieldCheck aria-hidden="true" /><span>Your request goes to a team admin for approval. It never changes the official statistics archive.</span></footer>
+    </section>
+  );
+}
+
+function PlayerLinkRequest({ account, request }) {
+  const pending = request.status === 'pending';
+  return (
+    <section className="profile-link-request" data-status={request.status}>
+      <span className="profile-record-avatar" aria-hidden="true">
+        {request.player?.displayName?.slice(0, 1) || '?'}
+      </span>
+      <div>
+        <span>{pending ? 'AWAITING ADMIN REVIEW' : 'REQUEST NOT APPROVED'}</span>
+        <strong>
+          {request.player?.displayName || 'Squad player'}
+          {request.player?.jerseyNumber ? ` #${request.player.jerseyNumber}` : ''}
+        </strong>
+        <small>
+          {pending
+            ? 'You can keep using the app. Your statistics will appear after an admin confirms this is you.'
+            : 'Remove this request, then choose the correct player record or ask an admin to assign it directly.'}
+        </small>
+      </div>
+      <div className="profile-link-request-actions">
+        {pending && (
+          <button
+            type="button"
+            disabled={account.busy}
+            onClick={() => account.refreshProfile()}
+          >
+            <RefreshCcw aria-hidden="true" /> Check status
+          </button>
+        )}
+        <button
+          type="button"
+          disabled={account.busy}
+          onClick={() => account.releasePlayer(request.playerId).catch(() => {})}
+        >
+          {pending ? 'Cancel request' : 'Remove request'}
+        </button>
+      </div>
     </section>
   );
 }
@@ -128,6 +174,8 @@ export default function ProfileWorkspace() {
 
   const profile = useMemo(() => dataset ? memberProfileSnapshot(dataset, account.playerClaims) : null, [account.playerClaims, dataset]);
   const linkState = profile ? linkCopy() : null;
+  const pendingRequest = account.playerClaimRequests.find((request) => request.status === 'pending');
+  const rejectedRequests = account.playerClaimRequests.filter((request) => request.status === 'rejected');
   const goalieProfile = profile && profile.careerGoalie.gamesPlayed > profile.careerField.gamesPlayed;
 
   const openLinkedGame = (gameId) => {
@@ -152,8 +200,22 @@ export default function ProfileWorkspace() {
       '--profile-brand': t.br,
     }}>
       {!account.user ? <ProfileGate account={account} onAccount={() => setActiveView('account')} /> : !dataset ? <div className="profile-loading"><LoaderCircle aria-hidden="true" /> Loading your squad profile...</div> : !account.playerClaims.length ? <div className="profile-onboarding">
-        <header><span>ACCOUNT CREATED</span><h1>One last step, {account.displayName}</h1><p>Select your official squad record to unlock your personal statistics. You can add an older league identity later without merging anyone automatically.</p></header>
-        <RosterPicker account={account} claims={account.playerClaims} dataset={dataset} open />
+        <header>
+          <span>{pendingRequest ? 'REQUEST RECEIVED' : 'PLAYER PROFILE'}</span>
+          <h1>{pendingRequest ? `We sent it, ${account.displayName}` : `Find yourself, ${account.displayName}`}</h1>
+          <p>{pendingRequest ? 'An admin will confirm the player link. You can continue using every other part of the app while it is reviewed.' : 'Request your squad player record to put official season and game statistics on your profile.'}</p>
+        </header>
+        {pendingRequest && <PlayerLinkRequest account={account} request={pendingRequest} />}
+        {!pendingRequest && rejectedRequests.map((request) => <PlayerLinkRequest account={account} request={request} key={request.playerId} />)}
+        {!pendingRequest && (
+          <RosterPicker
+            account={account}
+            claims={account.playerClaims}
+            requests={account.playerClaimRequests}
+            dataset={dataset}
+            open
+          />
+        )}
       </div> : profile ? <>
         <header className="profile-hero">
           <div className="profile-avatar" aria-hidden="true">{profile.primaryPlayer.displayName.slice(0, 1).toUpperCase()}</div>
@@ -163,7 +225,18 @@ export default function ProfileWorkspace() {
             <p>{[profile.jerseyNumber ? `#${profile.jerseyNumber}` : null, positionLabel(profile.position), profile.currentTeams.map(formatScheduleName).join(' / ')].filter(Boolean).join(' · ')}</p>
             <div className="profile-badges"><span data-status="linked"><BadgeCheck aria-hidden="true" /> {linkState.label}</span><span><History aria-hidden="true" /> {profile.seasonsPlayed} season{profile.seasonsPlayed === 1 ? '' : 's'}</span></div>
           </div>
-          <div className="profile-hero-actions"><button type="button" onClick={() => setPickerOpen(true)}><Link2 aria-hidden="true" /> Add league record</button><button type="button" onClick={() => setActiveView('account')}><Settings2 aria-hidden="true" /> Account</button></div>
+          <div className="profile-hero-actions">
+            <button
+              type="button"
+              disabled={Boolean(pendingRequest)}
+              onClick={() => setPickerOpen(true)}
+              title={pendingRequest ? 'An admin is reviewing your current request' : 'Request another player record'}
+            >
+              {pendingRequest ? <CalendarClock aria-hidden="true" /> : <Link2 aria-hidden="true" />}
+              {pendingRequest ? 'Request pending' : 'Request another record'}
+            </button>
+            <button type="button" onClick={() => setActiveView('account')}><Settings2 aria-hidden="true" /> Account</button>
+          </div>
         </header>
 
         <div className="profile-verification-note" data-status="linked"><ShieldCheck aria-hidden="true" /><div><strong>{linkState.label}</strong><span>{linkState.detail}</span></div></div>
@@ -219,7 +292,13 @@ export default function ProfileWorkspace() {
           {account.playerClaims.map((claim) => <article key={claim.playerId}><span className="profile-record-avatar" aria-hidden="true">{claim.player?.displayName?.slice(0, 1) || '?'}</span><div><strong>{claim.player?.displayName || 'League player'}</strong><small>{claim.primary ? 'Primary record' : 'Historical record'} · linked</small></div>{claim.player?.sourceUrl && <a href={claim.player.sourceUrl} target="_blank" rel="noreferrer" aria-label={`Open official profile for ${claim.player.displayName}`}><ExternalLink aria-hidden="true" /></a>}<button type="button" disabled={account.busy} onClick={() => { if (window.confirm('Remove this league record from your profile?')) account.releasePlayer(claim.playerId).catch(() => {}); }} aria-label={`Remove ${claim.player?.displayName || 'player'} from profile`}><Unlink aria-hidden="true" /></button></article>)}
         </section>
 
-        <RosterPicker account={account} claims={account.playerClaims} dataset={dataset} onClose={() => setPickerOpen(false)} onLinked={() => setPickerOpen(false)} open={pickerOpen} />
+        {account.playerClaimRequests.map((request) => (
+          <section className="profile-band profile-request-band" key={request.playerId}>
+            <PlayerLinkRequest account={account} request={request} />
+          </section>
+        ))}
+
+        <RosterPicker account={account} claims={account.playerClaims} requests={account.playerClaimRequests} dataset={dataset} onClose={() => setPickerOpen(false)} onLinked={() => setPickerOpen(false)} open={pickerOpen} />
       </> : <section className="profile-gate"><UsersRound aria-hidden="true" /><h1>Your linked player record is unavailable</h1><p>Refresh your account or ask a team manager to confirm the roster import.</p><button type="button" onClick={account.refreshProfile}>Refresh profile</button></section>}
     </main>
   );

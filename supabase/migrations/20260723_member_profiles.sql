@@ -6,20 +6,12 @@ create table if not exists public.member_player_claims (
   primary key (user_id, player_id)
 );
 
--- Keep this migration safe if an earlier approval-oriented draft was applied.
+-- Keep the foundational table safe to rerun. Later migrations may extend the
+-- claim workflow, so this migration must never remove newer columns or history.
 alter table public.member_player_claims
   add column if not exists linked_at timestamptz not null default now();
-drop function if exists public.review_member_player_claim(uuid, uuid, text);
-drop index if exists public.member_player_claims_verified_player_idx;
-alter table public.member_player_claims
-  drop column if exists status,
-  drop column if exists requested_at,
-  drop column if exists reviewed_at,
-  drop column if exists reviewed_by;
 
 -- A member can link several historical league identities, with one primary record.
--- The same player record may be selected by more than one account; this is a team app,
--- not an identity-verification system.
 create unique index if not exists member_player_claims_primary_user_idx
   on public.member_player_claims (user_id)
   where is_primary;

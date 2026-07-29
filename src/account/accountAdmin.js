@@ -41,3 +41,15 @@ export function deleteManagedAccount(userId) {
 export function sendManagedAccountPasswordReset(userId) {
   return adminRequest('reset-password', { userId });
 }
+
+export function reviewManagedPlayerClaim(userId, playerId, decision) {
+  return adminRequest('review-player-claim', { userId, playerId, decision });
+}
+
+export function assignManagedPlayer(userId, playerId) {
+  return adminRequest('assign-player', { userId, playerId });
+}
+
+export function unlinkManagedPlayer(userId, playerId) {
+  return adminRequest('unlink-player', { userId, playerId });
+}

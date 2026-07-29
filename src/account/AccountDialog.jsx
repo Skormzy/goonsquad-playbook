@@ -67,6 +67,7 @@ export default function AccountDialog() {
   };
 
   const linkedClaims = account.playerClaims.length;
+  const pendingClaims = account.playerClaimRequests.filter((claim) => claim.status === 'pending').length;
 
   return (
     <div className="account-backdrop" role="presentation" onMouseDown={account.closeAccount}>
@@ -191,14 +192,14 @@ export default function AccountDialog() {
 
             <button type="button" className="account-profile-entry" onClick={openProfile}>
               <span className="account-profile-entry-icon"><CheckCircle2 aria-hidden="true" /></span>
-              <span><strong>Open my profile</strong><small>{linkedClaims ? `${linkedClaims} linked player record${linkedClaims === 1 ? '' : 's'}` : 'Link yourself to the squad roster'}</small></span>
+              <span><strong>Open my profile</strong><small>{linkedClaims ? `${linkedClaims} approved player profile${linkedClaims === 1 ? '' : 's'}` : pendingClaims ? 'Player profile request awaiting review' : 'Request your squad player profile'}</small></span>
               <ArrowRight aria-hidden="true" />
             </button>
 
             {account.profile?.role === 'admin' && (
               <button type="button" className="account-profile-entry" onClick={openAdmin}>
                 <span className="account-profile-entry-icon"><Users aria-hidden="true" /></span>
-                <span><strong>Manage member accounts</strong><small>Access, roles, password help, and account controls</small></span>
+                <span><strong>Manage team accounts</strong><small>Access, player links, roles, password help, and account controls</small></span>
                 <ArrowRight aria-hidden="true" />
               </button>
             )}

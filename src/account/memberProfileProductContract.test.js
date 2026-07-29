@@ -4,13 +4,29 @@ import { describe, expect, it } from 'vitest';
 const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
 
 describe('member profile product contract', () => {
-  it('keeps player linking immediate and self-serve', () => {
-    const migration = read('supabase/migrations/20260723_member_profiles.sql');
+  it('supports member requests plus admin review and direct player assignment', () => {
+    const baseMigration = read('supabase/migrations/20260723_member_profiles.sql');
+    const migration = read('supabase/migrations/20260729_member_player_claim_approval.sql');
+    const profile = read('src/profile/ProfileWorkspace.jsx');
+    const panel = read('src/account/AccountAdminPanel.jsx');
+    const api = read('api/account-admin.js');
     expect(migration).toContain('request_member_player_claim');
-    expect(migration).toContain('on conflict (user_id, player_id)');
-    expect(migration).not.toContain('create or replace function public.review_member_player_claim');
-    expect(migration).not.toContain('create unique index if not exists member_player_claims_verified_player_idx');
-    expect(migration).not.toContain('already verified to another account');
+    expect(migration).toContain('review_member_player_claim');
+    expect(migration).toContain('assign_member_player_claim');
+    expect(migration).toContain('unassign_member_player_claim');
+    expect(migration).toContain('assert_player_link_admin');
+    expect(migration).toContain("status in ('pending', 'approved', 'rejected')");
+    expect(migration).toContain('member_player_claims_approved_player_idx');
+    expect(migration).toContain('member_player_claims_primary_status_check');
+    expect(migration).toMatch(/release_member_player_claim[\s\S]*status = 'approved'/u);
+    expect(baseMigration).not.toContain('drop column if exists status');
+    expect(profile).toContain('Request your squad player record');
+    expect(profile).toContain('AWAITING ADMIN REVIEW');
+    expect(panel).toContain('Player profile requests');
+    expect(panel).toContain('Assign squad player');
+    expect(api).toContain("body.action === 'review-player-claim'");
+    expect(api).toContain("body.action === 'assign-player'");
+    expect(api).toContain('assertCanManage(actor, target)');
   });
 
   it('offers open email registration, username sign-in, and password recovery', () => {

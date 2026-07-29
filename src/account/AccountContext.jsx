@@ -24,6 +24,7 @@ const fallbackAccount = Object.freeze({
   user: null,
   profile: null,
   playerClaims: [],
+  playerClaimRequests: [],
   displayName: 'Guest',
   username: '',
   busy: false,
@@ -54,6 +55,12 @@ export function accountMessageForError(error) {
 
   if (/username.*taken|duplicate key.*username/iu.test(message)) {
     return 'That username is already taken.';
+  }
+  if (/player profile is already linked|player-link request awaiting review/iu.test(message)) {
+    return message;
+  }
+  if (/squad player could not be found/iu.test(message)) {
+    return 'That squad player could not be found. Ask an admin to check the roster.';
   }
   if (/invalid login|invalid credentials|email(?:, username,)? or password/iu.test(message)) {
     return 'Email, username, or password is incorrect.';
@@ -89,6 +96,7 @@ export function AccountProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [playerClaims, setPlayerClaims] = useState([]);
+  const [playerClaimRequests, setPlayerClaimRequests] = useState([]);
   const [busy, setBusy] = useState(playmakerCloudConfigured);
   const [status, setStatus] = useState('');
   const [statusTone, setStatusTone] = useState('');
@@ -99,6 +107,7 @@ export function AccountProvider({ children }) {
     if (!playmakerCloudConfigured || !userId) {
       setProfile(null);
       setPlayerClaims([]);
+      setPlayerClaimRequests([]);
       return null;
     }
     let nextProfile = null;
@@ -111,10 +120,13 @@ export function AccountProvider({ children }) {
     }
 
     try {
-      setPlayerClaims(await loadMemberPlayerClaims(userId));
+      const claims = await loadMemberPlayerClaims(userId);
+      setPlayerClaims(claims.filter((claim) => claim.status === 'approved'));
+      setPlayerClaimRequests(claims.filter((claim) => claim.status !== 'approved'));
     } catch {
       // A profile should still load when the newer member-claim migration has not landed yet.
       setPlayerClaims([]);
+      setPlayerClaimRequests([]);
     }
     return nextProfile;
   }, []);
@@ -161,6 +173,20 @@ export function AccountProvider({ children }) {
       stop();
     };
   }, [refreshProfileForUser]);
+
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId) return undefined;
+    const refreshWhenActive = () => {
+      if (document.visibilityState !== 'hidden') refreshProfileForUser(userId);
+    };
+    window.addEventListener('focus', refreshWhenActive);
+    document.addEventListener('visibilitychange', refreshWhenActive);
+    return () => {
+      window.removeEventListener('focus', refreshWhenActive);
+      document.removeEventListener('visibilitychange', refreshWhenActive);
+    };
+  }, [refreshProfileForUser, session?.user?.id]);
 
   const run = useCallback(async (operation, successMessage = '') => {
     setBusy(true);
@@ -211,6 +237,7 @@ export function AccountProvider({ children }) {
     setSession(null);
     setProfile(null);
     setPlayerClaims([]);
+    setPlayerClaimRequests([]);
     setPasswordRecovery(false);
   }, 'Signed out.'), [run]);
 
@@ -222,17 +249,23 @@ export function AccountProvider({ children }) {
 
   const claimPlayer = useCallback((player) => run(async () => {
     await requestMemberPlayerClaim(player);
-    const nextClaims = await loadMemberPlayerClaims(session?.user?.id);
+    const claims = await loadMemberPlayerClaims(session?.user?.id);
+    const nextClaims = claims.filter((claim) => claim.status === 'approved');
+    const nextRequests = claims.filter((claim) => claim.status !== 'approved');
     setPlayerClaims(nextClaims);
-    return nextClaims;
-  }, 'Squad stats linked.'), [run, session?.user?.id]);
+    setPlayerClaimRequests(nextRequests);
+    return { claims: nextClaims, requests: nextRequests };
+  }, 'Player profile request sent for admin review.'), [run, session?.user?.id]);
 
   const releasePlayer = useCallback((playerId) => run(async () => {
     await releaseMemberPlayerClaim(playerId);
-    const nextClaims = await loadMemberPlayerClaims(session?.user?.id);
+    const claims = await loadMemberPlayerClaims(session?.user?.id);
+    const nextClaims = claims.filter((claim) => claim.status === 'approved');
+    const nextRequests = claims.filter((claim) => claim.status !== 'approved');
     setPlayerClaims(nextClaims);
-    return nextClaims;
-  }, 'Player link removed.'), [run, session?.user?.id]);
+    setPlayerClaimRequests(nextRequests);
+    return { claims: nextClaims, requests: nextRequests };
+  }, 'Player profile selection removed.'), [run, session?.user?.id]);
 
   const displayName = profile?.display_name
     || session?.user?.user_metadata?.full_name
@@ -253,6 +286,7 @@ export function AccountProvider({ children }) {
     user: session?.user ?? null,
     profile,
     playerClaims,
+    playerClaimRequests,
     displayName,
     username,
     busy,
@@ -276,7 +310,7 @@ export function AccountProvider({ children }) {
     claimPlayer,
     releasePlayer,
     refreshProfile,
-  }), [busy, checkUsername, claimPlayer, dialogOpen, displayName, passwordRecovery, playerClaims, profile, refreshProfile, releasePlayer, resetPassword, session, signIn, signOut, signUp, saveProfile, status, statusTone, updatePassword, username]);
+  }), [busy, checkUsername, claimPlayer, dialogOpen, displayName, passwordRecovery, playerClaimRequests, playerClaims, profile, refreshProfile, releasePlayer, resetPassword, session, signIn, signOut, signUp, saveProfile, status, statusTone, updatePassword, username]);
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
 }

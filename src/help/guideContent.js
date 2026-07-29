@@ -255,19 +255,19 @@ export const GUIDE_TOPICS = Object.freeze({
         body: 'Register with any email, choose a username, and sign in later with either one. Your saved plays, Create ownership, and profile follow the same account across devices.',
       },
       {
-        title: 'Link your squad record',
-        body: 'Choose yourself from the current roster. The link is immediate and only controls which official statistics appear on your profile.',
+        title: 'Request your player profile',
+        body: 'Choose yourself from the current roster and send the request. A team admin confirms the match before official statistics appear on your profile.',
       },
       {
-        title: 'Add older league records',
-        body: 'Search all seasons when an older roster used a separate league identity. Records remain separate until you explicitly add them.',
+        title: 'Get assigned directly',
+        body: 'An admin can link the correct player record to your account at any time, so you do not need to submit a request first.',
       },
       {
         title: 'Use your profile',
         body: 'Review career totals, season history, recent appearances, the next game, saved plays, and shortcuts into Create and the playbook.',
       },
     ],
-    note: 'Selecting a player never edits official statistics. Remove or change a linked record from the profile at any time.',
+    note: 'Player links only control which verified statistics appear on an account. They never edit the official team record.',
   },
   account: {
     label: 'Account',
@@ -289,7 +289,7 @@ export const GUIDE_TOPICS = Object.freeze({
       },
       {
         title: 'Team administration',
-        body: 'Admins can manage member names, usernames, access levels, password reset emails, suspensions, and account deletion from the account workspace.',
+        body: 'Admins can approve player-profile requests, assign players directly, and manage member names, usernames, access levels, password reset emails, suspensions, and deletion.',
       },
     ],
     note: 'Account details and official team statistics are stored separately. Linking a player does not edit the team record.',

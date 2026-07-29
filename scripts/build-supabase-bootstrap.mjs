@@ -7,6 +7,8 @@ const migrations = [
   '20260718_playmaker_plays.sql',
   '20260722_team_accounts_and_statistics.sql',
   '20260723_member_profiles.sql',
+  '20260724_member_usernames.sql',
+  '20260729_member_player_claim_approval.sql',
 ];
 const sections = await Promise.all(migrations.map(async (name) => {
   const sql = await readFile(path.join(root, 'supabase', 'migrations', name), 'utf8');

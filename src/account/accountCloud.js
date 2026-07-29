@@ -61,12 +61,15 @@ export async function checkAccountUsernameAvailability(value) {
 }
 
 function mapPlayerClaim(row, player) {
+  const status = row.status || 'approved';
   return {
     userId: row.user_id,
     playerId: row.player_id,
-    status: 'linked',
+    status,
     primary: Boolean(row.is_primary),
     linkedAt: row.linked_at,
+    requestedAt: row.requested_at || row.linked_at,
+    reviewedAt: row.reviewed_at || null,
     player: player ? {
       id: player.id,
       externalId: player.external_id,
@@ -93,14 +96,29 @@ async function playersForClaimRows(cloud, rows) {
 export async function loadMemberPlayerClaims(userId) {
   if (!userId) return [];
   const cloud = requireCloud();
-  const { data, error } = await cloud
+  const result = await cloud
     .from('member_player_claims')
-    .select('user_id, player_id, is_primary, linked_at')
+    .select('user_id, player_id, status, is_primary, requested_at, reviewed_at, linked_at')
     .eq('user_id', userId)
     .order('is_primary', { ascending: false })
-    .order('linked_at', { ascending: true });
-  if (error) throw error;
-  const rows = data ?? [];
+    .order('requested_at', { ascending: true });
+
+  let rows = result.data ?? [];
+  if (result.error) {
+    const missingApprovalColumns = /status|requested_at|reviewed_at/iu.test(
+      String(result.error.message || ''),
+    );
+    if (!missingApprovalColumns) throw result.error;
+    const legacy = await cloud
+      .from('member_player_claims')
+      .select('user_id, player_id, is_primary, linked_at')
+      .eq('user_id', userId)
+      .order('is_primary', { ascending: false })
+      .order('linked_at', { ascending: true });
+    if (legacy.error) throw legacy.error;
+    rows = legacy.data ?? [];
+  }
+
   const players = await playersForClaimRows(cloud, rows);
   return rows.map((row) => mapPlayerClaim(row, players.get(row.player_id)));
 }

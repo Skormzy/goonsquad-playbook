@@ -486,6 +486,105 @@
 .account-admin-notice { margin: 0; padding: 9px 11px; border-left: 3px solid var(--account-accent); color: var(--account-text); background: var(--account-accent-bg); font-size: var(--type-small); }
 .account-admin-notice[data-tone="error"] { border-left-color: #ef4444; }
 .account-admin-notice[data-tone="success"] { border-left-color: #22c55e; }
+.account-admin-confirmation {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, #f59e0b 48%, var(--account-border));
+  border-left: 3px solid #f59e0b;
+  background: color-mix(in srgb, #f59e0b 8%, var(--account-panel));
+}
+.account-admin-confirmation > svg { width: 19px; color: #d97706; }
+.account-admin-confirmation > div:nth-child(2) { min-width: 0; display: grid; gap: 2px; }
+.account-admin-confirmation strong { font-size: var(--type-small); }
+.account-admin-confirmation small { color: var(--account-muted); font-size: var(--type-label); line-height: 1.4; }
+.account-admin-confirmation > div:last-child { display: flex; align-items: center; gap: 6px; }
+.account-admin-confirmation button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border: 1px solid var(--account-border);
+  border-radius: 5px;
+  color: var(--account-text);
+  background: var(--account-panel);
+  font-size: var(--type-control);
+  font-weight: 800;
+}
+.account-admin-confirmation button.is-confirm { border-color: #f59e0b; color: #8a4b04; background: color-mix(in srgb, #f59e0b 13%, var(--account-panel)); }
+.account-admin-confirmation button svg { width: 13px; height: 13px; }
+
+.account-admin-claims {
+  display: grid;
+  border: 1px solid color-mix(in srgb, var(--account-accent) 44%, var(--account-border));
+  background: var(--account-surface);
+}
+.account-admin-claims > header {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--account-border);
+  background: var(--account-accent-bg);
+}
+.account-admin-claims > header > div,
+.account-admin-claims article,
+.account-admin-claims article > div:last-child,
+.account-admin-player-assignment > header,
+.account-admin-player-picker { display: flex; align-items: center; }
+.account-admin-claims > header > div { min-width: 0; gap: 9px; }
+.account-admin-claims > header svg,
+.account-admin-player-assignment > header svg { width: 17px; flex: 0 0 17px; color: var(--account-accent); }
+.account-admin-claims > header span,
+.account-admin-player-assignment > header span { min-width: 0; display: grid; gap: 2px; }
+.account-admin-claims > header strong,
+.account-admin-player-assignment > header strong { font-size: var(--type-small); }
+.account-admin-claims > header small,
+.account-admin-player-assignment > header small { color: var(--account-muted); font-size: var(--type-label); }
+.account-admin-claims > header > span { color: var(--account-accent); font-size: var(--type-micro); font-weight: 900; }
+.account-admin-claims article { min-height: 64px; gap: 10px; padding: 9px 12px; }
+.account-admin-claims article + article { border-top: 1px solid var(--account-border); }
+.account-admin-claims article > div:nth-child(2) { min-width: 0; display: grid; flex: 1; gap: 2px; }
+.account-admin-claims article :is(strong, small) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-admin-claims article strong { font-size: var(--type-small); }
+.account-admin-claims article small { color: var(--account-muted); font-size: var(--type-label); }
+.account-admin-claim-source {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--account-accent);
+  font-size: var(--type-label);
+  font-weight: 800;
+  text-decoration: none;
+}
+.account-admin-claim-source svg { width: 12px; height: 12px; }
+.account-admin-claims article > div:last-child { gap: 6px; }
+.account-admin-claims article button,
+.account-admin-player-picker > button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border: 1px solid var(--account-border);
+  border-radius: 5px;
+  color: var(--account-text);
+  background: var(--account-panel);
+  font-size: var(--type-control);
+  font-weight: 800;
+}
+.account-admin-claims article button.is-approve,
+.account-admin-player-picker > button.is-primary { border-color: #22c55e; color: #137a3d; background: color-mix(in srgb, #22c55e 11%, var(--account-panel)); }
+.account-admin-claims article button svg,
+.account-admin-player-picker > button svg { width: 14px; height: 14px; }
 
 .account-admin-editor {
   display: grid;
@@ -520,6 +619,81 @@
 .account-admin-username { position: relative; }
 .account-admin-username > span { position: absolute; top: 50%; left: 10px; color: var(--account-muted); transform: translateY(-50%); }
 .account-admin-username input { padding-left: 25px; }
+.account-admin-player-assignment {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid var(--account-border);
+  background: var(--account-surface);
+}
+.account-admin-player-assignment > header { gap: 8px; }
+.account-admin-player-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.account-admin-player-links > span {
+  min-width: 190px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  gap: 2px 7px;
+  padding: 7px 7px 7px 9px;
+  border: 1px solid var(--account-border);
+  border-left: 3px solid #22c55e;
+  border-radius: 4px;
+  background: var(--account-panel);
+}
+.account-admin-player-links :is(strong, small) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-admin-player-links strong { font-size: var(--type-small); }
+.account-admin-player-links small { color: var(--account-muted); font-size: var(--type-label); }
+.account-admin-player-links button {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--account-border);
+  border-radius: 4px;
+  color: var(--account-muted);
+  background: transparent;
+}
+.account-admin-player-links button svg { width: 13px; }
+.account-admin-player-picker { align-items: end; gap: 7px; }
+.account-admin-player-picker label { min-width: 0; display: grid; flex: 1; gap: 5px; }
+.account-admin-player-picker label > span { color: var(--account-muted); font-size: var(--type-label); font-weight: 800; }
+.account-admin-player-picker select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--account-border);
+  border-radius: 5px;
+  color: var(--account-text);
+  background: var(--account-panel);
+}
+.account-admin-player-picker > button { min-height: 40px; }
+.account-admin-player-preview {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 9px;
+  border-left: 3px solid var(--account-accent);
+  background: var(--account-panel);
+}
+.account-admin-player-preview > div { min-width: 0; display: grid; gap: 2px; }
+.account-admin-player-preview :is(strong, small) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-admin-player-preview strong { font-size: var(--type-small); }
+.account-admin-player-preview small { color: var(--account-muted); font-size: var(--type-label); }
+.account-admin-player-preview a {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--account-accent);
+  font-size: var(--type-label);
+  font-weight: 800;
+  text-decoration: none;
+}
+.account-admin-player-preview a svg { width: 12px; height: 12px; }
 .account-admin-editor-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
 .account-admin-editor-actions button {
   min-height: 38px;
@@ -628,10 +802,20 @@
   .account-admin-header p { display: none; }
   .account-admin-summary > div { grid-template-columns: 17px auto; padding: 9px; }
   .account-admin-summary span { grid-column: 1 / -1; font-size: var(--type-micro); }
+  .account-admin-claims article { align-items: flex-start; flex-wrap: wrap; }
+  .account-admin-confirmation { grid-template-columns: 20px minmax(0, 1fr); }
+  .account-admin-confirmation > div:last-child { grid-column: 1 / -1; }
+  .account-admin-confirmation button { min-height: 42px; flex: 1; }
+  .account-admin-claim-source { margin-left: 50px; }
+  .account-admin-claims article > div:last-child { width: 100%; padding-left: 50px; }
+  .account-admin-claims article button { min-height: 42px; flex: 1; }
   .account-admin-editor { padding: 12px; }
   .account-admin-editor-fields,
   .account-admin-editor-actions { grid-template-columns: 1fr; }
   .account-admin-editor-fields label:last-child { grid-column: auto; }
+  .account-admin-player-picker { align-items: stretch; flex-direction: column; }
+  .account-admin-player-picker > button { min-height: 44px; }
+  .account-admin-player-preview { align-items: flex-start; flex-direction: column; }
   .account-admin-table-head { display: none; }
   .account-admin-table-row { grid-template-columns: minmax(0, 1fr) auto; gap: 7px; padding: 10px; }
   .account-admin-table-row > div:first-child { grid-column: 1 / -1; }

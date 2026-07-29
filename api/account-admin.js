@@ -84,6 +84,129 @@ async function listAccounts(admin, actor) {
   });
 }
 
+async function loadPlayerClaimRows(admin) {
+  const result = await admin
+    .from('member_player_claims')
+    .select('user_id, player_id, status, is_primary, requested_at, reviewed_at, linked_at')
+    .order('requested_at', { ascending: true });
+  if (!result.error) return result.data || [];
+  if (!/status|requested_at|reviewed_at/iu.test(String(result.error.message || ''))) {
+    throw result.error;
+  }
+
+  const legacy = await admin
+    .from('member_player_claims')
+    .select('user_id, player_id, is_primary, linked_at')
+    .order('linked_at', { ascending: true });
+  if (legacy.error) throw legacy.error;
+  return (legacy.data || []).map((claim) => ({ ...claim, status: 'approved' }));
+}
+
+async function loadPlayerLinkDirectory(admin, accounts) {
+  const claimRows = await loadPlayerClaimRows(admin);
+  const [playerResult, membershipResult, teamResult, seasonResult] = await Promise.all([
+    admin
+      .from('players')
+      .select('id, external_id, display_name, jersey_number, primary_position, active, source_url')
+      .order('active', { ascending: false })
+      .order('display_name', { ascending: true }),
+    admin
+      .from('roster_memberships')
+      .select('player_id, season_team_id, jersey_number, position, active'),
+    admin
+      .from('season_teams')
+      .select('id, season_id, schedule_label'),
+    admin
+      .from('seasons')
+      .select('id, name, is_current'),
+  ]);
+  if (playerResult.error) throw playerResult.error;
+  if (membershipResult.error) throw membershipResult.error;
+  if (teamResult.error) throw teamResult.error;
+  if (seasonResult.error) throw seasonResult.error;
+
+  const accountById = new Map(accounts.map((account) => [account.id, account]));
+  const playerById = new Map((playerResult.data || []).map((player) => [player.id, player]));
+  const teamById = new Map((teamResult.data || []).map((team) => [team.id, team]));
+  const seasonById = new Map((seasonResult.data || []).map((season) => [season.id, season]));
+  const rosterByPlayer = new Map();
+  (membershipResult.data || []).forEach((membership) => {
+    const team = teamById.get(membership.season_team_id);
+    const season = seasonById.get(team?.season_id);
+    const roster = rosterByPlayer.get(membership.player_id) || [];
+    roster.push({
+      jerseyNumber: membership.jersey_number,
+      position: membership.position,
+      active: Boolean(membership.active),
+      current: Boolean(season?.is_current),
+      season: season?.name || '',
+      schedule: team?.schedule_label || '',
+      label: [season?.name, team?.schedule_label].filter(Boolean).join(' · '),
+    });
+    rosterByPlayer.set(membership.player_id, roster);
+  });
+  rosterByPlayer.forEach((roster) => roster.sort((left, right) => {
+    if (left.current !== right.current) return left.current ? -1 : 1;
+    if (left.active !== right.active) return left.active ? -1 : 1;
+    return right.label.localeCompare(left.label);
+  }));
+
+  const playerSummary = (player) => {
+    if (!player) return null;
+    const roster = rosterByPlayer.get(player.id) || [];
+    const currentRoster = roster[0];
+    return {
+      id: player.id,
+      externalId: player.external_id,
+      displayName: player.display_name,
+      jerseyNumber: player.jersey_number || currentRoster?.jerseyNumber || null,
+      position: player.primary_position || currentRoster?.position || null,
+      active: Boolean(player.active),
+      sourceUrl: player.source_url,
+      roster,
+      rosterLabel: currentRoster?.label || '',
+    };
+  };
+
+  const claims = claimRows.map((claim) => {
+    const account = accountById.get(claim.user_id);
+    const player = playerById.get(claim.player_id);
+    return {
+      userId: claim.user_id,
+      playerId: claim.player_id,
+      status: claim.status || 'approved',
+      primary: Boolean(claim.is_primary),
+      requestedAt: claim.requested_at || claim.linked_at,
+      reviewedAt: claim.reviewed_at || null,
+      member: account ? {
+        displayName: account.displayName,
+        username: account.username,
+        email: account.email,
+      } : null,
+      player: playerSummary(player),
+    };
+  });
+  const linkedPlayerIds = new Set(
+    claims.filter((claim) => claim.status === 'approved').map((claim) => claim.playerId),
+  );
+  const players = (playerResult.data || []).map((player) => ({
+    ...playerSummary(player),
+    linked: linkedPlayerIds.has(player.id),
+  }));
+
+  return { claims, players };
+}
+
+async function loadAdminSnapshot(admin, actor) {
+  const accounts = await listAccounts(admin, actor);
+  const directory = await loadPlayerLinkDirectory(admin, accounts);
+  return {
+    accounts,
+    ...directory,
+    permissions: { isOwner: actor.isOwner },
+  };
+}
+
 async function updateAccount(admin, actor, body) {
   const target = await loadTargetProfile(admin, body.userId);
   const nextRole = MANAGED_ROLES.has(body.role) ? body.role : target?.role;
@@ -147,6 +270,43 @@ async function sendPasswordReset(admin, publicClient, actor, body, request) {
   if (error) throw error;
 }
 
+async function reviewPlayerClaim(admin, actor, body) {
+  if (!['approved', 'rejected'].includes(body.decision)) {
+    throw new Error('Choose approve or deny for that player-link request.');
+  }
+  const target = await loadTargetProfile(admin, body.userId);
+  assertCanManage(actor, target);
+  const { error } = await admin.rpc('review_member_player_claim', {
+    p_actor_id: actor.id,
+    p_user_id: body.userId,
+    p_player_id: body.playerId,
+    p_decision: body.decision,
+  });
+  if (error) throw error;
+}
+
+async function assignPlayer(admin, actor, body) {
+  const target = await loadTargetProfile(admin, body.userId);
+  assertCanManage(actor, target);
+  const { error } = await admin.rpc('assign_member_player_claim', {
+    p_actor_id: actor.id,
+    p_user_id: body.userId,
+    p_player_id: body.playerId,
+  });
+  if (error) throw error;
+}
+
+async function unlinkPlayer(admin, actor, body) {
+  const target = await loadTargetProfile(admin, body.userId);
+  assertCanManage(actor, target);
+  const { error } = await admin.rpc('unassign_member_player_claim', {
+    p_actor_id: actor.id,
+    p_user_id: body.userId,
+    p_player_id: body.playerId,
+  });
+  if (error) throw error;
+}
+
 export default async function handler(request, response) {
   setPrivateResponseHeaders(response);
   if (request.method !== 'POST') {
@@ -161,10 +321,7 @@ export default async function handler(request, response) {
     const { admin, publicClient, actor } = context;
 
     if (body.action === 'list') {
-      response.status(200).json({
-        accounts: await listAccounts(admin, actor),
-        permissions: { isOwner: actor.isOwner },
-      });
+      response.status(200).json(await loadAdminSnapshot(admin, actor));
       return;
     }
     if (body.action === 'update') {
@@ -175,16 +332,18 @@ export default async function handler(request, response) {
       await deleteAccount(admin, actor, body);
     } else if (body.action === 'reset-password') {
       await sendPasswordReset(admin, publicClient, actor, body, request);
+    } else if (body.action === 'review-player-claim') {
+      await reviewPlayerClaim(admin, actor, body);
+    } else if (body.action === 'assign-player') {
+      await assignPlayer(admin, actor, body);
+    } else if (body.action === 'unlink-player') {
+      await unlinkPlayer(admin, actor, body);
     } else {
       response.status(400).json({ error: 'Unknown admin action.' });
       return;
     }
 
-    response.status(200).json({
-      ok: true,
-      accounts: await listAccounts(admin, actor),
-      permissions: { isOwner: actor.isOwner },
-    });
+    response.status(200).json({ ok: true, ...await loadAdminSnapshot(admin, actor) });
   } catch (error) {
     sendApiError(response, error, 'Account administration is temporarily unavailable.');
   }
