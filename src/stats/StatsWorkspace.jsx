@@ -620,7 +620,7 @@ export default function StatsWorkspace() {
         <div className="stats-title">
           <span>TEAM HOME</span>
           <h1>{snapshot.season?.name || 'Goonsquad'}</h1>
-          <p>{snapshot.isSeasonAggregate ? `${scheduleCount} league schedules, one verified team view.` : `${formatScheduleName(snapshot.team)} performance, fixtures, and player totals.`}</p>
+          <p>{snapshot.isSeasonAggregate ? `${scheduleCount} league schedules, results, and player stats.` : `${formatScheduleName(snapshot.team)} performance, fixtures, and player totals.`}</p>
         </div>
         <div className="stats-season-controls">
           <label><span>Season</span><select value={snapshot.season?.id ?? ''} onChange={(event) => { setSeasonId(event.target.value); setTeamId(''); setStage('regular'); setSelectedGameId(''); }} disabled={!dataset.seasons.length}>{dataset.seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
