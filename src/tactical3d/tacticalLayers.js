@@ -38,8 +38,17 @@ function validMatchup(replay, matchup) {
   return home?.team === 'us' && opponent?.team === 'opponent' && home.role !== 'G';
 }
 
-export function tacticalMatchupsForReplay(replay) {
-  const authored = replay.presentation?.matchups?.filter((matchup) => validMatchup(replay, matchup));
+function authoredMatchupsAtTime(replay, requestedTime) {
+  const phases = replay.presentation?.matchupPhases ?? [];
+  const activePhase = [...phases].reverse().find((phase) => (
+    phase.time <= requestedTime + 0.001
+  ));
+  return activePhase?.matchups ?? replay.presentation?.matchups ?? [];
+}
+
+export function tacticalMatchupsForReplay(replay, requestedTime = 0) {
+  const authored = authoredMatchupsAtTime(replay, requestedTime)
+    .filter((matchup) => validMatchup(replay, matchup));
   const authoredByHomePlayer = new Map(
     (authored ?? []).map((matchup) => [matchup.homePlayerId, matchup]),
   );

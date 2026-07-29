@@ -85,8 +85,8 @@ async function waitForJourney(page, journey) {
 
 async function waitForOutcome(page, mode, outcome) {
   const expectedOwner = mode === '3d'
-    ? (outcome === 'won' ? 'US_LD' : 'OP_LD')
-    : (outcome === 'won' ? 'US_LD' : 'op-ld');
+    ? (outcome === 'won' ? 'US_LD' : 'OP_RD')
+    : (outcome === 'won' ? 'US_LD' : 'op-rd');
   await page.waitForFunction(({ requestedMode, requestedOutcome, owner }) => {
     const control = document.querySelector('[data-testid="faceoff-outcome-control"]');
     const activeButton = control?.querySelector(`button[data-outcome="${requestedOutcome}"]`);

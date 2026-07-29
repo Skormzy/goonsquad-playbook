@@ -52,7 +52,10 @@ describe('strategy-first team curriculum', () => {
     expect(validatePlayScene(scene)).toMatchObject({ valid: true, playerCount: 12 });
     expect(scene.sourcePhaseTimes).toHaveLength(5);
     expect(scene.ball.segments.some((segment) => (
-      segment.fromPlayerId === 'OP_RD' && segment.toPlayerId === 'OP_RW'
+      segment.fromPlayerId === 'OP_LD' && segment.toPlayerId === 'OP_LW'
+    ))).toBe(true);
+    expect(scene.ball.segments.some((segment) => (
+      segment.fromPlayerId === 'OP_LW' && segment.toPlayerId === 'OP_RD'
     ))).toBe(true);
     expect(scene.ball.segments.at(-1).ownerId).toBe('US_LW');
   });

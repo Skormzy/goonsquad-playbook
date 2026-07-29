@@ -38,19 +38,19 @@ export const PLAYMAKER_ROSTER = Object.freeze([
 const TEMPLATE_POSITIONS = Object.freeze({
   'full-court': Object.freeze({
     US_G: [50, 7], US_LD: [34, 19], US_RD: [66, 19], US_LW: [20, 39], US_C: [50, 33], US_RW: [80, 39],
-    OP_G: [50, 93], OP_LD: [34, 81], OP_RD: [66, 81], OP_LW: [20, 61], OP_C: [50, 67], OP_RW: [80, 61],
+    OP_G: [50, 93], OP_LD: [66, 81], OP_RD: [34, 81], OP_LW: [80, 61], OP_C: [50, 67], OP_RW: [20, 61],
   }),
   breakout: Object.freeze({
     US_G: [50, 7], US_LD: [31, 13], US_RD: [63, 16], US_LW: [13, 35], US_C: [48, 29], US_RW: [84, 39],
-    OP_G: [50, 93], OP_LD: [33, 66], OP_RD: [67, 66], OP_LW: [18, 31], OP_C: [38, 20], OP_RW: [72, 34],
+    OP_G: [50, 93], OP_LD: [67, 66], OP_RD: [33, 66], OP_LW: [72, 34], OP_C: [38, 20], OP_RW: [18, 31],
   }),
   'offensive-zone': Object.freeze({
     US_G: [50, 7], US_LD: [34, 61], US_RD: [66, 61], US_LW: [20, 78], US_C: [50, 73], US_RW: [80, 78],
-    OP_G: [50, 93], OP_LD: [36, 82], OP_RD: [64, 82], OP_LW: [25, 68], OP_C: [50, 76], OP_RW: [75, 68],
+    OP_G: [50, 93], OP_LD: [64, 82], OP_RD: [36, 82], OP_LW: [75, 68], OP_C: [50, 76], OP_RW: [25, 68],
   }),
   'defensive-zone': Object.freeze({
     US_G: [50, 7], US_LD: [36, 18], US_RD: [64, 18], US_LW: [25, 31], US_C: [50, 24], US_RW: [75, 31],
-    OP_G: [50, 93], OP_LD: [34, 39], OP_RD: [66, 39], OP_LW: [20, 22], OP_C: [50, 29], OP_RW: [80, 22],
+    OP_G: [50, 93], OP_LD: [66, 39], OP_RD: [34, 39], OP_LW: [80, 22], OP_C: [50, 29], OP_RW: [20, 22],
   }),
 });
 

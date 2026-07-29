@@ -1,3 +1,5 @@
+import { PRIMARY_DEFENSIVE_PLAY } from './strategyFirstPlays.js';
+
 const opponent = (id, x, y, label, hasBall = false) => ({
   id,
   x,
@@ -13,6 +15,23 @@ const opponentGoalie = (x = 50, y = 93) => ({
   label: 'G',
   isGoalie: true,
 });
+
+const PRIMARY_DEFENSIVE_TACTIC_PHASES = Object.freeze(
+  PRIMARY_DEFENSIVE_PLAY.phases.map((phase) => Object.freeze({
+    duration: phase.duration,
+    caption: phase.desc,
+    our: phase.pos,
+    opp: phase.opp.map((player) => ({
+      ...player,
+      label: player.l,
+      isGoalie: player.l === 'G',
+    })),
+    ball: phase.ball,
+    ballPath: phase.ballPath ?? null,
+    coverage: phase.coverage ?? null,
+    arrows: [],
+  })),
+);
 
 export const STRONG_SIDE_LOCK_TACTIC = Object.freeze({
   id: 'protect-the-middle',
@@ -31,28 +50,7 @@ export const STRONG_SIDE_LOCK_TACTIC = Object.freeze({
   mistakeScene: {
     coverage: { RW: 'o5', C: 'o1', LW: 'o4', RD: 'o3', LD: 'o2' },
     phases: [
-      {
-        duration: 3.25,
-        caption: 'They gain possession on the right. Our shape identifies the ball side.',
-        our: {
-          G: { x: 50, y: 8 },
-          LW: { x: 34, y: 47 },
-          C: { x: 50, y: 48 },
-          RW: { x: 66, y: 50 },
-          LD: { x: 36, y: 37 },
-          RD: { x: 64, y: 37 },
-        },
-        opp: [
-          opponent('o1', 50, 55, 'C'),
-          opponent('o2', 30, 58, 'LW'),
-          opponent('o3', 73, 56, 'RW'),
-          opponent('o4', 34, 64, 'LD'),
-          opponent('o5', 68, 63, 'RD', true),
-          opponentGoalie(),
-        ],
-        ball: { x: 68, y: 63 },
-        arrows: [],
-      },
+      PRIMARY_DEFENSIVE_TACTIC_PHASES[0],
       {
         duration: 3.25,
         caption: 'RW chases from the outside while C drifts to the wall. The middle opens.',
@@ -66,10 +64,10 @@ export const STRONG_SIDE_LOCK_TACTIC = Object.freeze({
         },
         opp: [
           opponent('o1', 51, 48, 'C'),
-          opponent('o2', 28, 53, 'LW'),
-          opponent('o3', 80, 49, 'RW'),
-          opponent('o4', 36, 58, 'LD'),
-          opponent('o5', 77, 55, 'RD', true),
+          opponent('o2', 28, 53, 'RW'),
+          opponent('o3', 80, 49, 'LW'),
+          opponent('o4', 36, 58, 'RD'),
+          opponent('o5', 77, 55, 'LD', true),
           opponentGoalie(51),
         ],
         ball: { x: 77, y: 55 },
@@ -88,10 +86,10 @@ export const STRONG_SIDE_LOCK_TACTIC = Object.freeze({
         },
         opp: [
           opponent('o1', 50, 39, 'C', true),
-          opponent('o2', 27, 47, 'LW'),
-          opponent('o3', 76, 44, 'RW'),
-          opponent('o4', 36, 54, 'LD'),
-          opponent('o5', 72, 50, 'RD'),
+          opponent('o2', 27, 47, 'RW'),
+          opponent('o3', 76, 44, 'LW'),
+          opponent('o4', 36, 54, 'RD'),
+          opponent('o5', 72, 50, 'LD'),
           opponentGoalie(49),
         ],
         ball: { x: 50, y: 39 },
@@ -112,10 +110,10 @@ export const STRONG_SIDE_LOCK_TACTIC = Object.freeze({
         },
         opp: [
           opponent('o1', 50, 20, 'C'),
-          opponent('o2', 28, 35, 'LW'),
-          opponent('o3', 72, 34, 'RW'),
-          opponent('o4', 35, 49, 'LD'),
-          opponent('o5', 68, 46, 'RD'),
+          opponent('o2', 28, 35, 'RW'),
+          opponent('o3', 72, 34, 'LW'),
+          opponent('o4', 35, 49, 'RD'),
+          opponent('o5', 68, 46, 'LD'),
           opponentGoalie(50),
         ],
         ball: { x: 50, y: 8 },
@@ -127,123 +125,7 @@ export const STRONG_SIDE_LOCK_TACTIC = Object.freeze({
   },
   correctScene: {
     coverage: { RW: 'o5', C: 'o1', LW: 'o4', RD: 'o3', LD: 'o2' },
-    phases: [
-      {
-        duration: 3.25,
-        caption: 'They gain possession on the right. Our shape identifies the ball side.',
-        our: {
-          G: { x: 50, y: 8 },
-          LW: { x: 34, y: 47 },
-          C: { x: 50, y: 48 },
-          RW: { x: 66, y: 50 },
-          LD: { x: 36, y: 37 },
-          RD: { x: 64, y: 37 },
-        },
-        opp: [
-          opponent('o1', 50, 55, 'C'),
-          opponent('o2', 30, 58, 'LW'),
-          opponent('o3', 73, 56, 'RW'),
-          opponent('o4', 34, 64, 'LD'),
-          opponent('o5', 68, 63, 'RD', true),
-          opponentGoalie(),
-        ],
-        ball: { x: 68, y: 63 },
-        arrows: [],
-      },
-      {
-        duration: 3.25,
-        caption: 'RW becomes the 1. Everyone else shifts underneath and inside.',
-        our: {
-          G: { x: 51, y: 8 },
-          LW: { x: 38, y: 44 },
-          C: { x: 55, y: 45 },
-          RW: { x: 72, y: 55 },
-          LD: { x: 41, y: 34 },
-          RD: { x: 66, y: 34 },
-        },
-        opp: [
-          opponent('o1', 52, 51, 'C'),
-          opponent('o2', 29, 54, 'LW'),
-          opponent('o3', 80, 50, 'RW'),
-          opponent('o4', 37, 59, 'LD'),
-          opponent('o5', 78, 56, 'RD', true),
-          opponentGoalie(52),
-        ],
-        ball: { x: 78, y: 56 },
-        arrows: [],
-      },
-      {
-        duration: 3.25,
-        caption: 'Pressure forces the ball down the wall. All five seal the middle.',
-        our: {
-          G: { x: 52, y: 8 },
-          LW: { x: 42, y: 40 },
-          C: { x: 59, y: 39 },
-          RW: { x: 78, y: 47 },
-          LD: { x: 45, y: 29 },
-          RD: { x: 68, y: 29 },
-        },
-        opp: [
-          opponent('o1', 56, 44, 'C'),
-          opponent('o2', 27, 49, 'LW'),
-          opponent('o3', 82, 44, 'RW', true),
-          opponent('o4', 38, 55, 'LD'),
-          opponent('o5', 75, 51, 'RD'),
-          opponentGoalie(51),
-        ],
-        ball: { x: 82, y: 44 },
-        arrows: [
-          { from: { x: 78, y: 56 }, to: { x: 82, y: 44 }, type: 'pass' },
-        ],
-      },
-      {
-        duration: 3.25,
-        caption: 'They reverse. LW becomes the new 1 and the whole unit slides left.',
-        our: {
-          G: { x: 49, y: 8 },
-          LW: { x: 29, y: 50 },
-          C: { x: 45, y: 42 },
-          RW: { x: 62, y: 41 },
-          LD: { x: 34, y: 31 },
-          RD: { x: 59, y: 31 },
-        },
-        opp: [
-          opponent('o1', 47, 43, 'C'),
-          opponent('o2', 22, 48, 'LW'),
-          opponent('o3', 70, 44, 'RW'),
-          opponent('o4', 27, 54, 'LD', true),
-          opponent('o5', 67, 51, 'RD'),
-          opponentGoalie(48),
-        ],
-        ball: { x: 27, y: 54 },
-        arrows: [
-          { from: { x: 82, y: 44 }, to: { x: 67, y: 51 }, type: 'pass' },
-          { from: { x: 67, y: 51 }, to: { x: 27, y: 54 }, type: 'pass' },
-        ],
-      },
-      {
-        duration: 3.5,
-        caption: 'LW and C close the wall. We win possession with the middle still protected.',
-        our: {
-          G: { x: 48, y: 8 },
-          LW: { x: 19, y: 44, ball: true },
-          C: { x: 36, y: 40 },
-          RW: { x: 57, y: 39 },
-          LD: { x: 32, y: 29 },
-          RD: { x: 59, y: 30 },
-        },
-        opp: [
-          opponent('o1', 42, 40, 'C'),
-          opponent('o2', 17, 43, 'LW'),
-          opponent('o3', 69, 42, 'RW'),
-          opponent('o4', 25, 49, 'LD'),
-          opponent('o5', 64, 49, 'RD'),
-          opponentGoalie(49),
-        ],
-        ball: { x: 19, y: 44 },
-        arrows: [],
-      },
-    ],
+    phases: PRIMARY_DEFENSIVE_TACTIC_PHASES,
   },
   linkedPlays: ['trap', 'nfd', 'bck'],
 });

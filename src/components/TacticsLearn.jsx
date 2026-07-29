@@ -74,7 +74,7 @@ export default function TacticsLearn() {
   const prevPhasePositions = currentPhase > 0 ? scene.phases[currentPhase - 1]?.our ?? null : null;
 
   const phaseData = { pos: phase.our, opp: phase.opp, ball: phase.ball, arrows: phase.arrows };
-  const coverage = scene.coverage || null;
+  const coverage = phase.coverage || scene.coverage || null;
   const tabAccent = activeTab === 'mistake' ? TC.mistake : TC.defense;
   const rinkMax = isDesktop ? 420 : 430;
 

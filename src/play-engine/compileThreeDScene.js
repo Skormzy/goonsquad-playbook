@@ -48,11 +48,11 @@ const HOME_FALLBACKS = Object.freeze({
 });
 
 const OPPONENT_FALLBACKS = Object.freeze({
-  LW: { x: 22, y: 57 },
+  LW: { x: 78, y: 57 },
   C: { x: 50, y: 60 },
-  RW: { x: 78, y: 57 },
-  LD: { x: 34, y: 76 },
-  RD: { x: 66, y: 76 },
+  RW: { x: 22, y: 57 },
+  LD: { x: 66, y: 76 },
+  RD: { x: 34, y: 76 },
   G: { x: 50, y: 93 },
 });
 
@@ -77,14 +77,9 @@ function distance(a, b) {
   return Math.hypot((b?.x ?? 0) - (a?.x ?? 0), (b?.y ?? 0) - (a?.y ?? 0));
 }
 
-function roleFromLabel(label) {
+function explicitRoleFromLabel(label) {
   const normalized = String(label ?? '').trim().toUpperCase();
   if (ROLES.includes(normalized)) return normalized;
-  if (normalized === 'F1') return 'C';
-  if (normalized === 'F2') return 'LW';
-  if (normalized === 'F3') return 'RW';
-  if (normalized === 'D1') return 'LD';
-  if (normalized === 'D2') return 'RD';
   return null;
 }
 
@@ -103,7 +98,7 @@ function createOpponentRoleMap(phases) {
   const roleToSourceId = new Map();
   const assignedIds = new Set();
   const goalie = [...sourcePlayers.values()].find((player) => (
-    player.isGoalie || roleFromLabel(opponentLabel(player)) === 'G'
+    player.isGoalie || explicitRoleFromLabel(opponentLabel(player)) === 'G'
   ));
   if (goalie) {
     roleToSourceId.set('G', goalie.id);
@@ -112,12 +107,37 @@ function createOpponentRoleMap(phases) {
 
   for (const player of sourcePlayers.values()) {
     if (assignedIds.has(player.id)) continue;
-    const role = roleFromLabel(opponentLabel(player));
+    const role = explicitRoleFromLabel(opponentLabel(player));
     if (role && role !== 'G' && !roleToSourceId.has(role)) {
       roleToSourceId.set(role, player.id);
       assignedIds.add(player.id);
     }
   }
+
+  const assignHorizontalGroup = (players, roles) => {
+    const availableRoles = roles.filter((role) => !roleToSourceId.has(role));
+    const availablePlayers = players
+      .filter((player) => !assignedIds.has(player.id))
+      .sort((left, right) => left.x - right.x);
+    if (availablePlayers.length !== availableRoles.length) return;
+    availableRoles.forEach((role, index) => {
+      const player = availablePlayers[index];
+      roleToSourceId.set(role, player.id);
+      assignedIds.add(player.id);
+    });
+  };
+
+  // Opponents attack toward our bottom net, so their right side is on the
+  // visual left of our vertical rink. Generic F/D labels describe jobs, not
+  // handed positions; assign their stable roles from this mirrored geometry.
+  assignHorizontalGroup(
+    [...sourcePlayers.values()].filter((player) => /^F[123]$/i.test(opponentLabel(player))),
+    ['RW', 'C', 'LW'],
+  );
+  assignHorizontalGroup(
+    [...sourcePlayers.values()].filter((player) => /^D[12]$/i.test(opponentLabel(player))),
+    ['RD', 'LD'],
+  );
 
   const remainingIds = [...sourcePlayers.keys()].filter((id) => !assignedIds.has(id));
   FIELD_ROLES.forEach((role) => {
@@ -130,12 +150,14 @@ function createOpponentRoleMap(phases) {
 }
 
 function phaseOpponentForRole(phase, roleMap, role) {
-  const roleMatch = phase.opponents.find((player) => (
-    roleFromLabel(opponentLabel(player)) === role
-  ));
-  if (roleMatch) return roleMatch;
   const sourceId = roleMap.get(role);
-  return sourceId ? phase.opponents.find((player) => player.id === sourceId) ?? null : null;
+  const sourceMatch = sourceId
+    ? phase.opponents.find((player) => player.id === sourceId) ?? null
+    : null;
+  if (sourceMatch) return sourceMatch;
+  return phase.opponents.find((player) => (
+    explicitRoleFromLabel(opponentLabel(player)) === role
+  )) ?? null;
 }
 
 function sourceOpponentIdToRole(roleMap, sourceId) {
@@ -147,7 +169,8 @@ function sourceOpponentIdToRole(roleMap, sourceId) {
 
 function phaseOpponentIdToRole(phase, roleMap, sourceId) {
   const sourcePlayer = phase.opponents.find((player) => player.id === sourceId);
-  return roleFromLabel(opponentLabel(sourcePlayer)) ?? sourceOpponentIdToRole(roleMap, sourceId);
+  return explicitRoleFromLabel(opponentLabel(sourcePlayer))
+    ?? sourceOpponentIdToRole(roleMap, sourceId);
 }
 
 function cloneHomePositions(home) {
@@ -271,7 +294,8 @@ function normalizeStrategyPhases(tactic, variant) {
     home: phase.our,
     opponents: phase.opp ?? [],
     ball: phase.ball,
-    ballPath: null,
+    ballPath: phase.ballPath ?? null,
+    coverage: phase.coverage ?? null,
     arrows: phase.arrows ?? [],
     duration: phase.duration,
     source: phase,
@@ -937,9 +961,8 @@ function strategyResponsibilities(tactic) {
   ];
 }
 
-function strategyMatchups(tactic, variant, roleMap) {
-  const sourceScene = variant === 'mistake' ? tactic.mistakeScene : tactic.correctScene;
-  return Object.entries(sourceScene.coverage ?? {}).map(([homeRole, sourceOpponentId]) => {
+function matchupsForCoverage(coverage, roleMap) {
+  return Object.entries(coverage ?? {}).map(([homeRole, sourceOpponentId]) => {
     const opponentRole = sourceOpponentIdToRole(roleMap, sourceOpponentId);
     if (!FIELD_ROLES.includes(homeRole) || !opponentRole) return null;
     return {
@@ -948,6 +971,21 @@ function strategyMatchups(tactic, variant, roleMap) {
       source: 'authored',
     };
   }).filter(Boolean);
+}
+
+function strategyMatchups(tactic, variant, roleMap) {
+  const sourceScene = variant === 'mistake' ? tactic.mistakeScene : tactic.correctScene;
+  return matchupsForCoverage(sourceScene.coverage, roleMap);
+}
+
+function strategyMatchupPhases(phases, phaseTimes, roleMap) {
+  return phases.flatMap((phase, index) => {
+    if (!phase.coverage) return [];
+    return [{
+      time: phaseTimes[index],
+      matchups: matchupsForCoverage(phase.coverage, roleMap),
+    }];
+  });
 }
 
 function baseScene({ id, kind, title, duration, phaseTimes, players, ball, presentation, teachingPoints, events }) {
@@ -1035,6 +1073,7 @@ export function compileStrategyThreeDScene(tactic, requestedVariant = 'correct')
         purpose: tactic.principle,
         responsibilities: strategyResponsibilities(tactic),
         matchups: strategyMatchups(tactic, variant, roleMap),
+        matchupPhases: strategyMatchupPhases(phases, timing.phaseTimes, roleMap),
         variant,
       },
       teachingPoints: tactic.keyPoints,

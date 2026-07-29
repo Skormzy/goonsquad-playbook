@@ -43,6 +43,29 @@ describe('3D tactical layers', () => {
     });
   });
 
+  it('hands the strong-side matchup to the new pressure winger on a reversal', () => {
+    const strategy = getStrategyScene('protect-the-middle', 'correct');
+    const rightLock = tacticalMatchupsForReplay(
+      strategy,
+      strategy.sourcePhaseTimes[2] + 0.1,
+    );
+    const leftLock = tacticalMatchupsForReplay(
+      strategy,
+      strategy.sourcePhaseTimes[3] + 0.1,
+    );
+
+    expect(rightLock).toContainEqual({
+      homePlayerId: 'US_RW',
+      opponentPlayerId: 'OP_LW',
+      source: 'authored',
+    });
+    expect(leftLock).toContainEqual({
+      homePlayerId: 'US_LW',
+      opponentPlayerId: 'OP_RD',
+      source: 'authored',
+    });
+  });
+
   it('derives routes and next targets from the authoritative player tracks', () => {
     const replay = getPlayScene('brk');
     const winger = replay.players.find((player) => player.id === 'US_LW');

@@ -253,7 +253,10 @@ export default function TacticalReplayLayers({
   playbackTime,
   replay,
 }) {
-  const matchups = useMemo(() => tacticalMatchupsForReplay(replay), [replay]);
+  const matchups = useMemo(
+    () => tacticalMatchupsForReplay(replay, playbackTime),
+    [playbackTime, replay],
+  );
 
   return (
     <>
