@@ -38,6 +38,15 @@ import {
   statsSnapshot,
 } from './statsModel';
 import {
+  buildOpponentMatchups,
+  findOpponentMatchup,
+  opponentSlug,
+} from './opponentModel';
+import {
+  OpponentDirectory,
+  OpponentHeadToHead,
+} from './OpponentHeadToHead';
+import {
   DEFAULT_LEADERBOARD_SORT,
   nextLeaderboardSort,
   sortLeaderboard,
@@ -180,7 +189,7 @@ function MatchdayCard({ game, kind, schedules, onOpenGame }) {
             <b>{next ? 'VS' : `${game.goalsFor}–${game.goalsAgainst}`}</b>
           </div>
           <footer>
-            <span>{next ? 'Open fixture' : `${result}${game.overtime ? ' · OT' : ''}`}</span>
+            <span>{next ? 'Head-to-head' : `${result}${game.overtime ? ' · OT' : ''}`}</span>
             <ChevronRight aria-hidden="true" />
           </footer>
         </button>
@@ -194,12 +203,12 @@ function MatchdayCard({ game, kind, schedules, onOpenGame }) {
   );
 }
 
-function GamesTable({ games, showStage = false, showSchedule = false, schedules = [], onOpenGame }) {
+function GamesTable({ games, showStage = false, showSchedule = false, schedules = [], onOpenGame, onOpenOpponent }) {
   if (!games.length) return <EmptyStats section="game results" />;
   return (
     <div className="stats-table-scroll">
       <table className="stats-table">
-        <thead><tr><th>Date</th><th>Opponent</th>{showSchedule && <th>League</th>}{showStage && <th>Stage</th>}<th>Site</th><th>Result</th><th>Score</th>{onOpenGame && <th className="stats-game-detail-column">Details</th>}</tr></thead>
+        <thead><tr><th>Date</th><th>Opponent</th>{showSchedule && <th>League</th>}{showStage && <th>Stage</th>}<th>Site</th><th>Result</th><th>Score</th>{onOpenGame && <th className="stats-game-detail-column">View</th>}</tr></thead>
         <tbody>
           {games.map((game) => {
             const final = game.status === 'final';
@@ -208,13 +217,13 @@ function GamesTable({ games, showStage = false, showSchedule = false, schedules 
             return (
               <tr key={game.id}>
                 <td>{formatGameDate(game.scheduledAt)}</td>
-                <td>{onOpenGame ? <button type="button" className="stats-game-opponent" onClick={() => onOpenGame(game.id)}><strong>{game.opponent}</strong></button> : <strong>{game.opponent}</strong>}</td>
+                <td>{onOpenOpponent ? <button type="button" className="stats-game-opponent" aria-label={`Open head-to-head against ${game.opponent}`} onClick={() => onOpenOpponent(opponentSlug(game.opponent), final ? '' : game.id)}><strong>{game.opponent}</strong></button> : <strong>{game.opponent}</strong>}</td>
                 {showSchedule && <td><span className="stats-stage-label">{formatScheduleName(schedule)}</span></td>}
                 {showStage && <td><span className="stats-stage-label">{game.stage === 'playoffs' ? 'Playoffs' : 'Regular'}</span></td>}
                 <td>{game.venue === 'home' ? 'Home' : game.venue === 'away' ? 'Away' : 'Neutral'}</td>
                 <td><span className={`stats-result is-${result.toLowerCase()}`}>{result}{game.overtime && final ? ' OT' : ''}</span></td>
                 <td>{final ? `${game.goalsFor}–${game.goalsAgainst}` : '—'}</td>
-                {onOpenGame && <td className="stats-game-detail-column"><button type="button" className="stats-game-detail-button" aria-label={`View game details against ${game.opponent}`} onClick={() => onOpenGame(game.id)}><span>Details</span><ChevronRight aria-hidden="true" /></button></td>}
+                {onOpenGame && <td className="stats-game-detail-column"><button type="button" className="stats-game-detail-button" aria-label={`${final ? 'View results' : 'Open head-to-head'} against ${game.opponent}`} onClick={() => onOpenGame(game.id)}><span>{final ? 'Results' : 'Matchup'}</span><ChevronRight aria-hidden="true" /></button></td>}
               </tr>
             );
           })}
@@ -264,11 +273,10 @@ function goalieResult(line) {
 function GameDetails({ game, details, onBack, onCopyLink, copied }) {
   if (!game || !details) return null;
   const events = [...details.events].sort((a, b) => a.period - b.period || (a.clockSeconds ?? 0) - (b.clockSeconds ?? 0));
-  const final = game.status === 'final';
   const hasPublishedDetails = Boolean(details.team || details.players.length || details.goalies.length || details.events.length);
   const teamMetrics = availableTeamMetrics(details.team);
   const venue = game.venue === 'home' ? 'Home game' : game.venue === 'away' ? 'Away game' : 'Neutral site';
-  const result = !final ? 'Scheduled' : game.goalsFor > game.goalsAgainst ? 'Win' : game.goalsFor < game.goalsAgainst ? 'Loss' : 'Tie';
+  const result = game.goalsFor > game.goalsAgainst ? 'Win' : game.goalsFor < game.goalsAgainst ? 'Loss' : 'Tie';
   return (
     <section className="stats-game-page" aria-label={`Game page against ${game.opponent}`}>
       <div className="stats-game-page-toolbar">
@@ -287,9 +295,9 @@ function GameDetails({ game, details, onBack, onCopyLink, copied }) {
             <p>{formatGameDate(game.scheduledAt)} · {venue}{game.location ? ` · ${game.location}` : ''}</p>
           </div>
           <div className={`stats-game-score is-${result.toLowerCase()}`}>
-            <span>{result}{game.overtime && final ? ' · OT' : ''}</span>
-            <strong>{final ? `${game.goalsFor}–${game.goalsAgainst}` : 'VS'}</strong>
-            <small>{final ? 'Final' : 'Upcoming'}</small>
+            <span>{result}{game.overtime ? ' · OT' : ''}</span>
+            <strong>{game.goalsFor}–{game.goalsAgainst}</strong>
+            <small>Final</small>
           </div>
         </header>
 
@@ -297,7 +305,7 @@ function GameDetails({ game, details, onBack, onCopyLink, copied }) {
           {teamMetrics.map((metric) => <Metric key={metric.label} {...metric} />)}
         </div>}
 
-        {!hasPublishedDetails ? <div className="stats-game-unpublished"><BarChart3 aria-hidden="true" /><strong>{final ? 'No detailed game sheet was published' : 'Detailed statistics will appear after the game'}</strong><p>The official fixture is available now. Box-score data will remain blank until York Central or an authorized manager publishes it.</p></div> : <div className="stats-game-detail-grid">
+        {!hasPublishedDetails ? <div className="stats-game-unpublished"><BarChart3 aria-hidden="true" /><strong>No detailed game sheet was published</strong><p>The verified final score is available, but the league archive did not publish a complete box score for this game.</p></div> : <div className="stats-game-detail-grid">
           <section>
             <header><span>GAME EVENTS</span><strong>Scoring and penalties</strong></header>
             {events.length ? <ol className="stats-event-list">{events.map((event) => <li key={event.id}>
@@ -474,8 +482,10 @@ export default function StatsWorkspace() {
   const [seasonId, setSeasonId] = useState(() => initialQueryValue('season'));
   const [teamId, setTeamId] = useState(() => initialQueryValue('team'));
   const [stage, setStage] = useState(() => initialQueryValue('stage') || 'regular');
-  const [tab, setTab] = useState(() => initialQueryValue('game') ? 'games' : 'overview');
+  const [tab, setTab] = useState(() => initialQueryValue('game') || initialQueryValue('opponent') ? 'games' : 'overview');
   const [selectedGameId, setSelectedGameId] = useState(() => initialQueryValue('game'));
+  const [selectedOpponentSlug, setSelectedOpponentSlug] = useState(() => initialQueryValue('opponent'));
+  const [selectedFixtureId, setSelectedFixtureId] = useState(() => initialQueryValue('fixture'));
   const [linkCopied, setLinkCopied] = useState(false);
   const [managerOpen, setManagerOpen] = useState(false);
   const t = themes[theme];
@@ -524,12 +534,14 @@ export default function StatsWorkspace() {
   }, []);
 
   useEffect(() => {
-    const syncGameFromHistory = () => {
+    const syncStatsDetailFromHistory = () => {
       setSelectedGameId(initialQueryValue('game'));
+      setSelectedOpponentSlug(initialQueryValue('opponent'));
+      setSelectedFixtureId(initialQueryValue('fixture'));
       setLinkCopied(false);
     };
-    window.addEventListener('popstate', syncGameFromHistory);
-    return () => window.removeEventListener('popstate', syncGameFromHistory);
+    window.addEventListener('popstate', syncStatsDetailFromHistory);
+    return () => window.removeEventListener('popstate', syncStatsDetailFromHistory);
   }, []);
 
   const snapshot = useMemo(() => {
@@ -551,6 +563,31 @@ export default function StatsWorkspace() {
     };
   }, [dataset, selectedGameId]);
 
+  const opponentMatchups = useMemo(
+    () => buildOpponentMatchups(dataset),
+    [dataset],
+  );
+
+  const selectedOpponentContext = useMemo(() => {
+    if (!dataset) return null;
+    const legacyFutureGame = selectedGameContext && selectedGameContext.game.status !== 'final'
+      ? selectedGameContext.game
+      : null;
+    const requestedOpponent = selectedOpponentSlug || (legacyFutureGame ? opponentSlug(legacyFutureGame.opponent) : '');
+    const matchup = findOpponentMatchup(opponentMatchups, requestedOpponent);
+    if (!matchup) return null;
+    const requestedFixtureId = selectedFixtureId || legacyFutureGame?.id;
+    const requestedFixture = requestedFixtureId
+      ? matchup.games.find((game) => game.id === requestedFixtureId && game.status !== 'final')
+      : null;
+    return {
+      matchup,
+      fixture: requestedFixture || matchup.nextGame,
+    };
+  }, [dataset, opponentMatchups, selectedFixtureId, selectedGameContext, selectedOpponentSlug]);
+
+  const selectedFinalGameContext = selectedGameContext?.game.status === 'final' ? selectedGameContext : null;
+
   useEffect(() => {
     if (typeof window === 'undefined' || !seasonId) return;
     const url = new URL(window.location.href);
@@ -559,10 +596,29 @@ export default function StatsWorkspace() {
     else url.searchParams.delete('team');
     if (snapshot?.stage === 'regular') url.searchParams.delete('stage');
     else url.searchParams.set('stage', snapshot?.stage || 'regular');
-    if (selectedGameContext?.game.id) url.searchParams.set('game', selectedGameContext.game.id);
-    else url.searchParams.delete('game');
+    if (selectedFinalGameContext?.game.id) {
+      url.searchParams.set('game', selectedFinalGameContext.game.id);
+      url.searchParams.delete('opponent');
+      url.searchParams.delete('fixture');
+    } else if (selectedOpponentContext?.matchup.slug) {
+      url.searchParams.delete('game');
+      url.searchParams.set('opponent', selectedOpponentContext.matchup.slug);
+      if (selectedOpponentContext.fixture?.id) url.searchParams.set('fixture', selectedOpponentContext.fixture.id);
+      else url.searchParams.delete('fixture');
+    } else {
+      url.searchParams.delete('game');
+      url.searchParams.delete('opponent');
+      url.searchParams.delete('fixture');
+    }
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
-  }, [seasonId, selectedGameContext?.game.id, snapshot?.team?.id, snapshot?.stage]);
+  }, [
+    seasonId,
+    selectedFinalGameContext?.game.id,
+    selectedOpponentContext?.fixture?.id,
+    selectedOpponentContext?.matchup.slug,
+    snapshot?.team?.id,
+    snapshot?.stage,
+  ]);
 
   if (!dataset || !snapshot) return <div className="stats-loading"><RefreshCw aria-hidden="true" /> Loading team statistics…</div>;
 
@@ -574,27 +630,53 @@ export default function StatsWorkspace() {
   const completedGames = snapshot.games.filter((game) => game.status === 'final');
   const latestGame = completedGames[0] ?? null;
   const nextGame = nextUpcomingGame(snapshot.games);
-  const openGame = (gameId) => {
+  const openOpponent = (slug, fixtureId = '') => {
     const url = new URL(window.location.href);
-    url.searchParams.set('game', gameId);
-    window.history.pushState({ ...window.history.state, statsGamePage: true }, '', `${url.pathname}${url.search}${url.hash}`);
-    setSelectedGameId(gameId);
+    url.searchParams.delete('game');
+    url.searchParams.set('opponent', slug);
+    if (fixtureId) url.searchParams.set('fixture', fixtureId);
+    else url.searchParams.delete('fixture');
+    window.history.pushState({ ...window.history.state, statsDetailPage: true }, '', `${url.pathname}${url.search}${url.hash}`);
+    setSelectedGameId('');
+    setSelectedOpponentSlug(slug);
+    setSelectedFixtureId(fixtureId || '');
     setLinkCopied(false);
     setTab('games');
   };
-  const closeGame = () => {
-    if (window.history.state?.statsGamePage) {
+  const openGame = (gameId) => {
+    const game = dataset.games.find((item) => item.id === gameId);
+    if (game?.status !== 'final') {
+      openOpponent(opponentSlug(game?.opponent), game?.id);
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.delete('opponent');
+    url.searchParams.delete('fixture');
+    url.searchParams.set('game', gameId);
+    window.history.pushState({ ...window.history.state, statsDetailPage: true }, '', `${url.pathname}${url.search}${url.hash}`);
+    setSelectedGameId(gameId);
+    setSelectedOpponentSlug('');
+    setSelectedFixtureId('');
+    setLinkCopied(false);
+    setTab('games');
+  };
+  const closeDetail = () => {
+    if (window.history.state?.statsDetailPage) {
       window.history.back();
     } else {
       const url = new URL(window.location.href);
       url.searchParams.delete('game');
+      url.searchParams.delete('opponent');
+      url.searchParams.delete('fixture');
       window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
       setSelectedGameId('');
+      setSelectedOpponentSlug('');
+      setSelectedFixtureId('');
     }
     setLinkCopied(false);
-    setTab('games');
+    setTab('overview');
   };
-  const copyGameLink = async () => {
+  const copyDetailLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
       setLinkCopied(true);
@@ -616,27 +698,38 @@ export default function StatsWorkspace() {
       '--stats-accent-bg': t.ab,
       '--stats-brand': t.br,
     }}>
-      {!selectedGameContext && <header className="stats-workspace-header stats-home-hero">
+      {!selectedFinalGameContext && !selectedOpponentContext && <header className="stats-workspace-header stats-home-hero">
         <div className="stats-title">
           <span>TEAM HOME</span>
           <h1>{snapshot.season?.name || 'Goonsquad'}</h1>
           <p>{snapshot.isSeasonAggregate ? `${scheduleCount} league schedules, results, and player stats.` : `${formatScheduleName(snapshot.team)} performance, fixtures, and player totals.`}</p>
         </div>
         <div className="stats-season-controls">
-          <label><span>Season</span><select value={snapshot.season?.id ?? ''} onChange={(event) => { setSeasonId(event.target.value); setTeamId(''); setStage('regular'); setSelectedGameId(''); }} disabled={!dataset.seasons.length}>{dataset.seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
+          <label><span>Season</span><select value={snapshot.season?.id ?? ''} onChange={(event) => { setSeasonId(event.target.value); setTeamId(''); setStage('regular'); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }} disabled={!dataset.seasons.length}>{dataset.seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
           {canManage && <button type="button" className="stats-manage-button" onClick={() => setManagerOpen(true)}><Settings2 aria-hidden="true" /> Manage data</button>}
         </div>
       </header>}
 
-      {selectedGameContext ? <section className="stats-content is-game-page">
-        <GameDetails game={selectedGameContext.game} details={selectedGameContext.details} onBack={closeGame} onCopyLink={copyGameLink} copied={linkCopied} />
+      {selectedFinalGameContext ? <section className="stats-content is-game-page">
+        <GameDetails game={selectedFinalGameContext.game} details={selectedFinalGameContext.details} onBack={closeDetail} onCopyLink={copyDetailLink} copied={linkCopied} />
+      </section> : selectedOpponentContext ? <section className="stats-content is-game-page">
+        <OpponentHeadToHead
+          matchup={selectedOpponentContext.matchup}
+          fixture={selectedOpponentContext.fixture}
+          dataset={dataset}
+          currentSeasonId={snapshot.season?.id}
+          onBack={closeDetail}
+          onCopyLink={copyDetailLink}
+          copied={linkCopied}
+          onOpenGame={openGame}
+        />
       </section> : <><div className="stats-team-switcher" role="group" aria-label="League schedule">
-        {snapshot.seasonTeams.length > 1 && <button type="button" aria-pressed={snapshot.isSeasonAggregate} onClick={() => { setTeamId(ALL_SEASON_TEAMS_ID); setStage('regular'); setSelectedGameId(''); }}>All teams</button>}
-        {snapshot.seasonTeams.map((team) => <button key={team.id} type="button" aria-pressed={snapshot.team?.id === team.id} onClick={() => { setTeamId(team.id); setStage('regular'); setSelectedGameId(''); }}>{formatScheduleName(team)}</button>)}
+        {snapshot.seasonTeams.length > 1 && <button type="button" aria-pressed={snapshot.isSeasonAggregate} onClick={() => { setTeamId(ALL_SEASON_TEAMS_ID); setStage('regular'); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }}>All teams</button>}
+        {snapshot.seasonTeams.map((team) => <button key={team.id} type="button" aria-pressed={snapshot.team?.id === team.id} onClick={() => { setTeamId(team.id); setStage('regular'); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }}>{formatScheduleName(team)}</button>)}
       </div>
 
       {snapshot.availableStages.length > 1 && <div className="stats-stage-switcher" role="group" aria-label="Season stage">
-        {snapshot.availableStages.map((item) => <button key={item} type="button" aria-pressed={snapshot.stage === item} onClick={() => { setStage(item); setSelectedGameId(''); }}>{item === 'regular' ? 'Regular season' : item === 'playoffs' ? 'Playoffs' : 'All games'}</button>)}
+        {snapshot.availableStages.map((item) => <button key={item} type="button" aria-pressed={snapshot.stage === item} onClick={() => { setStage(item); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }}>{item === 'regular' ? 'Regular season' : item === 'playoffs' ? 'Playoffs' : 'All games'}</button>)}
       </div>}
 
       <section className="stats-matchday-grid" aria-label="Matchday summary">
@@ -658,16 +751,17 @@ export default function StatsWorkspace() {
       <section className="stats-content" role="tabpanel">
         {tab === 'overview' && <div className="stats-overview-grid">
           {snapshot.isSeasonAggregate && <ScheduleCoverage schedules={snapshot.seasonSchedules} onSelect={(id) => { setTeamId(id); setSelectedGameId(''); }} />}
+          <OpponentDirectory matchups={opponentMatchups} currentGames={snapshot.games} onOpenOpponent={openOpponent} />
           <section className="stats-band">
             <header><CalendarDays aria-hidden="true" /><div><span>RESULTS</span><h2>Recent results</h2></div></header>
-            <GamesTable games={completedGames.slice(0, 5)} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} />
+            <GamesTable games={completedGames.slice(0, 5)} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} onOpenOpponent={openOpponent} />
           </section>
           <section className="stats-band">
             <header><UsersRound aria-hidden="true" /><div><span>LEADERS</span><h2>{snapshot.isSeasonAggregate ? 'All-team leaders' : 'Team leaders'}</h2></div></header>
             {snapshot.fieldPlayers.length ? <LeadersTable players={snapshot.fieldPlayers} /> : <EmptyStats section="player statistics" />}
           </section>
         </div>}
-        {tab === 'games' && <div className="stats-game-view"><section className="stats-band is-full"><header><CalendarDays aria-hidden="true" /><div><span>{snapshot.isSeasonAggregate ? 'ALL LEAGUES' : formatScheduleName(snapshot.team).toUpperCase()}</span><h2>Schedule and results</h2></div></header><GamesTable games={snapshot.games} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} /></section></div>}
+        {tab === 'games' && <div className="stats-game-view"><section className="stats-band is-full"><header><CalendarDays aria-hidden="true" /><div><span>{snapshot.isSeasonAggregate ? 'ALL LEAGUES' : formatScheduleName(snapshot.team).toUpperCase()}</span><h2>Schedule and results</h2></div></header><GamesTable games={snapshot.games} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} onOpenOpponent={openOpponent} /></section></div>}
         {tab === 'players' && <PlayerTables fieldPlayers={snapshot.fieldPlayers} goalies={snapshot.goalies} />}
       </section>
       </>}

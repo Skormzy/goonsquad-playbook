@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { OFFICIAL_STATS_DATASET } from './statsSeed';
 
 const workspaceSource = readFileSync(new URL('./StatsWorkspace.jsx', import.meta.url), 'utf8');
+const headToHeadSource = readFileSync(new URL('./OpponentHeadToHead.jsx', import.meta.url), 'utf8');
 const migrationSource = readFileSync(new URL('../../supabase/migrations/20260722_team_accounts_and_statistics.sql', import.meta.url), 'utf8');
 const pushSource = readFileSync(new URL('../../scripts/push-york-central-stats-to-supabase.mjs', import.meta.url), 'utf8');
 const bridgeSource = readFileSync(new URL('../../scripts/build-supabase-statistics-bridge.mjs', import.meta.url), 'utf8');
@@ -56,10 +57,21 @@ describe('team account and statistics product contract', () => {
     expect(workspaceSource).toContain('Official game sheet');
     expect(workspaceSource).toContain("initialQueryValue('game')");
     expect(workspaceSource).toContain("url.searchParams.set('game'");
+    expect(workspaceSource).toContain("initialQueryValue('opponent')");
+    expect(workspaceSource).toContain("url.searchParams.set('opponent'");
+    expect(workspaceSource).toContain("game?.status !== 'final'");
+    expect(workspaceSource).toContain('OpponentDirectory');
+    expect(workspaceSource).toContain('OpponentHeadToHead');
+    expect(workspaceSource).toContain('Open head-to-head against');
     expect(workspaceSource).toContain('stats-game-page');
     expect(workspaceSource).toContain('PLAYER BOX SCORE');
-    expect(workspaceSource).toContain('<th className="stats-game-detail-column">Details</th>');
-    expect(workspaceSource).toContain('<span>Details</span><ChevronRight');
+    expect(workspaceSource).toContain('<th className="stats-game-detail-column">View</th>');
+    expect(workspaceSource).toContain("<span>{final ? 'Results' : 'Matchup'}</span>");
+    expect(workspaceSource).not.toContain('Detailed statistics will appear after the game');
+    expect(headToHeadSource).toContain('HEAD TO HEAD · VERIFIED TEAM ARCHIVE');
+    expect(headToHeadSource).toContain('Matchup centre');
+    expect(headToHeadSource).toContain('Browse all ${filtered.length} opponents');
+    expect(headToHeadSource).toContain('SEASON BY SEASON');
     for (const table of ['team_game_stats', 'player_game_stats', 'goalie_game_stats', 'game_events']) {
       expect(pushSource).toContain(`upsert('${table}'`);
     }
