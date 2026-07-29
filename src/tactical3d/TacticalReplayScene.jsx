@@ -13,6 +13,8 @@ import {
 import ProductionCourt from '../components/vnext3d/ProductionCourt';
 import {
   CAMERA_TRACKING_RATE,
+  ROLE_CAMERA_AIM_TRACKING_RATE,
+  ROLE_CAMERA_POSITION_TRACKING_RATE,
   cameraInteractionPolicy,
   productionCameraPose,
   stepOperatorCamera,
@@ -48,6 +50,7 @@ function RuntimeCamera({
   frameRef,
   focusRoles,
   onManualControl,
+  replay,
   selectedPosition,
 }) {
   const { size } = useThree();
@@ -55,6 +58,8 @@ function RuntimeCamera({
   const controlsRef = useRef(null);
   const initializedRef = useRef(false);
   const commandRevisionRef = useRef(-1);
+  const lastFocusPositionRef = useRef(new Vector3());
+  const focusDeltaRef = useRef(new Vector3());
   const desiredPosition = useMemo(() => new Vector3(), []);
   const desiredTarget = useMemo(() => new Vector3(), []);
   const portrait = size.height > size.width * 1.18;
@@ -65,7 +70,7 @@ function RuntimeCamera({
 
   useEffect(() => {
     initializedRef.current = false;
-  }, [cameraId, portrait]);
+  }, [cameraId, portrait, selectedPosition]);
 
   useFrame((_, delta) => {
     const camera = cameraRef.current;
@@ -79,28 +84,37 @@ function RuntimeCamera({
       : homePlayers.filter((player) => player.role !== 'G');
     const ballX = frame.ball.worldPosition[0];
     const ballZ = frame.ball.worldPosition[2];
-    const focus = focusCandidates.find((player) => player.id === frame.ball.ownerId)
-      ?? (focusRoles.size > 0
-        ? focusCandidates.find((player) => player.role === selectedPosition)
-        : null)
-      ?? focusCandidates.reduce((nearest, player) => {
-        if (!nearest) return player;
-        const playerDistance = Math.hypot(
-          player.worldPosition[0] - ballX,
-          player.worldPosition[2] - ballZ,
-        );
-        const nearestDistance = Math.hypot(
-          nearest.worldPosition[0] - ballX,
-          nearest.worldPosition[2] - ballZ,
-        );
-        return playerDistance < nearestDistance ? player : nearest;
-      }, null)
-      ?? homePlayers[0];
+    const selectedRolePlayer = homePlayers.find((player) => player.role === selectedPosition);
+    const focus = cameraId === 'player'
+      ? selectedRolePlayer ?? homePlayers.find((player) => player.role !== 'G') ?? homePlayers[0]
+      : focusCandidates.find((player) => player.id === frame.ball.ownerId)
+        ?? (focusRoles.size > 0
+          ? focusCandidates.find((player) => player.role === selectedPosition)
+          : null)
+        ?? focusCandidates.reduce((nearest, player) => {
+          if (!nearest) return player;
+          const playerDistance = Math.hypot(
+            player.worldPosition[0] - ballX,
+            player.worldPosition[2] - ballZ,
+          );
+          const nearestDistance = Math.hypot(
+            nearest.worldPosition[0] - ballX,
+            nearest.worldPosition[2] - ballZ,
+          );
+          return playerDistance < nearestDistance ? player : nearest;
+        }, null)
+        ?? homePlayers[0];
     const pose = productionCameraPose(cameraId, {
+      ball: frame.ball,
       portrait,
+      focusPlayer: focus,
       focusPlayerPosition: focus?.worldPosition,
+      players: frame.players,
+      playbackTime: frame.time,
+      replay,
       ballPosition: {
         x: frame.ball.worldPosition[0],
+        y: frame.ball.worldPosition[1],
         z: frame.ball.worldPosition[2],
       },
     });
@@ -128,6 +142,7 @@ function RuntimeCamera({
       initializedRef.current = true;
       camera.position.copy(desiredPosition);
       controls.target.copy(desiredTarget);
+      if (focus) lastFocusPositionRef.current.set(...focus.worldPosition);
       camera.fov = pose.fov;
       camera.updateProjectionMatrix();
       controls.update();
@@ -135,12 +150,27 @@ function RuntimeCamera({
     }
 
     if (following) {
-      const blend = 1 - Math.exp(-CAMERA_TRACKING_RATE * Math.min(delta, 0.05));
-      camera.position.lerp(desiredPosition, blend);
-      controls.target.lerp(desiredTarget, blend);
-      camera.fov += (pose.fov - camera.fov) * blend;
+      const safeDelta = Math.min(delta, 0.05);
+      const positionRate = cameraId === 'player'
+        ? ROLE_CAMERA_POSITION_TRACKING_RATE
+        : CAMERA_TRACKING_RATE;
+      const aimRate = cameraId === 'player'
+        ? ROLE_CAMERA_AIM_TRACKING_RATE
+        : CAMERA_TRACKING_RATE;
+      const positionBlend = 1 - Math.exp(-positionRate * safeDelta);
+      const aimBlend = 1 - Math.exp(-aimRate * safeDelta);
+      camera.position.lerp(desiredPosition, positionBlend);
+      controls.target.lerp(desiredTarget, aimBlend);
+      camera.fov += (pose.fov - camera.fov) * aimBlend;
       camera.updateProjectionMatrix();
+    } else if (cameraId === 'player' && focus) {
+      focusDeltaRef.current
+        .set(...focus.worldPosition)
+        .sub(lastFocusPositionRef.current);
+      camera.position.add(focusDeltaRef.current);
+      controls.target.add(focusDeltaRef.current);
     }
+    if (focus) lastFocusPositionRef.current.set(...focus.worldPosition);
     controls.update();
   });
 
@@ -277,7 +307,9 @@ export default function TacticalReplayScene({
       if (player.team !== 'us') continue;
       const ring = focusRingRefs.current.get(player.id);
       if (!ring) continue;
-      ring.visible = focusRoles.has(player.role);
+      ring.visible = cameraId === 'player'
+        ? player.role === selectedPosition
+        : focusRoles.has(player.role);
       ring.position.set(
         player.worldPosition[0],
         0.014,
@@ -414,6 +446,7 @@ export default function TacticalReplayScene({
         frameRef={frameRef}
         focusRoles={focusRoles}
         onManualControl={onManualCameraControl}
+        replay={replay}
         selectedPosition={selectedPosition}
       />
     </>

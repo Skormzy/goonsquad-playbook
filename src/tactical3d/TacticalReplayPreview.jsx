@@ -22,18 +22,27 @@ import {
 } from 'three';
 import PlaybackControls from '../components/PlaybackControls';
 import FaceoffOutcomeControl from '../components/FaceoffOutcomeControl';
+import RoleCameraSelector from '../components/vnext3d/RoleCameraSelector';
 import TeamJobsPanel from '../components/TeamJobsPanel';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { CORE_PLAYS as PLAYS, CORE_TACTICS as TACTICS } from '../data/coreCatalog';
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout';
-import { rolesForRoleLens, teamJobsFromPresentation } from '../play-engine/teamJobs';
+import {
+  roleLensForPosition,
+  rolesForRoleLens,
+  teamJobsFromPresentation,
+} from '../play-engine/teamJobs';
 import { standardBreakoutTacticalSpacing } from '../play-engine/tacticalSpacing';
 import {
   COURT_LENGTH_METERS,
   COURT_WIDTH_METERS,
 } from '../play-engine/movementMetrics';
 import { productionRenderProfile } from '../vnext3d/renderProfile';
+import {
+  productionCameraPose,
+  roleCameraIntentLabel,
+} from '../vnext3d/cameraSystem';
 import {
   athleteAssetsForMotionReview,
   TACTICAL_DISTANCE_BASELINE_ID,
@@ -87,6 +96,8 @@ export default function TacticalReplayPreview() {
     setIsPlaying,
     setPlaybackTime,
     setReplay3dCamera,
+    setRoleFocusMode,
+    setSelectedPosition,
     setSelectedTacticId,
     setStrategyVariant,
     speed,
@@ -126,6 +137,20 @@ export default function TacticalReplayPreview() {
     issueCameraCommand('reframe');
   }, [issueCameraCommand, setReplay3dCamera]);
 
+  const handleRoleCameraSelect = useCallback((position) => {
+    setSelectedPosition(position);
+    setRoleFocusMode(roleLensForPosition(position));
+    if (replay3dCamera !== 'player') setReplay3dCamera('player');
+    setCameraFollowing(true);
+    issueCameraCommand('reframe');
+  }, [
+    issueCameraCommand,
+    replay3dCamera,
+    setReplay3dCamera,
+    setRoleFocusMode,
+    setSelectedPosition,
+  ]);
+
   const handleManualCameraControl = useCallback(() => {
     setCameraFollowing(false);
     setCameraInteractionCount((count) => count + 1);
@@ -137,6 +162,48 @@ export default function TacticalReplayPreview() {
     issueCameraCommand(type);
     if (type !== 'reframe') setCameraInteractionCount((count) => count + 1);
   }, [issueCameraCommand]);
+
+  const handleFollowToggle = useCallback(() => {
+    const next = !cameraFollowing;
+    setCameraFollowing(next);
+    if (next) issueCameraCommand('reframe');
+  }, [cameraFollowing, issueCameraCommand]);
+
+  const handleCameraKeyDown = useCallback((event) => {
+    if (event.target instanceof Element && event.target.closest('button,input,select,textarea')) return;
+    const key = event.key.toLowerCase();
+    const command = event.key === 'ArrowLeft'
+      ? event.shiftKey ? 'pan-left' : 'orbit-left'
+      : event.key === 'ArrowRight'
+        ? event.shiftKey ? 'pan-right' : 'orbit-right'
+        : event.key === 'ArrowUp'
+          ? event.shiftKey ? 'pan-forward' : 'orbit-up'
+          : event.key === 'ArrowDown'
+            ? event.shiftKey ? 'pan-back' : 'orbit-down'
+            : ['+', '='].includes(event.key)
+              ? 'zoom-in'
+              : ['-', '_'].includes(event.key)
+                ? 'zoom-out'
+                : null;
+
+    if (command) {
+      event.preventDefault();
+      event.stopPropagation();
+      handleCameraCommand(command);
+      return;
+    }
+    if (key === 'f') {
+      event.preventDefault();
+      event.stopPropagation();
+      handleFollowToggle();
+      return;
+    }
+    if (key === '0' || event.key === 'Home') {
+      event.preventDefault();
+      event.stopPropagation();
+      handleCameraCommand('reframe');
+    }
+  }, [handleCameraCommand, handleFollowToggle]);
 
   const handleTacticalLayerChange = useCallback((id, enabled) => {
     if (!TACTICAL_LAYER_KEYS.includes(id)) return;
@@ -203,6 +270,13 @@ export default function TacticalReplayPreview() {
   const selectedAthlete = frame.players.find((player) => (
     player.team === 'us' && player.role === selectedPosition
   ));
+  const roleCameraState = productionCameraPose('player', {
+    ball: frame.ball,
+    focusPlayer: selectedAthlete,
+    players: frame.players,
+    playbackTime: frame.time,
+    replay,
+  });
   const tacticalSpacing = replay.sourcePlayId === 'brk'
     ? standardBreakoutTacticalSpacing({
       ...frame,
@@ -222,6 +296,9 @@ export default function TacticalReplayPreview() {
       data-engine={TACTICAL_REPLAY_ENGINE_ID}
       data-camera-id={replay3dCamera}
       data-camera-control={cameraFollowing ? 'follow' : 'free-look'}
+      data-role-camera-position={selectedPosition}
+      data-role-camera-intent={roleCameraState.intent}
+      data-role-camera-target={roleCameraState.targetPlayerId ?? 'ball'}
       data-camera-interaction-count={cameraInteractionCount}
       data-phase={currentPhase}
       data-playing={isPlaying}
@@ -261,6 +338,7 @@ export default function TacticalReplayPreview() {
         className={`vnext3d-preview-stage ${stageFullscreen ? 'is-immersive' : ''}`}
         aria-label={`Interactive 3D ${replay.kind === 'strategy' ? 'strategy' : 'play'} replay`}
         data-camera-control={cameraFollowing ? 'follow' : 'free-look'}
+        onKeyDown={handleCameraKeyDown}
         onPointerDown={(event) => {
           if (event.target instanceof HTMLCanvasElement) stageRef.current?.focus({ preventScroll: true });
         }}
@@ -325,16 +403,20 @@ export default function TacticalReplayPreview() {
           ))}
         </div>
 
+        {replay3dCamera === 'player' && (
+          <RoleCameraSelector
+            onSelect={handleRoleCameraSelect}
+            selectedPosition={selectedPosition}
+          />
+        )}
+
         <div className="vnext3d-camera-operator" role="toolbar" aria-label="3D camera navigation">
           <button
             type="button"
             className={cameraFollowing ? 'is-active' : ''}
             aria-label={cameraFollowing ? 'Pause action camera follow' : 'Follow the action'}
             aria-pressed={cameraFollowing}
-            onClick={() => {
-              setCameraFollowing((value) => !value);
-              if (!cameraFollowing) issueCameraCommand('reframe');
-            }}
+            onClick={handleFollowToggle}
             title={cameraFollowing ? 'Pause action follow' : 'Follow the action'}
           >
             <Crosshair aria-hidden="true" />
@@ -379,7 +461,11 @@ export default function TacticalReplayPreview() {
 
         <div className="vnext3d-camera-state" aria-live="polite">
           <span aria-hidden="true" />
-          {cameraFollowing ? 'FOLLOW' : 'FREE LOOK'}
+          {replay3dCamera === 'player'
+            ? `${selectedPosition} / ${cameraFollowing
+              ? roleCameraIntentLabel(roleCameraState.intent)
+              : 'LOOK AROUND'}`
+            : cameraFollowing ? 'FOLLOW' : 'FREE LOOK'}
         </div>
 
         {stageFullscreen && (

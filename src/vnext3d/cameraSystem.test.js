@@ -4,6 +4,7 @@ import {
   cameraTrackingMode,
   clampCameraTarget,
   productionCameraPose,
+  roleCameraDecision,
   stepOperatorCamera,
 } from './cameraSystem';
 
@@ -39,21 +40,94 @@ describe('production 3D camera system', () => {
     expect(pose.position[1] / Math.abs(pose.position[2])).toBeGreaterThan(10);
   });
 
-  it('anchors the role camera to the selected athlete', () => {
+  it('anchors the role camera behind the selected athlete while aiming at the ball', () => {
     const pose = productionCameraPose('player', {
-      focusPlayerPosition: [-4.5, 0, -8],
-      ballPosition: { x: 7, z: 9 },
+      focusPlayer: {
+        id: 'US_C',
+        worldPosition: [-4.5, 0, -8],
+        worldRotation: 0,
+      },
+      ball: {
+        ownerId: 'OP_RW',
+        worldPosition: [7, 0.052, 9],
+      },
     });
 
     expect(pose.tracking).toBe('role');
-    expect(pose.position[0]).toBe(-4.5);
-    expect(pose.target).toEqual([-4.5, 0.9, -6.2]);
-    expect(pose.position).toEqual([-4.5, 7.2, -20.4]);
-    expect(pose.fov).toBe(42);
+    expect(pose.intent).toBe('ball');
+    expect(pose.focusPlayerId).toBe('US_C');
+    expect(pose.position[1]).toBe(2.72);
+    expect(pose.fov).toBe(50);
     expect(Math.hypot(
-      pose.position[1] - pose.target[1],
-      pose.position[2] - pose.target[2],
-    )).toBeGreaterThan(15);
+      pose.target[0] + 4.5,
+      pose.target[2] + 8,
+    )).toBeCloseTo(12, 5);
+    expect((pose.target[0] + 4.5) / (pose.target[2] + 8)).toBeCloseTo(11.5 / 17, 5);
+  });
+
+  it('looks upcourt while the selected athlete carries the ball', () => {
+    const pose = productionCameraPose('player', {
+      focusPlayer: {
+        id: 'US_RW',
+        worldPosition: [3, 0, -5],
+        worldRotation: 0,
+      },
+      ball: {
+        ownerId: 'US_RW',
+        worldPosition: [3.4, 0.052, -4.3],
+      },
+    });
+
+    expect(pose.intent).toBe('carry');
+    expect(pose.target).toEqual([3, 1.08, 5.5]);
+    expect(pose.position).toEqual([3.62, 2.72, -10.2]);
+  });
+
+  it('turns toward the authored receiver before the selected athlete passes', () => {
+    const players = [
+      {
+        id: 'US_C',
+        worldPosition: [0, 0, 0],
+        worldRotation: 0,
+      },
+      {
+        id: 'US_RW',
+        worldPosition: [8, 0, 4],
+        worldRotation: 0,
+      },
+    ];
+    const replay = {
+      ball: {
+        segments: [{
+          type: 'pass',
+          from: 5,
+          to: 5.8,
+          fromPlayerId: 'US_C',
+          toPlayerId: 'US_RW',
+        }],
+      },
+    };
+    const pose = productionCameraPose('player', {
+      focusPlayer: players[0],
+      players,
+      playbackTime: 4.9,
+      replay,
+      ball: {
+        ownerId: 'US_C',
+        worldPosition: [0.4, 0.052, 0.7],
+      },
+    });
+
+    expect(pose.intent).toBe('pass-read');
+    expect(pose.targetPlayerId).toBe('US_RW');
+    expect(pose.target[0]).toBeGreaterThan(7);
+    expect(pose.target[2]).toBeLessThan(5);
+    const decision = roleCameraDecision(replay, 4.9, 'US_C', players);
+    expect(decision).toMatchObject({
+      type: 'pass',
+      targetPlayerId: 'US_RW',
+    });
+    expect(decision.secondsUntil).toBeCloseTo(0.1);
   });
 
   it('uses a centered portrait broadcast offset', () => {
@@ -129,15 +203,23 @@ describe('production 3D camera system', () => {
     expect(cameraInteractionPolicy('overhead').minDistance).toBe(5.5);
   });
 
-  it('keeps portrait role review centered on the selected athlete with added context', () => {
+  it('keeps portrait role review attached to the selected athlete with added context', () => {
     const pose = productionCameraPose('player', {
       portrait: true,
-      focusPlayerPosition: [3, 0, 12],
+      focusPlayer: {
+        id: 'US_LW',
+        worldPosition: [3, 0, 12],
+        worldRotation: 0,
+      },
+      ball: {
+        ownerId: 'US_LW',
+        worldPosition: [3.4, 0.052, 12.7],
+      },
     });
 
-    expect(pose.target).toEqual([3, 0.9, 13]);
-    expect(pose.position).toEqual([3, 8.4, -4.5]);
-    expect(pose.fov).toBe(48);
+    expect(pose.target).toEqual([3, 1.08, 20.5]);
+    expect(pose.position).toEqual([3.42, 3.05, 5.8]);
+    expect(pose.fov).toBe(56);
   });
 
   it('widens portrait bench review around the tracked action', () => {

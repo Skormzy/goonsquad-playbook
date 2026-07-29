@@ -20,7 +20,10 @@ import {
 } from 'lucide-react';
 import { ACESFilmicToneMapping, SRGBColorSpace } from 'three';
 import { ACCEPTED_ATHLETE_ASSETS } from '../components/vnext3d/acceptedAthleteAssets';
+import RoleCameraSelector from '../components/vnext3d/RoleCameraSelector';
 import { useTheme } from '../context/ThemeContext';
+import { roleLensForPosition } from '../play-engine/teamJobs';
+import { productionCameraPose } from '../vnext3d/cameraSystem';
 import { productionRenderProfile } from '../vnext3d/renderProfile';
 import TacticalReplayScene from '../tactical3d/TacticalReplayScene';
 import { TACTICAL_LAYER_DEFAULTS } from '../tactical3d/tacticalLayers';
@@ -49,6 +52,7 @@ export default function Playmaker3DPreview({
   const [cameraId, setCameraId] = useState('broadcast');
   const [cameraFollowing, setCameraFollowing] = useState(true);
   const [cameraCommand, setCameraCommand] = useState({ revision: 0, type: 'reframe' });
+  const [selectedPosition, setSelectedPosition] = useState('C');
   const [fullscreen, setFullscreen] = useState(false);
   const [layerPanelOpen, setLayerPanelOpen] = useState(false);
   const [tacticalLayers, setTacticalLayers] = useState({ ...TACTICAL_LAYER_DEFAULTS });
@@ -80,6 +84,16 @@ export default function Playmaker3DPreview({
     }
     return { action: 'CARRY', from: null, to: playerRoles.get(ball.ownerId) ?? '?' };
   }, [playerRoles, sampled]);
+  const selectedAthlete = sampled.players.find((player) => (
+    player.team === 'us' && player.role === selectedPosition
+  ));
+  const roleCameraState = productionCameraPose('player', {
+    ball: sampled.ball,
+    focusPlayer: selectedAthlete,
+    players: sampled.players,
+    playbackTime: sampled.time,
+    replay: scene,
+  });
 
   const reframe = useCallback(() => {
     setCameraFollowing(true);
@@ -88,6 +102,12 @@ export default function Playmaker3DPreview({
 
   const selectCamera = (nextCamera) => {
     setCameraId(nextCamera);
+    reframe();
+  };
+
+  const selectRoleCamera = (position) => {
+    setSelectedPosition(position);
+    setCameraId('player');
     reframe();
   };
 
@@ -116,6 +136,9 @@ export default function Playmaker3DPreview({
       data-ball-owner={sampled.ball.ownerId ?? ''}
       data-ball-segment={sampled.ball.segmentType}
       data-ball-to={sampled.ball.toPlayerId ?? ''}
+      data-role-camera-intent={roleCameraState.intent}
+      data-role-camera-position={selectedPosition}
+      data-role-camera-target={roleCameraState.targetPlayerId ?? 'ball'}
       data-player-count={scene.players.length}
     >
       <Canvas
@@ -141,8 +164,8 @@ export default function Playmaker3DPreview({
             onTimeChange={onTimeChange}
             playbackTime={time}
             replay={scene}
-            roleFocusMode="team"
-            selectedPosition="C"
+            roleFocusMode={roleLensForPosition(selectedPosition)}
+            selectedPosition={selectedPosition}
             speed={speed}
             tacticalLayers={tacticalLayers}
             theme={theme}
@@ -170,6 +193,14 @@ export default function Playmaker3DPreview({
           </button>
         ))}
       </div>
+
+      {cameraId === 'player' && (
+        <RoleCameraSelector
+          className="is-playmaker"
+          onSelect={selectRoleCamera}
+          selectedPosition={selectedPosition}
+        />
+      )}
 
       <div className="playmaker-3d-tools" role="toolbar" aria-label="3D preview navigation">
         <button

@@ -62,7 +62,7 @@ export const PLAYMAKER_TUTORIAL_STEPS = Object.freeze([
     target: '[data-tutorial="preview"]',
     eyebrow: 'SHARED REPLAY',
     title: 'Check the same play in 3D',
-    body: 'Open Preview after the 2D sequence is coherent. Inspect Broadcast, Overhead, Bench, and Role views, then orbit, pan, zoom, and toggle only the coaching layers you need.',
+    body: 'Open Preview after the 2D sequence is coherent. Inspect Broadcast, Overhead, and Bench, then use Role to follow each exact position through its ball reads. Orbit, pan, zoom, and toggle only the coaching layers you need.',
     detail: 'The 3D view is generated from the same player and ball decisions. It should never reinterpret the receiver.',
   },
   {

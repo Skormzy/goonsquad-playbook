@@ -25,8 +25,10 @@ import { useApp } from '../../context/AppContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useWorkspaceLayout } from '../../hooks/useWorkspaceLayout';
 import PlaybackControls from '../PlaybackControls';
+import RoleCameraSelector from './RoleCameraSelector';
 import { getPlayScene } from '../../play-engine/sceneRegistry';
 import { samplePlayScene } from '../../play-engine/samplePlayScene';
+import { roleLensForPosition } from '../../play-engine/teamJobs';
 import {
   replayNextRead,
   replayPossessionLabel,
@@ -57,10 +59,13 @@ import {
 } from '../../vnext3d/footSliding';
 import {
   CAMERA_TRACKING_RATE,
+  ROLE_CAMERA_AIM_TRACKING_RATE,
+  ROLE_CAMERA_POSITION_TRACKING_RATE,
   cameraInteractionPolicy,
   cameraTrackingMode,
   clampCameraTarget,
   productionCameraPose,
+  roleCameraIntentLabel,
   stepOperatorCamera,
 } from '../../vnext3d/cameraSystem';
 import {
@@ -84,12 +89,16 @@ const CAMERA_PRESETS = Object.freeze([
 ]);
 
 function CameraRig({
+  ball,
   ballPosition,
   cameraCommand,
   cameraId,
   focusPlayer,
   following,
   onManualControl,
+  playbackTime,
+  players,
+  replay,
 }) {
   const { size } = useThree();
   const cameraRef = useRef(null);
@@ -97,12 +106,28 @@ function CameraRig({
   const initializedRef = useRef(false);
   const targetRef = useRef(new Vector3());
   const clampDeltaRef = useRef(new Vector3());
+  const lastFocusPositionRef = useRef(new Vector3());
+  const focusDeltaRef = useRef(new Vector3());
   const portrait = size.height > size.width * 1.18;
   const config = useMemo(() => productionCameraPose(cameraId, {
+    ball,
     portrait,
+    focusPlayer,
     focusPlayerPosition: focusPlayer?.worldPosition,
+    players,
+    playbackTime,
+    replay,
     ballPosition,
-  }), [ballPosition, cameraId, focusPlayer?.worldPosition, portrait]);
+  }), [
+    ball,
+    ballPosition,
+    cameraId,
+    focusPlayer,
+    playbackTime,
+    players,
+    portrait,
+    replay,
+  ]);
   const interactionPolicy = useMemo(
     () => cameraInteractionPolicy(cameraId, { portrait }),
     [cameraId, portrait],
@@ -118,10 +143,11 @@ function CameraRig({
     controls.target.copy(desiredTarget);
     targetRef.current.copy(desiredTarget);
     camera.position.copy(desiredPosition);
+    if (focusPlayer) lastFocusPositionRef.current.set(...focusPlayer.worldPosition);
     camera.fov = config.fov;
     camera.updateProjectionMatrix();
     controls.update();
-  }, [config.fov, desiredPosition, desiredTarget]);
+  }, [config.fov, desiredPosition, desiredTarget, focusPlayer]);
 
   useEffect(() => {
     const camera = cameraRef.current;
@@ -155,13 +181,28 @@ function CameraRig({
     const camera = cameraRef.current;
     const controls = controlsRef.current;
     if (!camera || !controls) return;
-    const blend = 1 - Math.exp(-CAMERA_TRACKING_RATE * delta);
     if (following) {
-      camera.position.lerp(desiredPosition, blend);
-      controls.target.lerp(desiredTarget, blend);
+      const positionRate = cameraId === 'player'
+        ? ROLE_CAMERA_POSITION_TRACKING_RATE
+        : CAMERA_TRACKING_RATE;
+      const aimRate = cameraId === 'player'
+        ? ROLE_CAMERA_AIM_TRACKING_RATE
+        : CAMERA_TRACKING_RATE;
+      const positionBlend = 1 - Math.exp(-positionRate * Math.min(delta, 0.05));
+      const aimBlend = 1 - Math.exp(-aimRate * Math.min(delta, 0.05));
+      camera.position.lerp(desiredPosition, positionBlend);
+      controls.target.lerp(desiredTarget, aimBlend);
+      targetRef.current.copy(controls.target);
+      camera.fov += (config.fov - camera.fov) * aimBlend;
+    } else if (cameraId === 'player' && focusPlayer) {
+      focusDeltaRef.current
+        .set(...focusPlayer.worldPosition)
+        .sub(lastFocusPositionRef.current);
+      camera.position.add(focusDeltaRef.current);
+      controls.target.add(focusDeltaRef.current);
       targetRef.current.copy(controls.target);
     }
-    camera.fov += (config.fov - camera.fov) * blend;
+    if (focusPlayer) lastFocusPositionRef.current.set(...focusPlayer.worldPosition);
     camera.updateProjectionMatrix();
     controls.update();
   });
@@ -506,12 +547,16 @@ function ReplayScene({
         transitionWindow={transitionWindow}
       />
       <CameraRig
+        ball={frame.ball}
         ballPosition={cameraBallPosition}
         cameraCommand={cameraCommand}
         cameraId={cameraId}
         focusPlayer={focusPlayer}
         following={cameraFollowing}
         onManualControl={onCameraManualControl}
+        playbackTime={playbackTime}
+        players={athletes}
+        replay={replay}
       />
     </>
   );
@@ -533,6 +578,8 @@ export default function ProductionReplayPreview() {
     selectedPosition,
     replay3dCamera,
     setReplay3dCamera,
+    setRoleFocusMode,
+    setSelectedPosition,
     speed,
   } = useApp();
   const workspaceLayout = useWorkspaceLayout();
@@ -600,6 +647,20 @@ export default function ProductionReplayPreview() {
     if (cameraId === replay3dCamera) issueCameraCommand('reframe');
     else setReplay3dCamera(cameraId);
   }, [issueCameraCommand, replay3dCamera, setReplay3dCamera]);
+
+  const handleRoleCameraSelect = useCallback((position) => {
+    setSelectedPosition(position);
+    setRoleFocusMode(roleLensForPosition(position));
+    setFreeLookCameraId(null);
+    if (replay3dCamera !== 'player') setReplay3dCamera('player');
+    issueCameraCommand('reframe');
+  }, [
+    issueCameraCommand,
+    replay3dCamera,
+    setReplay3dCamera,
+    setRoleFocusMode,
+    setSelectedPosition,
+  ]);
 
   const handleCameraManualControl = useCallback(() => {
     setFreeLookCameraId(replay3dCamera);
@@ -699,6 +760,14 @@ export default function ProductionReplayPreview() {
   const selectedAthlete = athletes.find((player) => (
     player.team === 'us' && player.role === selectedPosition
   ));
+  const roleCameraState = productionCameraPose('player', {
+    ball: frame.ball,
+    ballPosition: productionBallPosition(frame.ball, null),
+    focusPlayer: selectedAthlete,
+    players: athletes,
+    playbackTime,
+    replay,
+  });
   const activeFrameStats = frameStats?.profileId === renderProfile.id ? frameStats : null;
   const activeTransitionStats = transitionStats?.windowKey === transitionWindow?.key
     ? transitionStats
@@ -762,6 +831,9 @@ export default function ProductionReplayPreview() {
         : 'pending'}
       data-camera-tracking={cameraTrackingMode(replay3dCamera)}
       data-camera-control={cameraFollowing ? 'follow' : 'free-look'}
+      data-role-camera-position={selectedPosition}
+      data-role-camera-intent={roleCameraState.intent}
+      data-role-camera-target={roleCameraState.targetPlayerId ?? 'ball'}
       data-camera-interaction-count={cameraInteractionCount}
       data-render-profile={renderProfile.id}
       data-render-dpr-max={renderProfile.dpr[1]}
@@ -873,6 +945,13 @@ export default function ProductionReplayPreview() {
           ))}
         </div>
 
+        {replay3dCamera === 'player' && (
+          <RoleCameraSelector
+            onSelect={handleRoleCameraSelect}
+            selectedPosition={selectedPosition}
+          />
+        )}
+
         <div className="vnext3d-camera-operator" role="toolbar" aria-label="3D camera navigation">
           <button
             type="button"
@@ -924,7 +1003,11 @@ export default function ProductionReplayPreview() {
 
         <div className="vnext3d-camera-state" aria-live="polite">
           <span aria-hidden="true" />
-          {cameraFollowing ? 'FOLLOW' : 'FREE LOOK'}
+          {replay3dCamera === 'player'
+            ? `${selectedPosition} / ${cameraFollowing
+              ? roleCameraIntentLabel(roleCameraState.intent)
+              : 'LOOK AROUND'}`
+            : cameraFollowing ? 'FOLLOW' : 'FREE LOOK'}
         </div>
       </section>
 

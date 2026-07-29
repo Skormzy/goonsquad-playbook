@@ -23,6 +23,10 @@ export function roleLensLabel(value) {
   return ROLE_LENS_BY_ID.get(normalizeRoleLens(value)).label;
 }
 
+export function roleLensForPosition(position) {
+  return ROLE_LENSES.find((lens) => lens.roles.includes(position))?.id ?? 'team';
+}
+
 export function roleMatchesLens(role, lensId) {
   return rolesForRoleLens(lensId).includes(role);
 }

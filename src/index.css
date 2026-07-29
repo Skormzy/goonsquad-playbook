@@ -6155,6 +6155,7 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 .vnext3d-stage-camera-presets,
+.vnext3d-role-camera-selector,
 .vnext3d-camera-operator,
 .vnext3d-camera-state {
   position: absolute;
@@ -6231,6 +6232,62 @@ input:focus:not(:focus-visible) { outline: none; }
   border-color: #39d7ff;
   background: #102632;
   color: #84e9ff;
+}
+
+.vnext3d-role-camera-selector {
+  position: absolute;
+  z-index: 4;
+  top: 56px;
+  left: 50%;
+  display: grid;
+  grid-template-columns: auto repeat(6, 34px);
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(94, 116, 138, 0.52);
+  border-radius: 5px;
+  background: rgba(9, 15, 23, 0.88);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(12px);
+  transform: translateX(-50%);
+}
+
+.vnext3d-role-camera-selector > span {
+  padding: 0 7px;
+  color: #8796a8;
+  font: 800 8px/1 monospace;
+  letter-spacing: 1px;
+}
+
+.vnext3d-role-camera-selector button {
+  width: 34px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #a9b6c4;
+  font: 800 9px/1 monospace;
+  cursor: pointer;
+}
+
+.vnext3d-role-camera-selector button:hover,
+.vnext3d-role-camera-selector button:focus-visible {
+  border-color: #3b4c5d;
+  color: #edf5fb;
+}
+
+.vnext3d-role-camera-selector button[aria-pressed='true'] {
+  border-color: #39d7ff;
+  background: #102632;
+  color: #84e9ff;
+}
+
+.vnext3d-role-camera-selector.is-playmaker {
+  top: 52px;
+  z-index: 5;
 }
 
 .vnext3d-camera-operator {
@@ -6837,6 +6894,19 @@ input:focus:not(:focus-visible) { outline: none; }
     font-size: 8px;
   }
 
+  .vnext3d-role-camera-selector {
+    top: 102px;
+    grid-template-columns: auto repeat(6, minmax(34px, 1fr));
+    width: min(340px, calc(100% - 16px));
+  }
+
+  .vnext3d-role-camera-selector.is-playmaker {
+    top: 50px;
+    left: 8px;
+    width: min(324px, calc(100% - 16px));
+    transform: none;
+  }
+
   .vnext3d-camera-operator {
     top: auto;
     right: 8px;
@@ -6951,6 +7021,7 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 .vnext3d-stage-camera-presets,
+.vnext3d-role-camera-selector,
 .vnext3d-camera-operator,
 .vnext3d-camera-state {
   border-color: color-mix(in srgb, var(--gs-border) 82%, var(--gs-muted));
@@ -6966,6 +7037,18 @@ input:focus:not(:focus-visible) { outline: none; }
   letter-spacing: 0.9px;
 }
 
+.vnext3d-role-camera-selector > span,
+.vnext3d-role-camera-selector button {
+  color: var(--gs-overlay-muted);
+  font-family: var(--font-display);
+}
+
+.vnext3d-role-camera-selector button:hover,
+.vnext3d-role-camera-selector button:focus-visible {
+  border-color: var(--gs-border);
+  color: var(--gs-white);
+}
+
 .vnext3d-camera-operator button {
   color: var(--gs-overlay-muted);
 }
@@ -6978,6 +7061,7 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 .vnext3d-stage-camera-presets button[aria-pressed='true'],
+.vnext3d-role-camera-selector button[aria-pressed='true'],
 .vnext3d-camera-operator button.is-active {
   border-color: color-mix(in srgb, var(--gs-cyan) 82%, var(--gs-border));
   background: var(--gs-accent-bg);
@@ -7754,11 +7838,19 @@ input:focus:not(:focus-visible) { outline: none; }
   .vnext3d-preview-stage .vnext3d-stage-camera-presets {
     top: 60px;
   }
+
+  .vnext3d-preview-stage .vnext3d-role-camera-selector {
+    top: 104px;
+  }
 }
 
 @media (max-width: 760px) {
   .vnext3d-preview-stage .vnext3d-stage-camera-presets {
     top: 58px;
+  }
+
+  .vnext3d-preview-stage .vnext3d-role-camera-selector {
+    top: 110px;
   }
 
   .vnext3d-preview-stage:fullscreen .vnext3d-catalog-drawer,

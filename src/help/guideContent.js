@@ -101,11 +101,11 @@ export const GUIDE_TOPICS = Object.freeze({
     sections: [
       {
         title: 'Pick the camera for the question',
-        body: 'Broadcast shows team structure, Overhead shows lanes, Bench shows depth, and Role starts close to the selected responsibility.',
+        body: 'Broadcast shows team structure, Overhead shows lanes, and Bench shows depth. Role lets you choose an exact position, follows that player, tracks the ball off-ball, and turns toward the next receiver when carrying.',
       },
       {
         title: 'Navigate freely',
-        body: 'Drag to orbit, use the secondary drag or modifier controls to pan, and wheel or pinch to zoom. Recenter restores the chosen camera.',
+        body: 'Drag to look around, use the secondary drag or modifier controls to pan, and wheel or pinch to zoom. In Role view the camera keeps travelling with the selected player; Recenter restores the authored ball-aware view.',
       },
       {
         title: 'Move through the library',

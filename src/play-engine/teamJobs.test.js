@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PLAYS } from '../data/plays';
 import {
+  roleLensForPosition,
   roleMatchesLens,
   rolesForRoleLens,
   teamJobsFromPhase,
@@ -42,5 +43,8 @@ describe('team jobs', () => {
     expect(roleMatchesLens('LW', 'wingers')).toBe(true);
     expect(roleMatchesLens('RD', 'defense')).toBe(true);
     expect(roleMatchesLens('C', 'wingers')).toBe(false);
+    expect(roleLensForPosition('RW')).toBe('wingers');
+    expect(roleLensForPosition('LD')).toBe('defense');
+    expect(roleLensForPosition('G')).toBe('goalie');
   });
 });
