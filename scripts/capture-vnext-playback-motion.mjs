@@ -52,6 +52,7 @@ const cameraLabels = {
   bench: 'Bench',
   player: 'Role',
 };
+const fullReplayCaptureMs = 9_200;
 const results = {};
 
 for (const viewport of viewports) {
@@ -74,7 +75,7 @@ for (const viewport of viewports) {
     playId: 'brk',
     phase: '0',
     time: '0',
-    speed: '2',
+    speed: '1',
     role: 'LW',
     playing: 'false',
     camera: 'broadcast',
@@ -90,7 +91,7 @@ for (const viewport of viewports) {
   ) >= 60, undefined, { timeout: 120_000 });
   await page.getByRole('button', { name: 'Play replay' }).click();
 
-  const samples = await page.evaluate(() => new Promise((resolve) => {
+  const samples = await page.evaluate((captureMs) => new Promise((resolve) => {
     const values = [];
     const startedAt = performance.now();
     const sample = (now) => {
@@ -106,11 +107,11 @@ for (const viewport of viewports) {
         ballWorldHeight: Number(node?.getAttribute('data-ball-world-height') ?? 0),
         ballMotionStreakWidth: Number(node?.getAttribute('data-ball-motion-streak-width') ?? 0),
       });
-      if (now - startedAt >= 4_900) resolve(values);
+      if (now - startedAt >= captureMs) resolve(values);
       else requestAnimationFrame(sample);
     };
     requestAnimationFrame(sample);
-  }));
+  }), fullReplayCaptureMs);
 
   const changed = samples.filter((sample, index) => (
     index === 0 || sample.replayTime !== samples[index - 1].replayTime

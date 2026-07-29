@@ -3,7 +3,7 @@ import { createWorkspaceUrl, readWorkspaceUrl } from './workspaceUrlState';
 
 describe('workspace URL state', () => {
   it('restores canonical content, mode, play, time, speed, and role', () => {
-    expect(readWorkspaceUrl('http://localhost/?content=plays&mode=3d&playId=brk&phase=1&time=4.6&speed=1.5&role=RW&playing=false&camera=player')).toEqual({
+    expect(readWorkspaceUrl('http://localhost/?content=plays&mode=3d&playId=brk&phase=1&time=4.6&speed=0.25&role=RW&playing=false&camera=player')).toEqual({
       activeView: 'replay3d',
       content: 'plays',
       mode: '3d',
@@ -13,7 +13,7 @@ describe('workspace URL state', () => {
       strategyVariant: 'correct',
       phase: 1,
       time: 4.6,
-      speed: 1.5,
+      speed: 0.25,
       role: 'RW',
       playing: false,
       camera: 'player',
@@ -58,7 +58,7 @@ describe('workspace URL state', () => {
       playId: 'brk',
       phase: 1,
       time: 4.603,
-      speed: 1.5,
+      speed: 0.5,
       role: 'RW',
       playing: false,
       camera: 'player',
@@ -72,9 +72,14 @@ describe('workspace URL state', () => {
     expect(url.searchParams.get('playId')).toBe('brk');
     expect(url.searchParams.get('phase')).toBe('1');
     expect(url.searchParams.get('time')).toBe('4.6');
-    expect(url.searchParams.get('speed')).toBe('1.5');
+    expect(url.searchParams.get('speed')).toBe('0.5');
     expect(url.searchParams.get('role')).toBe('RW');
     expect(url.searchParams.get('playing')).toBe('false');
+  });
+
+  it('normalizes retired fast replay links to normal speed', () => {
+    expect(readWorkspaceUrl('http://localhost/?content=plays&mode=3d&speed=1.5').speed).toBe(1);
+    expect(readWorkspaceUrl('http://localhost/?content=plays&mode=3d&speed=2').speed).toBe(1);
   });
 
   it('restores and serializes a 3D strategy session', () => {

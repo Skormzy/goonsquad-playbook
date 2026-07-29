@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import {
   Pause,
   Play,
@@ -12,7 +13,15 @@ import { formatPlaybackTime } from '../play-engine/formatPlaybackTime';
 import { PLAYBACK_SPEEDS } from '../play-engine/playbackSpeeds';
 import { sceneTimeForPhase } from '../play-engine/synchronizePlayback';
 
+function playbackSpeedLabel(value) {
+  if (value === 0.25) return '¼x';
+  if (value === 0.5) return '½x';
+  return `${value}x`;
+}
+
 export default function PlaybackControls({ compact = false }) {
+  const phaseRailRef = useRef(null);
+  const phaseButtonRefs = useRef([]);
   const { theme, themes } = useTheme();
   const t = themes[theme];
   const {
@@ -38,6 +47,21 @@ export default function PlaybackControls({ compact = false }) {
     ? timelineValue >= timelineMax - timelineStep
     : currentPhase >= phaseCount - 1;
   const progress = timelineMax > 0 ? timelineValue / timelineMax * 100 : 0;
+
+  useEffect(() => {
+    if (!compact || phaseCount <= 1) return;
+    const rail = phaseRailRef.current;
+    const activeButton = phaseButtonRefs.current[currentPhase];
+    if (!rail || !activeButton) return;
+    const targetLeft = activeButton.offsetLeft
+      - (rail.clientWidth - activeButton.offsetWidth) / 2;
+    const reducedMotion = typeof window !== 'undefined'
+      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    rail.scrollTo({
+      left: Math.max(0, targetLeft),
+      behavior: reducedMotion ? 'auto' : 'smooth',
+    });
+  }, [compact, currentPhase, phaseCount]);
 
   const goPhase = (nextPhase) => {
     cancelPlaybackRestart();
@@ -98,6 +122,42 @@ export default function PlaybackControls({ compact = false }) {
         '--playback-progress': `${Math.max(0, Math.min(100, progress))}%`,
       }}
     >
+      {compact && phaseCount > 1 && (
+        <nav
+          className="playback-phase-selector"
+          aria-label="Replay phases"
+          data-testid="playback-phase-selector"
+        >
+          <div className="playback-phase-selector-summary" aria-hidden="true">
+            <span>PHASE</span>
+            <strong>{currentPhase + 1}/{phaseCount}</strong>
+          </div>
+          <div className="playback-phase-rail" ref={phaseRailRef}>
+            {currentReplayPhases.map((phase, index) => {
+              const label = phase.t || phase.desc || `Phase ${index + 1}`;
+              return (
+                <button
+                  type="button"
+                  key={phase.id ?? index}
+                  ref={(node) => { phaseButtonRefs.current[index] = node; }}
+                  className={[
+                    index === currentPhase ? 'is-active' : '',
+                    index < currentPhase ? 'is-complete' : '',
+                  ].filter(Boolean).join(' ')}
+                  aria-current={index === currentPhase ? 'step' : undefined}
+                  onClick={() => goPhase(index)}
+                  title={`Phase ${index + 1}: ${label}`}
+                  data-testid={`playback-phase-${index}`}
+                >
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <strong>{label}</strong>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      )}
+
       <div className="playback-transport-row">
         <div className="playback-transport-buttons">
           <button
@@ -168,7 +228,7 @@ export default function PlaybackControls({ compact = false }) {
           >
             {PLAYBACK_SPEEDS.map((value) => (
               <option key={value} value={value}>
-                {value === 0.5 ? '½x' : `${value}x`}
+                {playbackSpeedLabel(value)}
               </option>
             ))}
           </select>

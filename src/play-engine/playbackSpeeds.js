@@ -1,4 +1,4 @@
-export const PLAYBACK_SPEEDS = Object.freeze([0.5, 1, 1.5, 2]);
+export const PLAYBACK_SPEEDS = Object.freeze([0.25, 0.5, 1]);
 
 export function normalizePlaybackSpeed(value, fallback = 1) {
   const parsed = Number(value);

@@ -118,6 +118,44 @@ for (const viewport of viewports) {
     problems.push('runtime: frame telemetry did not reach 120 samples');
   }
 
+  const phaseButtons = page
+    .getByTestId('playback-phase-selector')
+    .first()
+    .locator('button');
+  const phaseNavigation = {
+    initialPhase: Number(await preview.getAttribute('data-phase')),
+    phaseCount: await phaseButtons.count(),
+    labels: await phaseButtons.allTextContents(),
+    speedOptions: await page
+      .getByTestId('playback-speed')
+      .first()
+      .locator('option')
+      .evaluateAll((options) => options.map((option) => ({
+        label: option.textContent,
+        value: option.value,
+      }))),
+    firstPhase: null,
+    nextPhase: null,
+  };
+  await phaseButtons.first().click();
+  await page.waitForFunction(() => (
+    document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-phase') === '0'
+  ), undefined, { timeout: 10_000 });
+  phaseNavigation.firstPhase = {
+    phase: Number(await preview.getAttribute('data-phase')),
+    time: Number(await preview.getAttribute('data-replay-time')),
+  };
+  await phaseButtons.nth(1).click();
+  await page.waitForFunction(() => (
+    document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-phase') === '1'
+  ), undefined, { timeout: 10_000 });
+  phaseNavigation.nextPhase = {
+    phase: Number(await preview.getAttribute('data-phase')),
+    time: Number(await preview.getAttribute('data-replay-time')),
+  };
+
   const screenshotPath = path.join(
     outputDir,
     `${viewport.id}-broadcast-receive-${viewport.width}x${viewport.height}.png`,
@@ -290,6 +328,8 @@ for (const viewport of viewports) {
     return {
       transportCount: stage?.querySelectorAll('[data-testid="playback-controls"]').length ?? 0,
       rewindCount: stage?.querySelectorAll('[data-testid="playback-rewind"]').length ?? 0,
+      phaseSelectorCount: stage
+        ?.querySelectorAll('[data-testid="playback-phase-selector"]').length ?? 0,
       stageCoversViewport: Boolean(
         stageRect
         && stageRect.left <= 1
@@ -384,8 +424,16 @@ for (const viewport of viewports) {
     && layout.stageBottom <= layout.consoleTop + 1
     && fullscreenState.transportCount === 1
     && fullscreenState.rewindCount === 1
+    && fullscreenState.phaseSelectorCount === 1
     && fullscreenState.stageCoversViewport
     && fullscreenState.transportInsideViewport
+    && phaseNavigation.phaseCount >= 2
+    && phaseNavigation.labels.every((label) => label.trim().length > 2)
+    && phaseNavigation.firstPhase.phase === 0
+    && phaseNavigation.firstPhase.time === 0
+    && phaseNavigation.nextPhase.phase === 1
+    && phaseNavigation.nextPhase.time > 0
+    && phaseNavigation.speedOptions.map(({ value }) => value).join(',') === '0.25,0.5,1'
     && cameraGestures.orbitPositionDelta > 0.5
     && cameraGestures.orbitTargetDelta < 0.15
     && cameraGestures.panPositionDelta > 0.4
@@ -401,6 +449,7 @@ for (const viewport of viewports) {
     problems,
     cameras,
     cameraGestures,
+    phaseNavigation,
     canvasPixels,
     layout,
     fullscreenState,

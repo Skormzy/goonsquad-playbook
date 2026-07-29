@@ -1080,6 +1080,12 @@ export default function ProductionReplayPreview() {
               ? 'FOLLOW'
               : cameraGestureMode === CAMERA_GESTURE_MODES.PAN ? 'PAN' : 'ORBIT'}
         </div>
+
+        {stageFullscreen && (
+          <div className="vnext3d-stage-transport" aria-label="Full screen replay controls">
+            <PlaybackControls compact />
+          </div>
+        )}
       </section>
 
       <section className="vnext3d-preview-console" aria-label="3D replay controls and status">

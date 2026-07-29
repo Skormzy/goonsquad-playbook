@@ -1392,6 +1392,130 @@ input:focus:not(:focus-visible) { outline: none; }
   gap: 6px;
 }
 
+.playback-phase-selector {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 5px;
+}
+
+.playback-phase-selector-summary {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  border-left: 2px solid var(--playback-accent);
+  border-radius: 3px;
+  background: var(--playback-panel);
+  color: var(--playback-muted);
+}
+
+.playback-phase-selector-summary span {
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.playback-phase-selector-summary strong {
+  margin-top: 3px;
+  color: var(--playback-text);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.playback-phase-rail {
+  min-width: 0;
+  display: flex;
+  gap: 3px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.playback-phase-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.playback-phase-rail button {
+  min-width: 136px;
+  max-width: 188px;
+  height: 36px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px 0 6px;
+  overflow: hidden;
+  border: 1px solid var(--playback-border);
+  border-radius: 4px;
+  background: var(--playback-panel);
+  color: var(--playback-muted);
+  scroll-snap-align: center;
+  cursor: pointer;
+}
+
+.playback-phase-rail button > span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--playback-border);
+  border-radius: 3px;
+  color: var(--playback-muted);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.playback-phase-rail button > strong {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.15;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playback-phase-rail button:hover,
+.playback-phase-rail button:focus-visible {
+  border-color: var(--playback-accent);
+  color: var(--playback-text);
+}
+
+.playback-phase-rail button.is-complete > span {
+  border-color: color-mix(in srgb, var(--playback-accent) 46%, var(--playback-border));
+  color: var(--playback-accent);
+}
+
+.playback-phase-rail button.is-active {
+  border-color: var(--playback-accent);
+  background: var(--playback-accent-bg);
+  color: var(--playback-text);
+  box-shadow: inset 0 -2px 0 var(--playback-accent);
+}
+
+.playback-phase-rail button.is-active > span {
+  border-color: var(--playback-accent);
+  background: var(--playback-accent);
+  color: #07111f;
+}
+
+.playback-controls.is-compact .playback-phase-markers {
+  display: none;
+}
+
 .playback-transport-row {
   min-width: 0;
   display: grid;
@@ -1625,6 +1749,17 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 @media (max-width: 520px), (max-height: 520px) {
+  .playback-phase-selector {
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .playback-phase-rail button {
+    min-width: 122px;
+    height: 40px;
+    padding-right: 7px;
+  }
+
   .playback-transport-row {
     position: relative;
     display: flex;
@@ -6790,7 +6925,7 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 .vnext3d-preview-stage.is-immersive .vnext3d-camera-state {
-  bottom: 92px;
+  bottom: 184px;
 }
 
 .vnext3d-stage-transport {
@@ -7542,12 +7677,20 @@ input:focus:not(:focus-visible) { outline: none; }
     grid-auto-flow: column;
   }
 
+  .vnext3d-camera-state {
+    bottom: 58px;
+  }
+
   .vnext3d-camera-gesture-control {
     grid-auto-flow: column;
   }
 
   .vnext3d-preview-stage.is-immersive .vnext3d-camera-operator {
-    bottom: 92px;
+    bottom: 184px;
+  }
+
+  .vnext3d-preview-stage.is-immersive .vnext3d-camera-state {
+    bottom: 234px;
   }
 
   .vnext3d-camera-operator button {
