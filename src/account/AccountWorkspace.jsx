@@ -198,7 +198,7 @@ export default function AccountWorkspace() {
       <div className="account-workspace-frame">
         <aside className="account-workspace-identity">
           <div className="account-workspace-kicker"><span /> GOONSQUAD ID</div>
-          <h1>{account.user ? 'Your team identity.' : 'Join the squad.'}</h1>
+          <h1>{account.user ? 'Your team identity.' : 'Goon with the squad.'}</h1>
           <p>{account.user ? 'Keep your name, username, and team profile current.' : 'One account for your playbook, player profile, and created plays.'}</p>
           <div className="account-value-list">
             <AccountValue title="Saved plays" text="Your favorites follow you."><BookMarked aria-hidden="true" /></AccountValue>
