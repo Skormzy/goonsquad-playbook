@@ -1,5 +1,6 @@
 import { sampleTacticalReplay } from '../tactical3d/sampleTacticalReplay';
 import { rinkPositionToWorld } from '../vnext3d/runtimeMapping';
+import { isPenaltyBoxPlayer } from './penaltyBox';
 import { validatePlayScene } from './validatePlayScene';
 
 const SAMPLE_INTERVAL_SECONDS = 0.2;
@@ -142,6 +143,7 @@ function auditSampledFacing(scene, metrics) {
     const involvedIds = [frame.ball.ownerId, frame.ball.fromPlayerId, frame.ball.toPlayerId];
 
     frame.players.forEach((player) => {
+      if (isPenaltyBoxPlayer(player)) return;
       const detail = `${player.id} at ${frame.time.toFixed(2)}s`;
       if (player.role === 'G') {
         const ballDistance = Math.hypot(

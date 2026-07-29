@@ -3,6 +3,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
 import { mirrorPhase } from '../utils/mirror';
 import { POSITIONS, BALL_COLOR } from '../data/plays';
+import { isPenaltyBoxPlayer } from '../play-engine/penaltyBox';
 import { rolesForRoleLens } from '../play-engine/teamJobs';
 
 const W = 380, H = 660, PD = 14;
@@ -22,7 +23,7 @@ function CoverageLines({ coverage, rph }) {
     if (!oppId) return null;
     const our = rph.pos[pos];
     const opp = rph.opp?.find(o => o.id === oppId);
-    if (!our || !opp) return null;
+    if (!our || !opp || isPenaltyBoxPlayer(our) || isPenaltyBoxPlayer(opp)) return null;
     const x1 = toX(our.x), y1 = toY(our.y);
     const x2 = toX(opp.x), y2 = toY(opp.y);
     const dx = our.x - opp.x, dy = our.y - opp.y;
@@ -101,7 +102,7 @@ function MovementTrails({ focusedRoles, prev, rph, t }) {
   if (!prev) return null;
   return POSITIONS.filter(p => p !== 'G').map(pos => {
     const pr = prev[pos], cu = rph.pos[pos];
-    if (!pr || !cu) return null;
+    if (!pr || !cu || isPenaltyBoxPlayer(pr) || isPenaltyBoxPlayer(cu)) return null;
     const x1 = toX(pr.x), y1 = toY(pr.y), x2 = toX(cu.x), y2 = toY(cu.y);
     if (Math.abs(x1 - x2) < 3 && Math.abs(y1 - y2) < 3) return null;
     const focused = focusedRoles.has(pos);
@@ -161,7 +162,7 @@ function TacticalArrows({ arrows }) {
 function PlayerDots({ focusedRoles, rph, t, theme, reducedMotion }) {
   return POSITIONS.map(pos => {
     const p = rph.pos[pos];
-    if (!hasPoint(p)) return null;
+    if (!hasPoint(p) || isPenaltyBoxPlayer(p)) return null;
     const s = focusedRoles.has(pos);
     const ox = toX(p.x), oy = toY(p.y), r = s ? 14 : 10;
     const c = s ? t.sc : t.pc[pos];
@@ -216,7 +217,7 @@ function OpponentDots({ rph, t, theme }) {
   const oppFill = theme === 'dark' ? '#c8d5e8' : '#dfe6f0';
 
   return rph.opp.map(o => {
-    if (!hasPoint(o)) return null;
+    if (!hasPoint(o) || isPenaltyBoxPlayer(o)) return null;
     const ox = toX(o.x), oy = toY(o.y);
     const label = o.l || o.label;
 
@@ -239,6 +240,98 @@ function OpponentDots({ rph, t, theme }) {
       </g>
     );
   });
+}
+
+function penaltyBoxPlayers(rph, playId) {
+  const players = [
+    ...POSITIONS.map((role) => ({
+      player: rph.pos?.[role],
+      role,
+      team: 'us',
+    })),
+    ...(rph.opp ?? []).map((player) => ({
+      player,
+      role: player.l || player.label || 'PEN',
+      team: 'opponent',
+    })),
+  ].filter(({ player }) => isPenaltyBoxPlayer(player));
+
+  if (players.length === 0 && playId === 'ppum') {
+    players.push({
+      player: { inactive: true, status: 'penalty-box' },
+      role: 'PEN',
+      team: 'opponent',
+    });
+  }
+
+  return players;
+}
+
+function PenaltyBox2D({ players, t, theme }) {
+  if (players.length === 0) return null;
+  const isDark = theme === 'dark';
+  const boxX = W - 6;
+  const boxWidth = 47;
+  const boxHeight = 68;
+  const gap = 5;
+  const totalHeight = boxHeight * 2 + gap;
+  const startY = (H - totalHeight) / 2;
+
+  return (
+    <g data-testid="rink-penalty-box" aria-label="Penalty box">
+      {['us', 'opponent'].map((team, index) => {
+        const occupant = players.find((entry) => entry.team === team);
+        const y = startY + index * (boxHeight + gap);
+        const accent = team === 'us' ? t.sc : t.oc;
+        return (
+          <g key={team} data-penalty-box-team={team} data-occupied={occupant ? 'true' : 'false'}>
+            <rect
+              x={boxX}
+              y={y}
+              width={boxWidth}
+              height={boxHeight}
+              rx={5}
+              fill={isDark ? '#111820' : '#d5dce0'}
+              stroke={occupant ? accent : isDark ? '#53606c' : '#8e99a2'}
+              strokeWidth={occupant ? 2 : 1}
+            />
+            <line
+              x1={boxX}
+              y1={y + 8}
+              x2={boxX + boxWidth}
+              y2={y + 8}
+              stroke={occupant ? accent : isDark ? '#53606c' : '#8e99a2'}
+              strokeWidth={2}
+            />
+            {occupant && (
+              <>
+                <circle
+                  cx={boxX + boxWidth / 2}
+                  cy={y + boxHeight / 2 + 5}
+                  r={12}
+                  fill={team === 'us' ? t.sc : isDark ? '#dfe7ee' : '#f4f7f9'}
+                  stroke={accent}
+                  strokeWidth={2}
+                />
+                <text
+                  x={boxX + boxWidth / 2}
+                  y={y + boxHeight / 2 + 6}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fill={team === 'us' ? t.dt : accent}
+                  fontSize={7}
+                  fontWeight="bold"
+                  fontFamily="monospace"
+                >
+                  PEN
+                </text>
+              </>
+            )}
+          </g>
+        );
+      })}
+    </g>
+  );
 }
 
 function BallIndicator({ focusedRoles, rph, mode, reducedMotion }) {
@@ -366,6 +459,11 @@ export default function RinkSVG({
   }
 
   const glY1 = toY(6), glY2 = toY(94), cx = W / 2;
+  const boxedPlayers = penaltyBoxPlayers(
+    rph,
+    isTactics || isScene ? null : appCtx.currentPlay?.id,
+  );
+  const viewWidth = boxedPlayers.length > 0 ? W + 44 : W;
 
   // Theme-aware rink surface colors
   const rkFrom   = isDark ? '#17191d' : '#e1e4e7';
@@ -374,9 +472,9 @@ export default function RinkSVG({
 
   return (
     <svg
-      viewBox={`0 0 ${W} ${H}`}
+      viewBox={`0 0 ${viewWidth} ${H}`}
       className="w-full"
-      style={{ maxWidth: 380 }}
+      style={{ maxWidth: viewWidth }}
       role="img"
       aria-label={ariaLabel}
       aria-description="Home players use position labels and opponents use numbered labels, so team and focus do not rely on color alone."
@@ -423,6 +521,7 @@ export default function RinkSVG({
       {!isTactics && <PassingLanes rph={rph} />}
       <PlayerDots focusedRoles={focusedRoles} rph={rph} t={t} theme={theme} reducedMotion={reducedMotion} />
       {showOpp && <OpponentDots rph={rph} t={t} theme={theme} />}
+      <PenaltyBox2D players={boxedPlayers} t={t} theme={theme} />
       <BallIndicator focusedRoles={focusedRoles} rph={rph} mode={mode} reducedMotion={reducedMotion} />
     </svg>
   );

@@ -289,6 +289,7 @@ export default function TacticalReplayPreview() {
       },
     })
     : { phase: `phase-${currentPhase + 1}`, status: 'pass' };
+  const penaltyBoxAthlete = frame.players.find((player) => player.penaltyBox);
   return (
     <main
       className="vnext3d-preview-view"
@@ -304,6 +305,16 @@ export default function TacticalReplayPreview() {
       data-playing={isPlaying}
       data-replay-time={Number(playbackTime.toFixed(3))}
       data-player-count={frame.players.length}
+      data-on-rink-player-count={frame.players.filter((player) => !player.penaltyBox).length}
+      data-penalty-box-count={frame.players.filter((player) => player.penaltyBox).length}
+      data-penalty-box-player={penaltyBoxAthlete?.id ?? 'none'}
+      data-penalty-box-team={penaltyBoxAthlete?.team ?? 'none'}
+      data-penalty-box-world-x={penaltyBoxAthlete
+        ? Number(penaltyBoxAthlete.worldPosition[0].toFixed(4))
+        : 'none'}
+      data-penalty-box-world-z={penaltyBoxAthlete
+        ? Number(penaltyBoxAthlete.worldPosition[2].toFixed(4))
+        : 'none'}
       data-ball-state={frame.ball.state}
       data-ball-segment={frame.ball.segmentType}
       data-ball-owner={frame.ball.ownerId ?? 'none'}

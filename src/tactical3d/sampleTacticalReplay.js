@@ -5,8 +5,10 @@ import {
 } from '../play-engine/movementMetrics';
 import {
   productionAssetKey,
+  productionPenaltyBoxPose,
   rinkPositionToWorld,
 } from '../vnext3d/runtimeMapping';
+import { isPenaltyBoxPlayer } from '../play-engine/penaltyBox';
 
 export const TACTICAL_BALL_RADIUS_METERS = 0.052;
 export const TACTICAL_BALL_RENDER_MODE = 'single-authority-flight-streak';
@@ -689,14 +691,36 @@ function playerAnimation(player, ball, ballSegments, requestedTime) {
   };
 }
 
+function pinPlayerInPenaltyBox(player) {
+  const pose = productionPenaltyBoxPose(player);
+  return {
+    ...player,
+    ...pose,
+    authoredRotation: pose.worldRotation,
+    movementRotation: pose.worldRotation,
+    speedMps: 0,
+    trackDistanceMeters: 0,
+  };
+}
+
 export function sampleTacticalReplay(scene, requestedTime) {
   const time = clamp(requestedTime, 0, scene.duration);
-  const playersWithTracks = scene.players.map((player) => ({
-    ...sampleOrientedPlayerTrack(scene, player, time),
-    assetKey: productionAssetKey(player),
-  }));
+  const playersWithTracks = scene.players.map((player) => {
+    const sampled = {
+      ...sampleOrientedPlayerTrack(scene, player, time),
+      assetKey: productionAssetKey(player),
+    };
+    return isPenaltyBoxPlayer(player) ? pinPlayerInPenaltyBox(sampled) : sampled;
+  });
   const ball = sampleBall(scene, playersWithTracks, time);
   const players = playersWithTracks.map((player) => {
+    if (isPenaltyBoxPlayer(player)) {
+      return {
+        ...pinPlayerInPenaltyBox(player),
+        clipName: 'ready',
+        clipPhase: 0,
+      };
+    }
     const orientedPlayer = orientPlayerToLiveAction(player, ball);
     const animation = playerAnimation(orientedPlayer, ball, scene.ball.segments, time);
     return { ...orientedPlayer, ...animation };

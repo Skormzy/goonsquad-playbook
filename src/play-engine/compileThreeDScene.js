@@ -1,5 +1,6 @@
 import { calculateBoardBounce } from './boardBounce';
 import { rinkDistanceMeters } from './movementMetrics';
+import { isPenaltyBoxPlayer, PENALTY_BOX_STATUS } from './penaltyBox';
 
 const ROLES = ['LW', 'C', 'RW', 'LD', 'RD', 'G'];
 const FIELD_ROLES = ROLES.filter((role) => role !== 'G');
@@ -15,6 +16,13 @@ const MIN_FACEOFF_DRAW_SECONDS = 1.6;
 const FACEOFF_CONTACT_SECONDS = 0.64;
 const MAX_FIELD_ADJUSTMENT = 0.9;
 const MAX_GOALIE_ADJUSTMENT = 0.7;
+const PENALTY_BOX_PLAY_ASSIGNMENTS = Object.freeze({
+  ppum: Object.freeze({ team: 'opponent' }),
+  ppfo: Object.freeze({ team: 'opponent' }),
+  pkb: Object.freeze({ team: 'us', role: 'RW' }),
+  pkfo: Object.freeze({ team: 'us', role: 'RW' }),
+  pkcl: Object.freeze({ team: 'us', role: 'RW' }),
+});
 
 const HOME_UNIFORM = Object.freeze({
   jersey: '#f8fafc',
@@ -464,7 +472,40 @@ function createTrack({ team, role, positions, ballPositions, phaseTimes, duratio
   return frames;
 }
 
-function createPlayers(phases, roleMap, phaseTimes, duration) {
+function explicitPenaltyBoxAssignment(phases, roleMap) {
+  for (const role of FIELD_ROLES) {
+    const source = phases
+      .map((phase) => phase.home?.[role])
+      .find(isPenaltyBoxPlayer);
+    if (source) return { team: 'us', role };
+  }
+
+  for (const role of FIELD_ROLES) {
+    const source = phases
+      .map((phase) => phaseOpponentForRole(phase, roleMap, role))
+      .find(isPenaltyBoxPlayer);
+    if (source) return { team: 'opponent', role };
+  }
+
+  return null;
+}
+
+function penaltyBoxAssignment(play, phases, roleMap) {
+  const explicit = explicitPenaltyBoxAssignment(phases, roleMap);
+  if (explicit) return explicit;
+
+  const authored = PENALTY_BOX_PLAY_ASSIGNMENTS[play.id];
+  if (!authored) return null;
+  if (authored.role) return authored;
+
+  const missingOpponentRole = FIELD_ROLES.find((role) => !roleMap.get(role));
+  return {
+    ...authored,
+    role: missingOpponentRole ?? 'RW',
+  };
+}
+
+function createPlayers(phases, roleMap, phaseTimes, duration, penaltyAssignment = null) {
   const ballPositions = phases.map((phase) => position(
     resolvedPhaseBall(phase),
     { x: 50, y: 50 },
@@ -472,14 +513,15 @@ function createPlayers(phases, roleMap, phaseTimes, duration) {
   const homePlayers = ROLES.map((role, index) => {
     const positions = phases.map((phase) => position(phase.home?.[role], HOME_FALLBACKS[role]));
     const sourcePlayer = phases.find((phase) => phase.home?.[role])?.home?.[role];
-    const inactive = Boolean(sourcePlayer?.inactive);
+    const inactive = isPenaltyBoxPlayer(sourcePlayer)
+      || (penaltyAssignment?.team === 'us' && penaltyAssignment.role === role);
     return {
       id: `US_${role}`,
       label: inactive ? 'PEN' : role,
       role,
       team: 'us',
       active: !inactive,
-      status: sourcePlayer?.status ?? 'active',
+      status: inactive ? PENALTY_BOX_STATUS : sourcePlayer?.status ?? 'active',
       uniform: HOME_UNIFORM,
       keyframes: createTrack({
         team: 'us', role, positions, ballPositions, phaseTimes, duration, index,
@@ -498,14 +540,15 @@ function createPlayers(phases, roleMap, phaseTimes, duration) {
     const sourcePlayer = phases
       .map((phase) => phaseOpponentForRole(phase, roleMap, role))
       .find(Boolean);
-    const inactive = Boolean(sourcePlayer?.inactive);
+    const inactive = isPenaltyBoxPlayer(sourcePlayer)
+      || (penaltyAssignment?.team === 'opponent' && penaltyAssignment.role === role);
     return {
       id: `OP_${role}`,
       label: inactive ? 'PEN' : role,
       role,
       team: 'opponent',
       active: !inactive,
-      status: sourcePlayer?.status ?? 'active',
+      status: inactive ? PENALTY_BOX_STATUS : sourcePlayer?.status ?? 'active',
       uniform: OPPONENT_UNIFORM,
       keyframes: createTrack({
         team: 'opponent', role, positions, ballPositions, phaseTimes, duration, index: index + 6,
@@ -941,6 +984,7 @@ export function compilePlayThreeDScene(play) {
   const phases = normalizePlayPhases(play);
   const timing = playTiming(phases);
   const roleMap = createOpponentRoleMap(phases);
+  const penaltyAssignment = penaltyBoxAssignment(play, phases, roleMap);
   return {
     ...baseScene({
       id: `${play.id}-generated-3d`,
@@ -948,7 +992,13 @@ export function compilePlayThreeDScene(play) {
       title: play.n,
       duration: timing.duration,
       phaseTimes: timing.phaseTimes,
-      players: createPlayers(phases, roleMap, timing.phaseTimes, timing.duration),
+      players: createPlayers(
+        phases,
+        roleMap,
+        timing.phaseTimes,
+        timing.duration,
+        penaltyAssignment,
+      ),
       ball: createBallTimeline(phases, roleMap, timing.phaseTimes, timing.duration),
       presentation: {
         purpose: play.desc,

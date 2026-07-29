@@ -28,6 +28,7 @@ import {
   TACTICAL_BALL_RADIUS_METERS,
 } from './sampleTacticalReplay';
 import { rolesForRoleLens } from '../play-engine/teamJobs';
+import { isPenaltyBoxPlayer } from '../play-engine/penaltyBox';
 import TacticalAthlete from './TacticalAthlete';
 import TacticalReplayLayers from './TacticalReplayLayers';
 
@@ -260,6 +261,14 @@ export default function TacticalReplayScene({
     () => new Set(rolesForRoleLens(roleFocusMode)),
     [roleFocusMode],
   );
+  const penaltyBoxTeams = useMemo(
+    () => [...new Set(
+      replay.players
+        .filter(isPenaltyBoxPlayer)
+        .map((player) => player.team),
+    )],
+    [replay],
+  );
 
   useEffect(() => {
     const wasPlaying = wasPlayingRef.current;
@@ -381,7 +390,7 @@ export default function TacticalReplayScene({
       <directionalLight intensity={3.2} color="#fff8ed" position={[14, 30, -20]} />
       <directionalLight intensity={1.35} color="#9cd7ff" position={[-18, 18, 24]} />
 
-      <ProductionCourt theme={theme} />
+      <ProductionCourt penaltyBoxTeams={penaltyBoxTeams} theme={theme} />
 
       <TacticalReplayLayers
         focusRoles={focusRoles}

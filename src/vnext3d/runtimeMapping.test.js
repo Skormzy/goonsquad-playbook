@@ -11,6 +11,8 @@ import {
   FIELD_ACTION_CONTACT_PHASE,
   LOCOMOTION_CYCLE_DISTANCE_METERS,
   LOCOMOTION_CLIP_CALIBRATION,
+  PENALTY_BOX_WORLD_POSITIONS,
+  PENALTY_BOX_WORLD_ROTATION,
   PRIVATE_CMU16_JOG_CYCLE_DISTANCE_METERS,
   createProductionRuntimePlayers,
   productionActionPhase,
@@ -192,6 +194,36 @@ describe('vNext production athlete runtime mapping', () => {
       || player.assetKey === 'field-away'
       || player.assetKey === 'goalie-home'
       || player.assetKey === 'goalie-away')).toBe(true);
+  });
+
+  it('routes a penalized athlete to the team box without changing the 12-player roster', () => {
+    const players = Array.from({ length: 12 }, (_, index) => ({
+      id: `P${index}`,
+      team: index < 6 ? 'us' : 'opponent',
+      role: index === 0 || index === 6 ? 'G' : 'C',
+      action: 'sprint-forward',
+      position: { x: 10 + index * 6, y: 8 + index * 7 },
+      facing: 0.7,
+      speedMps: 3.1,
+      status: index === 11 ? 'penalty-box' : 'active',
+      active: index !== 11,
+    }));
+    const runtime = createProductionRuntimePlayers({ players, time: 0 });
+    const boxed = runtime.find((player) => player.id === 'P11');
+
+    expect(runtime).toHaveLength(12);
+    expect(boxed).toMatchObject({
+      active: false,
+      clipName: 'ready',
+      locomotionCadence: null,
+      motionPhaseCycles: 0,
+      penaltyBox: true,
+      worldAngularVelocity: 0,
+      worldRotation: PENALTY_BOX_WORLD_ROTATION,
+      worldVelocity: [0, 0, 0],
+    });
+    expect(boxed.worldPosition).toEqual([...PENALTY_BOX_WORLD_POSITIONS.opponent]);
+    expect(boxed.worldPosition[0]).toBeLessThan(-COURT_WIDTH_METERS / 2);
   });
 
   it('drives locomotion phase from cumulative world distance instead of replay time', () => {

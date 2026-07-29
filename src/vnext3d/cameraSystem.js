@@ -188,6 +188,7 @@ function cameraPlayerPoint(player) {
   return {
     id: player.id ?? null,
     role: player.role ?? null,
+    status: player.status ?? null,
     position: point(position),
   };
 }
@@ -214,7 +215,9 @@ export function tacticalOverheadCameraPose({
 } = {}) {
   const ballWorldPosition = worldPoint(ball?.worldPosition ?? ballPosition);
   const mappedPlayers = players.map(cameraPlayerPoint).filter(Boolean);
-  const fieldPlayers = mappedPlayers.filter((player) => player.role !== 'G');
+  const fieldPlayers = mappedPlayers.filter((player) => (
+    player.role !== 'G' && player.status !== 'penalty-box'
+  ));
   const relevantGoalies = mappedPlayers.filter(
     (player) => player.role === 'G' && goalieIsRelevant(player, ball, ballWorldPosition),
   );

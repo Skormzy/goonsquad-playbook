@@ -9,6 +9,7 @@ import {
   tacticalRoutePoints,
   upcomingBallLayer,
 } from './tacticalLayers';
+import { isPenaltyBoxPlayer } from '../play-engine/penaltyBox';
 
 const COVERAGE_DASH_COUNT = 7;
 const FIELD_ROLES = new Set(['LW', 'C', 'RW', 'LD', 'RD']);
@@ -32,7 +33,7 @@ function CoverageLink({ enabled, focusRoles, frameRef, matchup }) {
     const frame = frameRef.current;
     const home = frame?.players.find((player) => player.id === matchup.homePlayerId);
     const opponent = frame?.players.find((player) => player.id === matchup.opponentPlayerId);
-    if (!home || !opponent) {
+    if (!home || !opponent || isPenaltyBoxPlayer(home) || isPenaltyBoxPlayer(opponent)) {
       group.visible = false;
       return;
     }
@@ -102,7 +103,11 @@ function CoverageLink({ enabled, focusRoles, frameRef, matchup }) {
 
 function RouteLayers({ enabled, focusRoles, replay }) {
   const routes = useMemo(() => replay.players
-    .filter((player) => player.team === 'us' && FIELD_ROLES.has(player.role))
+    .filter((player) => (
+      player.team === 'us'
+      && FIELD_ROLES.has(player.role)
+      && !isPenaltyBoxPlayer(player)
+    ))
     .map((player) => ({
       id: player.id,
       role: player.role,
@@ -185,7 +190,11 @@ function TargetMarker({ enabled, focusRoles, frameRef, player }) {
 
 function TargetLayers({ enabled, focusRoles, frameRef, replay }) {
   return replay.players
-    .filter((player) => player.team === 'us' && FIELD_ROLES.has(player.role))
+    .filter((player) => (
+      player.team === 'us'
+      && FIELD_ROLES.has(player.role)
+      && !isPenaltyBoxPlayer(player)
+    ))
     .map((player) => (
       <TargetMarker
         key={`target-${player.id}`}

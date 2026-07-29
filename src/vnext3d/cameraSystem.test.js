@@ -92,6 +92,30 @@ describe('production 3D camera system', () => {
     expect(pose.target[2]).toBeLessThan(-10);
   });
 
+  it('does not shrink the tactical overhead frame to include the penalty box', () => {
+    const pose = productionCameraPose('overhead', {
+      ball: {
+        ownerId: 'US_C',
+        worldPosition: [0, 0.052, 8],
+      },
+      players: [
+        { id: 'US_C', role: 'C', status: 'active', worldPosition: [0, 0, 8] },
+        { id: 'US_LW', role: 'LW', status: 'active', worldPosition: [-7, 0, 4] },
+        { id: 'OP_C', role: 'C', status: 'active', worldPosition: [2, 0, 12] },
+        {
+          id: 'OP_RD',
+          role: 'RD',
+          status: 'penalty-box',
+          worldPosition: [13.45, 0, 2.7],
+        },
+      ],
+    });
+
+    expect(pose.framedPlayerIds).toEqual(['US_C', 'US_LW', 'OP_C']);
+    expect(pose.framedPlayerIds).not.toContain('OP_RD');
+    expect(pose.framingWidth).toBeLessThan(22);
+  });
+
   it('anchors the role camera behind the selected athlete while aiming at the ball', () => {
     const pose = productionCameraPose('player', {
       focusPlayer: {

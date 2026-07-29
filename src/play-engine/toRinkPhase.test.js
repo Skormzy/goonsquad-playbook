@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { standardBreakout3dReplay } from '../replay3d/data/standardBreakout3d';
+import { getPlayScene } from './sceneRegistry';
 import { playSceneToRinkPhase } from './toRinkPhase';
 
 describe('playSceneToRinkPhase', () => {
@@ -30,5 +31,18 @@ describe('playSceneToRinkPhase', () => {
     expect(phase.time).toBe(standardBreakout3dReplay.duration);
     expect(phase.pos.LW.ball).toBe(true);
     expect(phase.ball).toEqual(phase.sceneFrame.ball.position);
+  });
+
+  it('preserves the penalty-box state for the shared 2D rink', () => {
+    const powerPlay = playSceneToRinkPhase(getPlayScene('ppum'), 0);
+    const penaltyKill = playSceneToRinkPhase(getPlayScene('pkb'), 0);
+    const boxedOpponent = powerPlay.opp.filter((player) => player.status === 'penalty-box');
+    const boxedHome = Object.values(penaltyKill.pos)
+      .filter((player) => player?.status === 'penalty-box');
+
+    expect(boxedOpponent).toHaveLength(1);
+    expect(boxedOpponent[0]).toMatchObject({ inactive: true, l: 'PEN' });
+    expect(boxedHome).toHaveLength(1);
+    expect(boxedHome[0]).toMatchObject({ inactive: true, role: 'PEN' });
   });
 });

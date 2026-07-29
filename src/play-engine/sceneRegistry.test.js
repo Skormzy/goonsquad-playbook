@@ -48,6 +48,36 @@ describe('play scene registry', () => {
     });
   });
 
+  it('keeps special-teams rosters complete while placing one penalized athlete off the floor', () => {
+    const cases = [
+      { id: 'ppum', team: 'opponent' },
+      { id: 'ppfo', team: 'opponent' },
+      { id: 'pkb', team: 'us' },
+      { id: 'pkfo', team: 'us' },
+      { id: 'pkcl', team: 'us' },
+    ];
+
+    cases.forEach(({ id, team }) => {
+      const scene = getPlayScene(id);
+      const boxed = scene.players.filter((player) => player.status === 'penalty-box');
+      expect(scene.players, id).toHaveLength(12);
+      expect(scene.players.filter((player) => player.active), id).toHaveLength(11);
+      expect(boxed, id).toHaveLength(1);
+      expect(boxed[0], id).toMatchObject({
+        active: false,
+        label: 'PEN',
+        team,
+      });
+    });
+
+    for (const id of ['ppfo', 'pkfo']) {
+      const won = getPlayScene(id, 'won');
+      const lost = getPlayScene(id, 'lost');
+      expect(won.players.filter((player) => player.status === 'penalty-box')).toHaveLength(1);
+      expect(lost.players.filter((player) => player.status === 'penalty-box')).toHaveLength(1);
+    }
+  });
+
   it('gives every strategy a mistake and right-way 3D scene', () => {
     expect(getRegisteredStrategyScenes()).toHaveLength(TACTICS.length * 2);
     TACTICS.forEach((tactic) => {

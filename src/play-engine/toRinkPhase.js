@@ -35,6 +35,8 @@ export function playSceneToRinkPhase(scene, requestedTime) {
       role: player.label || player.role,
       u: movementLabel(player.action),
       ball: frame.ball.ownerId === player.id,
+      inactive: player.active === false,
+      status: player.status,
     }];
   }));
 
@@ -50,6 +52,8 @@ export function playSceneToRinkPhase(scene, requestedTime) {
       y: player.position.y,
       l: player.label || player.role,
       hasBall: frame.ball.ownerId === player.id,
+      inactive: player.active === false,
+      status: player.status,
     })),
     ball: { x: frame.ball.position.x, y: frame.ball.position.y },
     ballPath: frame.ball.path ?? null,

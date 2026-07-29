@@ -7,6 +7,7 @@ import {
 import { PLAYS } from '../data/plays';
 import { TACTICS } from '../data/tactics';
 import { sampleTacticalReplay } from '../tactical3d/sampleTacticalReplay';
+import { isPenaltyBoxPlayer } from './penaltyBox';
 
 const SAMPLE_SECONDS = 1 / 30;
 
@@ -19,6 +20,7 @@ function sampleSceneMotion(scene, sceneIndex) {
   for (let time = 0; time <= scene.duration + 0.0001; time += SAMPLE_SECONDS) {
     const frame = sampleTacticalReplay(scene, Math.min(time, scene.duration));
     frame.players.forEach((player) => {
+      if (isPenaltyBoxPlayer(player)) return;
       const previousPosition = previousPositions.get(player.id);
       const previousVelocity = previousVelocities.get(player.id);
       if (previousPosition) {
@@ -70,6 +72,10 @@ describe('replay motion continuity', () => {
     const expectedSceneCount = PLAYS.length
       + PLAYS.filter((play) => play.faceoff).length
       + TACTICS.length * 2;
+    const expectedMovingPlayerCount = scenes.reduce(
+      (total, scene) => total + scene.players.filter((player) => !isPenaltyBoxPlayer(player)).length,
+      0,
+    );
 
     expect(scenes).toHaveLength(expectedSceneCount);
     expect(metrics.length).toBeGreaterThan(10_000);
@@ -84,7 +90,7 @@ describe('replay motion continuity', () => {
       sharpest.acceleration,
       `${sharpest.sceneId} ${sharpest.playerId} reached ${sharpest.acceleration.toFixed(3)} m/s2`,
     ).toBeLessThanOrEqual(7);
-    expect(distances).toHaveLength(expectedSceneCount * 12);
+    expect(distances).toHaveLength(expectedMovingPlayerCount);
     expect(
       shortest[1],
       `${shortest[0]} moved only ${shortest[1].toFixed(3)} m`,
