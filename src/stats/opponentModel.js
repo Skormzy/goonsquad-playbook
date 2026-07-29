@@ -1,6 +1,10 @@
 import { formatScheduleName, teamSummary } from './statsModel';
+import { isAwaitingResult } from './scheduleFreshness';
 
 const PLAYOFF_SEED_SUFFIX = /\s+\(\d+(?:st|nd|rd|th)\)$/i;
+const OPPONENT_ALIASES = new Map([
+  ['OG VIPERZ', 'VIPERZ'],
+]);
 
 function comparableDate(value) {
   const timestamp = new Date(value).getTime();
@@ -12,10 +16,11 @@ function recordFor(games) {
 }
 
 export function canonicalOpponentName(value) {
-  return String(value || '')
+  const normalized = String(value || '')
     .replace(PLAYOFF_SEED_SUFFIX, '')
     .replace(/\s+/g, ' ')
     .trim();
+  return OPPONENT_ALIASES.get(normalized.toLocaleUpperCase('en-CA')) || normalized;
 }
 
 export function opponentKey(value) {
@@ -65,6 +70,11 @@ export function buildOpponentMatchups(dataset, now = new Date()) {
       const upcomingGames = games
         .filter((game) => game.status !== 'final' && comparableDate(game.scheduledAt) >= nowTime)
         .sort((a, b) => comparableDate(a.scheduledAt) - comparableDate(b.scheduledAt));
+      const awaitingResults = games
+        .filter((game) => isAwaitingResult(game, nowTime))
+        .sort((a, b) => comparableDate(b.scheduledAt) - comparableDate(a.scheduledAt));
+      const recentMeetings = [...finalGames, ...awaitingResults]
+        .sort((a, b) => comparableDate(b.scheduledAt) - comparableDate(a.scheduledAt));
       const summary = recordFor(finalGames);
       const seasonGroups = new Map();
 
@@ -106,6 +116,8 @@ export function buildOpponentMatchups(dataset, now = new Date()) {
         games,
         finalGames,
         upcomingGames,
+        awaitingResults,
+        recentMeetings,
         nextGame: upcomingGames[0] || null,
         lastGame: finalGames[0] || null,
         summary,

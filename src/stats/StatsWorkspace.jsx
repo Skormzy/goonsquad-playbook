@@ -58,6 +58,7 @@ import {
   sortLeaderboard,
 } from './leaderboardSort';
 import {
+  isAwaitingResult,
   nextUpcomingGame,
   STATS_REFRESH_INTERVAL_MS,
 } from './scheduleFreshness';
@@ -295,7 +296,9 @@ function GamesTable({ games, showStage = false, showSchedule = false, schedules 
         <tbody>
           {games.map((game) => {
             const final = game.status === 'final';
-            const result = !final ? 'Scheduled' : game.goalsFor > game.goalsAgainst ? 'W' : game.goalsFor < game.goalsAgainst ? 'L' : 'T';
+            const awaitingResult = isAwaitingResult(game);
+            const result = final ? (game.goalsFor > game.goalsAgainst ? 'W' : game.goalsFor < game.goalsAgainst ? 'L' : 'T') : awaitingResult ? 'Played' : 'Scheduled';
+            const resultState = final ? result.toLowerCase() : awaitingResult ? 'pending' : 'scheduled';
             const schedule = schedules.find((item) => item.id === game.seasonTeamId);
             return (
               <tr key={game.id}>
@@ -304,9 +307,9 @@ function GamesTable({ games, showStage = false, showSchedule = false, schedules 
                 {showSchedule && <td><span className="stats-stage-label">{formatScheduleName(schedule)}</span></td>}
                 {showStage && <td><span className="stats-stage-label">{game.stage === 'playoffs' ? 'Playoffs' : 'Regular'}</span></td>}
                 <td>{game.venue === 'home' ? 'Home' : game.venue === 'away' ? 'Away' : 'Neutral'}</td>
-                <td><span className={`stats-result is-${result.toLowerCase()}`}>{result}{game.overtime && final ? ' OT' : ''}</span></td>
-                <td>{final ? `${game.goalsFor}–${game.goalsAgainst}` : '—'}</td>
-                {onOpenGame && <td className="stats-game-detail-column"><button type="button" className="stats-game-detail-button" aria-label={`${final ? 'View results' : 'Open head-to-head'} against ${game.opponent}`} onClick={() => onOpenGame(game.id)}><span>{final ? 'Results' : 'Matchup'}</span></button></td>}
+                <td><span className={`stats-result is-${resultState}`}>{result}{game.overtime && final ? ' OT' : ''}</span></td>
+                <td>{final ? `${game.goalsFor}–${game.goalsAgainst}` : awaitingResult ? <span className="stats-pending-result">Results pending</span> : '—'}</td>
+                {onOpenGame && <td className="stats-game-detail-column"><button type="button" className="stats-game-detail-button" aria-label={`${final ? 'View results' : awaitingResult ? 'View pending result status' : 'Open head-to-head'} against ${game.opponent}`} onClick={() => onOpenGame(game.id)}><span>{final ? 'Results' : awaitingResult ? 'Status' : 'Matchup'}</span></button></td>}
               </tr>
             );
           })}

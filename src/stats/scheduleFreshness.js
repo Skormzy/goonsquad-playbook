@@ -12,6 +12,13 @@ export function isUpcomingGame(game, now = Date.now()) {
   return scheduledAt !== null && currentTime !== null && scheduledAt > currentTime;
 }
 
+export function isAwaitingResult(game, now = Date.now()) {
+  if (!game || game.status === 'final') return false;
+  const scheduledAt = timestamp(game.scheduledAt);
+  const currentTime = typeof now === 'number' ? now : timestamp(now);
+  return scheduledAt !== null && currentTime !== null && scheduledAt <= currentTime;
+}
+
 export function upcomingGames(games, now = Date.now()) {
   return games
     .filter((game) => isUpcomingGame(game, now))

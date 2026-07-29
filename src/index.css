@@ -4990,6 +4990,24 @@ input:focus:not(:focus-visible) { outline: none; }
 .stats-result.is-w { color: #4ade80; }
 .stats-result.is-l { color: var(--stats-brand); }
 .stats-result.is-t { color: #fbbf24; }
+.stats-result.is-pending {
+  min-width: 52px;
+  color: #fbbf24;
+}
+
+.stats-pending-result {
+  color: #fbbf24;
+  font-size: var(--type-small);
+  font-weight: 850;
+}
+
+.stats-opponent-official-name {
+  display: block;
+  margin-top: 3px;
+  color: var(--stats-dim);
+  font-size: var(--type-label);
+  font-weight: 700;
+}
 
 :root[data-theme="light"] .stats-result.is-w,
 :root[data-theme="light"] .stats-matchday-card[data-result='win'] .stats-matchday-main b,
@@ -4999,6 +5017,8 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 :root[data-theme="light"] .stats-result.is-t,
+:root[data-theme="light"] .stats-result.is-pending,
+:root[data-theme="light"] .stats-pending-result,
 :root[data-theme="light"] .stats-schedule-status[data-complete='false'],
 :root[data-theme="light"] .stats-game-score.is-tie > span {
   color: #9a4c00;
@@ -5011,6 +5031,8 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 :root[data-theme="dark"] .stats-schedule-status[data-complete='false'],
+:root[data-theme="dark"] .stats-result.is-pending,
+:root[data-theme="dark"] .stats-pending-result,
 :root[data-theme="dark"] .stats-game-score.is-tie > span {
   color: #fbbf24;
 }

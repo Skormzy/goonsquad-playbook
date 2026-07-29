@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isAwaitingResult,
   isUpcomingGame,
   nextUpcomingGame,
   upcomingGames,
@@ -9,8 +10,21 @@ const NOW = '2026-07-29T10:00:00-04:00';
 
 describe('schedule freshness', () => {
   it('never treats an unresolved past fixture as an upcoming game', () => {
-    expect(isUpcomingGame({
+    const game = {
       status: 'scheduled',
+      scheduledAt: '2026-07-26T19:00:00-04:00',
+    };
+    expect(isUpcomingGame(game, NOW)).toBe(false);
+    expect(isAwaitingResult(game, NOW)).toBe(true);
+  });
+
+  it('does not call a future fixture played or a final result pending', () => {
+    expect(isAwaitingResult({
+      status: 'scheduled',
+      scheduledAt: '2026-07-30T19:00:00-04:00',
+    }, NOW)).toBe(false);
+    expect(isAwaitingResult({
+      status: 'final',
       scheduledAt: '2026-07-26T19:00:00-04:00',
     }, NOW)).toBe(false);
   });

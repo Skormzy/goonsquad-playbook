@@ -22,6 +22,7 @@ const dataset = {
     { id: 'latest', seasonTeamId: 'sun', opponent: 'RED WOLVES', status: 'final', scheduledAt: '2026-07-20T18:00:00', goalsFor: 4, goalsAgainst: 2 },
     { id: 'seeded', seasonTeamId: 'mon', opponent: 'RED WOLVES (3rd)', status: 'final', stage: 'playoffs', scheduledAt: '2026-04-20T18:00:00', goalsFor: 1, goalsAgainst: 3 },
     { id: 'other', seasonTeamId: 'sun', opponent: 'VIPERZ', status: 'final', scheduledAt: '2026-07-10T18:00:00', goalsFor: 2, goalsAgainst: 2 },
+    { id: 'viperz-pending', seasonTeamId: 'sun', opponent: 'OG VIPERZ', status: 'scheduled', scheduledAt: '2026-07-26T19:00:00' },
   ],
 };
 
@@ -63,6 +64,21 @@ describe('opponent matchup model', () => {
     expect(gameOutcome(dataset.games[3])).toBe('tie');
   });
 
+  it('unifies the verified Viperz aliases and preserves elapsed fixtures awaiting results', () => {
+    expect(canonicalOpponentName('OG VIPERZ (2nd)')).toBe('VIPERZ');
+    expect(opponentSlug('OG VIPERZ')).toBe('viperz');
+
+    const matchup = findOpponentMatchup(
+      buildOpponentMatchups(dataset, new Date('2026-07-29T12:00:00')),
+      'VIPERZ',
+    );
+
+    expect(matchup.games.map((game) => game.id)).toEqual(['viperz-pending', 'other']);
+    expect(matchup.awaitingResults.map((game) => game.id)).toEqual(['viperz-pending']);
+    expect(matchup.recentMeetings.map((game) => game.id)).toEqual(['viperz-pending', 'other']);
+    expect(matchup.summary.gamesPlayed).toBe(1);
+  });
+
   it('indexes every verified archive game under one unique opponent page', () => {
     const matchups = buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2000-01-01T00:00:00'));
     const indexedGames = matchups.flatMap((matchup) => matchup.games);
@@ -70,5 +86,30 @@ describe('opponent matchup model', () => {
     expect(new Set(matchups.map((matchup) => matchup.slug)).size).toBe(matchups.length);
     expect(matchups.every((matchup) => matchup.name && matchup.slug && matchup.seasons.length)).toBe(true);
     expect(findOpponentMatchup(matchups, 'RED WOLVES (3rd)')?.games.some((game) => game.opponent === 'RED WOLVES')).toBe(true);
+  });
+
+  it('keeps the verified July 26 Sunday win in the consolidated Viperz history', () => {
+    const matchup = findOpponentMatchup(
+      buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-29T12:00:00-04:00')),
+      'VIPERZ',
+    );
+    const sundayWin = matchup.finalGames.find((game) => game.id === 'ycbhl-game-53117');
+
+    expect(sundayWin).toMatchObject({
+      opponent: 'OG VIPERZ',
+      scheduledAt: '2026-07-26T19:00:00',
+      status: 'final',
+      goalsFor: 9,
+      goalsAgainst: 4,
+    });
+    expect(matchup.nextGame?.id).toBe('ycbhl-game-53057');
+    expect(matchup.summary).toMatchObject({
+      gamesPlayed: 35,
+      wins: 4,
+      losses: 31,
+      ties: 0,
+      goalsFor: 97,
+      goalsAgainst: 259,
+    });
   });
 });

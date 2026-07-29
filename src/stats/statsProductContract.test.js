@@ -71,9 +71,11 @@ describe('team account and statistics product contract', () => {
     expect(workspaceSource).toContain('stats-game-page');
     expect(workspaceSource).toContain('PLAYER BOX SCORE');
     expect(workspaceSource).toContain('<th className="stats-game-detail-column">View</th>');
-    expect(workspaceSource).toContain("<span>{final ? 'Results' : 'Matchup'}</span>");
+    expect(workspaceSource).toContain("awaitingResult ? 'Status' : 'Matchup'");
     expect(workspaceSource).not.toContain('Detailed statistics will appear after the game');
     expect(headToHeadSource).toContain('HEAD TO HEAD · VERIFIED TEAM ARCHIVE');
+    expect(headToHeadSource).toContain('PLAYED · RESULTS PENDING');
+    expect(headToHeadSource).toContain('Results pending');
     expect(headToHeadSource).toContain('Matchup centre');
     expect(headToHeadSource).toContain('Browse all ${filtered.length} opponents');
     expect(headToHeadSource).toContain('SEASON BY SEASON');
