@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
   BarChart3,
   CalendarClock,
   CalendarDays,
@@ -14,6 +16,7 @@ import {
   RefreshCw,
   Settings2,
   ShieldCheck,
+  ChevronsUpDown,
   UserPlus,
   UsersRound,
   X,
@@ -34,6 +37,11 @@ import {
   formatScheduleName,
   statsSnapshot,
 } from './statsModel';
+import {
+  DEFAULT_LEADERBOARD_SORT,
+  nextLeaderboardSort,
+  sortLeaderboard,
+} from './leaderboardSort';
 
 const TABS = Object.freeze([
   { id: 'overview', label: 'Overview' },
@@ -62,6 +70,70 @@ function EmptyStats({ section }) {
       <BarChart3 aria-hidden="true" />
       <strong>No verified {section} yet</strong>
       <p>Results appear here only after an authorized team manager records them.</p>
+    </div>
+  );
+}
+
+const LEADERBOARD_COLUMNS = Object.freeze([
+  { key: 'goals', label: 'Goals' },
+  { key: 'assists', label: 'Assists' },
+  { key: 'points', label: 'Points' },
+]);
+
+function LeadersTable({ players }) {
+  const [sort, setSort] = useState(DEFAULT_LEADERBOARD_SORT);
+  const leaders = useMemo(() => sortLeaderboard(players, sort).slice(0, 5), [players, sort]);
+
+  return (
+    <div className="stats-leaders-scroll">
+      <table className="stats-leaders-table" aria-label="Scoring leaders">
+        <colgroup>
+          <col className="stats-leaders-rank-column" />
+          <col className="stats-leaders-player-column" />
+          {LEADERBOARD_COLUMNS.map(({ key }) => <col className="stats-leaders-stat-column" key={key} />)}
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col"><span className="sr-only">Rank</span></th>
+            <th scope="col">Player</th>
+            {LEADERBOARD_COLUMNS.map(({ key, label }) => {
+              const active = sort.key === key;
+              const nextDirection = active && sort.direction === 'desc' ? 'ascending' : 'descending';
+              const SortIcon = !active ? ChevronsUpDown : sort.direction === 'desc' ? ArrowDown : ArrowUp;
+              return (
+                <th
+                  aria-sort={active ? (sort.direction === 'desc' ? 'descending' : 'ascending') : 'none'}
+                  data-active={active}
+                  key={key}
+                  scope="col"
+                >
+                  <button
+                    type="button"
+                    aria-label={`${label}${active ? `, sorted ${sort.direction === 'desc' ? 'descending' : 'ascending'}` : ''}. Sort ${nextDirection}.`}
+                    aria-pressed={active}
+                    onClick={() => setSort((current) => nextLeaderboardSort(current, key))}
+                    title={`Sort by ${label.toLowerCase()}`}
+                  >
+                    <span>{label}</span>
+                    <SortIcon aria-hidden="true" />
+                  </button>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {leaders.map((line, index) => (
+            <tr key={line.playerId}>
+              <td className="stats-leaders-rank">{index + 1}</td>
+              <td className="stats-leaders-player"><strong>{line.displayName}</strong></td>
+              <td className="stats-leaders-number" data-active={sort.key === 'goals'}>{line.goals}</td>
+              <td className="stats-leaders-number" data-active={sort.key === 'assists'}>{line.assists}</td>
+              <td className="stats-leaders-number" data-active={sort.key === 'points'}>{line.points}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -565,7 +637,7 @@ export default function StatsWorkspace() {
           </section>
           <section className="stats-band">
             <header><UsersRound aria-hidden="true" /><div><span>LEADERS</span><h2>{snapshot.isSeasonAggregate ? 'All-team leaders' : 'Team leaders'}</h2></div></header>
-            {snapshot.fieldPlayers.length ? <ol className="stats-leaders">{snapshot.fieldPlayers.slice(0, 5).map((line, index) => <li key={line.playerId}><span>{index + 1}</span><strong>{line.displayName}</strong><b>{line.points} PTS</b><small>{line.goals} G · {line.assists} A</small></li>)}</ol> : <EmptyStats section="player statistics" />}
+            {snapshot.fieldPlayers.length ? <LeadersTable players={snapshot.fieldPlayers} /> : <EmptyStats section="player statistics" />}
           </section>
         </div>}
         {tab === 'games' && <div className="stats-game-view"><section className="stats-band is-full"><header><CalendarDays aria-hidden="true" /><div><span>{snapshot.isSeasonAggregate ? 'ALL LEAGUES' : formatScheduleName(snapshot.team).toUpperCase()}</span><h2>Schedule and results</h2></div></header><GamesTable games={snapshot.games} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} /></section></div>}
