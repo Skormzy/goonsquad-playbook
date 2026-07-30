@@ -2,7 +2,7 @@
   "source": "league-snapshot",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-07-30T03:02:05.395Z",
+  "capturedAt": "2026-07-30T05:44:36.083Z",
   "seasons": [
     {
       "id": "summer-2026",
@@ -427,7 +427,7 @@
       "externalId": "474",
       "displayName": "Adrian Wong",
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7105-goonsquad/474-adrian-wong",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/474-adrian-wong",
       "primaryPosition": "G",
       "persisted": false
     },
@@ -454,7 +454,7 @@
       "externalId": "25875",
       "displayName": "Aiden Anderson",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7064-goonsquad/25875-aiden-anderson",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25875-aiden-anderson",
       "primaryPosition": null,
       "persisted": false
     },
@@ -526,7 +526,7 @@
       "externalId": "319",
       "displayName": "Aman Paruk",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6749-goonsquad/319-aman-paruk",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/319-aman-paruk",
       "primaryPosition": null,
       "persisted": false
     },
@@ -571,7 +571,7 @@
       "externalId": "26086",
       "displayName": "Andrew Harlow",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7191-goonsquad/26086-andrew-harlow",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/26086-andrew-harlow",
       "primaryPosition": null,
       "persisted": false
     },
@@ -580,7 +580,7 @@
       "externalId": "308",
       "displayName": "Andrew Lorenowicz",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6749-goonsquad/308-andrew-lorenowicz",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/308-andrew-lorenowicz",
       "primaryPosition": null,
       "persisted": false
     },
@@ -642,8 +642,8 @@
       "id": "ycbhl-player-24770",
       "externalId": "24770",
       "displayName": "Anthony Munna",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7030-goonsquad/24770-anthony-munna",
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/24770-anthony-munna",
       "primaryPosition": null,
       "persisted": false
     },
@@ -741,8 +741,8 @@
       "id": "ycbhl-player-25191",
       "externalId": "25191",
       "displayName": "Brendan Rotz",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6867-goonsquad/25191-brendan-rotz",
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25191-brendan-rotz",
       "primaryPosition": null,
       "persisted": false
     },
@@ -751,7 +751,7 @@
       "externalId": "25080",
       "displayName": "Brent Lorenowicz",
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6751-goonsquad/25080-brent-lorenowicz",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25080-brent-lorenowicz",
       "primaryPosition": null,
       "persisted": false
     },
@@ -895,7 +895,7 @@
       "externalId": "10252",
       "displayName": "Dan Hoban",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7191-goonsquad/10252-dan-hoban",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/10252-dan-hoban",
       "primaryPosition": "G",
       "persisted": false
     },
@@ -975,8 +975,8 @@
       "id": "ycbhl-player-13781",
       "externalId": "13781",
       "displayName": "Emad Mansour",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7071-goonsquad/13781-emad-mansour",
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/13781-emad-mansour",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1029,8 +1029,8 @@
       "id": "ycbhl-player-321",
       "externalId": "321",
       "displayName": "Gary Kang",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7071-goonsquad/321-gary-kang",
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/321-gary-kang",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1093,7 +1093,7 @@
       "externalId": "25888",
       "displayName": "Ilias Sippis",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7105-goonsquad/25888-ilias-sippis",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/25888-ilias-sippis",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1156,7 +1156,7 @@
       "externalId": "25892",
       "displayName": "Jason Huang",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7105-goonsquad/25892-jason-huang",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25892-jason-huang",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1211,7 +1211,7 @@
       "displayName": "Jeremy De simone",
       "primaryPosition": null,
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7064-goonsquad/6124-jeremy-de-simone",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/6124-jeremy-de-simone",
       "persisted": false
     },
     {
@@ -1237,7 +1237,7 @@
       "externalId": "24604",
       "displayName": "John Burnett",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6965-goonsquad/24604-john-burnett",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/24604-john-burnett",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1255,7 +1255,7 @@
       "externalId": "26132",
       "displayName": "John Gianopoulos",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7212-goonsquad/26132-john-gianopoulos",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/26132-john-gianopoulos",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1283,7 +1283,7 @@
       "displayName": "Julien Arseneau",
       "primaryPosition": null,
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7022-goonsquad/25731-julien-arseneau",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/25731-julien-arseneau",
       "persisted": false
     },
     {
@@ -1363,7 +1363,7 @@
       "externalId": "26032",
       "displayName": "Kyle Palleschi",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7131-goonsquad/26032-kyle-palleschi",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/26032-kyle-palleschi",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1471,7 +1471,7 @@
       "externalId": "25138",
       "displayName": "Matthew Fiorido",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6867-goonsquad/25138-matthew-fiorido",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25138-matthew-fiorido",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1624,7 +1624,7 @@
       "externalId": "25636",
       "displayName": "Mohammed Amla",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7179-goonsquad/25636-mohammed-amla",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/25636-mohammed-amla",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1642,7 +1642,7 @@
       "externalId": "25022",
       "displayName": "Muzammil Alam",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6832-goonsquad/25022-muzammil-alam",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25022-muzammil-alam",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1749,8 +1749,8 @@
       "id": "ycbhl-player-24353",
       "externalId": "24353",
       "displayName": "Peter Maltezos",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6749-goonsquad/24353-peter-maltezos",
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/24353-peter-maltezos",
       "primaryPosition": "G",
       "persisted": false
     },
@@ -1840,7 +1840,7 @@
       "externalId": "320",
       "displayName": "Robert Cowie",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6749-goonsquad/320-robert-cowie",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/320-robert-cowie",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1903,7 +1903,7 @@
       "externalId": "307",
       "displayName": "Ryan Hunt",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7022-goonsquad/307-ryan-hunt",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/307-ryan-hunt",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1920,8 +1920,8 @@
       "id": "ycbhl-player-25734",
       "externalId": "25734",
       "displayName": "Ryan Ram",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7022-goonsquad/25734-ryan-ram",
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25734-ryan-ram",
       "primaryPosition": "G",
       "persisted": false
     },
@@ -1975,7 +1975,7 @@
       "externalId": "25137",
       "displayName": "Scott Bockner",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6867-goonsquad/25137-scott-bockner",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25137-scott-bockner",
       "primaryPosition": null,
       "persisted": false
     },
@@ -2002,7 +2002,7 @@
       "externalId": "26133",
       "displayName": "Seymour Korman",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7212-goonsquad/26133-seymour-korman",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/26133-seymour-korman",
       "primaryPosition": null,
       "persisted": false
     },
@@ -2029,7 +2029,7 @@
       "externalId": "25733",
       "displayName": "Stephen Macdonald",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7022-goonsquad/25733-stephen-macdonald",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25733-stephen-macdonald",
       "primaryPosition": null,
       "persisted": false
     },
@@ -2064,8 +2064,8 @@
       "id": "ycbhl-player-25890",
       "externalId": "25890",
       "displayName": "Steven Smith",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7117-goonsquad/25890-steven-smith",
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25890-steven-smith",
       "primaryPosition": null,
       "persisted": false
     },
@@ -2109,8 +2109,8 @@
       "id": "ycbhl-player-25889",
       "externalId": "25889",
       "displayName": "Thomas Pitt-smith",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7117-goonsquad/25889-thomas-pitt-smith",
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25889-thomas-pitt-smith",
       "primaryPosition": null,
       "persisted": false
     },
@@ -2245,7 +2245,7 @@
       "externalId": "25960",
       "displayName": "Yusuf Sadozi",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7117-goonsquad/25960-yusuf-sadozi",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25960-yusuf-sadozi",
       "primaryPosition": null,
       "persisted": false
     },
