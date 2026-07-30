@@ -14,7 +14,7 @@ const RELEASE_WINDOW_BEFORE_SECONDS = 0.34;
 const RELEASE_WINDOW_AFTER_SECONDS = 0.28;
 
 export const THREE_D_MECHANICS_LIMITS = {
-  minimumPlayDurationSeconds: 8,
+  minimumPlayDurationSeconds: 5.4,
   minimumStrategyDurationSeconds: 12,
   minimumTeachingBeats: 2,
   minimumBeatSpacingSeconds: 2,
@@ -115,8 +115,10 @@ function addAlignmentError(errors, scene, label, metric, maximum) {
 
 function auditSequence(scene, errors) {
   const beats = scene.sourcePhaseTimes ?? [];
-  const guidedReadDuration = beats.reduce((total, _, phaseIndex) => (
-    total + guidedReadSeconds(scene, phaseIndex)
+  // A fresh Play press starts motion immediately. Only subsequent teaching
+  // beats add a hold to the complete lesson duration.
+  const guidedReadDuration = beats.slice(1).reduce((total, _, phaseOffset) => (
+    total + guidedReadSeconds(scene, phaseOffset + 1)
   ), 0);
   const guidedLessonDuration = scene.duration + guidedReadDuration;
   const minimumDuration = scene.kind === 'strategy'

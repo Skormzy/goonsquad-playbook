@@ -3,11 +3,10 @@ const clamp = (value, minimum, maximum) => (
 );
 
 const ANCHOR_EPSILON_SECONDS = 0.035;
-const READ_BASE_SECONDS = 1.5;
-const READ_SECONDS_PER_WORD = 0.1;
 
-export const GUIDED_READ_MIN_SECONDS = 2.25;
-export const GUIDED_READ_MAX_SECONDS = 3.6;
+export const GUIDED_PHASE_HOLD_SECONDS = 2;
+export const GUIDED_READ_MIN_SECONDS = GUIDED_PHASE_HOLD_SECONDS;
+export const GUIDED_READ_MAX_SECONDS = GUIDED_PHASE_HOLD_SECONDS;
 
 function phaseAnchors(scene) {
   if (!scene) return [];
@@ -17,14 +16,6 @@ function phaseAnchors(scene) {
   return source
     .map((time) => clamp(Number(time) || 0, 0, scene.duration))
     .filter((time, index, values) => index === 0 || time > values[index - 1]);
-}
-
-function phaseTeachingCopy(scene, phaseIndex) {
-  const event = scene?.events?.[phaseIndex];
-  const teachingPoint = scene?.teachingPoints?.[phaseIndex];
-  return [event?.label, teachingPoint]
-    .filter(Boolean)
-    .join(' ');
 }
 
 function phaseIndexForTime(anchors, time) {
@@ -41,20 +32,15 @@ function anchorIndexAtTime(anchors, time) {
   ));
 }
 
-export function guidedReadSeconds(scene, phaseIndex) {
-  const words = phaseTeachingCopy(scene, phaseIndex)
-    .trim()
-    .split(/\s+/u)
-    .filter(Boolean)
-    .length;
-  return clamp(
-    READ_BASE_SECONDS + words * READ_SECONDS_PER_WORD,
-    GUIDED_READ_MIN_SECONDS,
-    GUIDED_READ_MAX_SECONDS,
-  );
+export function guidedReadSeconds() {
+  return GUIDED_PHASE_HOLD_SECONDS;
 }
 
-export function createGuidedReplayState(scene, requestedTime = 0) {
+export function createGuidedReplayState(
+  scene,
+  requestedTime = 0,
+  { skipCurrentHold = false } = {},
+) {
   if (!scene) {
     return {
       time: 0,
@@ -81,9 +67,9 @@ export function createGuidedReplayState(scene, requestedTime = 0) {
   if (anchorIndex >= 0) {
     return {
       time: anchors[anchorIndex],
-      mode: 'read',
+      mode: skipCurrentHold ? 'watch' : 'read',
       phaseIndex: anchorIndex,
-      holdRemaining: guidedReadSeconds(scene, anchorIndex),
+      holdRemaining: skipCurrentHold ? 0 : guidedReadSeconds(),
       heldAnchorIndex: anchorIndex,
     };
   }
@@ -141,7 +127,7 @@ export function advanceGuidedReplay(state, {
         time: targetTime,
         mode: 'read',
         phaseIndex: nextAnchorIndex,
-        holdRemaining: guidedReadSeconds(scene, nextAnchorIndex),
+        holdRemaining: guidedReadSeconds(),
         heldAnchorIndex: nextAnchorIndex,
       };
     }

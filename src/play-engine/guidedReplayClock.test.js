@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   advanceGuidedReplay,
   createGuidedReplayState,
-  GUIDED_READ_MAX_SECONDS,
-  GUIDED_READ_MIN_SECONDS,
+  GUIDED_PHASE_HOLD_SECONDS,
   guidedReadSeconds,
 } from './guidedReplayClock';
 
@@ -23,11 +22,11 @@ const scene = {
 };
 
 describe('guided replay clock', () => {
-  it('holds a phase still long enough to read before movement starts', () => {
+  it('uses a fixed two-second hold when a teaching phase is reached automatically', () => {
     const initial = createGuidedReplayState(scene, 0);
     expect(initial.mode).toBe('read');
     expect(initial.time).toBe(0);
-    expect(initial.holdRemaining).toBeGreaterThanOrEqual(GUIDED_READ_MIN_SECONDS);
+    expect(initial.holdRemaining).toBe(GUIDED_PHASE_HOLD_SECONDS);
 
     const held = advanceGuidedReplay(initial, {
       scene,
@@ -36,6 +35,24 @@ describe('guided replay clock', () => {
     });
     expect(held.mode).toBe('read');
     expect(held.time).toBe(0);
+  });
+
+  it('starts movement immediately when the user has explicitly pressed play', () => {
+    const initial = createGuidedReplayState(scene, 0, { skipCurrentHold: true });
+    expect(initial).toMatchObject({
+      mode: 'watch',
+      time: 0,
+      holdRemaining: 0,
+      heldAnchorIndex: 0,
+    });
+
+    const moving = advanceGuidedReplay(initial, {
+      scene,
+      deltaSeconds: 0.25,
+      speed: 1,
+    });
+    expect(moving.mode).toBe('watch');
+    expect(moving.time).toBeCloseTo(0.25);
   });
 
   it('moves after the reading hold and applies speed only to movement', () => {
@@ -64,7 +81,7 @@ describe('guided replay clock', () => {
       time: 3,
       heldAnchorIndex: 1,
     });
-    expect(arrived.holdRemaining).toBeGreaterThanOrEqual(GUIDED_READ_MIN_SECONDS);
+    expect(arrived.holdRemaining).toBe(GUIDED_PHASE_HOLD_SECONDS);
   });
 
   it('resumes from an arbitrary scrubbed time without replaying an earlier hold', () => {
@@ -91,16 +108,16 @@ describe('guided replay clock', () => {
     });
   });
 
-  it('bounds adaptive reading time for short and long coaching copy', () => {
+  it('keeps every automatic phase handoff at the same concise cadence', () => {
     expect(guidedReadSeconds({
       ...scene,
       events: [{ label: 'Go' }],
       teachingPoints: ['Now'],
-    }, 0)).toBe(GUIDED_READ_MIN_SECONDS);
+    }, 0)).toBe(GUIDED_PHASE_HOLD_SECONDS);
     expect(guidedReadSeconds({
       ...scene,
       events: [{ label: 'A '.repeat(100) }],
       teachingPoints: ['B '.repeat(100)],
-    }, 0)).toBe(GUIDED_READ_MAX_SECONDS);
+    }, 0)).toBe(GUIDED_PHASE_HOLD_SECONDS);
   });
 });

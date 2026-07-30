@@ -48,6 +48,7 @@ export default function App() {
   } = useApp();
 
   const playbackTimeRef = useRef(playbackTime);
+  const playbackSpeedRef = useRef(speed);
   const touchStartRef = useRef({ x: 0, y: 0 });
   const tot = currentReplayPhases.length;
   const lanePlays = useMemo(
@@ -67,6 +68,10 @@ export default function App() {
   useEffect(() => {
     playbackTimeRef.current = playbackTime;
   }, [playbackTime]);
+
+  useEffect(() => {
+    playbackSpeedRef.current = speed;
+  }, [speed]);
 
   // Initialize first play
   useEffect(() => {
@@ -132,6 +137,7 @@ export default function App() {
     let guidedState = createGuidedReplayState(
       currentScene,
       playbackTimeRef.current,
+      { skipCurrentHold: true },
     );
     const publishInterval = PLAYBACK_STATE_PUBLISH_INTERVAL_MS;
     let lastPublishedAt = lastFrameAt - publishInterval;
@@ -140,7 +146,7 @@ export default function App() {
       guidedState = advanceGuidedReplay(guidedState, {
         scene: currentScene,
         deltaSeconds: Math.max(0, now - lastFrameAt) / 1000,
-        speed,
+        speed: playbackSpeedRef.current,
       });
       lastFrameAt = now;
       const next = guidedState.time;
@@ -163,7 +169,7 @@ export default function App() {
     };
     frameId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frameId);
-  }, [activeView, currentScene, isPlaying, setIsPlaying, setPlaybackTime, speed]);
+  }, [activeView, currentScene, isPlaying, setIsPlaying, setPlaybackTime]);
 
   // Shared playback shortcuts in both play views.
   useEffect(() => {

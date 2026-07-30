@@ -283,7 +283,11 @@ export default function TacticalReplayScene({
   const frameRef = useRef(sampleTacticalReplay(replay, playbackTime));
   const replayIdRef = useRef(replay.id);
   const timeRef = useRef(playbackTime);
-  const guidedPlaybackRef = useRef(createGuidedReplayState(replay, playbackTime));
+  const guidedPlaybackRef = useRef(createGuidedReplayState(
+    replay,
+    playbackTime,
+    { skipCurrentHold: isPlaying },
+  ));
   const wasPlayingRef = useRef(isPlaying);
   const endedRef = useRef(false);
   const publishElapsedRef = useRef(0);
@@ -317,7 +321,11 @@ export default function TacticalReplayScene({
       onTimeChange(timeRef.current);
     } else if (!isPlaying || !wasPlaying) {
       timeRef.current = playbackTime;
-      guidedPlaybackRef.current = createGuidedReplayState(replay, playbackTime);
+      guidedPlaybackRef.current = createGuidedReplayState(
+        replay,
+        playbackTime,
+        { skipCurrentHold: isPlaying && !wasPlaying },
+      );
     }
     if (isPlaying) endedRef.current = false;
     wasPlayingRef.current = isPlaying;
@@ -327,10 +335,14 @@ export default function TacticalReplayScene({
     if (replayIdRef.current !== replay.id) {
       replayIdRef.current = replay.id;
       timeRef.current = playbackTime;
-      guidedPlaybackRef.current = createGuidedReplayState(replay, playbackTime);
+      guidedPlaybackRef.current = createGuidedReplayState(
+        replay,
+        playbackTime,
+        { skipCurrentHold: isPlaying },
+      );
       frameRef.current = sampleTacticalReplay(replay, playbackTime);
     }
-  }, [replay, playbackTime]);
+  }, [isPlaying, replay, playbackTime]);
 
   const applyFrame = (frame) => {
     for (const player of frame.players) {
