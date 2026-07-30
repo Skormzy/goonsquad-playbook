@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
 import { TACTICAL_COLORS } from '../data/tactics';
@@ -44,6 +45,7 @@ export default function TacticsLearn() {
   const { theme, themes } = useTheme();
   const t = themes[theme];
   const isDesktop = useIsDesktop();
+  const mobileBrowserSummaryRef = useRef(null);
   const {
     selectedTactic: principle,
     selectedTacticId,
@@ -121,7 +123,14 @@ export default function TacticsLearn() {
       </div>
       <select
         value={activePrinciple}
-        onChange={(e) => selectPrinciple(Number(e.target.value))}
+        onChange={(e) => {
+          selectPrinciple(Number(e.target.value));
+          const details = e.currentTarget.closest('details');
+          if (details) {
+            details.removeAttribute('open');
+            requestAnimationFrame(() => mobileBrowserSummaryRef.current?.focus({ preventScroll: true }));
+          }
+        }}
         aria-label="Strategy principle"
         style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${t.bd}`, background: t.cb, color: t.tx, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FF }}
       >
@@ -130,6 +139,21 @@ export default function TacticsLearn() {
         ))}
       </select>
     </div>
+  );
+
+  const mobileStrategyBrowser = (
+    <details className="tactics-mobile-browser">
+      <summary ref={mobileBrowserSummaryRef} aria-label="Browse strategy principles">
+        <span>
+          {lane.toUpperCase()} {activePrinciple + 1} / {laneTactics.length}
+        </span>
+        <strong>{principle.title}</strong>
+        <ChevronDown aria-hidden="true" />
+      </summary>
+      <div>
+        {selectorBlock}
+      </div>
+    </details>
   );
 
   const tabToggleBlock = (
@@ -180,7 +204,7 @@ export default function TacticsLearn() {
   );
 
   const phaseIndicatorBlock = (
-    <div style={{ fontSize: 10, color: t.tm, letterSpacing: 0, fontFamily: 'var(--font-display)', fontWeight: 800, marginTop: 6, marginBottom: 3 }}>
+    <div className="tactics-phase-indicator" style={{ fontSize: 10, color: t.tm, letterSpacing: 0, fontFamily: 'var(--font-display)', fontWeight: 800, marginTop: 6, marginBottom: 3 }}>
       PHASE {currentPhase + 1} / {totalPhases}
     </div>
   );
@@ -318,7 +342,7 @@ export default function TacticsLearn() {
       ) : (
         // ─── MOBILE: single column ───
         <div className="tactics-mobile-workspace" style={{ width: '100%', maxWidth: 430, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          {selectorBlock}
+          {mobileStrategyBrowser}
           {tabToggleBlock}
           <div className="tactics-mobile-rink" data-mobile-strategy-rink>
             {rinkBlock}

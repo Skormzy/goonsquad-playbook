@@ -22,6 +22,7 @@ import {
   Search,
   Settings2,
   ShieldCheck,
+  Trophy,
   ChevronsUpDown,
   UserPlus,
   UsersRound,
@@ -70,6 +71,7 @@ import PlayerProfilePage from './PlayerProfilePage';
 
 const TABS = Object.freeze([
   { id: 'overview', label: 'Overview' },
+  { id: 'standings', label: 'Standings' },
   { id: 'games', label: 'Games' },
   { id: 'players', label: 'Players' },
 ]);
@@ -149,6 +151,61 @@ function Metric({ label, value, detail }) {
       <strong>{value}</strong>
       <small>{detail}</small>
     </div>
+  );
+}
+
+function LeagueStandings({
+  rows,
+  schedule,
+  matchupSlugs,
+  onOpenOpponent,
+}) {
+  if (!rows.length) return null;
+  return (
+    <section className="stats-band is-full stats-league-standings">
+      <header>
+        <Trophy aria-hidden="true" />
+        <div>
+          <span>LEAGUE TABLE</span>
+          <h2>{formatScheduleName(schedule)} standings</h2>
+          <p>{schedule?.division || 'Regular-season table'}</p>
+        </div>
+      </header>
+      <div className="stats-standings-list" aria-label={`${formatScheduleName(schedule)} standings`}>
+        <div className="stats-standings-head">
+          <span>Rank</span>
+          <span>Team</span>
+          <span>Record</span>
+          <span>Points</span>
+        </div>
+        {rows.map((row) => {
+          const slug = opponentSlug(row.teamName);
+          const canOpen = !row.isGoonSquad && matchupSlugs.has(slug);
+          const content = <>
+            <span className="stats-standing-rank">#{row.rank}</span>
+            <span className="stats-standing-team">
+              <strong>{row.isGoonSquad ? 'GOON SQUAD' : row.teamName}</strong>
+              <small>{row.gamesPlayed} GP</small>
+            </span>
+            <span className="stats-standing-record">{row.wins}–{row.losses}–{row.ties}</span>
+            <span className="stats-standing-points"><strong>{row.points}</strong><small>PTS</small></span>
+            {canOpen && <ChevronRight aria-hidden="true" />}
+          </>;
+          return canOpen
+            ? <button
+                type="button"
+                key={`${row.seasonTeamId}-${row.rank}-${row.teamName}`}
+                onClick={() => onOpenOpponent(slug)}
+                aria-label={`Open ${row.teamName} head-to-head`}
+              >{content}</button>
+            : <div
+                key={`${row.seasonTeamId}-${row.rank}-${row.teamName}`}
+                data-team={row.isGoonSquad ? 'goonsquad' : 'opponent'}
+                aria-current={row.isGoonSquad ? 'true' : undefined}
+              >{content}</div>;
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -248,6 +305,27 @@ function gameSiteLabel(game) {
   return 'Neutral';
 }
 
+function gameQuickStats(details) {
+  if (!details) return { shotsFor: null, shotsAgainst: null, penaltyMinutes: null };
+  const penaltyMinutes = details.players.reduce((total, line) => (
+    total + (Number.isFinite(line.penaltyMinutes) ? line.penaltyMinutes : 0)
+  ), 0);
+  return {
+    shotsFor: Number.isFinite(details.team?.shotsFor) ? details.team.shotsFor : null,
+    shotsAgainst: Number.isFinite(details.team?.shotsAgainst) ? details.team.shotsAgainst : null,
+    penaltyMinutes: details.players.length ? penaltyMinutes : null,
+  };
+}
+
+function QuickStat({ label, value }) {
+  return (
+    <span>
+      <small>{label}</small>
+      <strong>{value ?? '—'}</strong>
+    </span>
+  );
+}
+
 function MatchdayCard({ game, kind, schedules, onOpenGame }) {
   const next = kind === 'next';
   const Icon = next ? CalendarClock : History;
@@ -287,12 +365,20 @@ function MatchdayCard({ game, kind, schedules, onOpenGame }) {
   );
 }
 
-function GamesTable({ games, showStage = false, showSchedule = false, schedules = [], onOpenGame, onOpenOpponent }) {
+function GamesTable({
+  games,
+  detailsByGame = {},
+  showStage = false,
+  showSchedule = false,
+  schedules = [],
+  onOpenGame,
+  onOpenOpponent,
+}) {
   if (!games.length) return <EmptyStats section="game results" />;
   return (
     <div className="stats-table-scroll">
-      <table className="stats-table">
-        <thead><tr><th>Date</th><th>Opponent</th>{showSchedule && <th>League</th>}{showStage && <th>Stage</th>}<th>Site</th><th>Result</th><th>Score</th>{onOpenGame && <th className="stats-game-detail-column">View</th>}</tr></thead>
+      <table className="stats-table stats-games-table">
+        <thead><tr><th>Date</th><th>Opponent</th>{showSchedule && <th>League</th>}{showStage && <th>Stage</th>}<th>Site</th><th>Result</th><th>Score</th><th title="Shots for">SF</th><th title="Shots against">SA</th><th title="Penalty minutes">PIM</th>{onOpenGame && <th className="stats-game-detail-column">View</th>}</tr></thead>
         <tbody>
           {games.map((game) => {
             const final = game.status === 'final';
@@ -300,15 +386,29 @@ function GamesTable({ games, showStage = false, showSchedule = false, schedules 
             const result = final ? (game.goalsFor > game.goalsAgainst ? 'W' : game.goalsFor < game.goalsAgainst ? 'L' : 'T') : awaitingResult ? 'Played' : 'Scheduled';
             const resultState = final ? result.toLowerCase() : awaitingResult ? 'pending' : 'scheduled';
             const schedule = schedules.find((item) => item.id === game.seasonTeamId);
+            const quickStats = final ? gameQuickStats(detailsByGame[game.id]) : gameQuickStats(null);
             return (
               <tr key={game.id}>
-                <td>{formatGameDate(game.scheduledAt)}</td>
-                <td>{onOpenOpponent ? <button type="button" className="stats-game-opponent" aria-label={`Open head-to-head against ${game.opponent}`} onClick={() => onOpenOpponent(opponentSlug(game.opponent), final ? '' : game.id)}><strong>{game.opponent}</strong></button> : <strong>{game.opponent}</strong>}</td>
-                {showSchedule && <td><span className="stats-stage-label">{formatScheduleName(schedule)}</span></td>}
-                {showStage && <td><span className="stats-stage-label">{game.stage === 'playoffs' ? 'Playoffs' : 'Regular'}</span></td>}
-                <td>{game.venue === 'home' ? 'Home' : game.venue === 'away' ? 'Away' : 'Neutral'}</td>
-                <td><span className={`stats-result is-${resultState}`}>{result}{game.overtime && final ? ' OT' : ''}</span></td>
-                <td>{final ? `${game.goalsFor}–${game.goalsAgainst}` : awaitingResult ? <span className="stats-pending-result">Results pending</span> : '—'}</td>
+                <td className="stats-game-date">{formatGameDate(game.scheduledAt)}</td>
+                <td className="stats-game-opponent-cell">
+                  {onOpenOpponent ? <button type="button" className="stats-game-opponent" aria-label={`Open head-to-head against ${game.opponent}`} onClick={() => onOpenOpponent(opponentSlug(game.opponent), final ? '' : game.id)}><strong>{game.opponent}</strong></button> : <strong>{game.opponent}</strong>}
+                  <span className="stats-game-mobile-meta">
+                    {formatGameDate(game.scheduledAt)} · {formatScheduleName(schedule)} · {gameSiteLabel(game)}
+                  </span>
+                </td>
+                {showSchedule && <td className="stats-game-schedule"><span className="stats-stage-label">{formatScheduleName(schedule)}</span></td>}
+                {showStage && <td className="stats-game-stage"><span className="stats-stage-label">{game.stage === 'playoffs' ? 'Playoffs' : 'Regular'}</span></td>}
+                <td className="stats-game-site">{gameSiteLabel(game)}</td>
+                <td className="stats-game-result"><span className={`stats-result is-${resultState}`}>{result}{game.overtime && final ? ' OT' : ''}</span></td>
+                <td className="stats-game-score-cell">{final ? `${game.goalsFor}–${game.goalsAgainst}` : awaitingResult ? <span className="stats-pending-result">Results pending</span> : '—'}</td>
+                <td className="stats-game-stat-cell">{quickStats.shotsFor ?? '—'}</td>
+                <td className="stats-game-stat-cell">{quickStats.shotsAgainst ?? '—'}</td>
+                <td className="stats-game-stat-cell">{quickStats.penaltyMinutes ?? '—'}</td>
+                <td className="stats-game-quick-stats-mobile">
+                  <QuickStat label="Shots for" value={quickStats.shotsFor} />
+                  <QuickStat label="Shots against" value={quickStats.shotsAgainst} />
+                  <QuickStat label="PIM" value={quickStats.penaltyMinutes} />
+                </td>
                 {onOpenGame && <td className="stats-game-detail-column"><button type="button" className="stats-game-detail-button" aria-label={`${final ? 'View results' : awaitingResult ? 'View pending result status' : 'Open head-to-head'} against ${game.opponent}`} onClick={() => onOpenGame(game.id)}><span>{final ? 'Results' : awaitingResult ? 'Status' : 'Matchup'}</span></button></td>}
               </tr>
             );
@@ -741,9 +841,15 @@ export default function StatsWorkspace() {
     };
   }, [dataset, selectedGameId]);
 
+  const opponentScopeLabel = !snapshot || snapshot.isSeasonAggregate
+    ? 'All Goon Squad leagues'
+    : `${snapshot.season?.name || 'Selected season'} · ${formatScheduleName(snapshot.team)}`;
   const opponentMatchups = useMemo(
-    () => buildOpponentMatchups(dataset),
-    [dataset],
+    () => !dataset || !snapshot ? [] : buildOpponentMatchups(dataset, new Date(), {
+      seasonTeamIds: snapshot.isSeasonAggregate ? null : [snapshot.team.id],
+      scopeLabel: opponentScopeLabel,
+    }),
+    [dataset, opponentScopeLabel, snapshot],
   );
 
   const selectedOpponentContext = useMemo(() => {
@@ -808,6 +914,21 @@ export default function StatsWorkspace() {
   const completedGames = snapshot.games.filter((game) => game.status === 'final');
   const latestGame = completedGames[0] ?? null;
   const nextGame = nextUpcomingGame(snapshot.games);
+  const selectedStandings = snapshot.isSeasonAggregate
+    ? []
+    : (dataset.standings || [])
+      .filter((row) => row.seasonTeamId === snapshot.team.id)
+      .sort((a, b) => a.rank - b.rank);
+  const standingsSchedules = snapshot.isSeasonAggregate
+    ? snapshot.seasonTeams
+    : snapshot.team ? [snapshot.team] : [];
+  const standingsBySchedule = standingsSchedules.map((schedule) => ({
+    schedule,
+    rows: (dataset.standings || [])
+      .filter((row) => row.seasonTeamId === schedule.id)
+      .sort((a, b) => a.rank - b.rank),
+  })).filter(({ rows }) => rows.length);
+  const matchupSlugs = new Set(opponentMatchups.map((matchup) => matchup.slug));
   const openPlayer = (playerId) => {
     const player = dataset.players.find((item) => item.id === playerId);
     if (!player) return;
@@ -838,6 +959,13 @@ export default function StatsWorkspace() {
     setSelectedPlayerId('');
     setLinkCopied(false);
     setTab('games');
+  };
+  const openStandingsOpponent = (scheduleId, slug) => {
+    if (snapshot.team?.id !== scheduleId) {
+      setTeamId(scheduleId);
+      setStage('regular');
+    }
+    openOpponent(slug);
   };
   const openGame = (gameId) => {
     const game = dataset.games.find((item) => item.id === gameId);
@@ -944,36 +1072,62 @@ export default function StatsWorkspace() {
         {snapshot.availableStages.map((item) => <button key={item} type="button" aria-pressed={snapshot.stage === item} onClick={() => { setStage(item); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }}>{item === 'regular' ? 'Regular season' : item === 'playoffs' ? 'Playoffs' : 'All games'}</button>)}
       </div>}
 
-      <section className="stats-matchday-grid" aria-label="Matchday summary">
-        <MatchdayCard game={nextGame} kind="next" schedules={snapshot.seasonTeams} onOpenGame={openGame} />
-        <MatchdayCard game={latestGame} kind="latest" schedules={snapshot.seasonTeams} onOpenGame={openGame} />
-      </section>
-
-      <section className="stats-metric-strip" aria-label="Season summary">
-        <Metric label="Record" value={summary.gamesPlayed ? record : '—'} detail={snapshot.isSeasonAggregate ? `${summary.gamesPlayed} games · ${scheduleCount} leagues` : `${summary.gamesPlayed} games`} />
-        <Metric label="Goals" value={summary.gamesPlayed ? `${summary.goalsFor}–${summary.goalsAgainst}` : '—'} detail="for · against" />
-        <Metric label="Difference" value={summary.gamesPlayed ? `${summary.goalDifference > 0 ? '+' : ''}${summary.goalDifference}` : '—'} detail="goal margin" />
-        <Metric label="Win rate" value={summary.gamesPlayed ? formatPercentage(summary.winPercentage) : '—'} detail="final games" />
-      </section>
-
       <nav className="stats-tabs" role="tablist" aria-label="Statistics view">
         {TABS.map((item) => <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => setTab(item.id)}>{item.label}</button>)}
       </nav>
 
+      {tab === 'overview' && <>
+        <section className="stats-matchday-grid" aria-label="Matchday summary">
+          <MatchdayCard game={nextGame} kind="next" schedules={snapshot.seasonTeams} onOpenGame={openGame} />
+          <MatchdayCard game={latestGame} kind="latest" schedules={snapshot.seasonTeams} onOpenGame={openGame} />
+        </section>
+
+        <section className="stats-metric-strip" aria-label="Season summary">
+          <Metric label="Record" value={summary.gamesPlayed ? record : '—'} detail={snapshot.isSeasonAggregate ? `${summary.gamesPlayed} games · ${scheduleCount} leagues` : `${summary.gamesPlayed} games`} />
+          <Metric label="Goals" value={summary.gamesPlayed ? `${summary.goalsFor}–${summary.goalsAgainst}` : '—'} detail="for · against" />
+          <Metric label="Difference" value={summary.gamesPlayed ? `${summary.goalDifference > 0 ? '+' : ''}${summary.goalDifference}` : '—'} detail="goal margin" />
+          <Metric label="Win rate" value={summary.gamesPlayed ? formatPercentage(summary.winPercentage) : '—'} detail="final games" />
+        </section>
+      </>}
+
       <section className="stats-content" role="tabpanel">
         {tab === 'overview' && <div className="stats-overview-grid">
           {snapshot.isSeasonAggregate && <ScheduleCoverage schedules={snapshot.seasonSchedules} onSelect={(id) => { setTeamId(id); setSelectedGameId(''); }} />}
-          <OpponentDirectory matchups={opponentMatchups} currentGames={snapshot.games} onOpenOpponent={openOpponent} />
+          {!snapshot.isSeasonAggregate && <LeagueStandings
+            rows={selectedStandings}
+            schedule={snapshot.team}
+            matchupSlugs={matchupSlugs}
+            onOpenOpponent={openOpponent}
+          />}
+          <OpponentDirectory
+            matchups={opponentMatchups}
+            currentGames={snapshot.games}
+            scopeLabel={opponentScopeLabel}
+            onOpenOpponent={openOpponent}
+          />
           <section className="stats-band">
             <header><CalendarDays aria-hidden="true" /><div><span>RESULTS</span><h2>Recent results</h2></div></header>
-            <GamesTable games={completedGames.slice(0, 5)} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} onOpenOpponent={openOpponent} />
+            <GamesTable games={completedGames.slice(0, 5)} detailsByGame={snapshot.gameDetails} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} onOpenOpponent={openOpponent} />
           </section>
           <section className="stats-band">
             <header><UsersRound aria-hidden="true" /><div><span>LEADERS</span><h2>{snapshot.isSeasonAggregate ? 'All-team leaders' : 'Team leaders'}</h2></div></header>
             {snapshot.fieldPlayers.length ? <LeadersTable players={snapshot.fieldPlayers} onOpenPlayer={openPlayer} /> : <EmptyStats section="player statistics" />}
           </section>
         </div>}
-        {tab === 'games' && <div className="stats-game-view"><section className="stats-band is-full"><header><CalendarDays aria-hidden="true" /><div><span>{snapshot.isSeasonAggregate ? 'ALL LEAGUES' : formatScheduleName(snapshot.team).toUpperCase()}</span><h2>Schedule and results</h2></div></header><GamesTable games={snapshot.games} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} onOpenOpponent={openOpponent} /></section></div>}
+        {tab === 'standings' && (
+          <div className="stats-standings-view">
+            {standingsBySchedule.length ? standingsBySchedule.map(({ schedule, rows }) => (
+              <LeagueStandings
+                key={schedule.id}
+                rows={rows}
+                schedule={schedule}
+                matchupSlugs={matchupSlugs}
+                onOpenOpponent={(slug) => openStandingsOpponent(schedule.id, slug)}
+              />
+            )) : <EmptyStats section="league standings" />}
+          </div>
+        )}
+        {tab === 'games' && <div className="stats-game-view"><section className="stats-band is-full"><header><CalendarDays aria-hidden="true" /><div><span>{snapshot.isSeasonAggregate ? 'ALL LEAGUES' : formatScheduleName(snapshot.team).toUpperCase()}</span><h2>Schedule and results</h2><p>Score, shots, and penalty minutes from each published game sheet.</p></div></header><GamesTable games={snapshot.games} detailsByGame={snapshot.gameDetails} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} onOpenOpponent={openOpponent} /></section></div>}
         {tab === 'players' && (
           <div className="stats-player-view">
             <PlayerTables fieldPlayers={snapshot.fieldPlayers} goalies={snapshot.goalies} onOpenPlayer={openPlayer} />

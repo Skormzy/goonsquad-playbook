@@ -22,6 +22,7 @@ import {
   productionCameraPose,
   stepOperatorCamera,
 } from '../vnext3d/cameraSystem';
+import { tacticalAthletePresentationScale } from '../vnext3d/renderProfile';
 import { summarizeFrameIntervals } from '../vnext3d/renderProfile';
 import {
   sampleTacticalBallTrail,
@@ -35,7 +36,12 @@ import TacticalReplayLayers from './TacticalReplayLayers';
 
 const TIME_PUBLISH_INTERVAL_SECONDS = 1 / 30;
 
-function RegisteredAthlete({ assetUrl, playerId, registry }) {
+function RegisteredAthlete({
+  assetUrl,
+  playerId,
+  presentationScale,
+  registry,
+}) {
   const athleteRef = useRef(null);
 
   useEffect(() => {
@@ -44,7 +50,13 @@ function RegisteredAthlete({ assetUrl, playerId, registry }) {
     return () => controllers.delete(playerId);
   }, [playerId, registry]);
 
-  return <TacticalAthlete ref={athleteRef} assetUrl={assetUrl} />;
+  return (
+    <TacticalAthlete
+      ref={athleteRef}
+      assetUrl={assetUrl}
+      presentationScale={presentationScale}
+    />
+  );
 }
 
 function RuntimeCamera({
@@ -263,6 +275,7 @@ export default function TacticalReplayScene({
   tacticalLayers,
   theme = 'dark',
 }) {
+  const { size } = useThree();
   const frameRef = useRef(sampleTacticalReplay(replay, playbackTime));
   const replayIdRef = useRef(replay.id);
   const timeRef = useRef(playbackTime);
@@ -295,6 +308,7 @@ export default function TacticalReplayScene({
     )],
     [replay],
   );
+  const presentationScale = tacticalAthletePresentationScale(cameraId, size.width);
 
   useEffect(() => {
     const wasPlaying = wasPlayingRef.current;
@@ -430,6 +444,7 @@ export default function TacticalReplayScene({
         <RegisteredAthlete
           key={player.id}
           playerId={player.id}
+          presentationScale={presentationScale}
           registry={athleteRefs}
           assetUrl={athleteAssets[player.role === 'G'
             ? `goalie-${player.team === 'us' ? 'home' : 'away'}`

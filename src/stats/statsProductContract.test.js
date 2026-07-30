@@ -21,6 +21,8 @@ describe('team account and statistics product contract', () => {
     expect(OFFICIAL_STATS_DATASET.playerGameStats).toHaveLength(3396);
     expect(OFFICIAL_STATS_DATASET.goalieGameStats).toHaveLength(279);
     expect(OFFICIAL_STATS_DATASET.gameEvents).toHaveLength(2759);
+    expect(OFFICIAL_STATS_DATASET.standings).toHaveLength(154);
+    expect(new Set(OFFICIAL_STATS_DATASET.standings.map((row) => row.seasonTeamId)).size).toBe(23);
     expect(OFFICIAL_STATS_DATASET.teams.filter((team) => team.seasonId === 'summer-2026').map((team) => team.name)).toEqual(['Mon/Thu Team', 'Sunday Team']);
     expect(OFFICIAL_STATS_DATASET.games.every((game) => game.sourceUrl && game.verified)).toBe(true);
     expect(OFFICIAL_STATS_DATASET.seasons.every((season) => season.startDate === null && season.endDate === null)).toBe(true);
@@ -46,6 +48,7 @@ describe('team account and statistics product contract', () => {
     expect(migrationSource).toContain('public.is_team_data_manager()');
     expect(migrationSource).toContain('protect_profile_role_before_update');
     expect(workspaceSource).toContain("{ id: 'overview', label: 'Overview' }");
+    expect(workspaceSource).toContain("{ id: 'standings', label: 'Standings' }");
     expect(workspaceSource).toContain("{ id: 'games', label: 'Games' }");
     expect(workspaceSource).toContain("{ id: 'players', label: 'Players' }");
     expect(workspaceSource).toContain('Every Goonsquad schedule');
@@ -67,13 +70,18 @@ describe('team account and statistics product contract', () => {
     expect(workspaceSource).toContain("game?.status !== 'final'");
     expect(workspaceSource).toContain('OpponentDirectory');
     expect(workspaceSource).toContain('OpponentHeadToHead');
+    expect(workspaceSource).toContain('LeagueStandings');
+    expect(workspaceSource).toContain('LEAGUE TABLE');
+    expect(workspaceSource).toContain('seasonTeamIds: snapshot.isSeasonAggregate ? null : [snapshot.team.id]');
     expect(workspaceSource).toContain('Open head-to-head against');
     expect(workspaceSource).toContain('stats-game-page');
     expect(workspaceSource).toContain('PLAYER BOX SCORE');
-    expect(workspaceSource).toContain('<th className="stats-game-detail-column">View</th>');
+    expect(workspaceSource).toContain('title="Shots for">SF</th>');
+    expect(workspaceSource).toContain('title="Shots against">SA</th>');
+    expect(workspaceSource).toContain('title="Penalty minutes">PIM</th>');
     expect(workspaceSource).toContain("awaitingResult ? 'Status' : 'Matchup'");
     expect(workspaceSource).not.toContain('Detailed statistics will appear after the game');
-    expect(headToHeadSource).toContain('HEAD TO HEAD · VERIFIED TEAM ARCHIVE');
+    expect(headToHeadSource).toContain('HEAD TO HEAD · {matchup.scopeLabel.toUpperCase()}');
     expect(headToHeadSource).toContain('PLAYED · RESULTS PENDING');
     expect(headToHeadSource).toContain('Results pending');
     expect(headToHeadSource).toContain('Matchup centre');

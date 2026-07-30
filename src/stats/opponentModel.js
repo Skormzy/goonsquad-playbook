@@ -43,13 +43,22 @@ export function gameOutcome(game) {
   return 'tie';
 }
 
-export function buildOpponentMatchups(dataset, now = new Date()) {
+export function buildOpponentMatchups(
+  dataset,
+  now = new Date(),
+  {
+    seasonTeamIds = null,
+    scopeLabel = 'All Goon Squad leagues',
+  } = {},
+) {
   if (!dataset) return [];
   const teamById = new Map((dataset.teams || []).map((team) => [team.id, team]));
   const seasonById = new Map((dataset.seasons || []).map((season) => [season.id, season]));
+  const allowedTeamIds = seasonTeamIds ? new Set(seasonTeamIds) : null;
   const grouped = new Map();
 
   (dataset.games || []).forEach((game) => {
+    if (allowedTeamIds && !allowedTeamIds.has(game.seasonTeamId)) return;
     const key = opponentKey(game.opponent);
     if (!key) return;
     const group = grouped.get(key) || {
@@ -123,6 +132,7 @@ export function buildOpponentMatchups(dataset, now = new Date()) {
         summary,
         seasons,
         recentForm,
+        scopeLabel,
       };
     })
     .sort((a, b) => {

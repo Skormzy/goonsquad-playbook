@@ -4,6 +4,15 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const assetsDirectory = path.join(root, 'dist', 'assets');
+const requiredPwaFiles = [
+  'index.html',
+  'manifest.json',
+  'sw.js',
+  'app-icon-192.png',
+  'app-icon-512.png',
+  'app-icon-maskable-512.png',
+  'apple-touch-icon.png',
+];
 const forbiddenFilePattern = /PlayerRigReviewView/iu;
 const forbiddenLegacyModels = new Set([
   'animated-runner.glb',
@@ -26,6 +35,22 @@ const forbiddenJavaScript = [
 
 if (!fs.existsSync(assetsDirectory)) {
   console.error('Public build check failed: dist/assets does not exist. Run npm run build first.');
+  process.exit(1);
+}
+
+const missingPwaFiles = requiredPwaFiles.filter((file) => !fs.existsSync(path.join(root, 'dist', file)));
+if (missingPwaFiles.length) {
+  console.error(`Public build check failed: missing PWA files: ${missingPwaFiles.join(', ')}`);
+  process.exit(1);
+}
+
+const publicServiceWorker = fs.readFileSync(path.join(root, 'dist', 'sw.js'), 'utf8');
+if (
+  publicServiceWorker.includes('__BUILD_ID__')
+  || publicServiceWorker.includes('/*__BUILD_ASSETS__*/ []')
+  || !/const BUILD_ASSETS = \[\s*"\/assets\//u.test(publicServiceWorker)
+) {
+  console.error('Public build check failed: the service worker does not contain the production asset manifest.');
   process.exit(1);
 }
 
@@ -76,4 +101,4 @@ if (
   process.exit(1);
 }
 
-console.log('Public build excludes internal review code, rejected runtimes, and unaccepted athlete candidates.');
+console.log('Public build excludes internal review code and contains an installable, versioned PWA shell.');

@@ -23,7 +23,10 @@ import {
 
 const ACTION_BLEND_SECONDS = 0.16;
 
-const TacticalAthlete = forwardRef(function TacticalAthlete({ assetUrl }, ref) {
+const TacticalAthlete = forwardRef(function TacticalAthlete({
+  assetUrl,
+  presentationScale = 1,
+}, ref) {
   const source = useGLTF(assetUrl);
   const model = useMemo(() => clone(source.scene), [source.scene]);
   const mixer = useMemo(() => new AnimationMixer(model), [model]);
@@ -78,7 +81,7 @@ const TacticalAthlete = forwardRef(function TacticalAthlete({ assetUrl }, ref) {
       readyAction.stop();
       mixer.update(0);
     }
-  }, [mixer, model, source.animations]);
+  }, [mixer, model, presentationScale, source.animations]);
 
   useImperativeHandle(ref, () => ({
     applySample(sample) {
@@ -138,7 +141,9 @@ const TacticalAthlete = forwardRef(function TacticalAthlete({ assetUrl }, ref) {
   return (
     <group ref={athleteRef}>
       <group ref={groundOffsetRef}>
-        <primitive object={model} dispose={null} />
+        <group scale={presentationScale}>
+          <primitive object={model} dispose={null} />
+        </group>
       </group>
     </group>
   );

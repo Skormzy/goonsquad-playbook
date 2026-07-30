@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
@@ -19,6 +19,7 @@ import { getPlaymakerAuthPersistence } from '../playmaker/playmakerCloud';
 import { useAccount } from './AccountContext';
 import UsernameField from './UsernameField';
 import { isValidUsername, normalizeUsername } from './username';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import './account.css';
 
 function roleLabel(role) {
@@ -42,6 +43,12 @@ export default function AccountDialog() {
   const [recoveryOpen, setRecoveryOpen] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const t = themes[theme];
+  const closeButtonRef = useRef(null);
+  const dialogRef = useDialogFocus({
+    active: account.dialogOpen,
+    initialFocusRef: closeButtonRef,
+    onClose: account.closeAccount,
+  });
 
   if (!account.dialogOpen) return null;
 
@@ -72,10 +79,12 @@ export default function AccountDialog() {
   return (
     <div className="account-backdrop" role="presentation" onMouseDown={account.closeAccount}>
       <section
+        ref={dialogRef}
         className="account-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="account-dialog-title"
+        tabIndex={-1}
         style={{
           '--account-surface': t.sf,
           '--account-panel': t.cb,
@@ -93,7 +102,7 @@ export default function AccountDialog() {
             <span>GOONSQUAD ID</span>
             <h2 id="account-dialog-title">{account.user ? 'Your team account' : 'Goon with the squad'}</h2>
           </div>
-          <button type="button" className="account-icon-button" onClick={account.closeAccount} aria-label="Close account" title="Close">
+          <button ref={closeButtonRef} type="button" className="account-icon-button" onClick={account.closeAccount} aria-label="Close account" title="Close">
             <X aria-hidden="true" />
           </button>
         </header>

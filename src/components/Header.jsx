@@ -1,10 +1,14 @@
+import { useRef, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
 import { CORE_PLAYS } from '../data/coreCatalog';
 import {
   CircleHelp,
+  ChevronDown,
+  ChevronUp,
   FlipHorizontal2,
   Menu,
+  MoreHorizontal,
   Moon,
   Sun,
   UserRound,
@@ -34,6 +38,7 @@ export default function Header() {
     sidebarOpen, setSidebarOpen,
     setIsPlaying, cancelPlaybackRestart,
     keyboardHelpOpen, setKeyboardHelpOpen,
+    setReplay3dCamera,
     favorites,
   } = useApp();
 
@@ -47,6 +52,13 @@ export default function Header() {
 
   const contentMode = contentForActiveView(activeView);
   const viewMode = modeForActiveView(activeView);
+  const mobileReplayWorkspace = workspaceLayout === 'mobile'
+    && ['playbook', 'replay3d', 'tactics', 'strategy3d'].includes(activeView);
+  const [expandedMobileReplayView, setExpandedMobileReplayView] = useState(null);
+  const mobileHeaderCollapsed = mobileReplayWorkspace
+    && expandedMobileReplayView !== activeView;
+  const enteredThreeDRef = useRef(viewMode === '3d');
+  const mobileMoreRef = useRef(null);
   const brandMeta = contentMode === 'playmaker'
     ? 'PLAYMAKER / AUTHORING'
     : contentMode === 'stats'
@@ -66,6 +78,15 @@ export default function Header() {
 
   const switchMode = (mode) => {
     if (!isWorkspaceModeAvailable(contentMode, mode)) return;
+    if (
+      mode === '3d'
+      && viewMode !== '3d'
+      && workspaceLayout !== 'desktop'
+      && !enteredThreeDRef.current
+    ) {
+      setReplay3dCamera('overhead');
+    }
+    if (mode === '3d') enteredThreeDRef.current = true;
     activateView(activeViewForWorkspace(contentMode, mode), { preservePlayback: true });
   };
   const visibleFavoriteCount = CORE_PLAYS.filter((play) => favorites.has(play.id)).length;
@@ -73,10 +94,15 @@ export default function Header() {
     if (!account.user || activeView === 'profile') activateView('account');
     else if (activeView !== 'account') activateView('profile');
   };
+  const closeMobileMore = () => {
+    const summary = mobileMoreRef.current?.querySelector('summary');
+    mobileMoreRef.current?.removeAttribute('open');
+    summary?.focus({ preventScroll: true });
+  };
 
   return (
     <header
-      className="app-header"
+      className={`app-header ${mobileReplayWorkspace ? 'is-mobile-replay' : ''} ${mobileHeaderCollapsed ? 'is-mobile-collapsed' : ''}`}
       style={{
         '--header-surface': t.sf,
         '--header-border': t.bd,
@@ -116,7 +142,7 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="app-header-workspace">
+        <div className={`app-header-workspace ${['plays', 'strategy'].includes(contentMode) ? 'is-mode-active' : 'is-static'}`}>
           <WorkspaceSwitcher
             allowStrategy3d
             content={contentMode}
@@ -136,6 +162,20 @@ export default function Header() {
         </div>
 
         <div className="app-header-actions" role="toolbar" aria-label="Workspace actions">
+          {mobileReplayWorkspace && (
+            <button
+              type="button"
+              className="app-header-icon-button app-header-collapse"
+              onClick={() => setExpandedMobileReplayView((expandedView) => (
+                expandedView === activeView ? null : activeView
+              ))}
+              title={mobileHeaderCollapsed ? 'Show app header' : 'Collapse app header'}
+              aria-label={mobileHeaderCollapsed ? 'Show app header' : 'Collapse app header for rink focus'}
+              aria-expanded={!mobileHeaderCollapsed}
+            >
+              {mobileHeaderCollapsed ? <ChevronDown aria-hidden="true" /> : <ChevronUp aria-hidden="true" />}
+            </button>
+          )}
           {activeView === 'playbook' && workspaceLayout === 'desktop' && (
             <>
               <button
@@ -166,30 +206,61 @@ export default function Header() {
             onClick={openAccountOrProfile}
             title={account.user ? activeView === 'profile' ? 'Account settings' : `Open ${account.displayName}'s profile` : 'Create account or sign in'}
             aria-label={account.user ? activeView === 'profile' ? `Open account settings for ${account.displayName}` : `Open player profile for ${account.displayName}` : 'Open team account'}
-            aria-pressed={account.dialogOpen || activeView === 'profile' || activeView === 'account'}
+            aria-current={activeView === 'profile' || activeView === 'account' ? 'page' : undefined}
           >
             <UserRound aria-hidden="true" />
             {account.user && <span className="app-header-status-dot" aria-hidden="true" />}
           </button>
           <button
             type="button"
-            className={`app-header-icon-button ${keyboardHelpOpen ? 'is-active' : ''}`}
+            className={`app-header-icon-button app-header-help ${keyboardHelpOpen ? 'is-active' : ''}`}
             onClick={() => setKeyboardHelpOpen(true)}
             title="Open guide (?)"
             aria-label="Open product guide"
-            aria-pressed={keyboardHelpOpen}
+            aria-haspopup="dialog"
           >
             <CircleHelp aria-hidden="true" />
           </button>
           <button
             type="button"
-            className="app-header-icon-button"
+            className="app-header-icon-button app-header-theme"
             onClick={toggleTheme}
             title="Toggle theme (T)"
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
           >
             {theme === 'dark' ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
           </button>
+          <details className="app-header-more" ref={mobileMoreRef}>
+            <summary
+              className="app-header-icon-button"
+              title="More"
+              aria-label="Open more app actions"
+            >
+              <MoreHorizontal aria-hidden="true" />
+            </summary>
+            <div className="app-header-more-menu" aria-label="More app actions">
+              <button
+                type="button"
+                onClick={() => {
+                  closeMobileMore();
+                  setKeyboardHelpOpen(true);
+                }}
+              >
+                <CircleHelp aria-hidden="true" />
+                <span>Guide</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  closeMobileMore();
+                  toggleTheme();
+                }}
+              >
+                {theme === 'dark' ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+                <span>{theme === 'dark' ? 'Light theme' : 'Dark theme'}</span>
+              </button>
+            </div>
+          </details>
         </div>
       </div>
     </header>

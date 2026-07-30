@@ -66,13 +66,31 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
 body {
   margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
   background: var(--gs-black);
   font-family: var(--font-body);
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.app-shell {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100svh;
+  overflow: hidden;
 }
 
 .app-shell,
@@ -1373,12 +1391,9 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 @media (max-width: 430px) {
-  .play-workspace-mobile {
+  .play-workspace-mobile,
+  .play-workspace-tablet {
     padding-inline: 4px;
-  }
-
-  .tactics-mobile-rink {
-    width: min(74vw, 290px);
   }
 
   .play-mobile-rink .play-rink-frame {
@@ -1544,6 +1559,10 @@ input:focus:not(:focus-visible) { outline: none; }
   grid-template-columns: 32px 32px 32px 78px 32px;
   gap: 4px;
   flex: 0 0 auto;
+}
+
+.playback-phase-jump {
+  display: none;
 }
 
 .playback-icon-button,
@@ -1843,6 +1862,10 @@ input:focus:not(:focus-visible) { outline: none; }
   overflow: hidden;
   pointer-events: none;
   font-family: var(--font-body);
+}
+
+.vnext3d-catalog-navigator.is-open {
+  z-index: 12;
 }
 
 .vnext3d-sequence-dock {
@@ -4361,7 +4384,7 @@ input:focus:not(:focus-visible) { outline: none; }
 
 /* Season statistics */
 .app-content-stats {
-  overflow: auto !important;
+  overflow: hidden !important;
 }
 
 .stats-workspace,
@@ -4371,6 +4394,7 @@ input:focus:not(:focus-visible) { outline: none; }
 
 .stats-workspace {
   width: 100%;
+  height: 100%;
   min-height: 100%;
   overflow: auto;
   color: var(--stats-text);
@@ -4744,6 +4768,12 @@ input:focus:not(:focus-visible) { outline: none; }
   gap: 12px;
 }
 
+.stats-standings-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr));
+  gap: 12px;
+}
+
 .stats-band,
 .stats-player-tables section {
   min-width: 0;
@@ -4887,6 +4917,125 @@ input:focus:not(:focus-visible) { outline: none; }
   line-height: 1;
 }
 
+.stats-band > header p {
+  margin: 1px 0 0;
+  color: var(--stats-muted);
+  font-size: var(--type-label);
+  line-height: 1.2;
+}
+
+.stats-standings-list {
+  display: grid;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-standings-head,
+.stats-standings-list > button,
+.stats-standings-list > div:not(.stats-standings-head) {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 110px 70px 18px;
+  gap: 10px;
+  align-items: center;
+  min-height: 54px;
+  padding: 8px 12px;
+}
+
+.stats-standings-head {
+  min-height: 34px;
+  color: var(--stats-dim);
+  font-family: var(--font-display);
+  font-size: var(--type-label);
+  font-weight: 800;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--stats-panel) 72%, transparent);
+}
+
+.stats-standings-head span:nth-child(4) {
+  text-align: right;
+}
+
+.stats-standings-list > button,
+.stats-standings-list > div:not(.stats-standings-head) {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--stats-border);
+  color: var(--stats-text);
+  background: transparent;
+  text-align: left;
+}
+
+.stats-standings-list > button {
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.stats-standings-list > button:hover,
+.stats-standings-list > button:focus-visible {
+  background: var(--stats-accent-bg);
+}
+
+.stats-standings-list > [data-team='goonsquad'] {
+  box-shadow: inset 3px 0 0 var(--stats-brand);
+  background: color-mix(in srgb, var(--stats-brand) 8%, var(--stats-surface));
+}
+
+.stats-standing-rank {
+  color: var(--stats-dim);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.stats-standings-list > :nth-child(2) .stats-standing-rank,
+.stats-standings-list > :nth-child(3) .stats-standing-rank,
+.stats-standings-list > :nth-child(4) .stats-standing-rank {
+  color: var(--stats-accent);
+}
+
+.stats-standing-team {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.stats-standing-team strong {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats-standing-team small,
+.stats-standing-points small {
+  color: var(--stats-muted);
+  font-size: var(--type-label);
+}
+
+.stats-standing-record {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.stats-standing-points {
+  display: inline-flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 3px;
+  text-align: right;
+}
+
+.stats-standing-points strong {
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+
+.stats-standings-list > button > svg {
+  width: 16px;
+  color: var(--stats-dim);
+}
+
 .stats-table-scroll {
   width: 100%;
   overflow-x: auto;
@@ -4925,6 +5074,18 @@ input:focus:not(:focus-visible) { outline: none; }
 
 .stats-table tbody tr:hover {
   background: color-mix(in srgb, var(--stats-accent) 5%, transparent);
+}
+
+.stats-game-mobile-meta,
+.stats-game-quick-stats-mobile {
+  display: none;
+}
+
+.stats-game-stat-cell {
+  min-width: 46px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-align: center !important;
 }
 
 .stats-player-link {
@@ -6502,6 +6663,150 @@ input:focus:not(:focus-visible) { outline: none; }
     border-right: 0;
     border-bottom: 1px solid var(--stats-border);
   }
+
+  .stats-games-table,
+  .stats-games-table tbody {
+    display: grid;
+    min-width: 0;
+  }
+
+  .stats-games-table thead {
+    display: none;
+  }
+
+  .stats-games-table tbody tr {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 8px 10px;
+    padding: 11px 11px 10px;
+    border-bottom: 1px solid var(--stats-border);
+    background: var(--stats-surface);
+  }
+
+  .stats-games-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .stats-games-table td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+  }
+
+  .stats-games-table .stats-game-date,
+  .stats-games-table .stats-game-schedule,
+  .stats-games-table .stats-game-stage,
+  .stats-games-table .stats-game-site,
+  .stats-games-table .stats-game-stat-cell {
+    display: none;
+  }
+
+  .stats-game-opponent-cell {
+    grid-column: 1;
+    grid-row: 1;
+    display: grid;
+    gap: 4px;
+  }
+
+  .stats-game-opponent {
+    max-width: none;
+    font-family: var(--font-display);
+    font-size: 16px;
+    line-height: 1.05;
+  }
+
+  .stats-game-mobile-meta {
+    display: block;
+    overflow: hidden;
+    color: var(--stats-muted);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .stats-game-result {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .stats-game-score-cell {
+    grid-column: 3;
+    grid-row: 1;
+    color: var(--stats-text);
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 850;
+    text-align: right !important;
+  }
+
+  .stats-game-score-cell .stats-pending-result {
+    display: block;
+    max-width: 74px;
+    font-family: var(--font-body);
+    font-size: 9px;
+    line-height: 1.15;
+    text-align: right;
+    white-space: normal;
+  }
+
+  .stats-game-quick-stats-mobile {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: hidden;
+    border: 1px solid var(--stats-border) !important;
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--stats-panel) 78%, transparent);
+  }
+
+  .stats-game-quick-stats-mobile > span {
+    min-width: 0;
+    min-height: 42px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 9px;
+    border-right: 1px solid var(--stats-border);
+  }
+
+  .stats-game-quick-stats-mobile > span:last-child {
+    border-right: 0;
+  }
+
+  .stats-game-quick-stats-mobile small {
+    color: var(--stats-muted);
+    font-size: 9px;
+    font-weight: 750;
+  }
+
+  .stats-game-quick-stats-mobile strong {
+    font-family: var(--font-display);
+    font-size: 16px;
+  }
+
+  .stats-games-table td.stats-game-detail-column {
+    position: static;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    padding-top: 1px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .stats-games-table .stats-game-detail-button {
+    width: 100%;
+    min-height: 40px;
+    color: var(--stats-accent);
+    border-color: color-mix(in srgb, var(--stats-accent) 46%, var(--stats-border));
+    background: var(--stats-accent-bg);
+  }
 }
 
 @media (max-width: 430px) {
@@ -6517,6 +6822,41 @@ input:focus:not(:focus-visible) { outline: none; }
 
   .stats-title h1 {
     font-size: 34px;
+  }
+
+  .stats-standings-head {
+    display: none;
+  }
+
+  .stats-standings-list > button,
+  .stats-standings-list > div:not(.stats-standings-head) {
+    grid-template-columns: 38px minmax(0, 1fr) 58px 48px 14px;
+    gap: 7px;
+    min-height: 62px;
+    padding: 8px 10px;
+  }
+
+  .stats-standing-rank {
+    font-size: 16px;
+  }
+
+  .stats-standing-team strong {
+    font-size: 15px;
+  }
+
+  .stats-standing-record {
+    font-size: 14px;
+  }
+
+  .stats-standing-points {
+    display: grid;
+    justify-items: end;
+    gap: 0;
+  }
+
+  .stats-standing-points strong {
+    font-size: 20px;
+    line-height: 1;
   }
 
   .stats-season-controls {
@@ -6707,7 +7047,7 @@ input:focus:not(:focus-visible) { outline: none; }
   inset: 0;
   z-index: 310;
   color: var(--tutorial-text);
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .playmaker-tutorial-spotlight {
@@ -9694,5 +10034,1896 @@ input:focus:not(:focus-visible) { outline: none; }
   .tactics-mobile-coaching {
     grid-column: 1 / -1;
     grid-row: 6;
+  }
+}
+
+/* Rink-first mobile coaching shell. Kept last so legacy responsive rules cannot
+   reclaim space from the rink or the phase command surface. */
+.play-phase-copy > small {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--play-text);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.play-bottom-sheet-title {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.play-bottom-sheet-title > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.play-bottom-sheet-title > small {
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vnext3d-mobile-coaching {
+  min-width: 0;
+  border-bottom: 1px solid var(--gs-border);
+  background: var(--gs-graphite);
+}
+
+.vnext3d-mobile-coaching > summary {
+  position: relative;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22px;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  gap: 2px 8px;
+  padding: 8px 12px 8px 15px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.vnext3d-mobile-coaching > summary::-webkit-details-marker {
+  display: none;
+}
+
+.vnext3d-mobile-coaching > summary::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  width: 3px;
+  background: var(--gs-cyan);
+}
+
+.vnext3d-mobile-coaching > summary > span {
+  color: var(--gs-cyan);
+  font: 900 9px/1 var(--font-display);
+  letter-spacing: 0.4px;
+}
+
+.vnext3d-mobile-coaching > summary > strong {
+  overflow: hidden;
+  color: var(--gs-white);
+  font: 800 15px/1.15 var(--font-display);
+  letter-spacing: 0.1px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vnext3d-mobile-coaching > summary > small {
+  overflow: hidden;
+  color: var(--gs-muted);
+  font: 700 11px/1.25 var(--font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vnext3d-mobile-coaching > summary > svg {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  align-self: center;
+  width: 17px;
+  height: 17px;
+  color: var(--gs-muted);
+  transition: transform 160ms ease;
+}
+
+.vnext3d-mobile-coaching[open] > summary > svg {
+  transform: rotate(180deg);
+}
+
+.vnext3d-mobile-coaching > div {
+  max-height: 46svh;
+  overflow-y: auto;
+  padding: 10px 12px 14px;
+  border-top: 1px solid var(--gs-border);
+  --play-accent: var(--gs-cyan);
+  --play-border: var(--gs-border);
+  --play-dim: var(--gs-muted);
+  --play-muted: var(--gs-muted);
+  --play-panel: var(--gs-panel);
+  --play-text: var(--gs-white);
+}
+
+@media (max-width: 699px) {
+  .app-header {
+    z-index: 100;
+    padding: 4px 6px 5px;
+  }
+
+  .app-header-main {
+    gap: 3px 6px;
+  }
+
+  .app-brand-copy {
+    gap: 1px;
+  }
+
+  .app-brand-meta {
+    display: none;
+  }
+
+  .workspace-switcher {
+    gap: 3px;
+  }
+
+  .workspace-segment-group {
+    gap: 1px;
+    padding: 1px;
+  }
+
+  .workspace-segment-button {
+    padding-inline: 3px;
+  }
+
+  .play-workspace-mobile {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    align-items: stretch;
+    padding: 2px 4px 0;
+    overflow: hidden;
+  }
+
+  .play-mobile-title {
+    width: 100%;
+    padding: 2px 5px 4px;
+  }
+
+  .play-mobile-title .play-identity {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+  }
+
+  .play-mobile-title .play-identity > small {
+    margin: 0;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  .play-mobile-title .play-identity > div {
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .play-mobile-title .play-identity > div > span {
+    width: 5px;
+    height: 5px;
+  }
+
+  .play-mobile-title .play-identity h1 {
+    font-size: 16px;
+  }
+
+  .play-mobile-title .play-identity p {
+    display: none;
+  }
+
+  .play-mobile-rink {
+    min-height: 280px;
+    overflow: hidden;
+  }
+
+  .play-mobile-rink .play-rink-frame {
+    width: auto;
+    height: 100%;
+    max-height: none;
+  }
+
+  .play-mobile-timeline {
+    width: 100%;
+    padding: 3px 1px 2px;
+  }
+
+  .play-mobile-timeline .play-phase-summary {
+    min-height: 48px;
+    padding: 5px 8px;
+    text-align: left;
+  }
+
+  .play-phase-copy > strong {
+    font-size: 13px;
+  }
+
+  .play-phase-copy > small {
+    font-size: 10.5px;
+  }
+
+  .play-mobile-timeline .playback-controls {
+    gap: 2px;
+  }
+
+  .play-mobile-timeline .playback-transport-row {
+    min-height: 42px;
+  }
+
+  .play-mobile-timeline .playback-timeline-row {
+    min-height: 34px;
+  }
+
+  .play-mobile-timeline .playback-range-wrap,
+  .play-mobile-timeline .playback-range-wrap input[type='range'] {
+    min-height: 34px;
+  }
+
+  .play-bottom-sheet {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .play-bottom-sheet-toggle {
+    min-height: 44px;
+    padding: 8px 11px 6px;
+  }
+
+  .play-bottom-sheet-handle {
+    top: 4px;
+    width: 30px;
+  }
+
+  .play-bottom-sheet-content .play-neighbor-nav {
+    margin-top: 8px;
+  }
+
+  .app-content-replay3d {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+  }
+
+  .vnext3d-preview-view {
+    min-height: 100%;
+    grid-template-rows: minmax(440px, 61svh) auto;
+    overflow: visible;
+  }
+
+  .vnext3d-preview-stage:not(:fullscreen):not(.is-immersive) {
+    min-height: 440px;
+    height: 61svh;
+    max-height: 620px;
+  }
+
+  .vnext3d-preview-stage .vnext3d-stage-camera-presets {
+    top: 58px;
+  }
+
+  .vnext3d-preview-stage .vnext3d-role-camera-selector {
+    top: 108px;
+  }
+
+  .vnext3d-preview-console {
+    min-height: 0;
+  }
+
+  .vnext3d-preview-console::before {
+    display: none;
+  }
+
+  .vnext3d-preview-transport {
+    padding: 5px 8px max(7px, env(safe-area-inset-bottom));
+  }
+
+  .vnext3d-preview-transport .playback-phase-selector {
+    display: none;
+  }
+
+  .vnext3d-preview-transport .playback-phase-markers {
+    display: block;
+  }
+
+  .vnext3d-preview-transport .playback-controls {
+    gap: 2px;
+  }
+
+  .vnext3d-preview-transport .playback-transport-row {
+    min-height: 44px;
+  }
+
+  .vnext3d-preview-transport .playback-timeline-row {
+    min-height: 38px;
+  }
+
+  .play-mobile-timeline .playback-timeline-row,
+  .tactics-playback-shell .playback-timeline-row,
+  .vnext3d-preview-transport .playback-timeline-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .play-mobile-timeline .playback-phase-jump,
+  .tactics-playback-shell .playback-phase-jump,
+  .vnext3d-preview-transport .playback-phase-jump {
+    display: block;
+  }
+
+  .playback-phase-jump select {
+    width: 88px;
+    min-height: 40px;
+    padding: 0 22px 0 7px;
+    border: 1px solid var(--playback-border);
+    border-radius: 5px;
+    color: var(--playback-text);
+    background: var(--playback-panel);
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+  }
+
+  .vnext3d-preview-transport .playback-range-wrap,
+  .vnext3d-preview-transport .playback-range-wrap input[type='range'] {
+    min-height: 38px;
+  }
+
+  .vnext3d-camera-operator.is-collapsed {
+    display: grid;
+    grid-auto-flow: initial;
+  }
+
+  .vnext3d-camera-operator.is-collapsed .vnext3d-camera-tools-toggle {
+    border-color: color-mix(in srgb, var(--gs-cyan) 58%, var(--gs-border));
+    color: var(--gs-cyan);
+  }
+
+  .vnext3d-camera-operator:not(.is-collapsed) .vnext3d-camera-tools-toggle {
+    border-color: var(--gs-border);
+    background: var(--gs-overlay-hover);
+    color: var(--gs-white);
+  }
+
+  .vnext3d-content-picker {
+    padding: 5px 8px;
+  }
+}
+
+@media (max-width: 390px) {
+  .app-brand-name {
+    font-size: 16px;
+  }
+
+  .app-brand-crest {
+    width: 25px;
+    height: 25px;
+    flex-basis: 25px;
+  }
+
+  .workspace-segment-button {
+    gap: 2px;
+    font-size: 9px;
+  }
+
+  .workspace-segment-icon {
+    width: 11px;
+    height: 11px;
+    flex-basis: 11px;
+  }
+
+  .play-mobile-rink {
+    min-height: 260px;
+  }
+
+  .vnext3d-preview-view {
+    grid-template-rows: minmax(410px, 59svh) auto;
+  }
+
+  .vnext3d-preview-stage:not(:fullscreen):not(.is-immersive) {
+    min-height: 410px;
+    height: 59svh;
+  }
+}
+
+/* Mobile replay final containment overrides. */
+@media (max-width: 699px) {
+  .play-workspace-mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .play-workspace-mobile.is-coaching-open {
+    grid-template-rows: auto auto auto auto;
+    align-content: start;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+
+  .play-mobile-title,
+  .play-mobile-rink,
+  .play-mobile-timeline,
+  .play-bottom-sheet {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .play-phase-copy > small,
+  .vnext3d-mobile-coaching > summary > small {
+    display: -webkit-box;
+    overflow: hidden;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .vnext3d-mobile-coaching:not([open]) > :not(summary) {
+    display: none;
+  }
+
+  .vnext3d-preview-console {
+    align-content: start;
+  }
+
+  .vnext3d-preview-view {
+    align-content: start;
+  }
+}
+
+/* Installed mobile shell. Primary destinations live at the thumb edge while
+   the header keeps only identity, view mode, and utilities. */
+.mobile-bottom-nav,
+.app-header-more {
+  display: none;
+}
+
+.play-library-backdrop {
+  position: absolute;
+  z-index: 19;
+  inset: 0;
+  background: var(--gs-scrim);
+  touch-action: none;
+}
+
+@media (max-width: 699px), (max-height: 520px) and (orientation: landscape) {
+  .app-header {
+    z-index: 100;
+    padding:
+      max(4px, env(safe-area-inset-top))
+      max(6px, env(safe-area-inset-right))
+      5px
+      max(6px, env(safe-area-inset-left));
+  }
+
+  .app-header-main {
+    min-height: 44px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 44px;
+    gap: 0 6px;
+  }
+
+  .app-header-left {
+    grid-column: 1;
+    grid-row: 1;
+    overflow: hidden;
+  }
+
+  .app-header-workspace {
+    display: none;
+  }
+
+  .app-header-actions {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 3px;
+  }
+
+  .app-header-collapse {
+    display: grid;
+  }
+
+  .app-header.is-mobile-collapsed {
+    min-height: 0;
+    height: 0;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+  }
+
+  .app-header.is-mobile-collapsed::after {
+    display: none;
+  }
+
+  .app-header.is-mobile-collapsed .app-header-main {
+    min-height: 0;
+    height: 0;
+    display: block;
+    overflow: visible;
+  }
+
+  .app-header.is-mobile-collapsed .app-header-left,
+  .app-header.is-mobile-collapsed .app-header-workspace,
+  .app-header.is-mobile-collapsed .app-header-actions > :not(.app-header-collapse) {
+    display: none;
+  }
+
+  .app-header.is-mobile-collapsed .app-header-actions {
+    position: fixed;
+    z-index: 210;
+    top: max(7px, env(safe-area-inset-top));
+    right: max(7px, env(safe-area-inset-right));
+    display: block;
+  }
+
+  .app-header.is-mobile-collapsed .app-header-collapse {
+    width: 40px;
+    height: 40px;
+    border-color: color-mix(in srgb, var(--header-accent) 55%, var(--header-border));
+    background: color-mix(in srgb, var(--gs-overlay-solid) 94%, transparent);
+    color: var(--header-accent);
+    box-shadow: 0 8px 22px var(--gs-shadow);
+    backdrop-filter: blur(12px);
+  }
+
+  .app-header-help,
+  .app-header-theme {
+    display: none;
+  }
+
+  .app-header-more {
+    position: relative;
+    display: block;
+  }
+
+  .app-header-more > summary {
+    list-style: none;
+  }
+
+  .app-header-more > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .app-header-more[open] > summary {
+    border-color: var(--header-accent);
+    background: var(--header-accent-bg);
+    color: var(--header-accent);
+  }
+
+  .app-header-more-menu {
+    position: absolute;
+    z-index: 240;
+    top: calc(100% + 7px);
+    right: 0;
+    width: 154px;
+    overflow: hidden;
+    border: 1px solid var(--header-border);
+    border-radius: 6px;
+    background: var(--gs-overlay-solid);
+    box-shadow: 0 16px 34px var(--gs-shadow);
+  }
+
+  .app-header-more-menu button {
+    width: 100%;
+    min-height: 46px;
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    align-items: center;
+    gap: 9px;
+    padding: 0 12px;
+    border: 0;
+    border-bottom: 1px solid var(--header-border);
+    background: transparent;
+    color: var(--header-text);
+    font-size: 12px;
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .app-header-more-menu button:last-child {
+    border-bottom: 0;
+  }
+
+  .app-header-more-menu button:active {
+    background: var(--header-accent-bg);
+  }
+
+  .app-header-more-menu svg {
+    width: 17px;
+    height: 17px;
+    color: var(--header-accent);
+  }
+
+  .mobile-bottom-nav {
+    position: relative;
+    z-index: 110;
+    min-height: 58px;
+    display: grid;
+    flex: 0 0 auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding:
+      3px
+      max(5px, env(safe-area-inset-right))
+      max(5px, env(safe-area-inset-bottom))
+      max(5px, env(safe-area-inset-left));
+    border-top: 1px solid var(--gs-border);
+    background: color-mix(in srgb, var(--gs-graphite) 97%, transparent);
+    box-shadow: 0 -9px 26px var(--gs-shadow);
+  }
+
+  .mobile-bottom-nav[data-has-mode-switch='true'] {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .mobile-bottom-nav::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gs-red) 0 26%, var(--gs-cyan) 26% 34%, transparent 34%);
+    pointer-events: none;
+  }
+
+  .mobile-bottom-nav button {
+    position: relative;
+    min-width: 0;
+    min-height: 50px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 2px;
+    padding: 3px 2px 1px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--gs-muted);
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+    text-transform: uppercase;
+    transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+  }
+
+  .mobile-bottom-nav button::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    width: 30px;
+    height: 3px;
+    border-radius: 0 0 2px 2px;
+    background: transparent;
+    transform: translateX(-50%);
+  }
+
+  .mobile-bottom-nav-icon {
+    width: 25px;
+    height: 25px;
+    display: grid;
+    place-items: center;
+    border-radius: 5px;
+  }
+
+  .mobile-bottom-nav svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+  }
+
+  .mobile-bottom-nav button.is-active {
+    background: var(--gs-accent-bg);
+    color: var(--gs-cyan);
+  }
+
+  .mobile-bottom-nav button.is-active::before {
+    background: var(--gs-cyan);
+  }
+
+  .mobile-bottom-nav button.is-active .mobile-bottom-nav-icon {
+    color: var(--gs-cyan);
+    transform: translateY(-1px);
+  }
+
+  .mobile-bottom-nav .mobile-bottom-nav-mode {
+    color: var(--gs-red);
+    background: color-mix(in srgb, var(--gs-red) 8%, transparent);
+  }
+
+  .mobile-bottom-nav .mobile-bottom-nav-mode::before {
+    background: var(--gs-red);
+  }
+
+  .mobile-bottom-nav .mobile-bottom-nav-mode .mobile-bottom-nav-icon {
+    color: var(--gs-red);
+  }
+
+  .mobile-bottom-nav button:active {
+    transform: scale(0.97);
+  }
+
+  .stats-data-note a {
+    width: calc(100% - 19px);
+    min-height: 40px;
+    justify-content: space-between;
+    padding: 0 10px;
+    border: 1px solid var(--stats-border);
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--stats-accent) 7%, var(--stats-panel));
+    text-decoration: none;
+  }
+}
+
+@media (max-width: 430px) {
+  .tactics-mobile-rink {
+    width: min(73vw, 290px);
+  }
+}
+
+@media (max-width: 370px) {
+  .app-brand-name {
+    font-size: 15px;
+  }
+
+  .app-brand-crest {
+    width: 23px;
+    height: 23px;
+    flex-basis: 23px;
+  }
+
+  .app-header-workspace,
+  .app-header-workspace .workspace-switcher,
+  .app-header-workspace .workspace-view-group {
+    width: 78px;
+  }
+
+  .tactics-mobile-rink {
+    width: min(72vw, 280px);
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .app-header {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  .mobile-bottom-nav {
+    min-height: 47px;
+    padding-top: 2px;
+    padding-bottom: max(2px, env(safe-area-inset-bottom));
+  }
+
+  .mobile-bottom-nav button {
+    min-height: 42px;
+    grid-template-columns: 20px auto;
+    align-content: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 5px;
+  }
+
+  .mobile-bottom-nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-bottom-nav svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (display-mode: standalone) {
+  .app-shell {
+    min-height: 100dvh;
+  }
+
+  .mobile-bottom-nav {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Final rink-first mobile density pass. Browsing and authoring controls stay
+   reachable without making the tactical surface pay their full height. */
+.tactics-mobile-browser {
+  width: min(100%, 360px);
+  margin-bottom: 5px;
+  border: 1px solid var(--gs-border);
+  border-radius: 6px;
+  background: var(--gs-graphite);
+}
+
+.tactics-mobile-browser > summary {
+  position: relative;
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  grid-template-rows: auto auto;
+  align-content: center;
+  gap: 1px 8px;
+  padding: 6px 10px 6px 13px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.tactics-mobile-browser > summary::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--gs-cyan);
+}
+
+.tactics-mobile-browser > summary::-webkit-details-marker {
+  display: none;
+}
+
+.tactics-mobile-browser > summary > span {
+  color: var(--gs-cyan);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.tactics-mobile-browser > summary > strong {
+  overflow: hidden;
+  color: var(--gs-white);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tactics-mobile-browser > summary > svg {
+  width: 18px;
+  height: 18px;
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  color: var(--gs-muted);
+  transition: transform 140ms ease;
+}
+
+.tactics-mobile-browser[open] > summary > svg {
+  transform: rotate(180deg);
+}
+
+.tactics-mobile-browser > div {
+  padding: 7px 5px 1px;
+  border-top: 1px solid var(--gs-border);
+}
+
+.tactics-mobile-browser .tactics-selector {
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 699px) {
+  .tactics-learn {
+    padding-top: 5px !important;
+  }
+
+  .tactics-mobile-workspace .tactics-comparison {
+    margin-bottom: 5px !important;
+  }
+
+  .tactics-mobile-workspace .tactics-comparison button {
+    min-height: 42px !important;
+    padding-block: 5px !important;
+  }
+
+  .tactics-phase-indicator,
+  .tactics-playback-shell .playback-phase-selector {
+    display: none;
+  }
+
+  .tactics-mobile-transport {
+    gap: 0;
+  }
+
+  .tactics-mobile-transport > div:first-child {
+    min-height: 32px !important;
+    padding: 5px 8px !important;
+  }
+
+  .tactics-playback-shell {
+    width: 100%;
+  }
+
+  .tactics-playback-shell .playback-controls {
+    gap: 2px;
+  }
+
+  .tactics-playback-shell .playback-phase-markers {
+    display: block;
+  }
+
+  .tactics-playback-shell .playback-transport-row {
+    min-height: 44px;
+  }
+
+  .tactics-playback-shell .playback-timeline-row,
+  .tactics-playback-shell .playback-range-wrap,
+  .tactics-playback-shell .playback-range-wrap input[type='range'] {
+    min-height: 34px;
+  }
+
+  .playmaker-toolbar {
+    grid-template-columns: minmax(0, 1fr) 136px !important;
+    grid-template-rows: auto 44px !important;
+    gap: 6px 8px !important;
+    padding: 6px 8px !important;
+  }
+
+  .playmaker-title-block {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    gap: 1px;
+  }
+
+  .playmaker-title-input {
+    min-height: 40px !important;
+  }
+
+  .playmaker-description-input {
+    min-height: 40px !important;
+    max-height: 40px;
+  }
+
+  .playmaker-view-switch {
+    width: 136px;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    align-self: start;
+    justify-self: end;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .playmaker-toolbar-actions {
+    width: 100%;
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .playmaker-toolbar-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .playmaker-workspace[data-view-mode='3d'] .playmaker-body {
+    overflow: hidden;
+  }
+
+  .playmaker-workspace[data-view-mode='3d'] .playmaker-stage {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .playmaker-workspace[data-view-mode='3d'] .playmaker-inspector {
+    display: none;
+  }
+
+  .app-content-replay3d {
+    overflow: hidden !important;
+  }
+
+  .vnext3d-preview-view {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden;
+  }
+
+  .vnext3d-preview-stage:not(:fullscreen):not(.is-immersive) {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .tactics-mobile-browser {
+    position: relative;
+    z-index: 12;
+    width: 100%;
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+  }
+
+  .tactics-mobile-browser > summary {
+    min-height: 44px;
+  }
+
+  .tactics-mobile-browser[open] > div {
+    position: absolute;
+    top: calc(100% + 3px);
+    right: 0;
+    width: min(330px, calc(100vw - 174px));
+    border: 1px solid var(--gs-border);
+    border-radius: 6px;
+    background: var(--gs-overlay-solid);
+    box-shadow: 0 14px 30px var(--gs-shadow);
+  }
+
+  .tactics-mobile-workspace .tactics-comparison {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .tactics-mobile-transport {
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .tactics-neighbor-nav {
+    grid-column: 2;
+    grid-row: 4;
+  }
+
+  .tactics-mobile-rink {
+    grid-row: 1 / 5;
+  }
+
+  .tactics-mobile-coaching {
+    grid-row: 5;
+  }
+}
+
+/* Short landscape is a separate tactical workspace, not a squashed portrait
+   screen. Keep the vertical rink readable and put transport at the thumb edge
+   without allowing it to cover the court. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .play-workspace-mobile,
+  .play-workspace-tablet {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    align-items: stretch;
+    grid-template-columns: clamp(150px, 22vw, 184px) minmax(0, 1fr);
+    grid-template-rows: 40px 58px minmax(0, 1fr);
+    gap: 0 8px;
+    padding: 0 7px;
+    overflow: hidden;
+  }
+
+  .play-mobile-title {
+    min-width: 0;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    padding: 2px 4px;
+  }
+
+  .play-mobile-title .play-identity {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+    text-align: left;
+  }
+
+  .play-mobile-title .play-identity > small {
+    margin: 0;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  .play-mobile-title .play-identity > div {
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .play-mobile-title .play-identity {
+    min-height: 40px;
+  }
+
+  .play-mobile-title .play-identity h1 {
+    font-size: 15px;
+  }
+
+  .play-mobile-title .play-identity p {
+    display: none;
+  }
+
+  .play-mobile-rink {
+    min-width: 0;
+    min-height: 0;
+    grid-column: 1;
+    grid-row: 1 / 4;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .play-mobile-rink .play-rink-frame {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .play-mobile-rink .play-rink-frame > svg {
+    display: block;
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .play-mobile-timeline {
+    position: static;
+    z-index: auto;
+    min-width: 0;
+    grid-column: 2;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: clamp(122px, 20vw, 160px) minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+    padding: 2px 4px;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .play-mobile-timeline .play-phase-summary {
+    min-height: 44px;
+    max-height: 44px;
+    display: grid;
+    padding: 4px 7px;
+    white-space: normal;
+  }
+
+  .play-mobile-timeline .play-phase-copy > strong {
+    font-size: 12px;
+  }
+
+  .play-mobile-timeline .play-phase-copy > small {
+    display: none;
+  }
+
+  .play-mobile-timeline .playback-controls,
+  .vnext3d-preview-transport .playback-controls {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto minmax(110px, 1fr);
+    align-items: center;
+    gap: 7px;
+  }
+
+  .play-mobile-timeline .playback-phase-selector,
+  .vnext3d-preview-transport .playback-phase-selector {
+    display: none;
+  }
+
+  .play-mobile-timeline .playback-transport-row,
+  .vnext3d-preview-transport .playback-transport-row {
+    min-width: 0;
+    min-height: 44px;
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .play-mobile-timeline .playback-timeline-row,
+  .vnext3d-preview-transport .playback-timeline-row {
+    min-width: 0;
+    min-height: 44px;
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .play-mobile-timeline .playback-range-wrap,
+  .play-mobile-timeline .playback-range-wrap input[type='range'],
+  .vnext3d-preview-transport .playback-range-wrap,
+  .vnext3d-preview-transport .playback-range-wrap input[type='range'] {
+    min-height: 44px;
+  }
+
+  .play-bottom-sheet {
+    min-width: 0;
+    grid-column: 2;
+    grid-row: 3;
+    align-self: end;
+  }
+
+  .play-bottom-sheet-toggle {
+    min-height: 44px;
+    padding-block: 5px;
+  }
+
+  .play-bottom-sheet.is-open {
+    position: static;
+    z-index: auto;
+    width: 100%;
+    min-height: 0;
+    max-height: none;
+    align-self: stretch;
+    display: grid;
+    grid-template-rows: 40px minmax(0, 1fr);
+    margin: 0;
+    overflow: hidden;
+    border-bottom: 1px solid var(--play-border);
+    border-radius: 6px 6px 0 0;
+    box-shadow: none;
+  }
+
+  .play-bottom-sheet.is-open .play-bottom-sheet-toggle {
+    min-height: 40px;
+    padding-block: 3px;
+  }
+
+  .play-bottom-sheet.is-open .play-bottom-sheet-content {
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    padding: 5px 7px 7px;
+  }
+
+  .play-bottom-sheet.is-open .team-jobs-panel {
+    gap: 5px;
+  }
+
+  .play-bottom-sheet.is-open .team-jobs-heading {
+    gap: 1px;
+  }
+
+  .play-bottom-sheet.is-open .team-jobs-heading > span {
+    display: none;
+  }
+
+  .play-bottom-sheet.is-open .team-jobs-heading > strong {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.2;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .play-bottom-sheet.is-open .team-job-lenses {
+    grid-template-columns: repeat(4, minmax(58px, 1fr));
+  }
+
+  .play-bottom-sheet.is-open .team-job-lenses button {
+    min-height: 40px !important;
+  }
+
+  .play-bottom-sheet.is-open .team-job-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .play-bottom-sheet.is-open .team-job-card {
+    min-height: 70px;
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 4px;
+    padding: 5px 6px;
+  }
+
+  .play-bottom-sheet.is-open .team-job-card p {
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  .play-bottom-sheet.is-open .play-mobile-view-tools,
+  .play-bottom-sheet.is-open .play-strategy-button,
+  .play-bottom-sheet.is-open .play-neighbor-nav {
+    display: none;
+  }
+
+  .app-content-replay3d {
+    position: relative;
+    overflow: hidden !important;
+  }
+
+  .app-content-replay3d .vnext3d-preview-view {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    display: block;
+    overflow: hidden;
+  }
+
+  .app-content-replay3d .vnext3d-preview-stage:not(:fullscreen):not(.is-immersive) {
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .vnext3d-preview-console {
+    position: absolute;
+    z-index: 9;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    min-height: 52px;
+    display: grid;
+    grid-template-columns: minmax(154px, 0.58fr) minmax(440px, 1.42fr);
+    align-items: stretch;
+    padding:
+      0 max(7px, env(safe-area-inset-right))
+      max(3px, env(safe-area-inset-bottom))
+      max(7px, env(safe-area-inset-left));
+    border-top: 1px solid var(--gs-border);
+    background: color-mix(in srgb, var(--gs-overlay-solid) 94%, transparent);
+    box-shadow: 0 -10px 24px var(--gs-shadow);
+  }
+
+  .vnext3d-preview-console::before {
+    display: none;
+  }
+
+  .vnext3d-mobile-coaching {
+    position: relative;
+    min-width: 0;
+    grid-column: 1;
+    grid-row: 1;
+    border: 0;
+    background: transparent;
+  }
+
+  .vnext3d-mobile-coaching > summary {
+    min-height: 48px;
+    grid-template-columns: minmax(0, 1fr) 18px;
+    grid-template-rows: auto auto;
+    gap: 1px 5px;
+    padding: 5px 8px 5px 11px;
+  }
+
+  .vnext3d-mobile-coaching > summary::before {
+    top: 6px;
+    bottom: 6px;
+  }
+
+  .vnext3d-mobile-coaching > summary > span {
+    font-size: 8px;
+  }
+
+  .vnext3d-mobile-coaching > summary > strong {
+    font-size: 12px;
+  }
+
+  .vnext3d-mobile-coaching > summary > small {
+    display: none;
+  }
+
+  .vnext3d-mobile-coaching[open] > div {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 5px);
+    left: 0;
+    width: min(420px, calc(100vw - 16px));
+    max-height: min(230px, calc(100dvh - 118px));
+    border: 1px solid var(--gs-border);
+    border-radius: 6px;
+    background: var(--gs-overlay-solid);
+    box-shadow: 0 14px 32px var(--gs-shadow);
+  }
+
+  .vnext3d-preview-transport {
+    min-width: 0;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    padding: 2px 0;
+  }
+
+  .vnext3d-content-picker {
+    position: absolute;
+    right: max(7px, env(safe-area-inset-right));
+    bottom: calc(100% + 5px);
+    width: min(300px, calc(100vw - 16px));
+    border: 1px solid var(--gs-border);
+    border-radius: 6px;
+    background: var(--gs-overlay-solid);
+    box-shadow: 0 12px 28px var(--gs-shadow);
+  }
+
+  .vnext3d-preview-stage .vnext3d-stage-camera-presets {
+    top: 7px;
+  }
+
+  .vnext3d-sequence-dock {
+    top: 7px;
+    left: max(7px, env(safe-area-inset-left));
+    width: min(260px, calc(100% - 14px));
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+  }
+
+  .vnext3d-sequence-dock button {
+    min-height: 40px;
+  }
+
+  .vnext3d-sequence-current {
+    grid-template-columns: 18px minmax(0, 1fr) 48px;
+    gap: 4px;
+  }
+
+  .vnext3d-sequence-current > svg {
+    width: 15px;
+    height: 15px;
+    margin-left: 0;
+  }
+
+  .vnext3d-sequence-current small {
+    font-size: 7px;
+  }
+
+  .vnext3d-sequence-current strong {
+    font-size: 10px;
+  }
+
+  .vnext3d-sequence-browse {
+    padding-inline: 4px;
+  }
+
+  .vnext3d-sequence-browse > span {
+    font-size: 0;
+  }
+
+  .vnext3d-sequence-browse > span::after {
+    content: 'BROWSE';
+    font-size: 7px;
+  }
+
+  .vnext3d-preview-stage .vnext3d-role-camera-selector {
+    top: 55px;
+  }
+
+  .playmaker-workspace {
+    grid-template-rows: 52px minmax(0, 1fr) 48px;
+  }
+
+  .playmaker-toolbar {
+    min-height: 52px;
+    padding-block: 3px !important;
+  }
+
+  .playmaker-title-input {
+    min-height: 44px !important;
+  }
+
+  .playmaker-body,
+  .playmaker-stage {
+    min-height: 0;
+  }
+
+  .playmaker-timeline {
+    min-height: 48px;
+    grid-template-rows: 44px;
+    padding-block: 2px;
+  }
+}
+
+/* Installed-app safe areas. Dialogs and walkthrough controls must remain clear
+   of sensor housings and the home indicator in both orientations. */
+@media (max-width: 720px), (pointer: coarse) {
+  .guide-backdrop,
+  .playmaker-modal-backdrop,
+  .account-backdrop,
+  .stats-manager-backdrop {
+    padding:
+      max(10px, env(safe-area-inset-top))
+      max(10px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
+  }
+
+  .guide-backdrop {
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+    padding-left: max(0px, env(safe-area-inset-left));
+  }
+
+  .guide-panel {
+    height: min(
+      92dvh,
+      calc(100dvh - max(10px, env(safe-area-inset-top)) - max(10px, env(safe-area-inset-bottom)))
+    );
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .guide-nav {
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
+  }
+
+  .guide-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .guide-nav button {
+    scroll-snap-align: start;
+  }
+
+  .playmaker-modal,
+  .account-dialog {
+    max-height: calc(
+      100dvh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom))
+    );
+    overscroll-behavior: contain;
+  }
+
+  .playmaker-tutorial-card {
+    right: max(10px, env(safe-area-inset-right)) !important;
+    left: max(10px, env(safe-area-inset-left)) !important;
+    max-height: min(
+      52dvh,
+      calc(100dvh - max(12px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)))
+    );
+  }
+
+  .stats-tabs {
+    position: sticky;
+    z-index: 8;
+    top: 0;
+    padding: 6px max(10px, env(safe-area-inset-right)) 6px max(10px, env(safe-area-inset-left));
+    border-bottom: 1px solid var(--stats-border);
+    background: color-mix(in srgb, var(--stats-bg) 94%, transparent);
+    box-shadow: 0 7px 18px color-mix(in srgb, var(--gs-shadow) 44%, transparent);
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Rink-first phone command surface. The court remains unobstructed; compact
+   coaching and transport stay in a dedicated dock immediately below it. */
+.vnext3d-mobile-camera-picker {
+  position: absolute;
+  z-index: 9;
+  top: 10px;
+  right: 10px;
+  width: 112px;
+  color: var(--gs-white);
+}
+
+.vnext3d-mobile-camera-current,
+.vnext3d-mobile-camera-picker > div {
+  border: 1px solid color-mix(in srgb, var(--gs-border) 80%, var(--gs-muted));
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--gs-overlay-solid) 94%, transparent);
+  box-shadow: 0 10px 26px var(--gs-shadow);
+  backdrop-filter: blur(12px);
+}
+
+.vnext3d-mobile-camera-current {
+  width: 100%;
+  min-height: 40px;
+  display: grid;
+  grid-template-columns: 17px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  color: var(--gs-cyan);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 850;
+  text-align: left;
+}
+
+.vnext3d-mobile-camera-current svg {
+  width: 16px;
+  height: 16px;
+}
+
+.vnext3d-mobile-camera-current svg:last-child {
+  width: 13px;
+  height: 13px;
+  color: var(--gs-muted);
+  transition: transform 150ms ease;
+}
+
+.vnext3d-mobile-camera-picker.is-open .vnext3d-mobile-camera-current svg:last-child {
+  transform: rotate(180deg);
+}
+
+.vnext3d-mobile-camera-picker > div {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.vnext3d-mobile-camera-picker > div > button {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-bottom: 1px solid var(--gs-border);
+  background: transparent;
+  color: var(--gs-muted);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  text-align: left;
+}
+
+.vnext3d-mobile-camera-picker > div > button:last-child {
+  border-bottom: 0;
+}
+
+.vnext3d-mobile-camera-picker > div > button[aria-pressed='true'] {
+  background: var(--gs-accent-bg);
+  color: var(--gs-cyan);
+}
+
+@media (max-width: 699px) and (orientation: portrait) {
+  .play-workspace-mobile {
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: 30px minmax(0, 1fr) 82px 44px;
+    padding: 0 4px;
+  }
+
+  .play-mobile-title {
+    align-self: center;
+    padding: 0 5px;
+  }
+
+  .play-mobile-title .play-identity {
+    min-height: 30px;
+  }
+
+  .play-mobile-rink {
+    min-height: 0;
+  }
+
+  .play-mobile-timeline {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(122px, 0.36fr) minmax(0, 0.64fr);
+    align-items: center;
+    gap: 5px;
+    padding: 3px 0;
+  }
+
+  .play-mobile-timeline .play-phase-summary {
+    min-height: 76px;
+    max-height: 76px;
+    align-content: center;
+  }
+
+  .play-mobile-timeline .play-phase-copy > small {
+    -webkit-line-clamp: 2;
+  }
+
+  .play-mobile-timeline .playback-controls {
+    min-width: 0;
+  }
+
+  .play-mobile-timeline .playback-transport-row {
+    min-height: 40px;
+  }
+
+  .play-mobile-timeline .playback-timeline-row,
+  .play-mobile-timeline .playback-range-wrap,
+  .play-mobile-timeline .playback-range-wrap input[type='range'] {
+    min-height: 34px;
+  }
+
+  .play-bottom-sheet-toggle {
+    min-height: 44px;
+  }
+
+  .app-content-replay3d .vnext3d-preview-view {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) 90px;
+    overflow: hidden;
+  }
+
+  .app-content-replay3d .vnext3d-preview-stage:not(:fullscreen):not(.is-immersive) {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .vnext3d-preview-console {
+    position: relative;
+    z-index: 9;
+    min-width: 0;
+    min-height: 90px;
+    display: grid;
+    grid-template-columns: minmax(108px, 0.29fr) minmax(0, 0.71fr);
+    align-items: stretch;
+    padding: 0 4px max(2px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--gs-border);
+    background: var(--gs-graphite);
+    box-shadow: 0 -7px 20px color-mix(in srgb, var(--gs-shadow) 56%, transparent);
+  }
+
+  .vnext3d-mobile-coaching {
+    min-width: 0;
+    grid-column: 1;
+    grid-row: 1;
+    border: 0;
+  }
+
+  .vnext3d-mobile-coaching > summary {
+    min-height: 82px;
+    grid-template-rows: auto auto;
+    padding: 7px 6px 7px 10px;
+  }
+
+  .vnext3d-mobile-coaching > summary > strong {
+    font-size: 12px;
+    white-space: normal;
+    -webkit-line-clamp: 2;
+  }
+
+  .vnext3d-mobile-coaching > summary > small {
+    display: none;
+  }
+
+  .vnext3d-mobile-coaching[open] > div {
+    position: absolute;
+    right: 4px;
+    bottom: calc(100% + 5px);
+    left: 4px;
+    width: auto;
+    max-height: min(44dvh, 310px);
+    border: 1px solid var(--gs-border);
+    border-radius: 6px;
+    background: var(--gs-overlay-solid);
+    box-shadow: 0 16px 34px var(--gs-shadow);
+  }
+
+  .vnext3d-preview-transport {
+    min-width: 0;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    padding: 2px 0 2px 4px;
+  }
+
+  .play-mobile-timeline .playback-transport-buttons,
+  .vnext3d-preview-transport .playback-transport-buttons {
+    grid-template-columns: 44px 44px 44px 64px 44px;
+    gap: 2px;
+  }
+
+  .play-mobile-timeline .playback-play-button,
+  .vnext3d-preview-transport .playback-play-button {
+    width: 64px;
+  }
+
+  .vnext3d-preview-transport .playback-controls {
+    min-width: 0;
+    gap: 1px;
+  }
+
+  .vnext3d-preview-transport .playback-transport-row {
+    min-height: 42px;
+  }
+
+  .vnext3d-preview-transport .playback-timeline-row,
+  .vnext3d-preview-transport .playback-range-wrap,
+  .vnext3d-preview-transport .playback-range-wrap input[type='range'] {
+    min-height: 34px;
+  }
+
+  .vnext3d-camera-state {
+    display: none;
+  }
+
+  .vnext3d-mobile-camera-picker {
+    top: 7px;
+    right: max(52px, calc(env(safe-area-inset-right) + 52px));
+    width: 102px;
+  }
+
+  .vnext3d-sequence-dock {
+    top: 7px;
+    left: max(7px, env(safe-area-inset-left));
+    width: calc(100% - 170px);
+    min-width: 146px;
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+  }
+
+  .vnext3d-sequence-current {
+    grid-template-columns: 15px minmax(0, 1fr);
+  }
+
+  .vnext3d-sequence-browse {
+    display: none;
+  }
+
+  .vnext3d-preview-stage .vnext3d-role-camera-selector {
+    top: 54px;
+  }
+}
+
+@media (max-width: 359px) and (orientation: portrait) {
+  .play-workspace-mobile {
+    grid-template-rows: 30px minmax(0, 1fr) 118px 44px;
+  }
+
+  .play-mobile-timeline {
+    grid-template-columns: 1fr;
+    grid-template-rows: 42px 72px;
+  }
+
+  .play-mobile-timeline .play-phase-summary {
+    min-height: 42px;
+    max-height: 42px;
+  }
+
+  .play-mobile-timeline .play-phase-copy > small {
+    display: none;
+  }
+
+  .app-content-replay3d .vnext3d-preview-view {
+    grid-template-rows: minmax(0, 1fr) 124px;
+  }
+
+  .vnext3d-preview-console {
+    min-height: 124px;
+    grid-template-columns: 1fr;
+    grid-template-rows: 42px 78px;
+  }
+
+  .vnext3d-mobile-coaching > summary {
+    min-height: 42px;
+  }
+
+  .vnext3d-mobile-coaching {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .vnext3d-preview-transport {
+    grid-column: 1;
+    grid-row: 2;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 374px) and (orientation: portrait) {
+  .play-mobile-timeline .playback-transport-buttons,
+  .vnext3d-preview-transport .playback-transport-buttons {
+    grid-template-columns: repeat(5, 44px);
+    gap: 1px;
+  }
+
+  .play-mobile-timeline .playback-play-button,
+  .vnext3d-preview-transport .playback-play-button {
+    width: 44px;
+  }
+
+  .play-mobile-timeline .playback-play-button span,
+  .vnext3d-preview-transport .playback-play-button span {
+    display: none;
   }
 }

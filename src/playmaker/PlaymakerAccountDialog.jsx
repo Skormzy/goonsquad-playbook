@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAccount } from '../account/AccountContext';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import {
   createCloudPlaymakerShareUrl,
   deletePlaymakerDraftFromCloud,
@@ -49,6 +50,12 @@ export default function PlaymakerAccountDialog({ draft, onClose, onOpenDraft, op
   const [cloudDrafts, setCloudDrafts] = useState([]);
   const [guestMigration, setGuestMigration] = useState({ alreadyClaimed: false, draftCount: 0 });
   const storageOwnerRef = useRef(currentPlaymakerStorageOwnerId());
+  const closeButtonRef = useRef(null);
+  const dialogRef = useDialogFocus({
+    active: open,
+    initialFocusRef: closeButtonRef,
+    onClose,
+  });
 
   useEffect(() => {
     if (account.busy) return;
@@ -117,10 +124,12 @@ export default function PlaymakerAccountDialog({ draft, onClose, onOpenDraft, op
   return (
     <div className="playmaker-modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section
+        ref={dialogRef}
         className="playmaker-modal playmaker-account-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="playmaker-account-title"
+        tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="playmaker-modal-header">
@@ -128,7 +137,7 @@ export default function PlaymakerAccountDialog({ draft, onClose, onOpenDraft, op
             <span className="playmaker-eyebrow">ACCOUNT</span>
             <h2 id="playmaker-account-title">Your created plays</h2>
           </div>
-          <button type="button" className="playmaker-icon-button" onClick={onClose} aria-label="Close account" title="Close">
+          <button ref={closeButtonRef} type="button" className="playmaker-icon-button" onClick={onClose} aria-label="Close account" title="Close">
             <X aria-hidden="true" />
           </button>
         </header>

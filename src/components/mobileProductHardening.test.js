@@ -2,7 +2,12 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8');
+const app = readFileSync(new URL('../App.jsx', import.meta.url), 'utf8');
+const appContext = readFileSync(new URL('../context/AppContext.jsx', import.meta.url), 'utf8');
+const header = readFileSync(new URL('./Header.jsx', import.meta.url), 'utf8');
+const mobileBottomNav = readFileSync(new URL('./MobileBottomNav.jsx', import.meta.url), 'utf8');
 const playViewer = readFileSync(new URL('./PlayViewer.jsx', import.meta.url), 'utf8');
+const phaseControls = readFileSync(new URL('./PhaseControls.jsx', import.meta.url), 'utf8');
 const playback = readFileSync(new URL('./PlaybackControls.jsx', import.meta.url), 'utf8');
 const strategy = readFileSync(new URL('./TacticsLearn.jsx', import.meta.url), 'utf8');
 const playmaker = readFileSync(new URL('../playmaker/PlaymakerWorkspace.jsx', import.meta.url), 'utf8');
@@ -11,20 +16,34 @@ const playmaker3d = readFileSync(new URL('../playmaker/Playmaker3DPreview.jsx', 
 const production3d = readFileSync(new URL('./vnext3d/ProductionReplayPreview.jsx', import.meta.url), 'utf8');
 const tactical3d = readFileSync(new URL('../tactical3d/TacticalReplayPreview.jsx', import.meta.url), 'utf8');
 const audit = readFileSync(new URL('../../scripts/capture-mobile-product-audit.mjs', import.meta.url), 'utf8');
+const main = readFileSync(new URL('../main.jsx', import.meta.url), 'utf8');
+const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
+const manifest = JSON.parse(readFileSync(new URL('../../public/manifest.json', import.meta.url), 'utf8'));
+const serviceWorker = readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8');
+const pwaPrecache = readFileSync(new URL('../../scripts/inject-pwa-precache.mjs', import.meta.url), 'utf8');
+const publicBuildCheck = readFileSync(new URL('../../scripts/check-public-build.mjs', import.meta.url), 'utf8');
+const packageJson = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
 
 describe('mobile product hardening contracts', () => {
   it('keeps mobile play coaching in flow and exposes view tools in the team-plan sheet', () => {
     expect(playViewer).toContain('play-mobile-view-tools');
     expect(playViewer).toContain('team plan and view tools');
+    expect(playViewer).toContain("sheetOpen ? 'is-coaching-open' : ''");
+    expect(playViewer).toContain('useState(isShortLandscape)');
     expect(css).toContain('.play-bottom-sheet.is-open');
+    expect(css).toContain('.play-workspace-mobile.is-coaching-open');
+    expect(css).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))');
     expect(css).toMatch(/\.play-bottom-sheet\.is-open\s*\{[^}]*position:\s*relative/s);
   });
 
   it('keeps the complete strategy rink ahead of optional coaching detail', () => {
     expect(strategy).toContain('data-mobile-strategy-rink');
+    expect(strategy).toContain('<details className="tactics-mobile-browser">');
+    expect(strategy).toContain('aria-label="Browse strategy principles"');
     expect(strategy).toContain('<details className="tactics-mobile-coaching">');
     expect(css).toContain('width: min(75vw, 330px)');
-    expect(css).toContain('width: min(74vw, 290px)');
+    expect(css).toContain('width: min(73vw, 290px)');
+    expect(css).toContain('.tactics-mobile-browser > summary');
     expect(css).toContain('.tactics-phase-dot');
   });
 
@@ -38,8 +57,10 @@ describe('mobile product hardening contracts', () => {
   it('gives Create readable identity fields and explicit spatial drag geometry', () => {
     expect(playmaker).toContain('<textarea');
     expect(playmaker).toContain('aria-label="Play purpose"');
+    expect(playmaker).toContain('bodyRef.current.scrollTop = 0');
     expect(playmakerCourt).toContain('className="playmaker-player-hit-target" r="8.5"');
-    expect(playmaker3d).toContain("useState('broadcast')");
+    expect(playmaker3d).toContain("workspaceLayout === 'mobile' ? 'overhead' : 'broadcast'");
+    expect(css).toContain(".playmaker-workspace[data-view-mode='3d'] .playmaker-inspector");
   });
 
   it('keeps named replay navigation and camera controls available in every 3D workspace', () => {
@@ -52,11 +73,73 @@ describe('mobile product hardening contracts', () => {
     expect(playmaker3d).toContain('aria-label="Next moment"');
   });
 
-  it('fails the hidden browser audit for undersized controls, blank 3D, and incomplete strategy rinks', () => {
+  it('uses smooth phase seeking and a rink-first mobile replay shell in both dimensions', () => {
+    expect(appContext).toContain('const transitionToPhase = useCallback');
+    expect(playback).toContain('transitionToPhase(nextPhase)');
+    expect(playback).toContain('aria-label="Jump to replay phase"');
+    expect(playViewer).toContain('<PhaseControls compact />');
+    expect(phaseControls).toContain('<PlaybackControls compact={compact} />');
+    expect(header).toContain("setReplay3dCamera('overhead')");
+    expect(header).toContain("'is-mobile-collapsed'");
+    expect(header).toContain('app-header-collapse');
+    expect(tactical3d).toContain('<details className="vnext3d-mobile-coaching">');
+    expect(tactical3d).toContain('vnext3d-mobile-camera-picker');
+    expect(tactical3d).toContain('mobileCameraToolsOpen');
+    expect(css).toContain('Mobile replay final containment overrides');
+    expect(css).toMatch(/\.play-workspace-mobile\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s);
+    expect(css).toContain('.vnext3d-mobile-coaching:not([open]) > :not(summary)');
+  });
+
+  it('provides an installed-app shell with safe-area navigation and compact mobile utilities', () => {
+    expect(app).toContain('<MobileBottomNav />');
+    expect(app).not.toContain("height: '100vh'");
+    expect(mobileBottomNav).toContain('aria-label="Main app navigation"');
+    expect(mobileBottomNav).toContain('data-testid="mobile-bottom-nav"');
+    expect(mobileBottomNav).toContain('window.history.pushState');
+    expect(mobileBottomNav).toContain('className="mobile-bottom-nav-mode"');
+    expect(mobileBottomNav).toContain("setReplay3dCamera('overhead')");
+    expect(appContext).toContain("window.addEventListener('popstate'");
+    expect(mobileBottomNav.match(/content: '(stats|plays|strategy|playmaker)'/g)).toHaveLength(4);
+    expect(header).toContain('className="app-header-more"');
+    expect(css).toContain('env(safe-area-inset-bottom)');
+    expect(css).toContain('height: 100dvh');
+    expect(css).toContain('min-height: 100svh');
+  });
+
+  it('ships installable PWA metadata, icons, and a production service worker', () => {
+    expect(manifest.display).toBe('standalone');
+    expect(manifest.display_override).toContain('standalone');
+    expect(manifest.orientation).toBe('any');
+    expect(manifest.scope).toBe('/');
+    expect(manifest.start_url).toBe('/');
+    expect(manifest.icons.some(({ sizes }) => sizes === '192x192')).toBe(true);
+    expect(manifest.icons.some(({ sizes }) => sizes === '512x512')).toBe(true);
+    expect(manifest.icons.some(({ purpose }) => purpose?.includes('maskable'))).toBe(true);
+    expect(html).toContain('apple-mobile-web-app-capable');
+    expect(html).toContain('apple-touch-icon');
+    expect(main).toContain("navigator.serviceWorker.register('/sw.js', { scope: '/' })");
+    expect(serviceWorker).toContain("self.addEventListener('fetch'");
+    expect(serviceWorker).toContain('PRECACHE_ASSETS');
+    expect(serviceWorker).toContain("contentType.includes('text/html')");
+    expect(pwaPrecache).toContain('BUILD_ASSETS');
+    expect(packageJson.scripts.build).toContain('inject-pwa-precache.mjs');
+    expect(publicBuildCheck).toContain('production asset manifest');
+  });
+
+  it('fails the hidden installed-app audit for undersized controls, dead space, blank 3D, and buried transport', () => {
     expect(audit).toContain('conventional controls are smaller than 40px');
     expect(audit).toContain('the 3D canvas is blank or has not rendered');
     expect(audit).toContain('the strategy rink is not fully visible');
+    expect(audit).toContain('strategy playback is not available before the bottom navigation');
+    expect(audit).toContain('unused space above navigation');
+    expect(audit).toContain('the Create inspector crowds the 3D preview');
     expect(audit).toContain('a spatial player control is missing its enlarged drag target');
+    expect(audit).toContain('standaloneDisplayModeEmulated');
+    expect(audit).toContain('standaloneDisplayModeRequested');
+    expect(audit).toContain('standaloneMediaMatched');
+    expect(audit).toContain('the 2D timeline covers');
+    expect(audit).toContain('the 3D transport is not available above mobile navigation in landscape');
+    expect(audit).toContain('auditPwaInstallability');
     expect(audit).toContain("visibleBrowserWindowOpened: false");
   });
 });

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FlipHorizontal2, UsersRound } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
@@ -20,6 +20,11 @@ function phaseColor(title, accent) {
   if (title?.includes('✅')) return '#22c55e';
   if (title?.includes('❌')) return '#ef4444';
   return accent;
+}
+
+function isShortLandscape() {
+  return typeof window !== 'undefined'
+    && window.matchMedia('(max-height: 520px) and (orientation: landscape)').matches;
 }
 
 function PlayNavigation({ playIdx, plays, goPlay, muted, border }) {
@@ -65,6 +70,7 @@ function PhaseHeader({ phase, currentPhase, total, color, mirrored }) {
       <div className="play-phase-copy">
         <span>PHASE {currentPhase + 1} / {total}</span>
         <strong>{phase?.t}{mirrored ? ' ↔' : ''}</strong>
+        {phase?.desc && phase.desc !== phase.t && <small>{phase.desc}</small>}
       </div>
       <FaceoffOutcomeControl compact />
     </div>
@@ -109,13 +115,25 @@ export default function PlayViewer() {
     playbackTime,
   } = useApp();
   const layout = useWorkspaceLayout();
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(isShortLandscape);
   const lanePlays = itemsForCurriculumLane(CORE_PLAYS, currentPlay?.lane ?? 'defence');
   const playIdx = currentPlay ? lanePlays.findIndex((play) => play.id === currentPlay.id) : -1;
   const phase = currentReplayPhases[currentPhase];
   const total = currentReplayPhases.length;
   const currentPhaseColor = phaseColor(phase?.t, t.ac);
   const categoryColor = CAT_COLORS[currentPlay?.cat] || t.ac;
+  const selectedRoleRead = phase?.pos?.[selectedPosition]?.role ?? phase?.desc ?? '';
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-height: 520px) and (orientation: landscape)');
+    const syncSheet = (event) => setSheetOpen(event.matches);
+    if (query.addEventListener) query.addEventListener('change', syncSheet);
+    else query.addListener(syncSheet);
+    return () => {
+      if (query.removeEventListener) query.removeEventListener('change', syncSheet);
+      else query.removeListener(syncSheet);
+    };
+  }, []);
 
   const goPlay = (play) => {
     cancelPlaybackRestart();
@@ -187,7 +205,7 @@ export default function PlayViewer() {
 
   return (
     <div
-      className={`play-workspace play-workspace-${layout}`}
+      className={`play-workspace play-workspace-${layout} ${sheetOpen ? 'is-coaching-open' : ''}`}
       data-testid={`play-workspace-${layout}`}
       style={workspaceStyle}
     >
@@ -216,8 +234,7 @@ export default function PlayViewer() {
           color={currentPhaseColor}
           mirrored={isMirrored}
         />
-        <PhaseControls />
-        <PlayNavigation plays={lanePlays} playIdx={playIdx} goPlay={goPlay} muted={t.tm} border={t.bd} />
+        <PhaseControls compact />
       </section>
 
       <section
@@ -237,10 +254,15 @@ export default function PlayViewer() {
         >
           <span className="play-bottom-sheet-handle" style={{ background: t.bd }} />
           <span className="play-bottom-sheet-title">
-            <span style={{ color: t.td }}>TEAM PLAN</span>
-            <strong style={{ color: roleFocusMode === 'team' ? t.ac : t.pc[selectedPosition] }}>
-              {roleLensLabel(roleFocusMode)}
-            </strong>
+            <span>
+              <span style={{ color: t.td }}>TEAM PLAN</span>
+              <strong style={{ color: roleFocusMode === 'team' ? t.ac : t.pc[selectedPosition] }}>
+                {roleLensLabel(roleFocusMode)}
+              </strong>
+            </span>
+            <small style={{ color: t.tm }}>
+              {selectedPosition}: {selectedRoleRead}
+            </small>
           </span>
           <span aria-hidden="true" style={{ color: t.tm }}>{sheetOpen ? '⌄' : '⌃'}</span>
         </button>
@@ -267,6 +289,7 @@ export default function PlayViewer() {
               </button>
             </div>
             <StrategyButton color={categoryColor} onClick={() => setStrategyOpen(true)} />
+            <PlayNavigation plays={lanePlays} playIdx={playIdx} goPlay={goPlay} muted={t.tm} border={t.bd} />
           </div>
         )}
       </section>

@@ -82,7 +82,12 @@ function comparisonInsights(matchup, currentSeasonId, fixture) {
   ];
 }
 
-export function OpponentDirectory({ matchups, currentGames, onOpenOpponent }) {
+export function OpponentDirectory({
+  matchups,
+  currentGames,
+  scopeLabel,
+  onOpenOpponent,
+}) {
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(false);
   const currentSlugs = useMemo(
@@ -104,7 +109,11 @@ export function OpponentDirectory({ matchups, currentGames, onOpenOpponent }) {
     <section className="stats-band is-full stats-opponent-directory">
       <header>
         <Swords aria-hidden="true" />
-        <div><span>OPPONENTS</span><h2>Matchup centre</h2></div>
+        <div>
+          <span>OPPONENTS</span>
+          <h2>Matchup centre</h2>
+          <p>{scopeLabel}</p>
+        </div>
         <label className="stats-opponent-search">
           <Search aria-hidden="true" />
           <span className="sr-only">Find an opponent</span>
@@ -184,7 +193,7 @@ export function OpponentHeadToHead({
       <article className="stats-game-detail stats-matchup-shell">
         <header className="stats-game-hero stats-matchup-hero">
           <div>
-            <span>HEAD TO HEAD · VERIFIED TEAM ARCHIVE</span>
+            <span>HEAD TO HEAD · {matchup.scopeLabel.toUpperCase()}</span>
             <h2>Goon Squad <b>vs</b> {matchup.name}</h2>
             <p>{historySummary}</p>
           </div>

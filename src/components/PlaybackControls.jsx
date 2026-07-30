@@ -29,6 +29,8 @@ export default function PlaybackControls({ compact = false }) {
     currentReplayPhases,
     currentPhase,
     setCurrentPhase,
+    transitionToPhase,
+    phaseTransitionTarget,
     playbackTime,
     setPlaybackTime,
     isPlaying,
@@ -43,6 +45,7 @@ export default function PlaybackControls({ compact = false }) {
   const timelineMax = scene?.duration ?? Math.max(phaseCount - 1, 1);
   const timelineValue = scene ? playbackTime : currentPhase;
   const timelineStep = scene ? 0.05 : 1;
+  const navigationPhase = phaseTransitionTarget ?? currentPhase;
   const atEnd = scene
     ? timelineValue >= timelineMax - timelineStep
     : currentPhase >= phaseCount - 1;
@@ -51,7 +54,7 @@ export default function PlaybackControls({ compact = false }) {
   useEffect(() => {
     if (!compact || phaseCount <= 1) return;
     const rail = phaseRailRef.current;
-    const activeButton = phaseButtonRefs.current[currentPhase];
+    const activeButton = phaseButtonRefs.current[navigationPhase];
     if (!rail || !activeButton) return;
     const targetLeft = activeButton.offsetLeft
       - (rail.clientWidth - activeButton.offsetWidth) / 2;
@@ -61,14 +64,14 @@ export default function PlaybackControls({ compact = false }) {
       left: Math.max(0, targetLeft),
       behavior: reducedMotion ? 'auto' : 'smooth',
     });
-  }, [compact, currentPhase, phaseCount]);
+  }, [compact, navigationPhase, phaseCount]);
 
   const goPhase = (nextPhase) => {
     cancelPlaybackRestart();
     if (nextPhase < 0 || nextPhase >= phaseCount) return;
     setIsPlaying(false);
     setPreviousPositions(currentReplayPhases[currentPhase]?.pos || null);
-    setCurrentPhase(nextPhase);
+    transitionToPhase(nextPhase);
   };
 
   const replay = () => {
@@ -112,6 +115,7 @@ export default function PlaybackControls({ compact = false }) {
     <div
       className={`playback-controls ${compact ? 'is-compact' : ''}`}
       data-testid="playback-controls"
+      data-phase-transitioning={phaseTransitionTarget !== null}
       style={{
         '--playback-accent': t.ac,
         '--playback-accent-bg': t.ab,
@@ -130,7 +134,7 @@ export default function PlaybackControls({ compact = false }) {
         >
           <div className="playback-phase-selector-summary" aria-hidden="true">
             <span>PHASE</span>
-            <strong>{currentPhase + 1}/{phaseCount}</strong>
+            <strong>{navigationPhase + 1}/{phaseCount}</strong>
           </div>
           <div className="playback-phase-rail" ref={phaseRailRef}>
             {currentReplayPhases.map((phase, index) => {
@@ -141,10 +145,10 @@ export default function PlaybackControls({ compact = false }) {
                   key={phase.id ?? index}
                   ref={(node) => { phaseButtonRefs.current[index] = node; }}
                   className={[
-                    index === currentPhase ? 'is-active' : '',
-                    index < currentPhase ? 'is-complete' : '',
+                    index === navigationPhase ? 'is-active' : '',
+                    index < navigationPhase ? 'is-complete' : '',
                   ].filter(Boolean).join(' ')}
-                  aria-current={index === currentPhase ? 'step' : undefined}
+                  aria-current={index === navigationPhase ? 'step' : undefined}
                   onClick={() => goPhase(index)}
                   title={`Phase ${index + 1}: ${label}`}
                   data-testid={`playback-phase-${index}`}
@@ -184,8 +188,8 @@ export default function PlaybackControls({ compact = false }) {
           <button
             type="button"
             className="playback-icon-button"
-            onClick={() => goPhase(currentPhase - 1)}
-            disabled={currentPhase === 0}
+            onClick={() => goPhase(navigationPhase - 1)}
+            disabled={navigationPhase === 0}
             title="Previous phase (Left arrow)"
             aria-label="Previous phase"
             data-testid="playback-previous"
@@ -207,8 +211,8 @@ export default function PlaybackControls({ compact = false }) {
           <button
             type="button"
             className="playback-icon-button"
-            onClick={() => goPhase(currentPhase + 1)}
-            disabled={currentPhase >= phaseCount - 1}
+            onClick={() => goPhase(navigationPhase + 1)}
+            disabled={navigationPhase >= phaseCount - 1}
             title="Next phase (Right arrow)"
             aria-label="Next phase"
             data-testid="playback-next"
@@ -236,6 +240,23 @@ export default function PlaybackControls({ compact = false }) {
       </div>
 
       <div className="playback-timeline-row">
+        {compact && phaseCount > 1 && (
+          <label className="playback-phase-jump">
+            <span className="sr-only">Jump to replay phase</span>
+            <select
+              value={navigationPhase}
+              onChange={(event) => goPhase(Number(event.target.value))}
+              aria-label="Jump to replay phase"
+              title="Jump to phase"
+            >
+              {currentReplayPhases.map((phase, index) => (
+                <option key={phase.id ?? index} value={index}>
+                  Phase {index + 1}: {phase.t || phase.desc || `Phase ${index + 1}`}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <div className="playback-range-wrap">
           <input
             type="range"

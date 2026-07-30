@@ -7,6 +7,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import { PLAYMAKER_TEMPLATES } from './playmakerModel';
 
 function formatUpdatedAt(value) {
@@ -33,6 +34,12 @@ export default function PlaymakerLibraryDialog({
   open,
 }) {
   const fileInputRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const dialogRef = useDialogFocus({
+    active: open,
+    initialFocusRef: closeButtonRef,
+    onClose,
+  });
   if (!open) return null;
 
   const importFile = async (event) => {
@@ -45,10 +52,12 @@ export default function PlaymakerLibraryDialog({
   return (
     <div className="playmaker-modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section
+        ref={dialogRef}
         className="playmaker-modal playmaker-library-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="playmaker-library-title"
+        tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="playmaker-modal-header">
@@ -56,7 +65,7 @@ export default function PlaymakerLibraryDialog({
             <span className="playmaker-eyebrow">PLAYMAKER</span>
             <h2 id="playmaker-library-title">Play library</h2>
           </div>
-          <button type="button" className="playmaker-icon-button" onClick={onClose} aria-label="Close library" title="Close">
+          <button ref={closeButtonRef} type="button" className="playmaker-icon-button" onClick={onClose} aria-label="Close library" title="Close">
             <X aria-hidden="true" />
           </button>
         </header>

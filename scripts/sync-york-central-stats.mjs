@@ -158,6 +158,32 @@ function officialTeamSummary(teamPath, html, teamId) {
   return summary;
 }
 
+function divisionStandings(teamPath, html, teamId) {
+  const $ = cheerio.load(html);
+  const rows = [];
+  $('.stats-box.standings table').first().find('tr').slice(1).each((_, row) => {
+    const cells = $(row).find('td');
+    if (cells.length < 6) return;
+    const teamLink = $(cells[0]).find('a').attr('href') || '';
+    const teamName = clean($(cells[0]).text());
+    if (!teamName) return;
+    rows.push({
+      seasonTeamId: teamId,
+      rank: rows.length + 1,
+      teamName,
+      teamExternalId: extractExternalId(teamLink, 'team') || null,
+      gamesPlayed: integer($(cells[1]).text()),
+      wins: integer($(cells[2]).text()),
+      losses: integer($(cells[3]).text()),
+      ties: integer($(cells[4]).text()),
+      points: integer($(cells[5]).text()),
+      isGoonSquad: teamLink === teamPath,
+      sourceUrl: teamLink ? absoluteUrl(teamLink) : absoluteUrl(teamPath),
+    });
+  });
+  return rows;
+}
+
 function parseSchedule(teamPath, teamId, seasonName, html, stage = 'regular') {
   const $ = cheerio.load(html);
   const games = [];
@@ -648,6 +674,7 @@ function mergeCurrentSeasonSnapshot(existing, current) {
     goalieGameStats: replaceGameRows(existing.goalieGameStats, current.goalieGameStats),
     gameEvents: replaceGameRows(existing.gameEvents, current.gameEvents),
     teamSeasonSummaries: replaceTeamRows(existing.teamSeasonSummaries, current.teamSeasonSummaries),
+    standings: replaceTeamRows(existing.standings || [], current.standings || []),
     playerSeasonStats: replaceTeamRows(existing.playerSeasonStats, current.playerSeasonStats),
     goalieSeasonStats: replaceTeamRows(existing.goalieSeasonStats, current.goalieSeasonStats),
   };
@@ -693,6 +720,7 @@ async function buildSnapshot({ scope = 'all', existingSnapshot = null } = {}) {
   const playerGameStats = [];
   const goalieGameStats = [];
   const gameEvents = [];
+  const standings = [];
 
   for (const entry of history) {
     const teamHtml = entry.href === START_TEAM_PATH ? startHtml : await fetchHtml(entry.href);
@@ -725,6 +753,7 @@ async function buildSnapshot({ scope = 'all', existingSnapshot = null } = {}) {
     goalieSeasonStats.push(...regularGoalieLeaders.lines, ...playoffGoalieLeaders.lines);
     const summary = officialTeamSummary(entry.href, teamHtml, team.id);
     if (summary) teamSeasonSummaries.push(summary);
+    standings.push(...divisionStandings(entry.href, teamHtml, team.id));
     seasons.set(team.seasonSlug, {
       id: team.seasonSlug,
       slug: team.seasonSlug,
@@ -792,6 +821,7 @@ async function buildSnapshot({ scope = 'all', existingSnapshot = null } = {}) {
     goalieGameStats,
     gameEvents,
     teamSeasonSummaries,
+    standings,
     playerSeasonStats,
     goalieSeasonStats,
     detailImport: {
@@ -833,6 +863,7 @@ export {
   mergeCurrentSeasonSnapshot,
   parseGameDate,
   parseGameDetails,
+  divisionStandings,
   parseGoalieLeaders,
   parsePlayerLeaders,
   parseRoster,

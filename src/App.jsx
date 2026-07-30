@@ -4,6 +4,7 @@ import { useTheme } from './context/ThemeContext';
 import { useApp } from './context/AppContext';
 import { CORE_PLAYS, CORE_TACTICS, itemsForCurriculumLane } from './data/coreCatalog';
 import Header from './components/Header';
+import MobileBottomNav from './components/MobileBottomNav';
 import SkipLink from './components/accessibility/SkipLink';
 import Sidebar from './components/Sidebar';
 import PlayViewer from './components/PlayViewer';
@@ -32,7 +33,7 @@ export default function App() {
   const workspaceLayout = useWorkspaceLayout();
   const {
     activeView,
-    currentPlay, setCurrentPlay, currentPhase, setCurrentPhase,
+    currentPlay, setCurrentPlay, currentPhase, setCurrentPhase, transitionToPhase,
     currentReplayScene: currentScene,
     currentReplayPhases,
     playbackTime, setPlaybackTime,
@@ -74,8 +75,8 @@ export default function App() {
     cancelPlaybackRestart();
     if (n < 0 || n >= tot) return;
     setPreviousPositions(currentReplayPhases[currentPhase]?.pos || null);
-    setCurrentPhase(n);
-  }, [currentPhase, currentReplayPhases, tot, setPreviousPositions, setCurrentPhase, cancelPlaybackRestart]);
+    transitionToPhase(n);
+  }, [currentPhase, currentReplayPhases, tot, setPreviousPositions, transitionToPhase, cancelPlaybackRestart]);
 
   // Navigate plays
   const goPlay = useCallback((p) => {
@@ -155,7 +156,10 @@ export default function App() {
   useEffect(() => {
     if (!['playbook', 'replay3d', 'tactics', 'strategy3d'].includes(activeView)) return;
     const handler = (e) => {
-      if (e.target instanceof Element && e.target.closest('input,select,textarea,[contenteditable="true"]')) return;
+      if (
+        e.target instanceof Element
+        && e.target.closest('button,a[href],summary,input,select,textarea,[contenteditable="true"],[role="tab"],[role="menuitem"]')
+      ) return;
 
       if (e.key === 'ArrowRight') go(currentPhase + 1);
       else if (e.key === 'ArrowLeft') go(currentPhase - 1);
@@ -189,7 +193,10 @@ export default function App() {
   useEffect(() => {
     if (['playbook', 'replay3d', 'tactics', 'strategy3d'].includes(activeView)) return;
     const handler = (e) => {
-      if (e.target instanceof Element && e.target.closest('input,select,textarea')) return;
+      if (
+        e.target instanceof Element
+        && e.target.closest('button,a[href],summary,input,select,textarea,[contenteditable="true"],[role="tab"],[role="menuitem"]')
+      ) return;
       if (e.key === '?') { e.preventDefault(); setKeyboardHelpOpen(k => !k); }
     };
     window.addEventListener('keydown', handler);
@@ -208,8 +215,10 @@ export default function App() {
     // Must be primarily horizontal swipe, min 60px
     if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
     // Don't fire on interactive elements
-    const tag = e.target?.tagName?.toLowerCase();
-    if (['button', 'input', 'select', 'a'].includes(tag)) return;
+    if (
+      e.target instanceof Element
+      && e.target.closest('button,a[href],summary,input,select,textarea,[contenteditable="true"],[role="tab"]')
+    ) return;
     if (dx < 0) go(currentPhase + 1);
     else go(currentPhase - 1);
   }, [activeView, go, currentPhase]);
@@ -219,7 +228,7 @@ export default function App() {
       className="app-shell"
       data-theme={theme}
       style={{
-        background: t.bg, color: t.tx, height: '100vh',
+        background: t.bg, color: t.tx,
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
         transition: 'background .3s, color .3s',
       }}
@@ -384,6 +393,7 @@ export default function App() {
           )}
         </AnimatePresence>
       </div>
+      <MobileBottomNav />
     </div>
   );
 }

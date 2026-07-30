@@ -50,6 +50,7 @@ export default function ProductionAthlete({
   playerId,
   poseSamples,
   position,
+  presentationScale = 1,
   rotation,
   transitionEventsRef,
   worldAngularVelocity,
@@ -434,7 +435,9 @@ export default function ProductionAthlete({
   return (
     <group ref={athleteGroupRef} position={position} rotation={[0, rotation, 0]}>
       <group ref={correctionGroupRef}>
-        <primitive object={model} dispose={null} />
+        <group scale={presentationScale}>
+          <primitive object={model} dispose={null} />
+        </group>
       </group>
     </group>
   );

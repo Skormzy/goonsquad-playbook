@@ -40,7 +40,11 @@ import {
   productionBallPosition,
   productionClipPhaseOffset,
 } from '../../vnext3d/runtimeMapping';
-import { productionRenderProfile, summarizeFrameIntervals } from '../../vnext3d/renderProfile';
+import {
+  productionRenderProfile,
+  summarizeFrameIntervals,
+  tacticalAthletePresentationScale,
+} from '../../vnext3d/renderProfile';
 import {
   ballLocatorRadii,
   ballMotionStreakWidth,
@@ -497,6 +501,7 @@ function ReplayScene({
   theme,
   transitionWindow,
 }) {
+  const { size } = useThree();
   const contactPoints = useMemo(() => new Map(), []);
   const groundContacts = useMemo(() => new Map(), []);
   const poseSamples = useMemo(() => new Map(), []);
@@ -509,6 +514,7 @@ function ReplayScene({
   );
   const sceneBackground = theme === 'light' ? '#dfe5e8' : '#080c13';
   const sceneGroundColor = theme === 'light' ? '#aeb9c1' : '#182331';
+  const presentationScale = tacticalAthletePresentationScale(cameraId, size.width);
 
   return (
     <>
@@ -548,6 +554,7 @@ function ReplayScene({
           playerId={player.id}
           poseSamples={poseSamples}
           position={player.worldPosition}
+          presentationScale={presentationScale}
           rotation={player.worldRotation}
           transitionEventsRef={clipTransitionEventsRef}
           worldAngularVelocity={player.worldAngularVelocity}

@@ -7,6 +7,7 @@ import {
 
 const workspaceSource = readFileSync(new URL('./PlaymakerWorkspace.jsx', import.meta.url), 'utf8');
 const tutorialSource = readFileSync(new URL('./PlaymakerTutorial.jsx', import.meta.url), 'utf8');
+const dialogFocusSource = readFileSync(new URL('../hooks/useDialogFocus.js', import.meta.url), 'utf8');
 
 describe('Create guided tutorial contract', () => {
   it('walks through the complete authoring workflow in a stable order', () => {
@@ -49,7 +50,8 @@ describe('Create guided tutorial contract', () => {
   });
 
   it('remains restartable and keyboard accessible', () => {
-    expect(tutorialSource).toContain("event.key === 'Escape'");
+    expect(tutorialSource).toContain('onClose: closeTutorial');
+    expect(dialogFocusSource).toContain("event.key === 'Escape'");
     expect(tutorialSource).toContain("event.key === 'ArrowRight'");
     expect(tutorialSource).toContain('setStepIndex(0)');
     expect(JSON.stringify(PLAYMAKER_TUTORIAL_STEPS).toLowerCase()).not.toContain(['ska', 'te'].join(''));

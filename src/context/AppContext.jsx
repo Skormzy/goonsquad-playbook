@@ -3,9 +3,16 @@ import { CORE_PLAYS, CORE_TACTICS } from '../data/coreCatalog';
 import { normalizeFaceoffOutcome, resolveFaceoffPlayOutcome } from '../data/faceoffPlays';
 import { getPlayScene, getStrategyScene } from '../play-engine/sceneRegistry';
 import {
+  clampPhase,
   createSynchronizedPlayback,
+  scenePhaseForTime,
+  sceneTimeForPhase,
   synchronizedPlaybackReducer,
 } from '../play-engine/synchronizePlayback';
+import {
+  phaseTransitionDuration,
+  phaseTransitionTime,
+} from '../play-engine/phaseTransition';
 import { createWorkspaceUrl, readWorkspaceUrl } from '../routing/workspaceUrlState';
 import { useAccount } from '../account/AccountContext';
 import {
@@ -38,6 +45,11 @@ function replayPhasesForStrategy(tactic, variant) {
   }));
 }
 
+function defaultReplayCamera() {
+  if (typeof window === 'undefined') return 'broadcast';
+  return window.innerWidth < 700 ? 'overhead' : 'broadcast';
+}
+
 function createInitialProviderState() {
   const href = typeof window === 'undefined' ? 'http://localhost/' : window.location.href;
   const urlState = readWorkspaceUrl(href, { includeInternal: import.meta.env.DEV });
@@ -59,6 +71,7 @@ function createInitialProviderState() {
 
   return {
     ...urlState,
+    camera: urlState.camera ?? defaultReplayCamera(),
     currentPlay,
     faceoffOutcome,
     selectedTacticId: selectedTactic?.id ?? null,
@@ -89,6 +102,10 @@ export function AppProvider({ children }) {
   const [strategyVariant, setStrategyVariantState] = useState(initial.strategyVariant);
   const strategyVariantRef = useRef(initial.strategyVariant);
   const [playback, dispatchPlayback] = useReducer(synchronizedPlaybackReducer, initial.playback);
+  const playbackRef = useRef(initial.playback);
+  const playbackTimerRef = useRef(null);
+  const phaseTransitionFrameRef = useRef(null);
+  const [phaseTransitionTarget, setPhaseTransitionTarget] = useState(null);
   const [isPlaying, setIsPlaying] = useState(initial.playing);
   const [isMirrored, setIsMirrored] = useState(false);
   const [showOpponents, setShowOpponents] = useState(true);
@@ -99,7 +116,7 @@ export function AppProvider({ children }) {
   const [keyboardHelpOpen, setKeyboardHelpOpen] = useState(false);
   const [playmakerTutorialOpen, setPlaymakerTutorialOpen] = useState(false);
   const [pendingTactic, setPendingTactic] = useState(null);
-  const [replay3dCamera, setReplay3dCamera] = useState(initial.camera || 'broadcast');
+  const [replay3dCamera, setReplay3dCamera] = useState(initial.camera);
   const selectedTactic = CORE_TACTICS.find((tactic) => tactic.id === selectedTacticId) ?? CORE_TACTICS[0] ?? null;
   const currentReplayPlay = useMemo(
     () => resolveFaceoffPlayOutcome(currentPlay, faceoffOutcome),
@@ -117,16 +134,33 @@ export function AppProvider({ children }) {
   const currentPhase = playback.phase;
   const playbackTime = playback.time;
 
+  useEffect(() => {
+    playbackRef.current = playback;
+  }, [playback]);
+
+  const cancelPlaybackRestart = useCallback(() => {
+    if (playbackTimerRef.current) {
+      clearTimeout(playbackTimerRef.current);
+      playbackTimerRef.current = null;
+    }
+    if (phaseTransitionFrameRef.current) {
+      cancelAnimationFrame(phaseTransitionFrameRef.current);
+      phaseTransitionFrameRef.current = null;
+    }
+    setPhaseTransitionTarget(null);
+  }, []);
+
   const setActiveView = useCallback((value) => {
     const next = typeof value === 'function' ? value(activeViewRef.current) : value;
     const contentChanged = isStrategyView(next) !== isStrategyView(activeViewRef.current);
     activeViewRef.current = next;
     setActiveViewState(next);
     if (contentChanged) {
+      cancelPlaybackRestart();
       dispatchPlayback({ type: 'reset' });
       setIsPlaying(false);
     }
-  }, []);
+  }, [cancelPlaybackRestart]);
 
   const setCurrentPlay = useCallback((value) => {
     const next = typeof value === 'function' ? value(currentPlayRef.current) : value;
@@ -134,52 +168,57 @@ export function AppProvider({ children }) {
     currentPlayRef.current = next;
     setCurrentPlayState(next);
     if (changed) {
+      cancelPlaybackRestart();
       dispatchPlayback({ type: 'reset' });
       faceoffOutcomeRef.current = 'won';
       setFaceoffOutcomeState('won');
       setRoleFocusMode('team');
     }
-  }, []);
+  }, [cancelPlaybackRestart]);
 
   const setFaceoffOutcome = useCallback((value) => {
     const requested = typeof value === 'function' ? value(faceoffOutcomeRef.current) : value;
     const next = normalizeFaceoffOutcome(requested);
     if (next === faceoffOutcomeRef.current || !currentPlayRef.current?.faceoff) return;
+    cancelPlaybackRestart();
     faceoffOutcomeRef.current = next;
     setFaceoffOutcomeState(next);
     dispatchPlayback({ type: 'reset' });
     setIsPlaying(false);
-  }, []);
+  }, [cancelPlaybackRestart]);
 
   const setSelectedTacticId = useCallback((value) => {
     const next = typeof value === 'function' ? value(selectedTacticIdRef.current) : value;
     const valid = CORE_TACTICS.some((tactic) => tactic.id === next) ? next : CORE_TACTICS[0]?.id ?? null;
     if (valid === selectedTacticIdRef.current) return;
+    cancelPlaybackRestart();
     selectedTacticIdRef.current = valid;
     setSelectedTacticIdState(valid);
     dispatchPlayback({ type: 'reset' });
     setIsPlaying(false);
     setRoleFocusMode('team');
-  }, []);
+  }, [cancelPlaybackRestart]);
 
   const setStrategyVariant = useCallback((value) => {
     const requested = typeof value === 'function' ? value(strategyVariantRef.current) : value;
     const next = requested === 'mistake' ? 'mistake' : 'correct';
     if (next === strategyVariantRef.current) return;
+    cancelPlaybackRestart();
     strategyVariantRef.current = next;
     setStrategyVariantState(next);
     dispatchPlayback({ type: 'reset' });
     setIsPlaying(false);
-  }, []);
+  }, [cancelPlaybackRestart]);
 
   const setCurrentPhase = useCallback((value) => {
+    cancelPlaybackRestart();
     dispatchPlayback({
       type: 'phase',
       value,
       scene: currentReplayScene,
       phaseCount,
     });
-  }, [currentReplayScene, phaseCount]);
+  }, [cancelPlaybackRestart, currentReplayScene, phaseCount]);
 
   const setPlaybackTime = useCallback((value) => {
     dispatchPlayback({
@@ -189,6 +228,77 @@ export function AppProvider({ children }) {
       phaseCount,
     });
   }, [currentReplayScene, phaseCount]);
+
+  const transitionToPhase = useCallback((value) => {
+    cancelPlaybackRestart();
+    const requested = typeof value === 'function'
+      ? value(playbackRef.current.phase)
+      : value;
+    const targetPhase = clampPhase(requested, phaseCount);
+
+    if (!currentReplayScene || phaseCount <= 0) {
+      dispatchPlayback({
+        type: 'phase',
+        value: targetPhase,
+        scene: currentReplayScene,
+        phaseCount,
+      });
+      return;
+    }
+
+    setIsPlaying(false);
+    const fromTime = playbackRef.current.time;
+    const toTime = sceneTimeForPhase(currentReplayScene, targetPhase, phaseCount);
+    const reducedMotion = typeof window !== 'undefined'
+      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+    if (reducedMotion || Math.abs(toTime - fromTime) < 0.01) {
+      const nextPlayback = { phase: targetPhase, time: toTime };
+      playbackRef.current = nextPlayback;
+      dispatchPlayback({
+        type: 'phase',
+        value: targetPhase,
+        scene: currentReplayScene,
+        phaseCount,
+      });
+      return;
+    }
+
+    setPhaseTransitionTarget(targetPhase);
+    const duration = phaseTransitionDuration(fromTime, toTime);
+    const startedAt = performance.now();
+    const tick = (now) => {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const nextTime = phaseTransitionTime(fromTime, toTime, progress);
+      playbackRef.current = {
+        phase: scenePhaseForTime(currentReplayScene, nextTime, phaseCount),
+        time: nextTime,
+      };
+      dispatchPlayback({
+        type: 'time',
+        value: nextTime,
+        scene: currentReplayScene,
+        phaseCount,
+      });
+
+      if (progress < 1) {
+        phaseTransitionFrameRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      phaseTransitionFrameRef.current = null;
+      playbackRef.current = { phase: targetPhase, time: toTime };
+      dispatchPlayback({
+        type: 'phase',
+        value: targetPhase,
+        scene: currentReplayScene,
+        phaseCount,
+      });
+      setPhaseTransitionTarget(null);
+    };
+
+    phaseTransitionFrameRef.current = requestAnimationFrame(tick);
+  }, [cancelPlaybackRestart, currentReplayScene, phaseCount]);
 
   // Favorites — persisted to localStorage
   const [favorites, setFavorites] = useState(() => new Set(readFavoriteIds(null)));
@@ -261,6 +371,16 @@ export function AppProvider({ children }) {
     if (urlWriteTimerRef.current) clearTimeout(urlWriteTimerRef.current);
   }, []);
 
+  useEffect(() => {
+    const restoreHistoryDestination = () => {
+      // Rehydrate every play, strategy, camera, and timeline field from the URL
+      // in one pass. This keeps installed-app Back behavior deterministic.
+      window.location.reload();
+    };
+    window.addEventListener('popstate', restoreHistoryDestination);
+    return () => window.removeEventListener('popstate', restoreHistoryDestination);
+  }, []);
+
   const toggleFavorite = useCallback((id) => {
     setFavorites(prev => {
       const next = new Set(prev);
@@ -279,10 +399,6 @@ export function AppProvider({ children }) {
     });
   }, [accountConfigured, accountUserId]);
 
-  const playbackTimerRef = useRef(null);
-  const cancelPlaybackRestart = useCallback(() => {
-    if (playbackTimerRef.current) { clearTimeout(playbackTimerRef.current); playbackTimerRef.current = null; }
-  }, []);
   const schedulePlaybackRestart = useCallback((cb) => {
     cancelPlaybackRestart();
     const id = setTimeout(() => {
@@ -305,7 +421,7 @@ export function AppProvider({ children }) {
       selectedTactic, selectedTacticId, setSelectedTacticId,
       strategyVariant, setStrategyVariant,
       currentReplayScene, currentReplayPhases,
-      currentPhase, setCurrentPhase,
+      currentPhase, setCurrentPhase, transitionToPhase, phaseTransitionTarget,
       playbackTime, setPlaybackTime,
       isPlaying, setIsPlaying,
       isMirrored, setIsMirrored,

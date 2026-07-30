@@ -58,7 +58,9 @@ export default function Playmaker3DPreview({
 }) {
   const { theme } = useTheme();
   const stageRef = useRef(null);
-  const [cameraId, setCameraId] = useState('broadcast');
+  const [cameraId, setCameraId] = useState(
+    () => workspaceLayout === 'mobile' ? 'overhead' : 'broadcast',
+  );
   const [cameraFollowing, setCameraFollowing] = useState(true);
   const [cameraCommand, setCameraCommand] = useState({ revision: 0, type: 'reframe' });
   const [cameraGestureMode, setCameraGestureMode] = useState(CAMERA_GESTURE_MODES.ORBIT);

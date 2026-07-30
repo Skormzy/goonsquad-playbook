@@ -57,6 +57,29 @@ describe('opponent matchup model', () => {
     expect(matchup.recentForm.map((item) => item.outcome)).toEqual(['win', 'loss']);
   });
 
+  it('keeps same-name opponents separate when one league schedule is selected', () => {
+    const sunday = findOpponentMatchup(
+      buildOpponentMatchups(dataset, new Date('2026-07-29T12:00:00'), {
+        seasonTeamIds: ['sun'],
+        scopeLabel: 'Summer 2026 · Sunday League',
+      }),
+      'RED WOLVES',
+    );
+    const weekday = findOpponentMatchup(
+      buildOpponentMatchups(dataset, new Date('2026-07-29T12:00:00'), {
+        seasonTeamIds: ['mon'],
+        scopeLabel: 'Spring 2026 · Monday / Thursday League',
+      }),
+      'RED WOLVES',
+    );
+
+    expect(sunday.games.map((game) => game.id)).toEqual(['future', 'latest']);
+    expect(sunday.summary).toMatchObject({ gamesPlayed: 1, wins: 1, losses: 0 });
+    expect(sunday.scopeLabel).toBe('Summer 2026 · Sunday League');
+    expect(weekday.games.map((game) => game.id)).toEqual(['seeded']);
+    expect(weekday.summary).toMatchObject({ gamesPlayed: 1, wins: 0, losses: 1 });
+  });
+
   it('labels only completed scorelines as outcomes', () => {
     expect(gameOutcome(dataset.games[0])).toBe('scheduled');
     expect(gameOutcome(dataset.games[1])).toBe('win');
@@ -111,5 +134,38 @@ describe('opponent matchup model', () => {
       goalsFor: 97,
       goalsAgainst: 259,
     });
+  });
+
+  it('separates the current Sunday and Monday/Thursday Viperz records', () => {
+    const sunday = findOpponentMatchup(
+      buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-29T12:00:00-04:00'), {
+        seasonTeamIds: ['summer-2026-sunday'],
+        scopeLabel: 'Summer 2026 · Sunday League',
+      }),
+      'VIPERZ',
+    );
+    const weekday = findOpponentMatchup(
+      buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-29T12:00:00-04:00'), {
+        seasonTeamIds: ['summer-2026-mon-thu'],
+        scopeLabel: 'Summer 2026 · Monday / Thursday League',
+      }),
+      'VIPERZ',
+    );
+
+    expect(sunday.summary).toMatchObject({
+      gamesPlayed: 3,
+      wins: 1,
+      losses: 2,
+      goalsFor: 10,
+      goalsAgainst: 19,
+    });
+    expect(weekday.summary).toMatchObject({
+      gamesPlayed: 1,
+      wins: 0,
+      losses: 1,
+      goalsFor: 0,
+      goalsAgainst: 5,
+    });
+    expect(weekday.nextGame?.id).toBe('ycbhl-game-53057');
   });
 });

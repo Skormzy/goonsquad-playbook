@@ -30,6 +30,7 @@ export const EMPTY_STATS_DATASET = Object.freeze({
   goalieGameStats: Object.freeze([]),
   gameEvents: Object.freeze([]),
   teamSeasonSummaries: Object.freeze([]),
+  standings: Object.freeze([]),
   playerSeasonStats: Object.freeze([]),
   goalieSeasonStats: Object.freeze([]),
 });

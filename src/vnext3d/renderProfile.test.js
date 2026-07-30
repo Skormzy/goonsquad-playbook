@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { productionRenderProfile, summarizeFrameIntervals } from './renderProfile';
+import {
+  productionRenderProfile,
+  summarizeFrameIntervals,
+  tacticalAthletePresentationScale,
+} from './renderProfile';
 
 describe('vNext 3D render profiles', () => {
-  it('uses an efficient one-pixel-ratio mobile profile', () => {
+  it('uses a Retina-capped antialiased mobile profile', () => {
     expect(productionRenderProfile('mobile')).toEqual({
       id: 'mobile-efficient',
-      dpr: [1, 1],
-      antialias: false,
-      ballSegments: [16, 10],
+      dpr: [1.5, 2],
+      antialias: true,
+      ballSegments: [24, 16],
     });
   });
 
@@ -26,6 +30,12 @@ describe('vNext 3D render profiles', () => {
 
   it('fails safely to the desktop profile for an unknown layout', () => {
     expect(productionRenderProfile('unknown')).toBe(productionRenderProfile('desktop'));
+  });
+
+  it('uses restrained tactical scaling only for compact overhead readability', () => {
+    expect(tacticalAthletePresentationScale('overhead', 390)).toBe(1.18);
+    expect(tacticalAthletePresentationScale('overhead', 844)).toBe(1);
+    expect(tacticalAthletePresentationScale('broadcast', 390)).toBe(1);
   });
 
   it('summarizes measured render intervals without accepting invalid samples', () => {

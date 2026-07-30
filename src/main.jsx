@@ -20,3 +20,11 @@ createRoot(document.getElementById('root')).render(
     </MotionConfig>
   </StrictMode>,
 );
+
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+      // The online app remains fully usable when service workers are unavailable.
+    });
+  }, { once: true });
+}

@@ -13,14 +13,18 @@ const PROFILES = Object.freeze({
   }),
   mobile: Object.freeze({
     id: 'mobile-efficient',
-    dpr: Object.freeze([1, 1]),
-    antialias: false,
-    ballSegments: Object.freeze([16, 10]),
+    dpr: Object.freeze([1.5, 2]),
+    antialias: true,
+    ballSegments: Object.freeze([24, 16]),
   }),
 });
 
 export function productionRenderProfile(layout) {
   return PROFILES[layout] ?? PROFILES.desktop;
+}
+
+export function tacticalAthletePresentationScale(cameraId, viewportWidth) {
+  return cameraId === 'overhead' && viewportWidth < 640 ? 1.18 : 1;
 }
 
 export function summarizeFrameIntervals(intervals) {

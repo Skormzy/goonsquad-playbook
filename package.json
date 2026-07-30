@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "prebuild": "node scripts/write-public-stats-snapshot.mjs",
-    "build": "vite build",
+    "build": "vite build && node scripts/inject-pwa-precache.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "asset:player:contract": "node scripts/write-player-rig-contract.mjs",

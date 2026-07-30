@@ -135,6 +135,7 @@ export default function PlaymakerWorkspace() {
   const dragOriginRef = useRef(null);
   const sharedCloudPlayRef = useRef(false);
   const playbackTimeRef = useRef(0);
+  const bodyRef = useRef(null);
   const draft = history.present;
   const times = useMemo(() => playmakerFrameTimes(draft), [draft]);
   const readiness = useMemo(() => playmakerReadiness(draft), [draft]);
@@ -184,6 +185,11 @@ export default function PlaymakerWorkspace() {
   useEffect(() => {
     playbackTimeRef.current = safePlaybackTime;
   }, [safePlaybackTime]);
+
+  useEffect(() => {
+    if (viewMode !== '3d') return;
+    if (bodyRef.current) bodyRef.current.scrollTop = 0;
+  }, [viewMode]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -576,7 +582,7 @@ export default function PlaymakerWorkspace() {
         </div>
       </div>
 
-      <div className="playmaker-body">
+      <div className="playmaker-body" ref={bodyRef}>
         <section className={`playmaker-stage ${viewMode === '3d' ? 'is-3d' : ''}`} aria-label={viewMode === 'edit' ? '2D play editor' : '3D play preview'}>
           {viewMode === 'edit' ? (
             <div className="playmaker-court-shell" data-tutorial="court">

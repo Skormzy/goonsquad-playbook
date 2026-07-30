@@ -60,7 +60,15 @@ export default function Sidebar({ embedded = false }) {
   const FF = "'Trebuchet MS','Lucida Grande',sans-serif";
 
   return (
-    <MotionDiv
+    <>
+      {!embedded && (
+        <div
+          className="play-library-backdrop"
+          role="presentation"
+          onPointerDown={() => setSidebarOpen(false)}
+        />
+      )}
+      <MotionDiv
       ref={dialogRef}
       initial={embedded ? false : { x: -18, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
@@ -82,7 +90,7 @@ export default function Sidebar({ embedded = false }) {
         background: t.sf, borderRight: `1px solid ${t.bd}`,
         zIndex: embedded ? 1 : 20, display: 'flex', flexDirection: 'column',
       }}
-    >
+      >
       {!embedded && (
         <div
           style={{
@@ -279,6 +287,7 @@ export default function Sidebar({ embedded = false }) {
           })
         )}
       </div>
-    </MotionDiv>
+      </MotionDiv>
+    </>
   );
 }

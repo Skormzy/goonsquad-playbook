@@ -21,6 +21,7 @@ const allDevices = [
   { id: 'landscape', width: 844, height: 390, full: false, landscape: true },
 ];
 const requestedDevice = process.env.MOBILE_AUDIT_DEVICE;
+const emulateStandalone = process.env.MOBILE_AUDIT_STANDALONE === 'true';
 const devices = requestedDevice
   ? allDevices.filter(({ id }) => id === requestedDevice)
   : allDevices;
@@ -31,9 +32,9 @@ const routes = {
   home: {},
   play2d: { content: 'plays', mode: '2d', playId: 'brk', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
   faceoff2d: { content: 'plays', mode: '2d', playId: 'dzfl', faceoff: 'lost', phase: '3', time: '8', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
-  play3d: { content: 'plays', mode: '3d', playId: 'brk', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
+  play3d: { content: 'plays', mode: '3d', playId: 'brk', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'overhead' },
   strategy2d: { content: 'strategy', mode: '2d', tacticId: 'watch-your-man', scenario: 'correct', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
-  strategy3d: { content: 'strategy', mode: '3d', tacticId: 'instant-backcheck', scenario: 'mistake', phase: '3', time: '8', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
+  strategy3d: { content: 'strategy', mode: '3d', tacticId: 'instant-backcheck', scenario: 'mistake', phase: '3', time: '8', speed: '1', role: 'C', playing: 'false', camera: 'overhead' },
   create: { content: 'playmaker', mode: '2d', phase: '0', time: '0', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
 };
 
@@ -47,6 +48,61 @@ async function findChrome() {
     }
   }
   throw new Error('Chrome or Edge was not found for the hidden mobile product audit.');
+}
+
+async function auditPwaInstallability() {
+  const failures = [];
+  const manifestUrl = new URL('/manifest.json', baseUrl);
+  const serviceWorkerUrl = new URL('/sw.js', baseUrl);
+  const documentUrl = new URL('/', baseUrl);
+  const [manifestResponse, serviceWorkerResponse, documentResponse] = await Promise.all([
+    fetch(manifestUrl),
+    fetch(serviceWorkerUrl),
+    fetch(documentUrl),
+  ]);
+  const manifest = manifestResponse.ok ? await manifestResponse.json() : null;
+  const documentMarkup = documentResponse.ok ? await documentResponse.text() : '';
+  const icons = Array.isArray(manifest?.icons) ? manifest.icons : [];
+  const requiredIcons = ['192x192', '512x512'];
+  const iconResponses = await Promise.all(icons.map(async (icon) => {
+    const response = await fetch(new URL(icon.src, manifestUrl));
+    return { src: icon.src, ok: response.ok, status: response.status };
+  }));
+
+  if (!manifestResponse.ok || !manifest) failures.push('manifest.json is unavailable');
+  if (manifest?.display !== 'standalone') failures.push('manifest display is not standalone');
+  if (!Array.isArray(manifest?.display_override) || !manifest.display_override.includes('standalone')) {
+    failures.push('manifest display_override does not preserve standalone mode');
+  }
+  if (manifest?.scope !== '/') failures.push('manifest scope is not root');
+  if (manifest?.start_url !== '/') failures.push('manifest start_url is not root');
+  if (manifest?.orientation !== 'any') failures.push('manifest prevents a supported phone orientation');
+  for (const size of requiredIcons) {
+    if (!icons.some((icon) => icon.sizes === size)) failures.push(`manifest is missing a ${size} icon`);
+  }
+  if (!icons.some((icon) => String(icon.purpose ?? '').includes('maskable'))) {
+    failures.push('manifest is missing a maskable icon');
+  }
+  if (iconResponses.some(({ ok }) => !ok)) failures.push('one or more manifest icons are unavailable');
+  if (!serviceWorkerResponse.ok) failures.push('service worker is unavailable');
+  if (!/apple-mobile-web-app-capable/iu.test(documentMarkup)) {
+    failures.push('iOS standalone capability metadata is missing');
+  }
+  if (!/apple-touch-icon/iu.test(documentMarkup)) failures.push('Apple touch icon metadata is missing');
+
+  return {
+    manifest: manifest ? {
+      id: manifest.id,
+      display: manifest.display,
+      displayOverride: manifest.display_override,
+      orientation: manifest.orientation,
+      iconCount: icons.length,
+    } : null,
+    serviceWorkerAvailable: serviceWorkerResponse.ok,
+    iconResponses,
+    failures,
+    passed: failures.length === 0,
+  };
 }
 
 function route(parameters) {
@@ -66,7 +122,7 @@ async function waitForSurface(page, type) {
   } else if (type === 'play2d') {
     await page.locator('[data-testid^="play-workspace-"]').waitFor({ state: 'visible', timeout: 60_000 });
   } else if (type === 'strategy2d') {
-    await page.getByRole('combobox', { name: 'Strategy principle' }).waitFor({ state: 'visible', timeout: 60_000 });
+    await page.locator('.tactics-mobile-workspace, .tactics-desktop-workspace').waitFor({ state: 'visible', timeout: 60_000 });
   } else if (type === 'create') {
     await page.locator('.playmaker-workspace').waitFor({ state: 'visible', timeout: 60_000 });
   } else if (type === '3d') {
@@ -87,6 +143,17 @@ async function waitForSurface(page, type) {
 
 async function settleInteraction(page, duration = 280) {
   await page.waitForTimeout(duration);
+}
+
+async function openProductGuide(page) {
+  const directButton = page.getByRole('button', { name: 'Open product guide' });
+  if (await directButton.isVisible().catch(() => false)) {
+    await directButton.click();
+    return;
+  }
+
+  await page.locator('summary[aria-label="Open more app actions"]').click();
+  await page.getByRole('button', { name: 'Guide', exact: true }).click();
 }
 
 async function auditLayout(page) {
@@ -197,6 +264,25 @@ async function auditLayout(page) {
     });
     const strategyRink = document.querySelector('.tactics-mobile-rink, [data-mobile-strategy-rink]');
     const strategyRinkRect = strategyRink?.getBoundingClientRect();
+    const bottomNav = document.querySelector('[data-testid="mobile-bottom-nav"]');
+    const bottomNavRect = bottomNav?.getBoundingClientRect();
+    const bottomNavVisible = bottomNav && visible(bottomNav);
+    const strategyTransport = document.querySelector('.tactics-mobile-transport');
+    const strategyTransportRect = strategyTransport?.getBoundingClientRect();
+    const replayView = document.querySelector('.vnext3d-preview-view');
+    const replayViewRect = replayView?.getBoundingClientRect();
+    const replayConsole = document.querySelector('.vnext3d-preview-console');
+    const replayConsoleRect = replayConsole?.getBoundingClientRect();
+    const replayTransport = document.querySelector('.vnext3d-preview-transport');
+    const replayTransportRect = replayTransport?.getBoundingClientRect();
+    const playRinkFrame = document.querySelector('.play-mobile-rink .play-rink-frame');
+    const playRinkFrameRect = playRinkFrame?.getBoundingClientRect();
+    const playTimeline = document.querySelector('.play-mobile-timeline');
+    const playTimelineRect = playTimeline?.getBoundingClientRect();
+    const playmaker3dStage = document.querySelector('.playmaker-workspace[data-view-mode="3d"] .playmaker-stage');
+    const playmaker3dStageRect = playmaker3dStage?.getBoundingClientRect();
+    const playmakerInspector = document.querySelector('.playmaker-workspace[data-view-mode="3d"] .playmaker-inspector');
+    const playmakerBody = document.querySelector('.playmaker-workspace[data-view-mode="3d"] .playmaker-body');
     return {
       viewport,
       documentWidth: document.documentElement.scrollWidth,
@@ -215,6 +301,61 @@ async function auditLayout(page) {
         bottom: Number(strategyRinkRect.bottom.toFixed(1)),
         height: Number(strategyRinkRect.height.toFixed(1)),
         fullyVisible: strategyRinkRect.top >= -1 && strategyRinkRect.bottom <= viewport.height + 1,
+      } : null,
+      strategyTransport: strategyTransportRect ? {
+        top: Number(strategyTransportRect.top.toFixed(1)),
+        bottom: Number(strategyTransportRect.bottom.toFixed(1)),
+        visibleBeforeNavigation: strategyTransportRect.top < (bottomNavRect?.top ?? viewport.height)
+          && strategyTransportRect.bottom <= (bottomNavRect?.top ?? viewport.height) + 1,
+      } : null,
+      replay3d: replayViewRect && replayConsoleRect ? {
+        top: Number(replayViewRect.top.toFixed(1)),
+        bottom: Number(replayViewRect.bottom.toFixed(1)),
+        consoleBottom: Number(replayConsoleRect.bottom.toFixed(1)),
+        unusedBottomSpace: Number(Math.max(0, replayViewRect.bottom - replayConsoleRect.bottom).toFixed(1)),
+        transportTop: replayTransportRect ? Number(replayTransportRect.top.toFixed(1)) : null,
+        transportBottom: replayTransportRect ? Number(replayTransportRect.bottom.toFixed(1)) : null,
+        transportVisibleBeforeNavigation: replayTransportRect
+          ? replayTransportRect.top < (bottomNavRect?.top ?? viewport.height)
+            && replayTransportRect.bottom <= (bottomNavRect?.top ?? viewport.height) + 1
+          : false,
+      } : null,
+      play2d: playRinkFrameRect && playTimelineRect ? {
+        rinkTop: Number(playRinkFrameRect.top.toFixed(1)),
+        rinkBottom: Number(playRinkFrameRect.bottom.toFixed(1)),
+        rinkWidth: Number(playRinkFrameRect.width.toFixed(1)),
+        rinkHeight: Number(playRinkFrameRect.height.toFixed(1)),
+        timelineTop: Number(playTimelineRect.top.toFixed(1)),
+        timelineBottom: Number(playTimelineRect.bottom.toFixed(1)),
+        rinkTimelineOverlap: Number((
+          Math.max(
+            0,
+            Math.min(playRinkFrameRect.right, playTimelineRect.right)
+              - Math.max(playRinkFrameRect.left, playTimelineRect.left),
+          ) > 0
+            ? Math.max(
+              0,
+              Math.min(playRinkFrameRect.bottom, playTimelineRect.bottom)
+                - Math.max(playRinkFrameRect.top, playTimelineRect.top),
+            )
+            : 0
+        ).toFixed(1)),
+      } : null,
+      playmaker3d: playmaker3dStageRect ? {
+        stageTop: Number(playmaker3dStageRect.top.toFixed(1)),
+        stageBottom: Number(playmaker3dStageRect.bottom.toFixed(1)),
+        stageHeight: Number(playmaker3dStageRect.height.toFixed(1)),
+        inspectorVisible: Boolean(playmakerInspector && visible(playmakerInspector)),
+        bodyScrollTop: Number(playmakerBody?.scrollTop?.toFixed?.(1) ?? 0),
+      } : null,
+      bottomNav: bottomNavVisible ? {
+        top: Number(bottomNavRect.top.toFixed(1)),
+        bottom: Number(bottomNavRect.bottom.toFixed(1)),
+        height: Number(bottomNavRect.height.toFixed(1)),
+        itemCount: bottomNav.querySelectorAll('button').length,
+        primaryItemCount: bottomNav.querySelectorAll('button:not(.mobile-bottom-nav-mode)').length,
+        activeItemCount: bottomNav.querySelectorAll('button.is-active').length,
+        anchored: Math.abs(bottomNavRect.bottom - viewport.height) <= 1,
       } : null,
     };
   });
@@ -280,7 +421,34 @@ function stateFailures(state) {
   if (state.layout.unnamedControls.length) failures.push(`${state.stateId}: ${state.layout.unnamedControls.length} visible controls are unnamed`);
   if (state.layout.iconCenterFailures.length) failures.push(`${state.stateId}: ${state.layout.iconCenterFailures.length} icon buttons are not centered`);
   if (state.layout.dialogs.some(({ contained }) => !contained)) failures.push(`${state.stateId}: a dialog leaves the viewport`);
-  if (state.layout.strategyRink && !state.layout.strategyRink.fullyVisible) failures.push(`${state.stateId}: the strategy rink is not fully visible`);
+  if (state.layout.strategyRink && !state.layout.strategyRink.fullyVisible && !state.stateId.endsWith('-coaching')) {
+    failures.push(`${state.stateId}: the strategy rink is not fully visible`);
+  }
+  if (state.stateId === 'strategy-2d' && state.layout.strategyTransport && !state.layout.strategyTransport.visibleBeforeNavigation) {
+    failures.push(`${state.stateId}: strategy playback is not available before the bottom navigation`);
+  }
+  if (state.layout.replay3d?.unusedBottomSpace > 4) {
+    failures.push(`${state.stateId}: the 3D replay leaves ${state.layout.replay3d.unusedBottomSpace}px of unused space above navigation`);
+  }
+  const shortLandscape = state.layout.viewport.height <= 520
+    && state.layout.viewport.width > state.layout.viewport.height;
+  if (shortLandscape && state.layout.play2d?.rinkTimelineOverlap > 1) {
+    failures.push(`${state.stateId}: the 2D timeline covers ${state.layout.play2d.rinkTimelineOverlap}px of the rink in landscape`);
+  }
+  if (shortLandscape && state.layout.play2d && state.layout.play2d.rinkHeight < 220) {
+    failures.push(`${state.stateId}: the 2D landscape rink is only ${state.layout.play2d.rinkHeight}px tall`);
+  }
+  if (shortLandscape && state.layout.replay3d && !state.layout.replay3d.transportVisibleBeforeNavigation) {
+    failures.push(`${state.stateId}: the 3D transport is not available above mobile navigation in landscape`);
+  }
+  if (state.layout.playmaker3d?.inspectorVisible) failures.push(`${state.stateId}: the Create inspector crowds the 3D preview`);
+  if (state.layout.playmaker3d?.bodyScrollTop > 1) failures.push(`${state.stateId}: the Create 3D preview opens with a stale scroll position`);
+  if (!state.layout.bottomNav) failures.push(`${state.stateId}: the mobile bottom navigation is missing`);
+  else {
+    if (state.layout.bottomNav.primaryItemCount !== 4) failures.push(`${state.stateId}: the mobile bottom navigation does not expose four primary destinations`);
+    if (state.layout.bottomNav.activeItemCount !== 1) failures.push(`${state.stateId}: the mobile bottom navigation does not expose one current destination`);
+    if (!state.layout.bottomNav.anchored) failures.push(`${state.stateId}: the mobile bottom navigation is not anchored to the viewport edge`);
+  }
   if (state.layout.spatialTargets.some(({ hitRadius }) => hitRadius < 8.5)) {
     failures.push(`${state.stateId}: a spatial player control is missing its enlarged drag target`);
   }
@@ -292,6 +460,7 @@ function stateFailures(state) {
 
 await mkdir(outputDir, { recursive: true });
 const executablePath = await findChrome();
+const pwa = await auditPwaInstallability();
 const results = {};
 
 for (const device of devices) {
@@ -308,6 +477,16 @@ for (const device of devices) {
     localStorage.setItem('gs_playmaker_tutorial_complete_v1', 'true');
   });
   const page = await context.newPage();
+  let standaloneMediaMatched = false;
+  if (emulateStandalone) {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Emulation.setEmulatedMedia', {
+      features: [{ name: 'display-mode', value: 'standalone' }],
+    });
+    standaloneMediaMatched = await page.evaluate(() => (
+      window.matchMedia('(display-mode: standalone)').matches
+    ));
+  }
   const browserProblems = [];
   page.on('console', (message) => {
     if (message.type() === 'error') browserProblems.push(`console: ${message.text()}`);
@@ -318,6 +497,33 @@ for (const device of devices) {
   await page.goto(route(routes.home), { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await waitForSurface(page, 'stats');
   states.push(await capture(page, device, 'home-overview'));
+  if (device.full) {
+    await page.getByRole('tab', { name: 'Standings', exact: true }).click();
+    await page.locator('.stats-standings-view .stats-league-standings').first().waitFor({ state: 'visible' });
+    states.push(await capture(page, device, 'home-full-standings'));
+    await page.getByRole('tab', { name: 'Overview', exact: true }).click();
+    await page.locator('.stats-team-switcher').getByRole('button', { name: 'Sunday League', exact: true }).click();
+    await page.locator('.stats-league-standings').waitFor({ state: 'visible' });
+    states.push(await capture(page, device, 'home-sunday-standings'));
+    const scopedViperz = page.getByRole('button', { name: 'Open OG VIPERZ head-to-head', exact: true });
+    await scopedViperz.click();
+    await page.locator('.stats-matchup-page').waitFor({ state: 'visible' });
+    const scopedMatchupText = await page.locator('.stats-matchup-hero').innerText();
+    if (!scopedMatchupText.includes('SUMMER 2026 · SUNDAY LEAGUE') || !scopedMatchupText.includes('1–2–0')) {
+      browserProblems.push('league scope: Sunday Viperz matchup did not preserve its 1–2–0 league-specific record');
+    }
+    states.push(await capture(page, device, 'home-sunday-viperz-matchup'));
+    await page.goto(route(routes.home), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await waitForSurface(page, 'stats');
+
+    await page.locator('summary[aria-label="Open more app actions"]').click();
+    await page.getByRole('button', { name: 'Dark theme', exact: true }).click();
+    await settleInteraction(page, 120);
+    states.push(await capture(page, device, 'home-dark-theme'));
+    await page.locator('summary[aria-label="Open more app actions"]').click();
+    await page.getByRole('button', { name: 'Light theme', exact: true }).click();
+    await settleInteraction(page, 120);
+  }
 
   await page.getByRole('tab', { name: 'Games', exact: true }).click();
   states.push(await capture(page, device, 'home-games'));
@@ -327,9 +533,24 @@ for (const device of devices) {
     await page.locator('.stats-game-page').waitFor({ state: 'visible' });
     states.push(await capture(page, device, 'game-detail'));
     await page.getByRole('button', { name: 'All games', exact: true }).click();
+    const upcomingMatchup = page.getByRole('button', { name: /Open head-to-head against/u }).first();
+    if (await upcomingMatchup.count()) {
+      await upcomingMatchup.click();
+      await page.locator('.stats-matchup-page').waitFor({ state: 'visible' });
+      states.push(await capture(page, device, 'opponent-matchup'));
+      await page.getByRole('button', { name: 'All games', exact: true }).click();
+    }
   }
   await page.getByRole('tab', { name: 'Players', exact: true }).click();
   states.push(await capture(page, device, 'home-players'));
+  if (device.full) {
+    const firstPlayer = page.locator('.stats-player-directory-grid button').first();
+    await firstPlayer.click();
+    await page.locator('.public-player-page').waitFor({ state: 'visible' });
+    await page.waitForTimeout(1_200);
+    states.push(await capture(page, device, 'player-profile'));
+    await page.getByRole('button', { name: 'All players', exact: true }).click();
+  }
 
   await page.getByRole('button', { name: 'Open team account' }).click();
   await page.locator('.account-workspace').waitFor({ state: 'visible' });
@@ -338,7 +559,15 @@ for (const device of devices) {
   await page.goto(route(routes.home), { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await waitForSurface(page, 'stats');
 
-  await page.getByRole('button', { name: 'Open product guide' }).click();
+  if (device.full) {
+    await page.getByTestId('mobile-bottom-nav').getByRole('button', { name: 'Plays', exact: true }).click();
+    await waitForSurface(page, 'play2d');
+    await page.goBack({ waitUntil: 'domcontentloaded' });
+    await waitForSurface(page, 'stats');
+    states.push(await capture(page, device, 'home-history-restored'));
+  }
+
+  await openProductGuide(page);
   await page.getByRole('dialog', { name: 'Goonsquad product guide' }).waitFor({ state: 'visible' });
   await settleInteraction(page);
   states.push(await capture(page, device, 'guide-home'));
@@ -478,7 +707,7 @@ for (const device of devices) {
     states.push(await capture(page, device, 'plays-3d-library'));
     await page.getByTestId('vnext3d-catalog-drawer').getByRole('button', { name: /Close .* library/u }).click();
 
-    if (device.full) {
+    if (device.full || device.landscape) {
       await page.goto(route(routes.strategy3d), { waitUntil: 'domcontentloaded', timeout: 60_000 });
       await waitForSurface(page, '3d');
       states.push(await capture(page, device, 'strategy-3d'));
@@ -496,6 +725,7 @@ for (const device of devices) {
     states,
     browserProblems,
     smallTargetCount: states.reduce((sum, state) => sum + state.layout.smallTargets.length, 0),
+    standaloneMediaMatched,
     failures,
     passed: failures.length === 0,
   };
@@ -510,13 +740,17 @@ const report = {
   baseUrl,
   headless: true,
   visibleBrowserWindowOpened: false,
+  standaloneDisplayModeRequested: emulateStandalone,
+  standaloneDisplayModeEmulated: emulateStandalone
+    && Object.values(results).every(({ standaloneMediaMatched }) => standaloneMediaMatched),
   coverage: {
     devices: devices.map(({ id, width, height }) => ({ id, width, height })),
     publicDestinations: ['Home', 'Plays', 'Strategy', 'Create'],
     states: [...new Set(Object.values(results).flatMap((result) => result.states.map(({ stateId }) => stateId)))],
   },
+  pwa,
   results,
-  passed: Object.values(results).every(({ passed }) => passed),
+  passed: pwa.passed && Object.values(results).every(({ passed }) => passed),
 };
 
 await writeFile(path.join(outputDir, 'mobile-product-audit.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
@@ -524,6 +758,10 @@ console.log(JSON.stringify({
   generatedAt: report.generatedAt,
   runId,
   passed: report.passed,
+  pwa: {
+    passed: pwa.passed,
+    failures: pwa.failures,
+  },
   results: Object.fromEntries(Object.entries(results).map(([id, result]) => [id, {
     viewport: result.viewport,
     stateCount: result.stateCount,

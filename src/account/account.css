@@ -785,8 +785,8 @@
   .account-workspace-identity h1 { margin: 8px 0 0; font-size: 30px; }
   .account-workspace-identity > p,
   .account-value-list { display: none; }
-  .account-workspace-panel { min-height: 480px; padding: 22px 20px 30px; align-content: start; }
-  .account-workspace-heading { margin-bottom: 16px; }
+  .account-workspace-panel { min-height: 480px; padding: 18px 20px 30px; align-content: start; }
+  .account-workspace-heading { margin-bottom: 12px; }
   .account-workspace-heading h2 { font-size: 29px; }
   .account-workspace-primary,
   .account-workspace-tabs button,

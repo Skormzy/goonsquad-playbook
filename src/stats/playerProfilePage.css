@@ -744,7 +744,9 @@
   }
 
   .public-player-toolbar a {
-    display: none;
+    min-height: 44px;
+    padding-inline: 9px;
+    font-size: 10px;
   }
 
   .public-player-hero {

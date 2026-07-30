@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
+import { useDialogFocus } from '../hooks/useDialogFocus';
 import {
   PLAYMAKER_TUTORIAL_STEPS,
   PLAYMAKER_TUTORIAL_STORAGE_KEY,
@@ -59,7 +60,7 @@ export default function PlaymakerTutorial({ open, onClose, colors }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [spotlight, setSpotlight] = useState(null);
   const [cardPosition, setCardPosition] = useState({ top: 16, right: 16, width: DESKTOP_CARD_WIDTH });
-  const cardRef = useRef(null);
+  const closeButtonRef = useRef(null);
   const step = PLAYMAKER_TUTORIAL_STEPS[stepIndex];
   const isLastStep = stepIndex === PLAYMAKER_TUTORIAL_STEPS.length - 1;
 
@@ -67,6 +68,11 @@ export default function PlaymakerTutorial({ open, onClose, colors }) {
     setStepIndex(0);
     onClose();
   }, [onClose]);
+  const cardRef = useDialogFocus({
+    active: open,
+    initialFocusRef: closeButtonRef,
+    onClose: closeTutorial,
+  });
 
   const updateLayout = useCallback(({ reveal = false } = {}) => {
     if (!open || !step) return;
@@ -81,7 +87,7 @@ export default function PlaymakerTutorial({ open, onClose, colors }) {
       height: Math.min(window.innerHeight, rect.height + SPOTLIGHT_GAP * 2),
     });
     setCardPosition(placeCard(rect, cardRef.current?.offsetHeight ?? 326));
-  }, [open, step]);
+  }, [cardRef, open, step]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -102,10 +108,7 @@ export default function PlaymakerTutorial({ open, onClose, colors }) {
     if (!open) return undefined;
     const handler = (event) => {
       if (event.target instanceof Element && event.target.closest('input, select, textarea, [contenteditable="true"]')) return;
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        closeTutorial();
-      } else if (event.key === 'ArrowRight') {
+      if (event.key === 'ArrowRight') {
         event.preventDefault();
         setStepIndex((current) => Math.min(current + 1, PLAYMAKER_TUTORIAL_STEPS.length - 1));
       } else if (event.key === 'ArrowLeft') {
@@ -142,8 +145,10 @@ export default function PlaymakerTutorial({ open, onClose, colors }) {
         ref={cardRef}
         className="playmaker-tutorial-card"
         role="dialog"
+        aria-modal="true"
         aria-label="Create tutorial"
         aria-live="polite"
+        tabIndex={-1}
         style={cardPosition}
       >
         <div className="playmaker-tutorial-header">
@@ -151,7 +156,7 @@ export default function PlaymakerTutorial({ open, onClose, colors }) {
             <span>{step.eyebrow}</span>
             <strong>STEP {stepIndex + 1} OF {PLAYMAKER_TUTORIAL_STEPS.length}</strong>
           </div>
-          <button type="button" onClick={closeTutorial} aria-label="Exit Create tutorial" title="Exit tutorial">
+          <button ref={closeButtonRef} type="button" onClick={closeTutorial} aria-label="Exit Create tutorial" title="Exit tutorial">
             <X aria-hidden="true" />
           </button>
         </div>

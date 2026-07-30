@@ -9,10 +9,13 @@ import {
 import { Canvas } from '@react-three/fiber';
 import { useProgress } from '@react-three/drei';
 import {
+  Camera,
+  ChevronDown,
   Crosshair,
   Maximize2,
   Minimize2,
   RotateCcw,
+  Settings2,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
@@ -87,6 +90,7 @@ export default function TacticalReplayPreview() {
   const {
     currentPhase,
     currentPlay,
+    currentReplayPhases,
     currentReplayScene: replay,
     isPlaying,
     playbackTime,
@@ -127,6 +131,8 @@ export default function TacticalReplayPreview() {
   const [cameraPose, setCameraPose] = useState(null);
   const [frameStats, setFrameStats] = useState(null);
   const [stageFullscreen, setStageFullscreen] = useState(false);
+  const [mobileCameraPresetOpen, setMobileCameraPresetOpen] = useState(false);
+  const [mobileCameraToolsOpen, setMobileCameraToolsOpen] = useState(false);
   const [tacticalLayers, setTacticalLayers] = useState(
     () => ({ ...TACTICAL_LAYER_DEFAULTS }),
   );
@@ -138,6 +144,7 @@ export default function TacticalReplayPreview() {
   const handleCameraPreset = useCallback((cameraId) => {
     setReplay3dCamera(cameraId);
     setCameraFollowing(true);
+    setMobileCameraPresetOpen(false);
     issueCameraCommand('reframe');
   }, [issueCameraCommand, setReplay3dCamera]);
 
@@ -323,10 +330,17 @@ export default function TacticalReplayPreview() {
     })
     : { phase: `phase-${currentPhase + 1}`, status: 'pass' };
   const penaltyBoxAthlete = frame.players.find((player) => player.penaltyBox);
+  const phase = currentReplayPhases[currentPhase] ?? currentReplayPhases[0] ?? null;
+  const phaseRead = frame.event?.nextRead
+    ?? phase?.desc
+    ?? replay.presentation?.purpose
+    ?? replay.title;
+  const mobileLayout = workspaceLayout !== 'desktop';
   return (
     <main
       className="vnext3d-preview-view"
       data-testid="vnext-3d-production-preview"
+      data-workspace-layout={workspaceLayout}
       data-engine={TACTICAL_REPLAY_ENGINE_ID}
       data-camera-id={replay3dCamera}
       data-camera-control={cameraFollowing ? 'follow' : 'free-look'}
@@ -443,18 +457,48 @@ export default function TacticalReplayPreview() {
 
         <AssetProgress />
 
-        <div className="vnext3d-stage-camera-presets" role="group" aria-label="3D camera angle">
-          {CAMERA_PRESETS.map((preset) => (
+        {mobileLayout ? (
+          <div className={`vnext3d-mobile-camera-picker ${mobileCameraPresetOpen ? 'is-open' : ''}`}>
             <button
               type="button"
-              key={preset.id}
-              aria-pressed={replay3dCamera === preset.id}
-              onClick={() => handleCameraPreset(preset.id)}
+              className="vnext3d-mobile-camera-current"
+              aria-expanded={mobileCameraPresetOpen}
+              aria-controls="vnext3d-mobile-camera-options"
+              onClick={() => setMobileCameraPresetOpen((open) => !open)}
             >
-              {preset.label}
+              <Camera aria-hidden="true" />
+              <span>{CAMERA_PRESETS.find(({ id }) => id === replay3dCamera)?.label ?? 'Camera'}</span>
+              <ChevronDown aria-hidden="true" />
             </button>
-          ))}
-        </div>
+            {mobileCameraPresetOpen && (
+              <div id="vnext3d-mobile-camera-options" role="group" aria-label="3D camera angle">
+                {CAMERA_PRESETS.map((preset) => (
+                  <button
+                    type="button"
+                    key={preset.id}
+                    aria-pressed={replay3dCamera === preset.id}
+                    onClick={() => handleCameraPreset(preset.id)}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="vnext3d-stage-camera-presets" role="group" aria-label="3D camera angle">
+            {CAMERA_PRESETS.map((preset) => (
+              <button
+                type="button"
+                key={preset.id}
+                aria-pressed={replay3dCamera === preset.id}
+                onClick={() => handleCameraPreset(preset.id)}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {replay3dCamera === 'player' && (
           <RoleCameraSelector
@@ -463,57 +507,77 @@ export default function TacticalReplayPreview() {
           />
         )}
 
-        <div className="vnext3d-camera-operator" role="toolbar" aria-label="3D camera navigation">
-          <button
-            type="button"
-            className={cameraFollowing ? 'is-active' : ''}
-            aria-label={cameraFollowing ? 'Pause action camera follow' : 'Follow the action'}
-            aria-pressed={cameraFollowing}
-            onClick={handleFollowToggle}
-            title={cameraFollowing ? 'Pause action follow' : 'Follow the action'}
-          >
-            <Crosshair aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            aria-label="Recenter selected camera angle"
-            onClick={() => handleCameraCommand('reframe')}
-            title="Recenter camera"
-          >
-            <RotateCcw aria-hidden="true" />
-          </button>
-          <CameraGestureControl
-            mode={cameraGestureMode}
-            onChange={handleCameraGestureMode}
-          />
-          <button
-            type="button"
-            aria-label="Zoom out"
-            onClick={() => handleCameraCommand('zoom-out')}
-            title="Zoom out"
-          >
-            <ZoomOut aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            aria-label="Zoom in"
-            onClick={() => handleCameraCommand('zoom-in')}
-            title="Zoom in"
-          >
-            <ZoomIn aria-hidden="true" />
-          </button>
-          <TacticalLayerControl
-            layers={tacticalLayers}
-            onChange={handleTacticalLayerChange}
-          />
-          <button
-            type="button"
-            aria-label={stageFullscreen ? 'Exit full screen 3D replay' : 'View 3D replay full screen'}
-            onClick={toggleStageFullscreen}
-            title={stageFullscreen ? 'Exit full screen' : 'Full screen'}
-          >
-            {stageFullscreen ? <Minimize2 aria-hidden="true" /> : <Maximize2 aria-hidden="true" />}
-          </button>
+        <div
+          className={`vnext3d-camera-operator ${mobileLayout && !mobileCameraToolsOpen ? 'is-collapsed' : ''}`}
+          role="toolbar"
+          aria-label="3D camera navigation"
+        >
+          {mobileLayout && (
+            <button
+              type="button"
+              className="vnext3d-camera-tools-toggle"
+              aria-label={mobileCameraToolsOpen ? 'Close camera tools' : 'Open camera tools'}
+              aria-expanded={mobileCameraToolsOpen}
+              onClick={() => setMobileCameraToolsOpen((open) => !open)}
+              title={mobileCameraToolsOpen ? 'Close camera tools' : 'Camera tools'}
+            >
+              <Settings2 aria-hidden="true" />
+            </button>
+          )}
+          {(!mobileLayout || mobileCameraToolsOpen) && (
+            <>
+              <button
+                type="button"
+                className={cameraFollowing ? 'is-active' : ''}
+                aria-label={cameraFollowing ? 'Pause action camera follow' : 'Follow the action'}
+                aria-pressed={cameraFollowing}
+                onClick={handleFollowToggle}
+                title={cameraFollowing ? 'Pause action follow' : 'Follow the action'}
+              >
+                <Crosshair aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                aria-label="Recenter selected camera angle"
+                onClick={() => handleCameraCommand('reframe')}
+                title="Recenter camera"
+              >
+                <RotateCcw aria-hidden="true" />
+              </button>
+              <CameraGestureControl
+                mode={cameraGestureMode}
+                onChange={handleCameraGestureMode}
+              />
+              <button
+                type="button"
+                aria-label="Zoom out"
+                onClick={() => handleCameraCommand('zoom-out')}
+                title="Zoom out"
+              >
+                <ZoomOut aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                aria-label="Zoom in"
+                onClick={() => handleCameraCommand('zoom-in')}
+                title="Zoom in"
+              >
+                <ZoomIn aria-hidden="true" />
+              </button>
+              <TacticalLayerControl
+                layers={tacticalLayers}
+                onChange={handleTacticalLayerChange}
+              />
+              <button
+                type="button"
+                aria-label={stageFullscreen ? 'Exit full screen 3D replay' : 'View 3D replay full screen'}
+                onClick={toggleStageFullscreen}
+                title={stageFullscreen ? 'Exit full screen' : 'Full screen'}
+              >
+                {stageFullscreen ? <Minimize2 aria-hidden="true" /> : <Maximize2 aria-hidden="true" />}
+              </button>
+            </>
+          )}
         </div>
 
         <div className="vnext3d-camera-state" aria-live="polite">
@@ -582,16 +646,39 @@ export default function TacticalReplayPreview() {
             </div>
           </div>
         )}
-        <div className="vnext3d-preview-identity">
-          <TeamJobsPanel
-            compact
-            wide
-            eyebrow={replay.kind === 'strategy' ? 'STRATEGY PURPOSE' : 'PLAY PURPOSE'}
-            jobs={teamJobs}
-            meta={replay.title}
-            summary={replay.presentation?.purpose ?? replay.title}
-          />
-        </div>
+        {mobileLayout ? (
+          <details className="vnext3d-mobile-coaching">
+            <summary>
+              <span>
+                PHASE {currentPhase + 1} / {currentReplayPhases.length}
+              </span>
+              <strong>{phase?.t ?? replay.title}</strong>
+              <small>{phaseRead}</small>
+              <ChevronDown aria-hidden="true" />
+            </summary>
+            <div>
+              <TeamJobsPanel
+                compact
+                wide
+                eyebrow={replay.kind === 'strategy' ? 'STRATEGY PURPOSE' : 'PLAY PURPOSE'}
+                jobs={teamJobs}
+                meta={replay.title}
+                summary={replay.presentation?.purpose ?? replay.title}
+              />
+            </div>
+          </details>
+        ) : (
+          <div className="vnext3d-preview-identity">
+            <TeamJobsPanel
+              compact
+              wide
+              eyebrow={replay.kind === 'strategy' ? 'STRATEGY PURPOSE' : 'PLAY PURPOSE'}
+              jobs={teamJobs}
+              meta={replay.title}
+              summary={replay.presentation?.purpose ?? replay.title}
+            />
+          </div>
+        )}
         <div className="vnext3d-preview-transport">
           <PlaybackControls compact />
         </div>
