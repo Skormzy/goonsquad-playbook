@@ -8,7 +8,7 @@ import {
 } from './guidedReplayClock';
 
 const scene = {
-  duration: 9,
+  duration: 6,
   sourcePhaseTimes: [0, 3, 6],
   events: [
     { label: 'Set the shape' },
@@ -81,6 +81,14 @@ describe('guided replay clock', () => {
       speed: 1,
     });
     expect(advanced.time).toBe(5);
+  });
+
+  it('treats the final authored phase as the completed lesson endpoint', () => {
+    expect(createGuidedReplayState(scene, 6)).toMatchObject({
+      mode: 'complete',
+      phaseIndex: 2,
+      time: 6,
+    });
   });
 
   it('bounds adaptive reading time for short and long coaching copy', () => {

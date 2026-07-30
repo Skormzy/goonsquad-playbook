@@ -8,7 +8,6 @@ const FIELD_ROLES = ROLES.filter((role) => role !== 'G');
 const MIN_PLAY_DURATION_SECONDS = 8;
 const MIN_PLAY_TRANSITION_SECONDS = 3.4;
 const MIN_STRATEGY_BEAT_SECONDS = 3.25;
-const FINAL_RESOLUTION_SECONDS = 2.8;
 const TACTICAL_CRUISE_SPEED_MPS = 3.2;
 const MOVEMENT_RAMP_SECONDS = 0.6;
 const MIN_AUTHORED_PLAY_BEAT_SECONDS = 1.8;
@@ -362,20 +361,14 @@ function playTiming(phases) {
     );
     phaseTimes.push(roundTime(phaseTimes.at(-1) + runSeconds));
   }
-  const authoredFinalSeconds = Number(phases.at(-1)?.duration);
-  const finalResolutionSeconds = Number.isFinite(authoredFinalSeconds) && authoredFinalSeconds > 0
-    ? clamp(Math.max(authoredFinalSeconds, FINAL_RESOLUTION_SECONDS), FINAL_RESOLUTION_SECONDS, 6)
-    : FINAL_RESOLUTION_SECONDS;
   return {
     phaseTimes,
-    duration: roundTime(Math.max(
-      phaseTimes.at(-1) + finalResolutionSeconds,
-      MIN_PLAY_DURATION_SECONDS,
-    )),
+    duration: phaseTimes.at(-1),
   };
 }
 
 function strategyTiming(phases) {
+  if (phases.length <= 1) return { phaseTimes: [0], duration: MIN_PLAY_DURATION_SECONDS };
   const phaseTimes = [0];
   for (let index = 1; index < phases.length; index += 1) {
     const authoredSeconds = Number(phases[index - 1].duration) || MIN_STRATEGY_BEAT_SECONDS;
@@ -390,17 +383,9 @@ function strategyTiming(phases) {
     );
     phaseTimes.push(roundTime(phaseTimes.at(-1) + beatSeconds));
   }
-  const finalBeatSeconds = clamp(
-    Number(phases.at(-1)?.duration) || MIN_STRATEGY_BEAT_SECONDS,
-    MIN_STRATEGY_BEAT_SECONDS,
-    6,
-  );
   return {
     phaseTimes,
-    duration: roundTime(Math.max(
-      phaseTimes.at(-1) + finalBeatSeconds,
-      MIN_PLAY_DURATION_SECONDS,
-    )),
+    duration: phaseTimes.at(-1),
   };
 }
 
@@ -464,6 +449,71 @@ function finalMotionTarget({ team, role, positions, finalBall, index }) {
   }, current);
 }
 
+function addVisibleAuthoredMotion(frames, {
+  ballPositions,
+  index,
+  role,
+  team,
+}) {
+  if (frames.length < 2) return frames;
+  const movement = frames.slice(1).reduce((total, frame, frameIndex) => (
+    total + distance(frames[frameIndex].position, frame.position)
+  ), 0);
+  const minimumMovement = role === 'G' ? 0.25 : 0.5;
+  if (movement >= minimumMovement) return frames;
+
+  let intervalIndex = 0;
+  for (let candidate = 1; candidate < frames.length - 1; candidate += 1) {
+    const duration = frames[candidate + 1].time - frames[candidate].time;
+    const longestDuration = frames[intervalIndex + 1].time - frames[intervalIndex].time;
+    if (duration > longestDuration) intervalIndex = candidate;
+  }
+
+  const before = frames[intervalIndex];
+  const after = frames[intervalIndex + 1];
+  const midpoint = {
+    x: (before.position.x + after.position.x) / 2,
+    y: (before.position.y + after.position.y) / 2,
+  };
+  const ball = ballPositions[intervalIndex + 1] ?? ballPositions[intervalIndex] ?? midpoint;
+  if (role === 'G') {
+    const requestedDirection = ball.x - midpoint.x;
+    const direction = Math.abs(requestedDirection) >= 0.05
+      ? Math.sign(requestedDirection)
+      : index % 2 === 0 ? 1 : -1;
+    const adjusted = position({
+      x: midpoint.x + direction * 0.35,
+      y: midpoint.y,
+    }, midpoint);
+    frames.splice(intervalIndex + 1, 0, {
+      time: roundTime((before.time + after.time) / 2),
+      position: adjusted,
+      facing: headingBetween(adjusted, ball, before.facing),
+    });
+    return frames;
+  }
+
+  let dx = ball.x - midpoint.x;
+  let dy = ball.y - midpoint.y;
+  let magnitude = Math.hypot(dx, dy);
+  if (magnitude < 0.05) {
+    dx = index % 2 === 0 ? 1 : -1;
+    dy = team === 'us' ? 0.35 : -0.35;
+    magnitude = Math.hypot(dx, dy);
+  }
+  const adjustment = 0.6;
+  const adjusted = position({
+    x: midpoint.x + dx / magnitude * adjustment,
+    y: midpoint.y + dy / magnitude * adjustment,
+  }, midpoint);
+  frames.splice(intervalIndex + 1, 0, {
+    time: roundTime((before.time + after.time) / 2),
+    position: adjusted,
+    facing: headingBetween(adjusted, ball, before.facing),
+  });
+  return frames;
+}
+
 function createTrack({
   team,
   role,
@@ -481,9 +531,17 @@ function createTrack({
       ? (team === 'us' ? 0 : Math.PI)
       : facingForTrack(positions, ballPositions, frameIndex, role, team),
   }));
+  addVisibleAuthoredMotion(frames, {
+    ballPositions,
+    index,
+    role,
+    team,
+  });
+  const lastTime = phaseTimes.at(-1) ?? 0;
+  if (duration - lastTime < 0.02) return frames;
+
   const finalPosition = positions.at(-1);
   const finalBall = ballPositions.at(-1) ?? finalPosition;
-  const lastTime = phaseTimes.at(-1) ?? 0;
   const finalTarget = finalMotionTarget({ team, role, positions, finalBall, index });
   const finalFacing = headingBetween(
     finalPosition,

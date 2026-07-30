@@ -7,8 +7,8 @@ export const PLAY_SCENE_ROLES = ['LW', 'C', 'RW', 'LD', 'RD', 'G'];
 function movementThresholds(role, generatedFrom2d = false) {
   if (generatedFrom2d) {
     return role === 'G'
-      ? { minKeyframes: 3, minTotalDistance: 0.25, minMaxDisplacement: 0.15 }
-      : { minKeyframes: 3, minTotalDistance: 0.5, minMaxDisplacement: 0.3 };
+      ? { minKeyframes: 2, minTotalDistance: 0.25, minMaxDisplacement: 0.15 }
+      : { minKeyframes: 2, minTotalDistance: 0.5, minMaxDisplacement: 0.3 };
   }
   return role === 'G'
     ? { minKeyframes: 3, minTotalDistance: 1.5, minMaxDisplacement: 0.85 }

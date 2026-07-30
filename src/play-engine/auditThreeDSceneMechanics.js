@@ -1,5 +1,9 @@
 import { sampleTacticalReplay } from '../tactical3d/sampleTacticalReplay';
 import { rinkPositionToWorld } from '../vnext3d/runtimeMapping';
+import {
+  GUIDED_READ_MIN_SECONDS,
+  guidedReadSeconds,
+} from './guidedReplayClock';
 import { isPenaltyBoxPlayer } from './penaltyBox';
 import { validatePlayScene } from './validatePlayScene';
 
@@ -15,7 +19,10 @@ export const THREE_D_MECHANICS_LIMITS = {
   minimumTeachingBeats: 2,
   minimumBeatSpacingSeconds: 2,
   minimumFaceoffBeatSpacingSeconds: 0.5,
-  minimumResolutionSeconds: 2.5,
+  minimumFinalReadSeconds: GUIDED_READ_MIN_SECONDS,
+  lessonDurationToleranceSeconds: 0.1,
+  maximumEndpointDriftSeconds: 0.001,
+  maximumCustomCueTailSeconds: 0.75,
   maximumRunAlignmentDegrees: 15,
   maximumCarryAlignmentDegrees: 15,
   maximumReleaseAlignmentDegrees: 10,
@@ -107,14 +114,23 @@ function addAlignmentError(errors, scene, label, metric, maximum) {
 }
 
 function auditSequence(scene, errors) {
+  const beats = scene.sourcePhaseTimes ?? [];
+  const guidedReadDuration = beats.reduce((total, _, phaseIndex) => (
+    total + guidedReadSeconds(scene, phaseIndex)
+  ), 0);
+  const guidedLessonDuration = scene.duration + guidedReadDuration;
   const minimumDuration = scene.kind === 'strategy'
     ? THREE_D_MECHANICS_LIMITS.minimumStrategyDurationSeconds
     : THREE_D_MECHANICS_LIMITS.minimumPlayDurationSeconds;
-  if (scene.duration < minimumDuration) {
-    errors.push(`${scene.id} lasts ${scene.duration}s; minimum ${minimumDuration}s.`);
+  if (
+    guidedLessonDuration + THREE_D_MECHANICS_LIMITS.lessonDurationToleranceSeconds
+    < minimumDuration
+  ) {
+    errors.push(
+      `${scene.id} guided lesson lasts ${guidedLessonDuration}s; minimum ${minimumDuration}s.`,
+    );
   }
 
-  const beats = scene.sourcePhaseTimes ?? [];
   if (beats.length < THREE_D_MECHANICS_LIMITS.minimumTeachingBeats) {
     errors.push(`${scene.id} needs at least ${THREE_D_MECHANICS_LIMITS.minimumTeachingBeats} teaching beats.`);
   }
@@ -127,9 +143,23 @@ function auditSequence(scene, errors) {
       errors.push(`${scene.id} teaching beats ${index + 1}-${index + 2} are only ${spacing}s apart.`);
     }
   });
-  const resolutionSeconds = scene.duration - (beats.at(-1) ?? 0);
-  if (resolutionSeconds < THREE_D_MECHANICS_LIMITS.minimumResolutionSeconds) {
-    errors.push(`${scene.id} leaves only ${resolutionSeconds}s for the final read.`);
+  const lastPhaseTime = beats.at(-1) ?? 0;
+  const lastCoachingEventTime = Math.max(
+    lastPhaseTime,
+    ...(scene.events ?? []).map((event) => Number(event.time) || 0),
+  );
+  const endpointDrift = Math.abs(
+    scene.duration - (scene.generatedFrom2d ? lastPhaseTime : lastCoachingEventTime),
+  );
+  const maximumEndpointDrift = scene.generatedFrom2d
+    ? THREE_D_MECHANICS_LIMITS.maximumEndpointDriftSeconds
+    : THREE_D_MECHANICS_LIMITS.maximumCustomCueTailSeconds;
+  if (endpointDrift > maximumEndpointDrift) {
+    errors.push(`${scene.id} leaves ${endpointDrift}s of unlabelled motion after its final cue.`);
+  }
+  const finalReadSeconds = guidedReadSeconds(scene, Math.max(0, beats.length - 1));
+  if (finalReadSeconds < THREE_D_MECHANICS_LIMITS.minimumFinalReadSeconds) {
+    errors.push(`${scene.id} leaves only ${finalReadSeconds}s for the final read.`);
   }
   if ((scene.events?.length ?? 0) < beats.length) {
     errors.push(`${scene.id} needs a coaching event for every teaching beat.`);

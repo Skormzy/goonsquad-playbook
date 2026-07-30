@@ -1,18 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import {
   PHASE_TRANSITION_DEFAULT_RATE,
+  PHASE_TRANSITION_RATE_MULTIPLIER,
   phaseTransitionDuration,
   phaseTransitionProgress,
   phaseTransitionTime,
 } from './phaseTransition';
 
 describe('phase transitions', () => {
-  it('travels through authored replay time at the selected learning speed', () => {
+  it('travels through authored replay time 20% faster than regular playback', () => {
     expect(PHASE_TRANSITION_DEFAULT_RATE).toBe(1);
-    expect(phaseTransitionDuration(2, 5)).toBe(3000);
-    expect(phaseTransitionDuration(8, 2)).toBe(6000);
-    expect(phaseTransitionDuration(2, 5, 0.5)).toBe(6000);
-    expect(phaseTransitionDuration(2, 5, 0.25)).toBe(12000);
+    expect(PHASE_TRANSITION_RATE_MULTIPLIER).toBe(1.2);
+    expect(phaseTransitionDuration(2, 5)).toBe(2500);
+    expect(phaseTransitionDuration(8, 2)).toBe(5000);
+    expect(phaseTransitionDuration(2, 5, 0.5)).toBe(5000);
+    expect(phaseTransitionDuration(2, 5, 0.25)).toBe(10000);
   });
 
   it('uses linear progress so manual travel matches regular playback', () => {
@@ -31,9 +33,9 @@ describe('phase transitions', () => {
     expect(phaseTransitionTime(8, 2, 0.5)).toBeCloseTo(5);
   });
 
-  it('advances one replay second per wall second at 1x', () => {
+  it('advances 1.2 replay seconds per wall second at 1x', () => {
     const duration = phaseTransitionDuration(2, 8);
     const oneSecondProgress = 1000 / duration;
-    expect(phaseTransitionTime(2, 8, oneSecondProgress)).toBeCloseTo(3);
+    expect(phaseTransitionTime(2, 8, oneSecondProgress)).toBeCloseTo(3.2);
   });
 });

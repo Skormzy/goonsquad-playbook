@@ -454,7 +454,7 @@ function sampleBoardPass(scene, segment, requestedTime) {
   return {
     state: boardPassState(segment, geometry, requestedTime),
     segmentType: segment.type,
-    ownerId: null,
+    ownerId: progress >= 1 ? segment.toPlayerId ?? null : null,
     fromPlayerId: segment.fromPlayerId,
     toPlayerId: segment.toPlayerId,
     position: point,
@@ -575,7 +575,7 @@ function sampleGenericFlight(scene, segment, requestedTime) {
   return {
     state: genericFlightState(segment, requestedTime),
     segmentType: segment.type,
-    ownerId: null,
+    ownerId: progress >= 1 ? segment.toPlayerId ?? null : null,
     fromPlayerId: segment.fromPlayerId ?? null,
     toPlayerId: segment.toPlayerId ?? null,
     position: point,

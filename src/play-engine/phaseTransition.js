@@ -1,6 +1,7 @@
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 export const PHASE_TRANSITION_DEFAULT_RATE = 1;
+export const PHASE_TRANSITION_RATE_MULTIPLIER = 1.2;
 
 export function phaseTransitionDuration(
   fromTime,
@@ -12,7 +13,7 @@ export function phaseTransitionDuration(
   const safeRate = Number.isFinite(requestedRate) && requestedRate > 0
     ? requestedRate
     : PHASE_TRANSITION_DEFAULT_RATE;
-  return replayDistance / safeRate * 1000;
+  return replayDistance / (safeRate * PHASE_TRANSITION_RATE_MULTIPLIER) * 1000;
 }
 
 export function phaseTransitionProgress(progress) {

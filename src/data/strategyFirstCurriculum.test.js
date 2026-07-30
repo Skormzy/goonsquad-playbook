@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getPlayScene, getStrategyScene } from '../play-engine/sceneRegistry';
 import { validatePlayScene } from '../play-engine/validatePlayScene';
+import { sampleTacticalReplay } from '../tactical3d/sampleTacticalReplay';
 import { PLAYS } from './plays';
 import { TACTICS } from './tactics';
 
@@ -57,7 +58,7 @@ describe('strategy-first team curriculum', () => {
     expect(scene.ball.segments.some((segment) => (
       segment.fromPlayerId === 'OP_LW' && segment.toPlayerId === 'OP_RD'
     ))).toBe(true);
-    expect(scene.ball.segments.at(-1).ownerId).toBe('US_LW');
+    expect(sampleTacticalReplay(scene, scene.duration).ball.ownerId).toBe('US_LW');
   });
 
   it('turns an abandoned slot into one clear pass and an immediate shot', () => {
