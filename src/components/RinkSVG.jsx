@@ -14,9 +14,56 @@ const hasPoint = p => p && Number.isFinite(p.x) && Number.isFinite(p.y);
 const PLAYER_ANIM_S = 0.6;
 const MotionLine = motion.line;
 const MotionCircle = motion.circle;
-const MotionRect = motion.rect;
 const MotionText = motion.text;
 const MotionG = motion.g;
+
+function GoalieMarker({
+  x,
+  y,
+  fill,
+  stroke,
+  labelColor,
+  padColor,
+  motionDuration,
+  team,
+  opacity = 0.96,
+}) {
+  return (
+    <MotionG
+      data-testid={`rink-goalie-${team}`}
+      data-goalie-team={team}
+      initial={{ x, y }}
+      animate={{ x, y }}
+      transition={{ duration: motionDuration, ease: 'easeOut' }}
+    >
+      <rect
+        x={-14}
+        y={-9}
+        width={28}
+        height={18}
+        rx={5}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={2}
+        opacity={opacity}
+      />
+      <rect x={-14} y={-6} width={5} height={13} rx={2} fill={padColor} opacity={0.88} />
+      <rect x={9} y={-6} width={5} height={13} rx={2} fill={padColor} opacity={0.88} />
+      <text
+        x={0}
+        y={1}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill={labelColor}
+        fontSize={8}
+        fontWeight="bold"
+        fontFamily="monospace"
+      >
+        G
+      </text>
+    </MotionG>
+  );
+}
 
 function CoverageLines({ coverage, rph, motionDuration }) {
   if (!coverage) return null;
@@ -189,20 +236,16 @@ function PlayerDots({ focusedRoles, rph, t, theme, reducedMotion, motionDuration
           </circle>
         )}
         {pos === 'G' ? (
-          <MotionRect
-            x={ox - r - 2}
-            y={oy - r + 1}
-            initial={{ x: ox - r - 2, y: oy - r + 1 }}
-            animate={{ x: ox - r - 2, y: oy - r + 1 }}
-            transition={{ duration: motionDuration, ease: 'easeOut' }}
-            width={(r + 2) * 2}
-            height={(r - 1) * 2}
-            rx={4}
+          <GoalieMarker
+            x={ox}
+            y={oy}
             fill={c}
-            opacity={s ? 1 : 0.92}
-            stroke={s ? (theme === 'dark' ? '#fff' : '#0a0e1a') : 'rgba(255,255,255,0.45)'}
-            strokeWidth={s ? 2 : 1.4}
-            style={{ filter: s ? `drop-shadow(0 0 6px ${t.sc})` : 'none' }}
+            stroke={s ? t.sc : theme === 'dark' ? '#f8fafc' : '#1d4ed8'}
+            labelColor="#fff"
+            padColor={theme === 'dark' ? '#dbeafe' : '#eff6ff'}
+            motionDuration={motionDuration}
+            team="us"
+            opacity={s ? 1 : 0.96}
           />
         ) : (
           <MotionCircle
@@ -217,13 +260,15 @@ function PlayerDots({ focusedRoles, rph, t, theme, reducedMotion, motionDuration
             style={{ filter: s ? `drop-shadow(0 0 6px ${t.sc})` : 'none' }}
           />
         )}
-        <MotionText
-          animate={{ x: ox, y: oy + 1 }}
-          transition={{ duration: motionDuration, ease: 'easeOut' }}
-          textAnchor="middle" dominantBaseline="central"
-          fill={s ? t.dt : '#fff'} fontSize={s ? 9 : 8}
-          fontWeight="bold" fontFamily="monospace"
-        >{pos}</MotionText>
+        {pos !== 'G' && (
+          <MotionText
+            animate={{ x: ox, y: oy + 1 }}
+            transition={{ duration: motionDuration, ease: 'easeOut' }}
+            textAnchor="middle" dominantBaseline="central"
+            fill={s ? t.dt : '#fff'} fontSize={s ? 9 : 8}
+            fontWeight="bold" fontFamily="monospace"
+          >{pos}</MotionText>
+        )}
       </g>
     );
   });
@@ -247,10 +292,16 @@ function OpponentDots({ rph, t, theme, motionDuration }) {
         style={{ filter: theme === 'dark' ? 'url(#ng)' : 'none' }}
       >
         {(o.isGoalie || label === 'G') ? (
-          <>
-            <MotionRect x={ox - 12} y={oy - 9} initial={{ x: ox - 12, y: oy - 9 }} animate={{ x: ox - 12, y: oy - 9 }} transition={{ duration: motionDuration, ease: 'easeOut' }} width={24} height={18} rx={4} fill={oppFill} opacity={0.96} />
-            <MotionRect x={ox - 12} y={oy - 9} initial={{ x: ox - 12, y: oy - 9 }} animate={{ x: ox - 12, y: oy - 9 }} transition={{ duration: motionDuration, ease: 'easeOut' }} width={24} height={18} rx={4} fill="none" stroke={neon} strokeWidth={2} opacity={theme === 'dark' ? 0.95 : 0.82} />
-          </>
+          <GoalieMarker
+            x={ox}
+            y={oy}
+            fill={neon}
+            stroke={theme === 'dark' ? '#fff' : '#7f1d1d'}
+            labelColor="#fff"
+            padColor={theme === 'dark' ? '#fee2e2' : '#fff'}
+            motionDuration={motionDuration}
+            team="opponent"
+          />
         ) : (
           <>
             <MotionCircle cx={ox} cy={oy} initial={{ cx: ox, cy: oy }} animate={{ cx: ox, cy: oy }} transition={{ duration: motionDuration, ease: 'easeOut' }} r={10} fill={oppFill} opacity={0.92} />
@@ -258,12 +309,14 @@ function OpponentDots({ rph, t, theme, motionDuration }) {
             <MotionCircle cx={ox} cy={oy} initial={{ cx: ox, cy: oy }} animate={{ cx: ox, cy: oy }} transition={{ duration: motionDuration, ease: 'easeOut' }} r={9} fill={neon} opacity={0.1} />
           </>
         )}
-        <MotionText
-          animate={{ x: ox, y: oy + 1 }}
-          transition={{ duration: motionDuration, ease: 'easeOut' }}
-          textAnchor="middle" dominantBaseline="central"
-          fill={neon} fontSize={8} fontWeight="bold" fontFamily="monospace" opacity={0.95}
-        >{label}</MotionText>
+        {!(o.isGoalie || label === 'G') && (
+          <MotionText
+            animate={{ x: ox, y: oy + 1 }}
+            transition={{ duration: motionDuration, ease: 'easeOut' }}
+            textAnchor="middle" dominantBaseline="central"
+            fill={neon} fontSize={8} fontWeight="bold" fontFamily="monospace" opacity={0.95}
+          >{label}</MotionText>
+        )}
       </g>
     );
   });
