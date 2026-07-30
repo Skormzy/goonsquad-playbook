@@ -13,6 +13,7 @@ import { CAT_COLORS } from '../context/ThemeContext';
 import CurriculumLaneSwitch from './CurriculumLaneSwitch';
 import MobileViewModeSwitch from './MobileViewModeSwitch';
 import PlaybackControls from './PlaybackControls';
+import ReplayTeachingCue from './ReplayTeachingCue';
 import SceneRink2D from './SceneRink2D';
 
 const TC = TACTICAL_COLORS;
@@ -71,7 +72,6 @@ export default function TacticsLearn() {
   const activePrinciple = Math.max(0, laneTactics.findIndex((tactic) => tactic.id === selectedTacticId));
   const scene = activeTab === 'mistake' ? principle.mistakeScene : principle.correctScene;
   const phase = scene.phases[currentPhase] ?? scene.phases[0];
-  const totalPhases = scene.phases.length;
   const coverage = phase.coverage || scene.coverage || null;
   const tabAccent = activeTab === 'mistake' ? TC.mistake : TC.defense;
   const rinkMax = isDesktop ? 420 : 430;
@@ -181,32 +181,17 @@ export default function TacticsLearn() {
   );
 
   const rinkBlock = (
-    <div className="tactics-rink" style={{ width: '100%' }}>
-      <SceneRink2D
-        scene={currentReplayScene}
-        time={playbackTime}
-        tactical
-        coverage={coverage}
-        arrows={phase.arrows}
-      />
-    </div>
-  );
-
-  const captionBlock = (
-    <div style={{
-      textAlign: 'center', padding: '8px 12px', minHeight: 36,
-      fontFamily: FF, fontSize: 12, fontWeight: 700,
-      color: tabAccent, lineHeight: 1.4,
-      background: `${tabAccent}0a`,
-      borderRadius: 6, marginTop: 2, width: '100%',
-    }} aria-live="polite">
-      "{phase.caption}"
-    </div>
-  );
-
-  const phaseIndicatorBlock = (
-    <div className="tactics-phase-indicator" style={{ fontSize: 10, color: t.tm, letterSpacing: 0, fontFamily: 'var(--font-display)', fontWeight: 800, marginTop: 6, marginBottom: 3 }}>
-      PHASE {currentPhase + 1} / {totalPhases}
+    <div className="tactics-rink-stage">
+      <ReplayTeachingCue accent={tabAccent} />
+      <div className="tactics-rink" style={{ width: '100%' }}>
+        <SceneRink2D
+          scene={currentReplayScene}
+          time={playbackTime}
+          tactical
+          coverage={coverage}
+          arrows={phase.arrows}
+        />
+      </div>
     </div>
   );
 
@@ -323,8 +308,6 @@ export default function TacticsLearn() {
             {selectorBlock}
             {tabToggleBlock}
             {rinkBlock}
-            {captionBlock}
-            {phaseIndicatorBlock}
             {controlsBlock}
             {legendBlock}
             {navBlock}
@@ -352,8 +335,6 @@ export default function TacticsLearn() {
             {rinkBlock}
           </div>
           <div className="tactics-mobile-transport">
-            {captionBlock}
-            {phaseIndicatorBlock}
             {controlsBlock}
           </div>
           {navBlock}

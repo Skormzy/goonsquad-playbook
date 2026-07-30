@@ -15,8 +15,11 @@ import AccountDialog from './account/AccountDialog';
 import { useWorkspaceLayout } from './hooks/useWorkspaceLayout';
 import {
   PLAYBACK_STATE_PUBLISH_INTERVAL_MS,
-  replayTimeFromMonotonicClock,
 } from './play-engine/playbackClock';
+import {
+  advanceGuidedReplay,
+  createGuidedReplayState,
+} from './play-engine/guidedReplayClock';
 const ThreeDReplayView = lazy(() => import('./components/vnext3d/VNextThreeDView'));
 const PlaymakerWorkspace = lazy(() => import('./playmaker/PlaymakerWorkspace'));
 const StatsWorkspace = lazy(() => import('./stats/StatsWorkspace'));
@@ -116,7 +119,7 @@ export default function App() {
     else setIsPlaying(true);
   }, [cancelPlaybackRestart, currentPhase, currentScene, isPlaying, playbackTime, restartPlayback, setIsPlaying, tot]);
 
-  // The app clock drives 2D playback and shared control state.
+  // The app clock drives the coach-led 2D lesson cadence and shared controls.
   useEffect(() => {
     if (!isPlaying || !currentScene) return undefined;
 
@@ -125,24 +128,34 @@ export default function App() {
     if (activeView === 'replay3d' || activeView === 'strategy3d') return undefined;
 
     let frameId = 0;
-    const startWallTime = performance.now();
-    const startReplayTime = playbackTimeRef.current;
+    let lastFrameAt = performance.now();
+    let guidedState = createGuidedReplayState(
+      currentScene,
+      playbackTimeRef.current,
+    );
     const publishInterval = PLAYBACK_STATE_PUBLISH_INTERVAL_MS;
-    let lastPublishedAt = startWallTime - publishInterval;
+    let lastPublishedAt = lastFrameAt - publishInterval;
     const tick = (now) => {
-      const next = replayTimeFromMonotonicClock({
-        startReplayTime,
-        startWallTime,
-        wallTime: now,
+      const previous = guidedState;
+      guidedState = advanceGuidedReplay(guidedState, {
+        scene: currentScene,
+        deltaSeconds: Math.max(0, now - lastFrameAt) / 1000,
         speed,
-        duration: currentScene.duration,
       });
+      lastFrameAt = now;
+      const next = guidedState.time;
       playbackTimeRef.current = next;
-      if (now - lastPublishedAt >= publishInterval || next >= currentScene.duration) {
+      const enteredTeachingBeat = previous.phaseIndex !== guidedState.phaseIndex
+        || previous.mode !== guidedState.mode;
+      if (
+        now - lastPublishedAt >= publishInterval
+        || enteredTeachingBeat
+        || guidedState.mode === 'complete'
+      ) {
         lastPublishedAt = now;
         setPlaybackTime(next);
       }
-      if (next >= currentScene.duration) {
+      if (guidedState.mode === 'complete') {
         setIsPlaying(false);
         return;
       }

@@ -9,6 +9,7 @@ import { roleLensLabel } from '../play-engine/teamJobs';
 import PhaseControls from './PhaseControls';
 import FaceoffOutcomeControl from './FaceoffOutcomeControl';
 import MobileViewModeSwitch from './MobileViewModeSwitch';
+import ReplayTeachingCue from './ReplayTeachingCue';
 import ResponsibilityPanel from './ResponsibilityPanel';
 import SceneRink2D from './SceneRink2D';
 import Sidebar from './Sidebar';
@@ -60,19 +61,6 @@ function PlayIdentity({ play, color, text, muted }) {
   );
 }
 
-function PhaseHeader({ phase, currentPhase, total, color, mirrored }) {
-  return (
-    <div className="play-phase-summary" style={{ '--phase-color': color }}>
-      <div className="play-phase-copy">
-        <span>PHASE {currentPhase + 1} / {total}</span>
-        <strong>{phase?.t}{mirrored ? ' ↔' : ''}</strong>
-        {phase?.desc && phase.desc !== phase.t && <small>{phase.desc}</small>}
-      </div>
-      <FaceoffOutcomeControl compact />
-    </div>
-  );
-}
-
 function StrategyButton({ color, onClick }) {
   return (
     <button
@@ -115,7 +103,6 @@ export default function PlayViewer() {
   const lanePlays = itemsForCurriculumLane(CORE_PLAYS, currentPlay?.lane ?? 'defence');
   const playIdx = currentPlay ? lanePlays.findIndex((play) => play.id === currentPlay.id) : -1;
   const phase = currentReplayPhases[currentPhase];
-  const total = currentReplayPhases.length;
   const currentPhaseColor = phaseColor(phase?.t, t.ac);
   const categoryColor = CAT_COLORS[currentPlay?.cat] || t.ac;
   const selectedRoleRead = phase?.pos?.[selectedPosition]?.role ?? phase?.desc ?? '';
@@ -167,6 +154,9 @@ export default function PlayViewer() {
         </header>
 
         <section className="play-region play-region-rink" data-region="rink" aria-label="Rink view">
+          <ReplayTeachingCue accent={currentPhaseColor}>
+            {currentPlay?.faceoff ? <FaceoffOutcomeControl compact /> : null}
+          </ReplayTeachingCue>
           <div className="play-rink-frame">
             <SceneRink2D
               scene={currentReplayScene}
@@ -186,13 +176,6 @@ export default function PlayViewer() {
         </aside>
 
         <section className="play-region play-region-timeline" data-region="timeline" style={{ borderColor: t.bd }}>
-          <PhaseHeader
-            phase={phase}
-            currentPhase={currentPhase}
-            total={total}
-            color={currentPhaseColor}
-            mirrored={isMirrored}
-          />
           <PhaseControls />
         </section>
       </div>
@@ -211,6 +194,9 @@ export default function PlayViewer() {
       </header>
 
       <section className="play-mobile-rink" data-region="rink" aria-label="Rink view">
+        <ReplayTeachingCue accent={currentPhaseColor}>
+          {currentPlay?.faceoff ? <FaceoffOutcomeControl compact /> : null}
+        </ReplayTeachingCue>
         <div className="play-rink-frame">
           <SceneRink2D
             scene={currentReplayScene}
@@ -224,13 +210,6 @@ export default function PlayViewer() {
       </section>
 
       <section className="play-mobile-timeline" data-region="timeline">
-        <PhaseHeader
-          phase={phase}
-          currentPhase={currentPhase}
-          total={total}
-          color={currentPhaseColor}
-          mirrored={isMirrored}
-        />
         <PhaseControls compact />
       </section>
 

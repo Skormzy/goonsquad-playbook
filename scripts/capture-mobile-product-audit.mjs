@@ -288,6 +288,13 @@ async function auditLayout(page) {
     const viewModeButtons = viewModeSwitch
       ? [...viewModeSwitch.querySelectorAll('button')].filter(visible)
       : [];
+    const teachingCue = document.querySelector('[data-testid="replay-teaching-cue"]');
+    const teachingCueRect = teachingCue?.getBoundingClientRect();
+    const teachingCueTitle = teachingCue
+      ?.querySelector('.replay-teaching-cue-copy strong')
+      ?.textContent
+      ?.replace(/\s+/gu, ' ')
+      .trim() ?? '';
     const routedContent = new URL(window.location.href).searchParams.get('content') ?? 'stats';
     return {
       viewport,
@@ -364,6 +371,20 @@ async function auditLayout(page) {
         contained: viewModeSwitchRect.top >= -1
           && viewModeSwitchRect.right <= viewport.width + 1
           && viewModeSwitchRect.bottom <= viewport.height + 1,
+      } : null,
+      teachingCue: teachingCueRect && visible(teachingCue) ? {
+        top: Number(teachingCueRect.top.toFixed(1)),
+        right: Number(teachingCueRect.right.toFixed(1)),
+        bottom: Number(teachingCueRect.bottom.toFixed(1)),
+        left: Number(teachingCueRect.left.toFixed(1)),
+        width: Number(teachingCueRect.width.toFixed(1)),
+        height: Number(teachingCueRect.height.toFixed(1)),
+        stage: teachingCue.getAttribute('data-stage') ?? 'missing',
+        title: teachingCueTitle,
+        contained: teachingCueRect.left >= -1
+          && teachingCueRect.top >= -1
+          && teachingCueRect.right <= viewport.width + 1
+          && teachingCueRect.bottom <= viewport.height + 1,
       } : null,
       bottomNav: bottomNavVisible ? {
         top: Number(bottomNavRect.top.toFixed(1)),
@@ -461,6 +482,13 @@ function stateFailures(state) {
   if (state.layout.playmaker3d?.inspectorVisible) failures.push(`${state.stateId}: the Create inspector crowds the 3D preview`);
   if (state.layout.playmaker3d?.bodyScrollTop > 1) failures.push(`${state.stateId}: the Create 3D preview opens with a stale scroll position`);
   if (['plays', 'strategy'].includes(state.layout.routedContent)) {
+    const teachingCue = state.layout.teachingCue;
+    if (!teachingCue) failures.push(`${state.stateId}: the phase teaching cue is missing`);
+    else {
+      if (!teachingCue.title) failures.push(`${state.stateId}: the phase teaching cue has no instruction`);
+      if (!teachingCue.contained) failures.push(`${state.stateId}: the phase teaching cue leaves the viewport`);
+      if (teachingCue.height > 110) failures.push(`${state.stateId}: the phase teaching cue uses ${teachingCue.height}px of rink space`);
+    }
     const modeSwitch = state.layout.viewModeSwitch;
     if (!modeSwitch) failures.push(`${state.stateId}: the explicit 2D and 3D view switch is missing`);
     else {

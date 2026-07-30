@@ -52,7 +52,8 @@ const cameraLabels = {
   bench: 'Bench',
   player: 'Role',
 };
-const fullReplayCaptureMs = 9_200;
+const fullReplayCaptureMs = 25_000;
+const expectedReplayEndpoint = 8.8;
 const results = {};
 
 for (const viewport of viewports) {
@@ -91,14 +92,17 @@ for (const viewport of viewports) {
   ) >= 60, undefined, { timeout: 120_000 });
   await page.getByRole('button', { name: 'Play replay' }).click();
 
-  const samples = await page.evaluate((captureMs) => new Promise((resolve) => {
+  const samples = await page.evaluate(({ captureMs, endpoint }) => new Promise((resolve) => {
     const values = [];
     const startedAt = performance.now();
     const sample = (now) => {
       const node = document.querySelector('[data-testid="vnext-3d-production-preview"]');
+      const teachingCue = document.querySelector('[data-testid="replay-teaching-cue"]');
+      const replayTime = Number(node?.getAttribute('data-replay-time') ?? 0);
       values.push({
         wallTime: now - startedAt,
-        replayTime: Number(node?.getAttribute('data-replay-time') ?? 0),
+        replayTime,
+        teachingStage: teachingCue?.getAttribute('data-stage'),
         ballX: Number(node?.getAttribute('data-ball-x') ?? 0),
         ballY: Number(node?.getAttribute('data-ball-y') ?? 0),
         ballOwner: node?.getAttribute('data-ball-owner'),
@@ -107,11 +111,14 @@ for (const viewport of viewports) {
         ballWorldHeight: Number(node?.getAttribute('data-ball-world-height') ?? 0),
         ballMotionStreakWidth: Number(node?.getAttribute('data-ball-motion-streak-width') ?? 0),
       });
-      if (now - startedAt >= captureMs) resolve(values);
+      if (replayTime >= endpoint || now - startedAt >= captureMs) resolve(values);
       else requestAnimationFrame(sample);
     };
     requestAnimationFrame(sample);
-  }), fullReplayCaptureMs);
+  }), {
+    captureMs: fullReplayCaptureMs,
+    endpoint: expectedReplayEndpoint,
+  });
 
   const changed = samples.filter((sample, index) => (
     index === 0 || sample.replayTime !== samples[index - 1].replayTime
@@ -133,6 +140,10 @@ for (const viewport of viewports) {
     replayStepMaximumMs: Number((Math.max(...replaySteps) * 1000).toFixed(2)),
     renderFrameP95Ms: Number(finalAttributes['frame-p95-ms']),
     finalReplayTime: Number(finalAttributes['replay-time']),
+    wallTimeToEndpointMs: Number(samples.at(-1)?.wallTime.toFixed(1)),
+    observedTeachingStages: [...new Set(
+      samples.map(({ teachingStage }) => teachingStage).filter(Boolean),
+    )],
     finalBallOwner: finalAttributes['ball-owner'],
     ballRenderMode: finalAttributes['ball-render-mode'],
     observedBallSegments: [...new Set(samples.map(({ ballSegment }) => ballSegment))],
@@ -151,7 +162,10 @@ for (const viewport of viewports) {
     browserProblems: problems,
   };
   results[viewport.id].passesSmoothPlayback = (
-    results[viewport.id].finalReplayTime === 8.8
+    results[viewport.id].finalReplayTime === expectedReplayEndpoint
+    && results[viewport.id].observedTeachingStages.includes('read')
+    && results[viewport.id].observedTeachingStages.includes('watch')
+    && results[viewport.id].wallTimeToEndpointMs < fullReplayCaptureMs
     && results[viewport.id].renderFrameP95Ms <= 34
     && results[viewport.id].replayStepMaximumMs <= 180
     && results[viewport.id].playerCount === 12
@@ -555,22 +569,34 @@ for (const viewport of viewports) {
   results[viewport.id].interactionSequence = [];
 
   for (const expected of interactionSequence) {
-    await timeline.evaluate((node, target) => {
-      window.__vnextInteractionStartedAt = performance.now();
-      if (target.action === 'seek') {
+    if (expected.action === 'seek') {
+      await timeline.evaluate((node, target) => {
+        window.__vnextInteractionStartedAt = performance.now();
         const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
         setter?.call(node, String(target.time));
         node.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      }, expected);
+    } else {
+      const cameraLabel = cameraLabels[expected.camera];
+      const desktopButton = page
+        .locator('.vnext3d-stage-camera-presets')
+        .getByRole('button', { name: cameraLabel, exact: true });
+      if (await desktopButton.isVisible().catch(() => false)) {
+        await page.evaluate(() => {
+          window.__vnextInteractionStartedAt = performance.now();
+        });
+        await desktopButton.click();
       } else {
-        const cameraButton = [...document.querySelectorAll('.vnext3d-stage-camera-presets button')]
-          .find((button) => button.textContent?.trim() === target.cameraLabel);
-        cameraButton?.click();
+        await page.locator('.vnext3d-mobile-camera-current').click();
+        await page.evaluate(() => {
+          window.__vnextInteractionStartedAt = performance.now();
+        });
+        await page
+          .locator('#vnext3d-mobile-camera-options')
+          .getByRole('button', { name: cameraLabel, exact: true })
+          .click();
       }
-    }, {
-      action: expected.action,
-      time: expected.time,
-      cameraLabel: cameraLabels[expected.camera],
-    });
+    }
     try {
       await page.waitForFunction((target) => {
         const node = document.querySelector('[data-testid="vnext-3d-production-preview"]');

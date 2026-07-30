@@ -31,6 +31,10 @@ import {
 } from './sampleTacticalReplay';
 import { rolesForRoleLens } from '../play-engine/teamJobs';
 import { isPenaltyBoxPlayer } from '../play-engine/penaltyBox';
+import {
+  advanceGuidedReplay,
+  createGuidedReplayState,
+} from '../play-engine/guidedReplayClock';
 import TacticalAthlete from './TacticalAthlete';
 import TacticalReplayLayers from './TacticalReplayLayers';
 
@@ -279,6 +283,7 @@ export default function TacticalReplayScene({
   const frameRef = useRef(sampleTacticalReplay(replay, playbackTime));
   const replayIdRef = useRef(replay.id);
   const timeRef = useRef(playbackTime);
+  const guidedPlaybackRef = useRef(createGuidedReplayState(replay, playbackTime));
   const wasPlayingRef = useRef(isPlaying);
   const endedRef = useRef(false);
   const publishElapsedRef = useRef(0);
@@ -316,15 +321,17 @@ export default function TacticalReplayScene({
       onTimeChange(timeRef.current);
     } else if (!isPlaying || !wasPlaying) {
       timeRef.current = playbackTime;
+      guidedPlaybackRef.current = createGuidedReplayState(replay, playbackTime);
     }
     if (isPlaying) endedRef.current = false;
     wasPlayingRef.current = isPlaying;
-  }, [isPlaying, onTimeChange, playbackTime]);
+  }, [isPlaying, onTimeChange, playbackTime, replay]);
 
   useEffect(() => {
     if (replayIdRef.current !== replay.id) {
       replayIdRef.current = replay.id;
       timeRef.current = playbackTime;
+      guidedPlaybackRef.current = createGuidedReplayState(replay, playbackTime);
       frameRef.current = sampleTacticalReplay(replay, playbackTime);
     }
   }, [replay, playbackTime]);
@@ -377,8 +384,18 @@ export default function TacticalReplayScene({
 
   useFrame((_, delta) => {
     const safeDelta = Math.min(delta, 0.1);
+    let enteredTeachingBeat = false;
     if (isPlaying) {
-      timeRef.current = Math.min(replay.duration, timeRef.current + safeDelta * speed);
+      const previousGuided = guidedPlaybackRef.current;
+      const nextGuided = advanceGuidedReplay(previousGuided, {
+        scene: replay,
+        deltaSeconds: safeDelta,
+        speed,
+      });
+      guidedPlaybackRef.current = nextGuided;
+      timeRef.current = nextGuided.time;
+      enteredTeachingBeat = previousGuided.phaseIndex !== nextGuided.phaseIndex
+        || previousGuided.mode !== nextGuided.mode;
     }
 
     const frame = sampleTacticalReplay(replay, timeRef.current);
@@ -406,11 +423,17 @@ export default function TacticalReplayScene({
 
     if (isPlaying) {
       publishElapsedRef.current += safeDelta;
-      if (publishElapsedRef.current >= TIME_PUBLISH_INTERVAL_SECONDS) {
+      if (
+        publishElapsedRef.current >= TIME_PUBLISH_INTERVAL_SECONDS
+        || enteredTeachingBeat
+      ) {
         publishElapsedRef.current = 0;
         onTimeChange(timeRef.current);
       }
-      if (timeRef.current >= replay.duration && !endedRef.current) {
+      if (
+        guidedPlaybackRef.current.mode === 'complete'
+        && !endedRef.current
+      ) {
         endedRef.current = true;
         onTimeChange(replay.duration);
         onPlaybackEnd();

@@ -104,7 +104,10 @@ async function measureLayout(page) {
     const row = rect(rowNode);
     const cluster = rect(clusterNode);
     const speed = rect(speedNode);
-    const buttons = [...(clusterNode?.querySelectorAll('button') ?? [])].map(rect);
+    const primaryAction = rect(clusterNode?.querySelector('.playback-play-button'));
+    const buttons = [...(clusterNode?.querySelectorAll('button') ?? [])]
+      .map(rect)
+      .filter((box) => box && box.width > 0 && box.height > 0);
     const centers = [...buttons, speed].filter(Boolean).map(({ centerY }) => centerY);
     const browse = document.querySelector('[data-testid="vnext3d-browse-cue"]');
     const browseBox = rect(browse);
@@ -124,11 +127,19 @@ async function measureLayout(page) {
       viewportWidth: window.innerWidth,
       row,
       cluster,
+      primaryAction,
       speed,
       buttons,
       timeline,
       stage,
-      centeredDelta: row && cluster ? Math.abs(row.centerX - cluster.centerX) : 999,
+      centeredDelta: row && primaryAction && cluster
+        ? Math.abs(
+          row.centerX
+            - (window.innerWidth <= 699 || window.innerHeight <= 520
+              ? primaryAction.centerX
+              : cluster.centerX),
+        )
+        : 999,
       controlCenterSpread: centers.length > 0 ? Math.max(...centers) - Math.min(...centers) : 999,
       minimumControlHeight: Math.min(...[...buttons, speed].filter(Boolean).map(({ height }) => height)),
       clusterOverlapsSpeed: overlap(cluster, speed),
@@ -153,8 +164,11 @@ async function samplePlayback(page) {
         replayTime: Number(node?.getAttribute('data-replay-time') ?? 0),
         playerCount: Number(node?.getAttribute('data-player-count') ?? 0),
         ballState: node?.getAttribute('data-ball-state') ?? 'missing',
+        teachingStage: document
+          .querySelector('[data-testid="replay-teaching-cue"]')
+          ?.getAttribute('data-stage') ?? 'missing',
       });
-      if (now - startedAt >= 2_200) resolve(values);
+      if (now - startedAt >= 6_200) resolve(values);
       else requestAnimationFrame(sample);
     };
     requestAnimationFrame(sample);
@@ -171,6 +185,7 @@ async function samplePlayback(page) {
   ));
   const steps = changed.slice(1).map((sample, index) => sample.replayTime - changed[index].replayTime);
   const finalTime = samples.at(-1)?.replayTime ?? startTime;
+  const firstAdvance = samples.find(({ replayTime }) => replayTime > startTime + 0.02);
   return {
     renderedSamples: samples.length,
     uniqueReplaySamples: changed.length,
@@ -182,8 +197,25 @@ async function samplePlayback(page) {
     monotonic: steps.every((step) => step >= 0),
     allTwelvePlayers: samples.every(({ playerCount }) => playerCount === 12),
     observedBallStates: [...new Set(samples.map(({ ballState }) => ballState))],
+    observedTeachingStages: [...new Set(samples.map(({ teachingStage }) => teachingStage))],
+    initialReadingHoldMs: Number((firstAdvance?.wallTime ?? 0).toFixed(1)),
     frameP95Ms: Number(await preview.getAttribute('data-frame-p95-ms')),
   };
+}
+
+async function selectCamera(page, label) {
+  const directButton = page.getByRole('button', { name: label, exact: true });
+  if (await directButton.isVisible().catch(() => false)) {
+    await directButton.click();
+    return;
+  }
+
+  const mobilePicker = page.locator('.vnext3d-mobile-camera-current');
+  await mobilePicker.click();
+  await page
+    .locator('#vnext3d-mobile-camera-options')
+    .getByRole('button', { name: label, exact: true })
+    .click();
 }
 
 await mkdir(outputDir, { recursive: true });
@@ -213,7 +245,7 @@ for (const journey of journeys) {
 
   const cameraResults = {};
   for (const camera of ['Broadcast', 'Overhead', 'Bench', 'Role']) {
-    await page.getByRole('button', { name: camera, exact: true }).click();
+    await selectCamera(page, camera);
     const expected = camera === 'Role' ? 'player' : camera.toLowerCase();
     await page.waitForFunction((cameraId) => (
       document.querySelector('[data-testid="vnext-3d-production-preview"]')
@@ -221,7 +253,7 @@ for (const journey of journeys) {
     ), expected);
     cameraResults[expected] = await preview.getAttribute('data-camera-id');
   }
-  await page.getByRole('button', { name: 'Broadcast', exact: true }).click();
+  await selectCamera(page, 'Broadcast');
   await page.waitForFunction(() => (
     document.querySelector('[data-testid="vnext-3d-production-preview"]')
       ?.getAttribute('data-camera-id') === 'broadcast'
@@ -263,17 +295,21 @@ for (const journey of journeys) {
     && layout.controlCenterSpread <= 1
     && layout.minimumControlHeight >= minimumExpectedHeight
     && !layout.clusterOverlapsSpeed
-    && layout.browseVisible
+    && (journey.touch || layout.browseVisible)
     && !layout.browseClipped
     && /^BROWSE/.test(layout.browseText)
     && /Browse all/.test(toggleLabel ?? '')
     && drawerMetrics.itemCount === expectedItems
     && drawerMetrics.insideViewport
-    && playback.advance >= 1.7
+    && playback.advance >= 0.9
     && playback.uniqueReplaySamples >= 20
     && playback.maximumStepMs <= 180
     && playback.monotonic
     && playback.allTwelvePlayers
+    && playback.observedTeachingStages.includes('read')
+    && playback.observedTeachingStages.includes('watch')
+    && playback.initialReadingHoldMs >= 2_100
+    && playback.initialReadingHoldMs <= 3_900
     && playback.frameP95Ms <= 50
     && Object.entries(cameraResults).every(([expected, actual]) => expected === actual);
 

@@ -26,6 +26,7 @@ import {
 import PlaybackControls from '../components/PlaybackControls';
 import FaceoffOutcomeControl from '../components/FaceoffOutcomeControl';
 import MobileViewModeSwitch from '../components/MobileViewModeSwitch';
+import ReplayTeachingCue from '../components/ReplayTeachingCue';
 import CameraGestureControl from '../components/vnext3d/CameraGestureControl';
 import RoleCameraSelector from '../components/vnext3d/RoleCameraSelector';
 import TeamJobsPanel from '../components/TeamJobsPanel';
@@ -91,7 +92,6 @@ export default function TacticalReplayPreview() {
   const {
     currentPhase,
     currentPlay,
-    currentReplayPhases,
     currentReplayScene: replay,
     isPlaying,
     playbackTime,
@@ -331,12 +331,10 @@ export default function TacticalReplayPreview() {
     })
     : { phase: `phase-${currentPhase + 1}`, status: 'pass' };
   const penaltyBoxAthlete = frame.players.find((player) => player.penaltyBox);
-  const phase = currentReplayPhases[currentPhase] ?? currentReplayPhases[0] ?? null;
-  const phaseRead = frame.event?.nextRead
-    ?? phase?.desc
-    ?? replay.presentation?.purpose
-    ?? replay.title;
   const mobileLayout = workspaceLayout !== 'desktop';
+  const teachingAccent = replay.kind === 'strategy'
+    ? strategyVariant === 'mistake' ? '#d97706' : '#16a34a'
+    : 'var(--gs-cyan)';
   return (
     <main
       className="vnext3d-preview-view"
@@ -418,6 +416,11 @@ export default function TacticalReplayPreview() {
           onSelect={handleCatalogSelect}
         />
         {mobileLayout && <MobileViewModeSwitch className="is-three-d-stage" />}
+        <ReplayTeachingCue accent={teachingAccent} className="is-three-d">
+          {replay.kind === 'play' && currentPlay?.faceoff
+            ? <FaceoffOutcomeControl compact />
+            : null}
+        </ReplayTeachingCue>
 
         <Canvas
           key={renderProfile.id}
@@ -651,11 +654,9 @@ export default function TacticalReplayPreview() {
         {mobileLayout ? (
           <details className="vnext3d-mobile-coaching">
             <summary>
-              <span>
-                PHASE {currentPhase + 1} / {currentReplayPhases.length}
-              </span>
-              <strong>{phase?.t ?? replay.title}</strong>
-              <small>{phaseRead}</small>
+              <span>TEAM PLAN</span>
+              <strong>Role responsibilities</strong>
+              <small>Open the position-by-position reads</small>
               <ChevronDown aria-hidden="true" />
             </summary>
             <div>

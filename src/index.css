@@ -11934,6 +11934,391 @@ input:focus:not(:focus-visible) { outline: none; }
   }
 }
 
+/* Guided lesson HUD -------------------------------------------------------
+   Replays teach in two beats: hold the formation while the cue is read,
+   then animate the decision. The same visual contract is shared by 2D,
+   3D, plays, and strategy. */
+.play-region-rink,
+.play-mobile-rink,
+.tactics-rink-stage,
+.vnext3d-preview-stage {
+  position: relative;
+}
+
+.tactics-rink-stage {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+}
+
+.replay-teaching-cue {
+  --teaching-accent: var(--gs-cyan);
+  position: absolute;
+  z-index: 16;
+  top: 9px;
+  left: 50%;
+  width: min(680px, calc(100% - 24px));
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 14px 12px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--teaching-accent) 38%, var(--gs-border));
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--gs-overlay-solid) 94%, transparent);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--gs-shadow) 76%, transparent);
+  color: var(--gs-text);
+  transform: translateX(-50%);
+  backdrop-filter: blur(16px) saturate(1.1);
+  pointer-events: none;
+}
+
+.replay-teaching-cue::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--teaching-accent);
+  content: '';
+}
+
+.replay-teaching-cue[data-stage='read'] {
+  border-color: color-mix(in srgb, var(--teaching-accent) 68%, var(--gs-border));
+}
+
+.replay-teaching-cue[data-stage='watch'] {
+  border-color: color-mix(in srgb, var(--gs-red) 54%, var(--gs-border));
+}
+
+.replay-teaching-cue[data-stage='complete'] {
+  border-color: color-mix(in srgb, #16a34a 58%, var(--gs-border));
+}
+
+.replay-teaching-cue-status {
+  min-width: 72px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid color-mix(in srgb, var(--teaching-accent) 38%, var(--gs-border));
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--teaching-accent) 11%, var(--gs-panel));
+  color: var(--teaching-accent);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.replay-teaching-cue[data-stage='watch'] .replay-teaching-cue-status {
+  border-color: color-mix(in srgb, var(--gs-red) 45%, var(--gs-border));
+  background: color-mix(in srgb, var(--gs-red) 10%, var(--gs-panel));
+  color: var(--gs-red);
+}
+
+.replay-teaching-cue[data-stage='complete'] .replay-teaching-cue-status {
+  border-color: color-mix(in srgb, #16a34a 45%, var(--gs-border));
+  background: color-mix(in srgb, #16a34a 10%, var(--gs-panel));
+  color: #16a34a;
+}
+
+.replay-teaching-cue-status svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.2;
+}
+
+.replay-teaching-cue-copy {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  animation: replay-cue-in 180ms ease-out;
+}
+
+.replay-teaching-cue-copy small {
+  overflow: hidden;
+  color: var(--teaching-accent);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.replay-teaching-cue-copy strong {
+  overflow-wrap: anywhere;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.replay-teaching-cue-copy p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--gs-muted);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.replay-teaching-cue-action {
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.replay-teaching-progress {
+  position: absolute;
+  right: 8px;
+  bottom: 5px;
+  left: 8px;
+  display: grid;
+  grid-template-columns: repeat(var(--phase-count, 1), minmax(0, 1fr));
+  grid-auto-flow: column;
+  gap: 3px;
+}
+
+.replay-teaching-progress span {
+  height: 2px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--gs-muted) 24%, transparent);
+}
+
+.replay-teaching-progress span.is-complete {
+  background: color-mix(in srgb, var(--teaching-accent) 55%, var(--gs-border));
+}
+
+.replay-teaching-progress span.is-current {
+  background: var(--teaching-accent);
+}
+
+.play-region-timeline {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.play-region-timeline > .playback-controls {
+  width: 100%;
+}
+
+.vnext3d-preview-stage > .replay-teaching-cue {
+  top: 62px;
+  width: min(620px, calc(100% - 420px));
+}
+
+@keyframes replay-cue-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 699px), (max-height: 520px) and (orientation: landscape) {
+  .replay-teaching-cue {
+    min-height: 0;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 7px;
+    padding: 7px 9px 10px;
+    border-radius: 6px;
+  }
+
+  .replay-teaching-cue-status {
+    min-width: 54px;
+    min-height: 28px;
+    gap: 4px;
+    padding-inline: 6px;
+    font-size: 8px;
+  }
+
+  .replay-teaching-cue-status svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .replay-teaching-cue-copy {
+    gap: 1px;
+  }
+
+  .replay-teaching-cue-copy small {
+    font-size: 7.5px;
+  }
+
+  .replay-teaching-cue-copy strong {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.08;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .replay-teaching-cue-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 10.5px;
+    line-height: 1.18;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .replay-teaching-progress {
+    right: 6px;
+    bottom: 4px;
+    left: 6px;
+    gap: 2px;
+  }
+
+  .play-mobile-timeline,
+  .tactics-mobile-transport {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .play-mobile-timeline > .playback-controls,
+  .tactics-mobile-transport > .tactics-playback-shell {
+    width: 100%;
+  }
+
+  .play-mobile-timeline .playback-transport-row,
+  .vnext3d-preview-transport .playback-transport-row,
+  .tactics-playback-shell .playback-transport-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    justify-content: stretch;
+    gap: 2px;
+  }
+
+  .play-mobile-timeline .playback-transport-buttons,
+  .vnext3d-preview-transport .playback-transport-buttons,
+  .tactics-playback-shell .playback-transport-buttons {
+    width: 100%;
+    grid-template-columns: 40px 40px minmax(42px, 84px) 40px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 699px) and (orientation: portrait) {
+  .play-mobile-rink > .replay-teaching-cue {
+    top: calc(max(5px, env(safe-area-inset-top)) + 54px);
+    width: calc(100% - 10px);
+  }
+
+  .tactics-rink-stage > .replay-teaching-cue {
+    top: calc(max(5px, env(safe-area-inset-top)) + 54px);
+    width: calc(100% - 10px);
+  }
+
+  .vnext3d-preview-stage > .replay-teaching-cue {
+    top: calc(max(5px, env(safe-area-inset-top)) + 94px);
+    width: calc(100% - 10px);
+  }
+
+  .replay-teaching-cue-action {
+    max-width: 96px;
+  }
+
+  .replay-teaching-cue-action .faceoff-outcome-control {
+    min-width: 0;
+  }
+
+  .play-mobile-timeline,
+  .tactics-mobile-transport {
+    height: 72px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .play-mobile-timeline .playback-controls,
+  .tactics-playback-shell,
+  .tactics-playback-shell .playback-controls {
+    width: 100%;
+  }
+
+  .vnext3d-preview-console {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vnext3d-mobile-coaching {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 5px);
+    width: min(148px, calc(100vw - 10px));
+  }
+
+  .vnext3d-mobile-coaching > summary {
+    min-height: 38px;
+    padding-block: 3px;
+    border: 1px solid var(--gs-border);
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 94%, transparent);
+    box-shadow: 0 -5px 16px var(--gs-shadow);
+  }
+
+  .vnext3d-preview-transport {
+    grid-column: 1;
+    width: 100%;
+  }
+
+  .tactics-mobile-workspace .tactics-comparison {
+    bottom: 77px;
+  }
+}
+
+@media (max-width: 374px) and (orientation: portrait) {
+  .replay-teaching-cue {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: 5px;
+    padding-inline: 7px;
+  }
+
+  .replay-teaching-cue-status {
+    min-width: 48px;
+    padding-inline: 4px;
+  }
+
+  .replay-teaching-cue-copy p {
+    display: none;
+  }
+
+  .replay-teaching-cue-copy strong {
+    font-size: 13px;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .play-mobile-rink > .replay-teaching-cue,
+  .tactics-rink-stage > .replay-teaching-cue {
+    top: 4px;
+    width: min(420px, calc(100% - 250px));
+  }
+
+  .vnext3d-preview-stage > .replay-teaching-cue {
+    top: 4px;
+    width: min(390px, calc(100% - 330px));
+  }
+
+  .replay-teaching-cue-copy p {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .replay-teaching-cue-copy {
+    animation: none;
+  }
+}
+
 @media (max-height: 520px) and (orientation: landscape) {
   .play-mobile-title {
     align-self: start;
@@ -12934,5 +13319,149 @@ input:focus:not(:focus-visible) { outline: none; }
   .vnext3d-preview-transport .playback-transport-buttons,
   .tactics-playback-shell .playback-transport-buttons {
     grid-template-columns: 40px 40px minmax(40px, 1fr) 40px;
+  }
+}
+
+/* Guided lesson cascade seal. Keep the final mobile HUD contract below the
+   legacy responsive layers so playback always owns the full bottom rail. */
+.play-region-timeline {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.play-region-timeline > .playback-controls {
+  width: 100%;
+}
+
+@media (max-width: 699px), (max-height: 520px) and (orientation: landscape) {
+  .play-mobile-timeline,
+  .tactics-mobile-transport {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .play-mobile-timeline > .playback-controls,
+  .tactics-mobile-transport > .tactics-playback-shell {
+    width: 100%;
+  }
+
+  .play-mobile-timeline .playback-transport-row,
+  .vnext3d-preview-transport .playback-transport-row,
+  .tactics-playback-shell .playback-transport-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    justify-content: stretch;
+    gap: 2px;
+  }
+
+  .play-mobile-timeline .playback-transport-buttons,
+  .vnext3d-preview-transport .playback-transport-buttons,
+  .tactics-playback-shell .playback-transport-buttons {
+    width: 100%;
+    grid-template-columns: 40px 40px minmax(42px, 84px) 40px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 699px) and (orientation: portrait) {
+  .play-mobile-timeline,
+  .tactics-mobile-transport,
+  .vnext3d-preview-console {
+    height: 78px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .play-mobile-timeline .playback-controls,
+  .vnext3d-preview-transport .playback-controls,
+  .tactics-playback-shell .playback-controls {
+    height: 70px;
+    grid-template-rows: 44px 24px;
+    gap: 2px;
+  }
+
+  .play-mobile-timeline .playback-transport-row,
+  .vnext3d-preview-transport .playback-transport-row,
+  .tactics-playback-shell .playback-transport-row {
+    min-height: 44px;
+  }
+
+  .play-mobile-timeline .playback-timeline-row,
+  .vnext3d-preview-transport .playback-timeline-row,
+  .tactics-playback-shell .playback-timeline-row,
+  .play-mobile-timeline .playback-range-wrap,
+  .vnext3d-preview-transport .playback-range-wrap,
+  .tactics-playback-shell .playback-range-wrap {
+    min-height: 24px;
+    height: 24px;
+  }
+
+  .play-bottom-sheet {
+    bottom: 78px;
+  }
+
+  .replay-teaching-cue-copy strong {
+    font-size: 15px;
+  }
+
+  .replay-teaching-cue-copy p {
+    font-size: 11.5px;
+    -webkit-line-clamp: 2;
+  }
+
+  .replay-teaching-cue .faceoff-outcome-label {
+    display: none;
+  }
+
+  .replay-teaching-cue .faceoff-outcome-options {
+    grid-template-columns: repeat(2, 40px);
+  }
+
+  .vnext3d-faceoff-outcome {
+    display: none;
+  }
+
+  .vnext3d-mobile-coaching {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 5px);
+    width: min(148px, calc(100vw - 10px));
+  }
+
+  .vnext3d-mobile-coaching > summary {
+    min-height: 40px;
+    padding-block: 3px;
+    border: 1px solid var(--gs-border);
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 94%, transparent);
+    box-shadow: 0 -5px 16px var(--gs-shadow);
+  }
+
+  .vnext3d-preview-transport {
+    width: 100%;
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .vnext3d-preview-stage > .replay-teaching-cue .faceoff-outcome-label {
+    display: none;
+  }
+
+  .vnext3d-preview-stage > .replay-teaching-cue .faceoff-outcome-options {
+    grid-template-columns: repeat(2, 40px);
+  }
+
+  .vnext3d-mobile-camera-picker {
+    z-index: 30;
+  }
+
+  .tactics-mobile-workspace .tactics-comparison {
+    bottom: 84px;
+  }
+}
+
+@media (max-width: 374px) and (orientation: portrait) {
+  .play-mobile-timeline,
+  .tactics-mobile-transport,
+  .vnext3d-preview-console {
+    height: 78px;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
