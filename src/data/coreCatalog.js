@@ -10,6 +10,7 @@ export const CORE_PLAY_IDS = Object.freeze([
   'pomr',
   'brk',
   'zent',
+  'ozfl',
   'slot-window',
   'lcl',
   'pts',
@@ -49,10 +50,11 @@ const PLAY_CURRICULUM = Object.freeze({
   pomr: Object.freeze({ lane: 'defence', situation: 'Rush prevention', priority: 6 }),
   brk: Object.freeze({ lane: 'offence', situation: 'Zone exit', priority: 1 }),
   zent: Object.freeze({ lane: 'offence', situation: 'Zone entry', priority: 2 }),
-  'slot-window': Object.freeze({ lane: 'offence', situation: 'Chance creation', priority: 3 }),
-  lcl: Object.freeze({ lane: 'offence', situation: 'Sustained pressure', priority: 4 }),
-  pts: Object.freeze({ lane: 'offence', situation: 'Net-front finish', priority: 5 }),
-  ppum: Object.freeze({ lane: 'offence', situation: 'Power play', priority: 6 }),
+  ozfl: Object.freeze({ lane: 'offence', situation: 'Faceoff attack', priority: 3 }),
+  'slot-window': Object.freeze({ lane: 'offence', situation: 'Chance creation', priority: 4 }),
+  lcl: Object.freeze({ lane: 'offence', situation: 'Sustained pressure', priority: 5 }),
+  pts: Object.freeze({ lane: 'offence', situation: 'Net-front finish', priority: 6 }),
+  ppum: Object.freeze({ lane: 'offence', situation: 'Power play', priority: 7 }),
 });
 
 const TACTIC_CURRICULUM = Object.freeze({
@@ -66,6 +68,7 @@ const TACTIC_CURRICULUM = Object.freeze({
 
 const PLAY_NAME_OVERRIDES = Object.freeze({
   dzfl: 'D-Zone Faceoff',
+  ozfl: 'O-Zone Faceoff',
   lcl: 'Low Cycle',
 });
 

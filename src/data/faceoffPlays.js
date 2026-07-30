@@ -34,54 +34,44 @@ const opponentPlayer = (id, role, x, y, extra = {}) => ({
   ...extra,
 });
 
-function openingPhases({ dot, home, opponents, targetLabel }) {
-  const setHome = {
+function openingDrawPhase({
+  dot,
+  home,
+  opponents,
+  outcome,
+  targetLabel,
+}) {
+  const drawHome = {
     ...home,
     C: {
       ...home.C,
       y: dot.y - 1.65,
+      role: 'Compete through the draw and react immediately to the result.',
+      u: 'run',
     },
   };
-  const setOpponents = opponents.map((player) => (
+  const drawOpponents = opponents.map((player) => (
     player.l === 'C'
       ? { ...player, y: dot.y + 1.65 }
       : player
   ));
-  const drawHome = {
-    ...setHome,
-    C: {
-      ...setHome.C,
-      role: `Ball is down. Sweep through it toward ${targetLabel}; do not leave early.`,
-      u: 'run',
-    },
-  };
 
-  return [
-    {
-      id: 0,
-      t: 'Set for the Draw',
-      desc: 'Centers square up. Every other runner stays on-side and outside the circle.',
-      duration: 1.15,
-      faceoffState: 'set',
-      ballOwner: null,
-      pos: setHome,
-      opp: setOpponents,
-      ball: dot,
-      lanes: [],
-    },
-    {
-      id: 1,
-      t: 'Ball Down',
-      desc: `Wait for the ball to reach the floor, then pull it cleanly toward ${targetLabel}.`,
-      duration: 0.62,
-      faceoffState: 'draw',
-      ballOwner: null,
-      pos: drawHome,
-      opp: setOpponents,
-      ball: dot,
-      lanes: [],
-    },
-  ];
+  return {
+    id: 0,
+    t: outcome === 'won'
+      ? `Win Draw to ${targetLabel}`
+      : `They Win Draw to ${targetLabel}`,
+    desc: outcome === 'won'
+      ? `C pulls the ball cleanly back to ${targetLabel}. Follow the draw into the next read.`
+      : `Their C wins the ball back to ${targetLabel}. Protect the middle and react immediately.`,
+    duration: 1.6,
+    faceoffState: 'draw',
+    ballOwner: null,
+    pos: drawHome,
+    opp: drawOpponents,
+    ball: dot,
+    lanes: [],
+  };
 }
 
 function defineFaceoffPlay({
@@ -100,17 +90,38 @@ function defineFaceoffPlay({
   resolutionPhases,
   lostResolutionPhases,
 }) {
-  const targetLabel = drawTarget.replace('US_', '');
-  const opening = openingPhases({ dot, home, opponents, targetLabel });
-  const phasesFor = (phases) => [
-    ...opening,
+  const wonTargetLabel = drawTarget.replace('US_', '');
+  const lostTargetLabel = lostDrawTarget.replace('OP_', '');
+  const wonOpening = openingDrawPhase({
+    dot,
+    home,
+    opponents,
+    outcome: 'won',
+    targetLabel: wonTargetLabel,
+  });
+  const lostOpening = openingDrawPhase({
+    dot,
+    home,
+    opponents,
+    outcome: 'lost',
+    targetLabel: lostTargetLabel,
+  });
+  const phasesFor = (phases, opening, outcome, targetLabel) => [
+    opening,
     ...phases.map((phase, index) => ({
       ...phase,
-      id: index + 2,
+      id: index + 1,
+      t: index === 0
+        ? (
+          outcome === 'won'
+            ? `${targetLabel} Secures the Ball`
+            : phase.t.replace(/^Draw Lost\s*-\s*/i, '')
+        )
+        : phase.t,
     })),
   ];
-  const wonPhases = phasesFor(resolutionPhases);
-  const lostPhases = phasesFor(lostResolutionPhases);
+  const wonPhases = phasesFor(resolutionPhases, wonOpening, 'won', wonTargetLabel);
+  const lostPhases = phasesFor(lostResolutionPhases, lostOpening, 'lost', lostTargetLabel);
   const lostDescription = `Respond to a lost draw with connected pressure and protect the dangerous middle first. ${losingResponse}`;
 
   return {

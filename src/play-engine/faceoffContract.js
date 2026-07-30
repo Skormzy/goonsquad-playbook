@@ -2,7 +2,7 @@ import { rinkDistanceMeters } from './movementMetrics';
 import { samplePlayScene } from './samplePlayScene';
 import { validatePlayScene } from './validatePlayScene';
 
-const EXPECTED_OPENING_STATES = ['set', 'draw', 'secured'];
+const EXPECTED_OPENING_STATES = ['draw', 'secured'];
 const MIN_RESTRAINING_DISTANCE_METERS = 4.5;
 const MIN_NON_CENTER_CLEARANCE_METERS = 4.57;
 const MIN_CENTER_SEPARATION_METERS = 1.35;
@@ -42,22 +42,22 @@ function sourceOpeningErrors(play) {
   const outcome = play.faceoff?.outcome ?? 'won';
   const drawTarget = expectedDrawTarget(play);
   const sourceTarget = sourceDrawTarget(play);
-  const [setPhase, drawPhase, securedPhase] = play.phases;
+  const [drawPhase, securedPhase] = play.phases;
   if (!dot) return [`${play.id} needs faceoff dot metadata.`];
 
-  const openingStates = play.phases.slice(0, 3).map((phase) => phase.faceoffState);
+  const openingStates = play.phases.slice(0, 2).map((phase) => phase.faceoffState);
   if (openingStates.some((state, index) => state !== EXPECTED_OPENING_STATES[index])) {
-    errors.push(`${play.id} must begin set, draw, then secured.`);
+    errors.push(`${play.id} must begin with the draw, then secured possession.`);
   }
-  if (setPhase.ballOwner !== null || drawPhase.ballOwner !== null) {
-    errors.push(`${play.id} must keep the ball loose through the set and drop.`);
+  if (drawPhase.ballOwner !== null) {
+    errors.push(`${play.id} must keep the ball loose until draw contact.`);
   }
-  if (distance(setPhase.ball, dot) > 0.01 || distance(drawPhase.ball, dot) > 0.01) {
+  if (distance(drawPhase.ball, dot) > 0.01) {
     errors.push(`${play.id} must keep the ball on the faceoff dot before contact.`);
   }
 
-  const homeCenter = setPhase.pos.C;
-  const opponentCenter = setPhase.opp.find((player) => player.l === 'C');
+  const homeCenter = drawPhase.pos.C;
+  const opponentCenter = drawPhase.opp.find((player) => player.l === 'C');
   if (!opponentCenter) {
     errors.push(`${play.id} needs an opposing center at the draw.`);
   } else {
@@ -73,7 +73,7 @@ function sourceOpeningErrors(play) {
     }
   }
 
-  activeSourcePlayers(setPhase).forEach((player) => {
+  activeSourcePlayers(drawPhase).forEach((player) => {
     const restrainingDistance = rinkDistanceMeters(player, dot);
     if (restrainingDistance < MIN_RESTRAINING_DISTANCE_METERS) {
       errors.push(`${play.id} ${player.id} starts inside the restraining circle (${restrainingDistance.toFixed(2)}m).`);
@@ -116,7 +116,9 @@ function runtimeErrors(play, scene) {
   const opening = samplePlayScene(scene, 0);
   if (opening.players.length !== 12) errors.push(`${play.id} must render 12 players.`);
   if (opening.ball.ownerId) errors.push(`${play.id} cannot assign possession before the drop.`);
-  if (opening.ball.segmentType !== 'loose') errors.push(`${play.id} must begin with a loose ball.`);
+  if (!['loose', 'faceoff'].includes(opening.ball.segmentType)) {
+    errors.push(`${play.id} must begin with a loose draw.`);
+  }
 
   const drawSegment = scene.ball.segments.find((segment) => segment.type === 'faceoff');
   if (!drawSegment) {
@@ -137,10 +139,10 @@ function runtimeErrors(play, scene) {
   const homeCenter = scene.players.find((player) => player.id === 'US_C');
   const opponentCenter = scene.players.find((player) => player.id === 'OP_C');
   if (!homeCenter || angleDifference(homeCenter.keyframes[0].facing, 0) > 0.25) {
-    errors.push(`${play.id} home center must face the attacking end at the set.`);
+    errors.push(`${play.id} home center must face the attacking end at the draw.`);
   }
   if (!opponentCenter || angleDifference(opponentCenter.keyframes[0].facing, Math.PI) > 0.25) {
-    errors.push(`${play.id} opposing center must face the defending end at the set.`);
+    errors.push(`${play.id} opposing center must face the defending end at the draw.`);
   }
 
   for (let index = 1; index < scene.ball.segments.length; index += 1) {

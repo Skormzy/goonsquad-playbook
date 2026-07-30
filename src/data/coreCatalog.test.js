@@ -14,8 +14,8 @@ import {
 } from './coreCatalog';
 
 describe('curated core curriculum', () => {
-  it('limits the active experience to 12 distinct plays and 6 strategies', () => {
-    expect(CORE_PLAYS).toHaveLength(12);
+  it('limits the active experience to 13 distinct plays and 6 strategies', () => {
+    expect(CORE_PLAYS).toHaveLength(13);
     expect(CORE_TACTICS).toHaveLength(6);
     expect(new Set(CORE_PLAY_IDS).size).toBe(CORE_PLAY_IDS.length);
     expect(new Set(CORE_TACTIC_IDS).size).toBe(CORE_TACTIC_IDS.length);
@@ -33,10 +33,11 @@ describe('curated core curriculum', () => {
       'systems',
     ]));
     expect(CORE_PLAY_IDS).not.toContain('dzfr');
-    expect(CORE_PLAY_IDS).not.toContain('ozfl');
+    expect(CORE_PLAY_IDS).toContain('ozfl');
     expect(CORE_PLAY_IDS).not.toContain('d32');
     expect(CORE_PLAY_IDS).not.toContain('o32');
     expect(CORE_PLAYS.find((play) => play.id === 'dzfl')?.n).toBe('D-Zone Faceoff');
+    expect(CORE_PLAYS.find((play) => play.id === 'ozfl')?.n).toBe('O-Zone Faceoff');
     expect(CORE_PLAYS.find((play) => play.id === 'lcl')?.n).toBe('Low Cycle');
   });
 
@@ -47,7 +48,7 @@ describe('curated core curriculum', () => {
     const offensivePrinciples = itemsForCurriculumLane(CORE_TACTICS, 'offence');
 
     expect(defence).toHaveLength(6);
-    expect(offence).toHaveLength(6);
+    expect(offence).toHaveLength(7);
     expect(defensivePrinciples).toHaveLength(4);
     expect(offensivePrinciples).toHaveLength(2);
     expect(defence[0]).toMatchObject({
@@ -56,6 +57,7 @@ describe('curated core curriculum', () => {
       isPrimarySystem: true,
     });
     expect(offence.map((play) => play.id)).toContain('slot-window');
+    expect(offence.map((play) => play.id)).toContain('ozfl');
     expect(defensivePrinciples[0]).toMatchObject({
       id: 'protect-the-middle',
       title: '1-2-2 Strong-Side Lock',

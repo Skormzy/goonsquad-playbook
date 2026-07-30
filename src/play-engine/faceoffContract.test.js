@@ -58,12 +58,32 @@ describe('faceoff replay contract', () => {
     const won = resolveFaceoffPlayOutcome(basePlay, 'won');
     const lost = resolveFaceoffPlayOutcome(basePlay, 'lost');
 
-    expect(lost.phases.slice(0, 2)).toEqual(won.phases.slice(0, 2));
+    expect(lost.phases[0].pos).toEqual(won.phases[0].pos);
+    expect(lost.phases[0].opp).toEqual(won.phases[0].opp);
+    expect(lost.phases[0].ball).toEqual(won.phases[0].ball);
+    expect(lost.phases[0].faceoffState).toBe('draw');
     expect(won.faceoff.outcomeTarget).toMatch(/^US_/);
     expect(lost.faceoff.outcomeTarget).toMatch(/^OP_/);
-    expect(lost.phases[2].ballOwner)
+    expect(lost.phases[1].ballOwner)
       .toBe(`op-${lost.faceoff.outcomeTarget.slice(3).toLowerCase()}`);
-    expect(lost.phases[2].t).toMatch(/Draw Lost/);
+    expect(won.phases[0].t).toMatch(/^Win Draw to /);
+    expect(lost.phases[0].t).toMatch(/^They Win Draw to /);
+    expect(lost.phases[1].t).not.toMatch(/Draw Lost/);
+  });
+
+  it.each(outcomeCases)('%s:%s teaches the draw without redundant setup or drop phases', (playId, outcome) => {
+    const basePlay = PLAYS.find((candidate) => candidate.id === playId);
+    const play = resolveFaceoffPlayOutcome(basePlay, outcome);
+    const phaseTitles = play.phases.map((phase) => phase.t);
+    const phaseDescriptions = play.phases.map((phase) => phase.desc).join(' ');
+
+    expect(play.phases.some((phase) => phase.faceoffState === 'set')).toBe(false);
+    expect(phaseTitles).not.toEqual(expect.arrayContaining([
+      'Set for the Draw',
+      'Ball Down',
+      'Faceoff Alignment',
+    ]));
+    expect(phaseDescriptions).not.toMatch(/Wait for the ball/i);
   });
 
   it('uses the lost-draw response for the 3D team plan', () => {

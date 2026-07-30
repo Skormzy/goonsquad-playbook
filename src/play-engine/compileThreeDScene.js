@@ -12,7 +12,6 @@ const FINAL_RESOLUTION_SECONDS = 2.8;
 const TACTICAL_CRUISE_SPEED_MPS = 3.2;
 const MOVEMENT_RAMP_SECONDS = 0.6;
 const MIN_AUTHORED_PLAY_BEAT_SECONDS = 1.8;
-const MIN_FACEOFF_SET_SECONDS = 1.1;
 const MIN_FACEOFF_DRAW_SECONDS = 1.6;
 const FACEOFF_CONTACT_SECONDS = 0.64;
 const MAX_FIELD_ADJUSTMENT = 0.9;
@@ -336,7 +335,6 @@ function maximumPlayerTransitionDistance(previous, next) {
 }
 
 function minimumPlayBeatSeconds(phase) {
-  if (phase.faceoffState === 'set') return MIN_FACEOFF_SET_SECONDS;
   if (phase.faceoffState === 'draw') return MIN_FACEOFF_DRAW_SECONDS;
   return MIN_AUTHORED_PLAY_BEAT_SECONDS;
 }
@@ -466,11 +464,22 @@ function finalMotionTarget({ team, role, positions, finalBall, index }) {
   }, current);
 }
 
-function createTrack({ team, role, positions, ballPositions, phaseTimes, duration, index }) {
+function createTrack({
+  team,
+  role,
+  positions,
+  ballPositions,
+  phaseTimes,
+  phaseStates,
+  duration,
+  index,
+}) {
   const frames = phaseTimes.map((time, frameIndex) => ({
     time,
     position: positions[frameIndex],
-    facing: facingForTrack(positions, ballPositions, frameIndex, role, team),
+    facing: frameIndex === 0 && phaseStates[0] === 'draw' && role === 'C'
+      ? (team === 'us' ? 0 : Math.PI)
+      : facingForTrack(positions, ballPositions, frameIndex, role, team),
   }));
   const finalPosition = positions.at(-1);
   const finalBall = ballPositions.at(-1) ?? finalPosition;
@@ -535,6 +544,7 @@ function createPlayers(phases, roleMap, phaseTimes, duration, penaltyAssignment 
     resolvedPhaseBall(phase),
     { x: 50, y: 50 },
   ));
+  const phaseStates = phases.map((phase) => phase.faceoffState ?? null);
   const homePlayers = ROLES.map((role, index) => {
     const positions = phases.map((phase) => position(phase.home?.[role], HOME_FALLBACKS[role]));
     const sourcePlayer = phases.find((phase) => phase.home?.[role])?.home?.[role];
@@ -549,7 +559,7 @@ function createPlayers(phases, roleMap, phaseTimes, duration, penaltyAssignment 
       status: inactive ? PENALTY_BOX_STATUS : sourcePlayer?.status ?? 'active',
       uniform: HOME_UNIFORM,
       keyframes: createTrack({
-        team: 'us', role, positions, ballPositions, phaseTimes, duration, index,
+        team: 'us', role, positions, ballPositions, phaseTimes, phaseStates, duration, index,
       }),
     };
   });
@@ -576,7 +586,14 @@ function createPlayers(phases, roleMap, phaseTimes, duration, penaltyAssignment 
       status: inactive ? PENALTY_BOX_STATUS : sourcePlayer?.status ?? 'active',
       uniform: OPPONENT_UNIFORM,
       keyframes: createTrack({
-        team: 'opponent', role, positions, ballPositions, phaseTimes, duration, index: index + 6,
+        team: 'opponent',
+        role,
+        positions,
+        ballPositions,
+        phaseTimes,
+        phaseStates,
+        duration,
+        index: index + 6,
       }),
     };
   });
@@ -1031,7 +1048,9 @@ function concise(text, fallback) {
 }
 
 function playResponsibilities(play) {
-  const phase = play.faceoff?.outcome === 'lost' ? play.phases[2] : play.phases[0];
+  const phase = play.faceoff
+    ? play.phases.find((candidate) => candidate.faceoffState === 'secured') ?? play.phases[0]
+    : play.phases[0];
   const actionFor = (roles, fallback) => {
     const entries = roles.map((role) => phase.pos?.[role]).filter(Boolean);
     const priority = entries.find((entry) => entry.ball || entry.key) ?? entries[0];
