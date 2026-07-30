@@ -612,14 +612,20 @@ export default function TacticalReplayPreview() {
         )}
       </section>
 
-      <section className="vnext3d-preview-console" aria-label="3D replay controls and status">
+      <section
+        className={`vnext3d-preview-console${replay.kind === 'strategy' ? ' has-strategy-outcome' : ''}`}
+        aria-label="3D replay controls and status"
+      >
         {!mobileLayout && replay.kind === 'play' && currentPlay?.faceoff && (
           <div className="vnext3d-content-picker vnext3d-faceoff-outcome">
             <FaceoffOutcomeControl />
           </div>
         )}
         {replay.kind === 'strategy' && (
-          <div className="vnext3d-content-picker vnext3d-strategy-outcome">
+          <div
+            className="vnext3d-content-picker vnext3d-strategy-outcome"
+            data-testid="vnext3d-strategy-outcome"
+          >
             <span>COMPARE OUTCOME</span>
             <div className="vnext3d-variant-picker" role="group" aria-label="Strategy outcome">
               <button
@@ -640,7 +646,7 @@ export default function TacticalReplayPreview() {
           </div>
         )}
         {mobileLayout ? (
-          <details className="vnext3d-mobile-coaching">
+          <details className="vnext3d-mobile-coaching" data-testid="vnext3d-mobile-coaching">
             <summary>
               <span>TEAM PLAN</span>
               <strong>Role responsibilities</strong>

@@ -51,6 +51,7 @@ describe('mobile product hardening contracts', () => {
     expect(css).toContain('width: min(75vw, 330px)');
     expect(css).toContain('width: min(73vw, 290px)');
     expect(css).toContain('.tactics-mobile-browser > summary');
+    expect(css).toContain('.tactics-mobile-browser:not([open]) > :not(summary)');
     expect(css).toContain('.tactics-phase-dot');
   });
 
@@ -124,7 +125,10 @@ describe('mobile product hardening contracts', () => {
     expect(header).toContain("setReplay3dCamera('overhead')");
     expect(header).toContain("'is-mobile-collapsed'");
     expect(header).toContain('app-header-collapse');
-    expect(tactical3d).toContain('<details className="vnext3d-mobile-coaching">');
+    expect(tactical3d).toContain('className="vnext3d-mobile-coaching"');
+    expect(tactical3d).toContain('has-strategy-outcome');
+    expect(tactical3d).toContain('data-testid="vnext3d-strategy-outcome"');
+    expect(tactical3d).toContain('data-testid="vnext3d-mobile-coaching"');
     expect(tactical3d).toContain('vnext3d-mobile-camera-picker');
     expect(tactical3d).toContain('mobileCameraToolsOpen');
     expect(tactical3d).toContain("mobileLayout && !stageFullscreen && replay.kind === 'play'");
@@ -203,6 +207,8 @@ describe('mobile product hardening contracts', () => {
     expect(audit).toContain('standaloneMediaMatched');
     expect(audit).toContain('the 2D timeline covers');
     expect(audit).toContain('the 3D transport is not available above mobile navigation in landscape');
+    expect(audit).toContain('strategy outcome and team responsibilities overlap');
+    expect(audit).toContain('the expanded 3D team plan leaves the viewport');
     expect(audit).toContain('auditPwaInstallability');
     expect(audit).toContain("visibleBrowserWindowOpened: false");
   });

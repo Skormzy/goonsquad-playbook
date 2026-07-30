@@ -281,6 +281,12 @@ async function auditLayout(page) {
     const replayConsoleRect = replayConsole?.getBoundingClientRect();
     const replayTransport = document.querySelector('.vnext3d-preview-transport');
     const replayTransportRect = replayTransport?.getBoundingClientRect();
+    const strategyOutcome = document.querySelector('[data-testid="vnext3d-strategy-outcome"]');
+    const strategyOutcomeRect = strategyOutcome?.getBoundingClientRect();
+    const replayCoaching = document.querySelector('[data-testid="vnext3d-mobile-coaching"]');
+    const replayCoachingRect = replayCoaching?.getBoundingClientRect();
+    const replayCoachingPanel = document.querySelector('[data-testid="vnext3d-mobile-coaching"][open] > div');
+    const replayCoachingPanelRect = replayCoachingPanel?.getBoundingClientRect();
     const playRinkFrame = document.querySelector('.play-mobile-rink .play-rink-frame');
     const playRinkFrameRect = playRinkFrame?.getBoundingClientRect();
     const playTimeline = document.querySelector('.play-mobile-timeline');
@@ -339,6 +345,26 @@ async function auditLayout(page) {
           ? replayTransportRect.top < (bottomNavRect?.top ?? viewport.height)
             && replayTransportRect.bottom <= (bottomNavRect?.top ?? viewport.height) + 1
           : false,
+        strategyHudOverlap: strategyOutcomeRect && replayCoachingRect
+          ? Number((
+            Math.max(
+              0,
+              Math.min(strategyOutcomeRect.right, replayCoachingRect.right)
+                - Math.max(strategyOutcomeRect.left, replayCoachingRect.left),
+            )
+            * Math.max(
+              0,
+              Math.min(strategyOutcomeRect.bottom, replayCoachingRect.bottom)
+                - Math.max(strategyOutcomeRect.top, replayCoachingRect.top),
+            )
+          ).toFixed(1))
+          : 0,
+        coachingPanelContained: replayCoachingPanelRect
+          ? replayCoachingPanelRect.left >= -1
+            && replayCoachingPanelRect.top >= -1
+            && replayCoachingPanelRect.right <= viewport.width + 1
+            && replayCoachingPanelRect.bottom <= viewport.height + 1
+          : true,
       } : null,
       play2d: playRinkFrameRect && playTimelineRect ? {
         rinkTop: Number(playRinkFrameRect.top.toFixed(1)),
@@ -456,6 +482,15 @@ async function capture(page, device, stateId, notes = {}) {
   };
 }
 
+async function captureOpenReplayCoaching(page, device, states) {
+  const coaching = page.getByTestId('vnext3d-mobile-coaching');
+  if (!await coaching.count()) return;
+  await coaching.locator('summary').click();
+  await settleInteraction(page, 160);
+  states.push(await capture(page, device, 'strategy-3d-coaching'));
+  await coaching.locator('summary').click();
+}
+
 function stateFailures(state) {
   const failures = [];
   if (state.layout.smallTargets.length) failures.push(`${state.stateId}: ${state.layout.smallTargets.length} conventional controls are smaller than 40px`);
@@ -473,6 +508,12 @@ function stateFailures(state) {
   }
   if (state.layout.replay3d?.unusedBottomSpace > 4) {
     failures.push(`${state.stateId}: the 3D replay leaves ${state.layout.replay3d.unusedBottomSpace}px of unused space above navigation`);
+  }
+  if (state.layout.replay3d?.strategyHudOverlap > 1) {
+    failures.push(`${state.stateId}: strategy outcome and team responsibilities overlap by ${state.layout.replay3d.strategyHudOverlap}px`);
+  }
+  if (state.layout.replay3d && !state.layout.replay3d.coachingPanelContained) {
+    failures.push(`${state.stateId}: the expanded 3D team plan leaves the viewport`);
   }
   const shortLandscape = state.layout.viewport.height <= 520
     && state.layout.viewport.width > state.layout.viewport.height;
@@ -705,6 +746,13 @@ for (const device of devices) {
   await waitForSurface(page, 'strategy2d');
   states.push(await capture(page, device, 'strategy-2d'));
   if (!device.landscape) {
+    const strategyBrowser = page.locator('.tactics-mobile-browser');
+    if (await strategyBrowser.count()) {
+      await strategyBrowser.locator('summary').click();
+      await settleInteraction(page, 120);
+      states.push(await capture(page, device, 'strategy-2d-browser'));
+      await strategyBrowser.locator('summary').click();
+    }
     const coachingNotes = page.locator('.tactics-mobile-coaching');
     if (await coachingNotes.count()) {
       await coachingNotes.locator('summary').click();
@@ -791,7 +839,14 @@ for (const device of devices) {
       await page.goto(route(routes.strategy3d), { waitUntil: 'domcontentloaded', timeout: 60_000 });
       await waitForSurface(page, '3d');
       states.push(await capture(page, device, 'strategy-3d'));
+      await captureOpenReplayCoaching(page, device, states);
     }
+  }
+  if (!device.full && !device.landscape) {
+    await page.goto(route(routes.strategy3d), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await waitForSurface(page, '3d');
+    states.push(await capture(page, device, 'strategy-3d'));
+    await captureOpenReplayCoaching(page, device, states);
   }
 
   const failures = states.flatMap(stateFailures);

@@ -145,7 +145,7 @@ export default function TacticsLearn() {
           }
         }}
         aria-label="Strategy principle"
-        style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${t.bd}`, background: t.cb, color: t.tx, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FF }}
+        style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${t.bd}`, background: t.cb, color: t.tx, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'var(--font-display)' }}
       >
         {laneTactics.map((tactic, i) => (
           <option key={tactic.id} value={i}>{tactic.title}</option>
