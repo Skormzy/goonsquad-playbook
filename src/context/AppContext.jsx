@@ -265,7 +265,7 @@ export function AppProvider({ children }) {
     }
 
     setPhaseTransitionTarget(targetPhase);
-    const duration = phaseTransitionDuration(fromTime, toTime);
+    const duration = phaseTransitionDuration(fromTime, toTime, speed);
     const startedAt = performance.now();
     const tick = (now) => {
       const progress = Math.min(1, (now - startedAt) / duration);
@@ -298,7 +298,7 @@ export function AppProvider({ children }) {
     };
 
     phaseTransitionFrameRef.current = requestAnimationFrame(tick);
-  }, [cancelPlaybackRestart, currentReplayScene, phaseCount]);
+  }, [cancelPlaybackRestart, currentReplayScene, phaseCount, speed]);
 
   // Favorites — persisted to localStorage
   const [favorites, setFavorites] = useState(() => new Set(readFavoriteIds(null)));

@@ -5,7 +5,7 @@ import {
   Play,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { sceneTimeForPhase } from '../play-engine/synchronizePlayback';
+import { replayTeachingStage } from '../play-engine/replayTeachingStage';
 
 const STAGES = Object.freeze({
   ready: {
@@ -30,20 +30,6 @@ const STAGES = Object.freeze({
   },
 });
 
-function teachingStage({
-  currentPhase,
-  isPlaying,
-  phaseCount,
-  playbackTime,
-  scene,
-}) {
-  if (!scene) return 'ready';
-  if (playbackTime >= scene.duration - 0.035) return 'complete';
-  if (!isPlaying) return 'ready';
-  const anchor = sceneTimeForPhase(scene, currentPhase, phaseCount);
-  return Math.abs(playbackTime - anchor) <= 0.055 ? 'read' : 'watch';
-}
-
 export default function ReplayTeachingCue({
   accent = 'var(--gs-cyan)',
   children = null,
@@ -54,15 +40,17 @@ export default function ReplayTeachingCue({
     currentReplayPhases,
     currentReplayScene,
     isPlaying,
+    phaseTransitionTarget,
     playbackTime,
   } = useApp();
   const phaseCount = currentReplayPhases.length;
   const phase = currentReplayPhases[currentPhase] ?? currentReplayPhases[0];
   if (!phase) return null;
 
-  const stageId = teachingStage({
+  const stageId = replayTeachingStage({
     currentPhase,
     isPlaying,
+    isTransitioning: phaseTransitionTarget !== null,
     phaseCount,
     playbackTime,
     scene: currentReplayScene,

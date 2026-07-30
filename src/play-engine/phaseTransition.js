@@ -1,22 +1,22 @@
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-export const PHASE_TRANSITION_MIN_MS = 420;
-export const PHASE_TRANSITION_MAX_MS = 900;
+export const PHASE_TRANSITION_DEFAULT_RATE = 1;
 
-export function phaseTransitionDuration(fromTime, toTime) {
+export function phaseTransitionDuration(
+  fromTime,
+  toTime,
+  playbackRate = PHASE_TRANSITION_DEFAULT_RATE,
+) {
   const replayDistance = Math.abs(Number(toTime) - Number(fromTime));
-  return clamp(
-    PHASE_TRANSITION_MIN_MS + replayDistance * 85,
-    PHASE_TRANSITION_MIN_MS,
-    PHASE_TRANSITION_MAX_MS,
-  );
+  const requestedRate = Number(playbackRate);
+  const safeRate = Number.isFinite(requestedRate) && requestedRate > 0
+    ? requestedRate
+    : PHASE_TRANSITION_DEFAULT_RATE;
+  return replayDistance / safeRate * 1000;
 }
 
 export function phaseTransitionProgress(progress) {
-  const normalized = clamp(Number(progress) || 0, 0, 1);
-  return normalized * normalized * normalized * (
-    normalized * (normalized * 6 - 15) + 10
-  );
+  return clamp(Number(progress) || 0, 0, 1);
 }
 
 export function phaseTransitionTime(fromTime, toTime, progress) {
