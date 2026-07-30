@@ -321,3 +321,7 @@
   .profile-game-rows > button > span:nth-child(3),
   .profile-linked-records article > a { display: none; }
 }
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .profile-gate button { min-height: 44px; }
+}

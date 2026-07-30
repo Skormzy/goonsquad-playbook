@@ -7,6 +7,7 @@ const appContext = readFileSync(new URL('../context/AppContext.jsx', import.meta
 const header = readFileSync(new URL('./Header.jsx', import.meta.url), 'utf8');
 const mobileBottomNav = readFileSync(new URL('./MobileBottomNav.jsx', import.meta.url), 'utf8');
 const mobileViewModeSwitch = readFileSync(new URL('./MobileViewModeSwitch.jsx', import.meta.url), 'utf8');
+const profileCss = readFileSync(new URL('../profile/profile.css', import.meta.url), 'utf8');
 const playViewer = readFileSync(new URL('./PlayViewer.jsx', import.meta.url), 'utf8');
 const phaseControls = readFileSync(new URL('./PhaseControls.jsx', import.meta.url), 'utf8');
 const playback = readFileSync(new URL('./PlaybackControls.jsx', import.meta.url), 'utf8');
@@ -140,6 +141,14 @@ describe('mobile product hardening contracts', () => {
     expect(css).toContain('env(safe-area-inset-bottom)');
     expect(css).toContain('height: 100dvh');
     expect(css).toContain('min-height: 100svh');
+    expect(css).toMatch(/\.app-shell\s*\{[^}]*--mobile-bottom-nav-height:[^}]*padding-bottom:\s*var\(--mobile-bottom-nav-height\);/s);
+    expect(css).toMatch(/\.mobile-bottom-nav\s*\{[^}]*position:\s*fixed;[^}]*bottom:\s*0;[^}]*height:\s*var\(--mobile-bottom-nav-height\);/s);
+    expect(audit).toContain("profile: { content: 'profile', mode: '2d' }");
+    expect(audit).toContain("'member-profile-route'");
+    expect(audit).toContain("'account-direct-route'");
+    expect(audit).toContain('member profile route: Plays navigation did not leave the profile workspace');
+    expect(audit).toContain('account route: Home navigation did not leave the account workspace');
+    expect(profileCss).toMatch(/@media \(max-height:\s*520px\) and \(orientation:\s*landscape\)\s*\{[^}]*\.profile-gate button\s*\{\s*min-height:\s*44px;/s);
   });
 
   it('ships installable PWA metadata, icons, and a production service worker', () => {

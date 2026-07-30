@@ -30,6 +30,8 @@ if (!devices.length) throw new Error(`Unknown MOBILE_AUDIT_DEVICE: ${requestedDe
 
 const routes = {
   home: {},
+  profile: { content: 'profile', mode: '2d' },
+  account: { content: 'account', mode: '2d' },
   play2d: { content: 'plays', mode: '2d', playId: 'brk', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
   faceoff2d: { content: 'plays', mode: '2d', playId: 'dzfl', faceoff: 'lost', phase: '3', time: '8', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
   play3d: { content: 'plays', mode: '3d', playId: 'brk', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'overhead' },
@@ -119,6 +121,10 @@ function relative(filePath) {
 async function waitForSurface(page, type) {
   if (type === 'stats') {
     await page.locator('.stats-workspace').waitFor({ state: 'visible', timeout: 60_000 });
+  } else if (type === 'profile') {
+    await page.locator('.profile-workspace').waitFor({ state: 'visible', timeout: 60_000 });
+  } else if (type === 'account') {
+    await page.locator('.account-workspace').waitFor({ state: 'visible', timeout: 60_000 });
   } else if (type === 'play2d') {
     await page.locator('[data-testid^="play-workspace-"]').waitFor({ state: 'visible', timeout: 60_000 });
   } else if (type === 'strategy2d') {
@@ -614,6 +620,24 @@ for (const device of devices) {
   states.push(await capture(page, device, 'account-workspace'));
   await page.goto(route(routes.home), { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await waitForSurface(page, 'stats');
+
+  await page.goto(route(routes.profile), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await waitForSurface(page, 'profile');
+  states.push(await capture(page, device, 'member-profile-route'));
+  await page.getByTestId('mobile-bottom-nav').getByRole('button', { name: 'Plays', exact: true }).click();
+  await waitForSurface(page, 'play2d');
+  if (new URL(page.url()).searchParams.get('content') !== 'plays') {
+    browserProblems.push('member profile route: Plays navigation did not leave the profile workspace');
+  }
+
+  await page.goto(route(routes.account), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await waitForSurface(page, 'account');
+  states.push(await capture(page, device, 'account-direct-route'));
+  await page.getByTestId('mobile-bottom-nav').getByRole('button', { name: 'Home', exact: true }).click();
+  await waitForSurface(page, 'stats');
+  if (new URL(page.url()).searchParams.get('content') !== 'stats') {
+    browserProblems.push('account route: Home navigation did not leave the account workspace');
+  }
 
   if (device.full) {
     await page.getByTestId('mobile-bottom-nav').getByRole('button', { name: 'Plays', exact: true }).click();
