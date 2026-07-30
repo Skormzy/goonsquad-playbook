@@ -10,6 +10,12 @@ import {
   itemsForCurriculumLane,
 } from '../data/coreCatalog';
 import { CAT_COLORS } from '../context/ThemeContext';
+import {
+  contextualCoverageForReplay,
+  coverageAssignmentsForReplay,
+  hasCoverageAssignments,
+} from '../play-engine/coverageAssignments';
+import CoverageVisibilityControl from './CoverageVisibilityControl';
 import CurriculumLaneSwitch from './CurriculumLaneSwitch';
 import MobileViewModeSwitch from './MobileViewModeSwitch';
 import PlaybackControls from './PlaybackControls';
@@ -63,6 +69,8 @@ export default function TacticsLearn() {
     setActiveView,
     cancelPlaybackRestart,
     setPreviousPositions,
+    showCoverage,
+    setShowCoverage,
   } = useApp();
   const lane = principle?.lane ?? 'defence';
   const laneTactics = useMemo(
@@ -72,7 +80,14 @@ export default function TacticsLearn() {
   const activePrinciple = Math.max(0, laneTactics.findIndex((tactic) => tactic.id === selectedTacticId));
   const scene = activeTab === 'mistake' ? principle.mistakeScene : principle.correctScene;
   const phase = scene.phases[currentPhase] ?? scene.phases[0];
-  const coverage = phase.coverage || scene.coverage || null;
+  const availableCoverage = coverageAssignmentsForReplay(currentReplayScene, playbackTime);
+  const coverage = contextualCoverageForReplay({
+    enabled: showCoverage,
+    lane,
+    replay: currentReplayScene,
+    time: playbackTime,
+  });
+  const coverageAvailable = lane === 'defence' && hasCoverageAssignments(availableCoverage);
   const tabAccent = activeTab === 'mistake' ? TC.mistake : TC.defense;
 
   const selectPrinciple = useCallback((i) => {
@@ -185,7 +200,8 @@ export default function TacticsLearn() {
           scene={currentReplayScene}
           time={playbackTime}
           tactical
-          coverage={coverage}
+          coverageEnabled={showCoverage}
+          coverageLane={lane}
           arrows={phase.arrows}
         />
       </div>
@@ -241,6 +257,13 @@ export default function TacticsLearn() {
       {coverage && <LegendItem color="#16a34a" label="Tight" />}
       {coverage && <LegendItem color="#d97706" label="Drifting" />}
       {coverage && <LegendItem color="#dc2626" label="Lost" />}
+      {coverageAvailable ? (
+        <CoverageVisibilityControl
+          compact
+          enabled={showCoverage}
+          onChange={setShowCoverage}
+        />
+      ) : null}
     </div>
   );
 

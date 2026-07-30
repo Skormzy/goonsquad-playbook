@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { contextualCoverageForReplay } from '../play-engine/coverageAssignments';
 import { playSceneToRinkPhase } from '../play-engine/toRinkPhase';
 import { mirrorPhase } from '../utils/mirror';
 import RinkSVG from './RinkSVG';
@@ -12,7 +13,8 @@ export default function SceneRink2D({
   trailSeconds = 0.55,
   mirrored = false,
   tactical = false,
-  coverage = null,
+  coverageEnabled = true,
+  coverageLane = null,
   arrows = null,
 }) {
   const phase = useMemo(() => {
@@ -26,6 +28,16 @@ export default function SceneRink2D({
       return mirrored ? mirrorPhase(sampled) : sampled;
     },
     [mirrored, scene, time, trailSeconds],
+  );
+  const coverage = useMemo(
+    () => contextualCoverageForReplay({
+      enabled: coverageEnabled,
+      lane: coverageLane,
+      mirrored,
+      replay: scene,
+      time,
+    }),
+    [coverageEnabled, coverageLane, mirrored, scene, time],
   );
 
   return (

@@ -9494,7 +9494,7 @@ input:focus:not(:focus-visible) { outline: none; }
 
 .play-mobile-view-tools {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--play-tool-count, 2), minmax(0, 1fr));
   gap: 6px;
   margin-top: 9px;
 }
@@ -9523,6 +9523,62 @@ input:focus:not(:focus-visible) { outline: none; }
 .play-mobile-view-tools svg {
   width: 16px;
   height: 16px;
+}
+
+.coverage-visibility-control {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid var(--coverage-control-border);
+  border-radius: 5px;
+  background: var(--coverage-control-bg);
+  color: var(--coverage-control-text);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.coverage-visibility-control svg {
+  width: 16px;
+  height: 16px;
+}
+
+.coverage-visibility-control strong {
+  min-width: 24px;
+  color: currentColor;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.coverage-visibility-control[aria-pressed='true'] {
+  border-color: var(--coverage-control-accent);
+  background: color-mix(in srgb, var(--coverage-control-accent) 10%, var(--coverage-control-bg));
+  color: var(--coverage-control-accent);
+}
+
+.coverage-visibility-control.is-compact {
+  min-height: 32px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.play-region-detail > .coverage-visibility-control {
+  width: 100%;
+  margin: 2px 0 6px;
+}
+
+.play-mobile-view-tools .coverage-visibility-control {
+  min-height: 42px;
+  font-family: inherit;
+  font-size: 10px;
+}
+
+.tactics-legend .coverage-visibility-control {
+  margin-left: auto;
 }
 
 @media (max-width: 760px), (pointer: coarse) {

@@ -31,6 +31,22 @@ describe('3D tactical layers', () => {
     expect(tacticalMatchupsForReplay(play)).toEqual(play.presentation?.matchups ?? []);
   });
 
+  it('exposes play coverage at authored phases and clears it at possession', () => {
+    const play = getPlayScene('trap');
+    const defensiveShape = tacticalMatchupsForReplay(
+      play,
+      play.sourcePhaseTimes[1],
+    );
+    const possession = tacticalMatchupsForReplay(
+      play,
+      play.sourcePhaseTimes[4],
+    );
+
+    expect(defensiveShape).toHaveLength(5);
+    expect(defensiveShape.every(({ source }) => source === 'authored')).toBe(true);
+    expect(possession).toEqual([]);
+  });
+
   it('never invents missing strategy assignments', () => {
     getRegisteredStrategyScenes().forEach((strategy) => {
       const matchups = tacticalMatchupsForReplay(strategy);

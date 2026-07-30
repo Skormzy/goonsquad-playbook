@@ -272,6 +272,7 @@ function normalizePlayPhases(play) {
     opponents: phase.opp ?? [],
     ball: phase.ball,
     ballPath: phase.ballPath ?? null,
+    coverage: phase.coverage ?? null,
     arrows: [],
     duration: phase.duration ?? null,
     ballOwner: phase.ballOwner ?? null,
@@ -1146,13 +1147,13 @@ function strategyMatchups(tactic, variant, roleMap) {
   return matchupsForCoverage(sourceScene.coverage, roleMap);
 }
 
-function strategyMatchupPhases(phases, phaseTimes, roleMap) {
-  return phases.flatMap((phase, index) => {
-    if (!phase.coverage) return [];
-    return [{
+function matchupPhasesForCoverage(phases, phaseTimes, roleMap, fallbackCoverage = null) {
+  return phases.map((phase, index) => {
+    const coverage = phase.coverage ?? fallbackCoverage;
+    return {
       time: phaseTimes[index],
-      matchups: matchupsForCoverage(phase.coverage, roleMap),
-    }];
+      matchups: matchupsForCoverage(coverage, roleMap),
+    };
   });
 }
 
@@ -1217,6 +1218,12 @@ export function compilePlayThreeDScene(play) {
         purpose: play.desc,
         responsibilities: playResponsibilities(play),
         faceoff: play.faceoff ?? null,
+        matchups: [],
+        matchupPhases: matchupPhasesForCoverage(
+          phases,
+          timing.phaseTimes,
+          roleMap,
+        ),
       },
       teachingPoints: phases.map((phase) => phase.description),
       events: phases.map((phase, index) => ({
@@ -1255,7 +1262,12 @@ export function compileStrategyThreeDScene(tactic, requestedVariant = 'correct')
         purpose: tactic.principle,
         responsibilities: strategyResponsibilities(tactic),
         matchups: strategyMatchups(tactic, variant, roleMap),
-        matchupPhases: strategyMatchupPhases(phases, timing.phaseTimes, roleMap),
+        matchupPhases: matchupPhasesForCoverage(
+          phases,
+          timing.phaseTimes,
+          roleMap,
+          variant === 'mistake' ? tactic.mistakeScene.coverage : tactic.correctScene.coverage,
+        ),
         variant,
       },
       teachingPoints: tactic.keyPoints,

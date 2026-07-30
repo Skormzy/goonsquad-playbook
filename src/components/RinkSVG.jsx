@@ -79,6 +79,9 @@ function CoverageLines({ coverage, rph, motionDuration }) {
     return (
       <MotionLine
         key={`cov-${pos}`}
+        data-testid="coverage-line"
+        data-home-role={pos}
+        data-opponent-id={oppId}
         x1={x1}
         y1={y1}
         x2={x2}
@@ -87,9 +90,11 @@ function CoverageLines({ coverage, rph, motionDuration }) {
         initial={{ x1, y1, x2, y2, stroke: color }}
         animate={{ x1, y1, x2, y2, stroke: color }}
         transition={{ duration: motionDuration, ease: 'easeOut' }}
-        strokeWidth={1.2}
-        strokeDasharray="4,4"
-        opacity={0.55}
+        strokeWidth={1.65}
+        strokeDasharray="6,4"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+        opacity={0.78}
       />
     );
   });
@@ -417,6 +422,7 @@ export default function RinkSVG({
   const isTactics = mode === 'tactics' || mode === 'scene-tactics';
   const isDark = theme === 'dark';
   const motionDuration = isScene ? 0.04 : PLAYER_ANIM_S;
+  const coverageCount = Object.values(coverage ?? {}).filter(Boolean).length;
 
   let rph, rprev, focusedRoles, showOpp;
 
@@ -473,6 +479,8 @@ export default function RinkSVG({
           : undefined)}
       data-ball-owner={rph.sceneFrame?.ball?.ownerId
         ?? (rph.faceoffState ? (rph.ballOwner ?? 'none') : undefined)}
+      data-coverage-visible={coverageCount > 0 ? 'true' : 'false'}
+      data-coverage-count={coverageCount}
     >
       <defs>
         <radialGradient id="rg">
@@ -502,7 +510,7 @@ export default function RinkSVG({
         style={{ pointerEvents: 'none' }}
       />
 
-      {isTactics && <CoverageLines coverage={coverage} rph={rph} motionDuration={motionDuration} />}
+      {coverageCount > 0 && <CoverageLines coverage={coverage} rph={rph} motionDuration={motionDuration} />}
       {isTactics && <TacticalArrows arrows={rph.arrows} />}
       <MovementTrails focusedRoles={focusedRoles} prev={rprev} rph={rph} t={t} />
       {!isTactics && <PassingLanes rph={rph} />}

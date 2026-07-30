@@ -120,6 +120,7 @@ export function AppProvider({ children }) {
   const [isPlaying, setIsPlaying] = useState(initial.playing);
   const [isMirrored, setIsMirrored] = useState(false);
   const [showOpponents, setShowOpponents] = useState(true);
+  const [showCoverage, setShowCoverage] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [strategyOpen, setStrategyOpen] = useState(false);
   const [speed, setSpeed] = useState(initial.speed);
@@ -437,6 +438,7 @@ export function AppProvider({ children }) {
       isPlaying, setIsPlaying,
       isMirrored, setIsMirrored,
       showOpponents, setShowOpponents,
+      showCoverage, setShowCoverage,
       sidebarOpen, setSidebarOpen,
       strategyOpen, setStrategyOpen,
       speed, setSpeed,

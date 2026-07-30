@@ -6,6 +6,11 @@ import { CAT_COLORS } from '../context/ThemeContext';
 import { CORE_PLAYS, itemsForCurriculumLane } from '../data/coreCatalog';
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout';
 import { roleLensLabel } from '../play-engine/teamJobs';
+import {
+  coverageAssignmentsForReplay,
+  hasCoverageAssignments,
+} from '../play-engine/coverageAssignments';
+import CoverageVisibilityControl from './CoverageVisibilityControl';
 import PhaseControls from './PhaseControls';
 import FaceoffOutcomeControl from './FaceoffOutcomeControl';
 import MobileViewModeSwitch from './MobileViewModeSwitch';
@@ -86,6 +91,8 @@ export default function PlayViewer() {
     setIsMirrored,
     showOpponents,
     setShowOpponents,
+    showCoverage,
+    setShowCoverage,
     setStrategyOpen,
     setIsPlaying,
     setPreviousPositions,
@@ -104,6 +111,8 @@ export default function PlayViewer() {
   const currentPhaseColor = phaseColor(phase?.t, t.ac);
   const categoryColor = CAT_COLORS[currentPlay?.cat] || t.ac;
   const selectedRoleRead = phase?.pos?.[selectedPosition]?.role ?? phase?.desc ?? '';
+  const coverageAvailable = currentReplayPlay?.lane === 'defence'
+    && hasCoverageAssignments(coverageAssignmentsForReplay(currentReplayScene, playbackTime));
 
   useEffect(() => {
     const query = window.matchMedia('(max-height: 520px) and (orientation: landscape)');
@@ -161,6 +170,8 @@ export default function PlayViewer() {
               selectedPosition={selectedPosition}
               showOpponents={showOpponents}
               mirrored={isMirrored}
+              coverageEnabled={showCoverage}
+              coverageLane={currentReplayPlay?.lane}
             />
           </div>
         </section>
@@ -172,6 +183,12 @@ export default function PlayViewer() {
             </div>
           ) : null}
           <ResponsibilityPanel compact embedded />
+          {coverageAvailable ? (
+            <CoverageVisibilityControl
+              enabled={showCoverage}
+              onChange={setShowCoverage}
+            />
+          ) : null}
           <StrategyButton color={categoryColor} onClick={() => setStrategyOpen(true)} />
         </aside>
 
@@ -216,6 +233,8 @@ export default function PlayViewer() {
             selectedPosition={selectedPosition}
             showOpponents={showOpponents}
             mirrored={isMirrored}
+            coverageEnabled={showCoverage}
+            coverageLane={currentReplayPlay?.lane}
           />
         </div>
       </section>
@@ -257,7 +276,12 @@ export default function PlayViewer() {
         {sheetOpen && (
           <div id="mobile-coaching-detail" className="play-bottom-sheet-content">
             <ResponsibilityPanel embedded />
-            <div className="play-mobile-view-tools" role="group" aria-label="2D rink view tools">
+            <div
+              className="play-mobile-view-tools"
+              role="group"
+              aria-label="2D rink view tools"
+              style={{ '--play-tool-count': coverageAvailable ? 3 : 2 }}
+            >
               <button
                 type="button"
                 aria-pressed={showOpponents}
@@ -274,6 +298,13 @@ export default function PlayViewer() {
                 <FlipHorizontal2 aria-hidden="true" />
                 <span>{isMirrored ? 'Mirrored' : 'Mirror rink'}</span>
               </button>
+              {coverageAvailable ? (
+                <CoverageVisibilityControl
+                  compact
+                  enabled={showCoverage}
+                  onChange={setShowCoverage}
+                />
+              ) : null}
             </div>
             <StrategyButton color={categoryColor} onClick={() => setStrategyOpen(true)} />
             <PlayNavigation plays={lanePlays} playIdx={playIdx} goPlay={goPlay} muted={t.tm} border={t.bd} />
