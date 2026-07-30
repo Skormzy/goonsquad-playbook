@@ -8,10 +8,15 @@ const requiredPwaFiles = [
   'index.html',
   'manifest.json',
   'sw.js',
-  'app-icon-192.png',
-  'app-icon-512.png',
-  'app-icon-maskable-512.png',
-  'apple-touch-icon.png',
+  'favicon.ico',
+  'goonsquad-favicon-v2-32.png',
+  'goonsquad-favicon-v2-64.png',
+  'goonsquad-icon-v2-192.png',
+  'goonsquad-icon-v2-512.png',
+  'goonsquad-icon-v2-1024.png',
+  'goonsquad-icon-maskable-v2-512.png',
+  'goonsquad-apple-touch-icon-v2.png',
+  'goonsquad-social-card-v2.png',
 ];
 const forbiddenFilePattern = /PlayerRigReviewView/iu;
 const forbiddenLegacyModels = new Set([

@@ -2,11 +2,11 @@
   "id": "/",
   "name": "The Goonsquad Playbook",
   "short_name": "Goonsquad",
-  "description": "Interactive ball hockey playbook for The Goonsquad",
+  "description": "Goon with the squad. The Goon Squad ball hockey playbook, strategy room, and team hub.",
   "lang": "en-CA",
   "categories": ["sports", "education", "productivity"],
   "theme_color": "#f1f2f3",
-  "background_color": "#f1f2f3",
+  "background_color": "#000000",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "any",
@@ -14,19 +14,25 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/app-icon-192.png",
+      "src": "/goonsquad-icon-v2-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/app-icon-512.png",
+      "src": "/goonsquad-icon-v2-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/app-icon-maskable-512.png",
+      "src": "/goonsquad-icon-v2-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/goonsquad-icon-maskable-v2-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

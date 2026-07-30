@@ -151,8 +151,15 @@ describe('mobile product hardening contracts', () => {
     expect(manifest.icons.some(({ sizes }) => sizes === '192x192')).toBe(true);
     expect(manifest.icons.some(({ sizes }) => sizes === '512x512')).toBe(true);
     expect(manifest.icons.some(({ purpose }) => purpose?.includes('maskable'))).toBe(true);
+    expect(manifest.icons.every(({ src }) => (
+      src.includes('goonsquad-icon') && src.includes('-v2-')
+    ))).toBe(true);
+    expect(manifest.description).toContain('Goon with the squad');
     expect(html).toContain('apple-mobile-web-app-capable');
-    expect(html).toContain('apple-touch-icon');
+    expect(html).toContain('goonsquad-apple-touch-icon-v2.png');
+    expect(html).toContain('goonsquad-favicon-v2-32.png');
+    expect(html).toContain('property="og:title" content="Goon with the squad"');
+    expect(html).toContain('goonsquad-social-card-v2.png');
     expect(main).toContain("navigator.serviceWorker.register('/sw.js', { scope: '/' })");
     expect(serviceWorker).toContain("self.addEventListener('fetch'");
     expect(serviceWorker).toContain('PRECACHE_ASSETS');
