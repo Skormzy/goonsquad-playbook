@@ -98,6 +98,7 @@
     "supabase:bootstrap:build": "node scripts/build-supabase-bootstrap.mjs",
     "supabase:statistics:bridge:build": "node scripts/build-supabase-statistics-bridge.mjs",
     "qa:core-curriculum": "node scripts/capture-core-curriculum-review.mjs",
+    "qa:team-system": "node scripts/capture-team-system-review.mjs",
     "qa:vnext:brand": "node scripts/capture-vnext-brand-review.mjs",
     "test": "vitest run",
     "test:watch": "vitest"

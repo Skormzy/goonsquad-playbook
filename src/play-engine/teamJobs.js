@@ -118,3 +118,18 @@ export function teamJobsFromPresentation(responsibilities = []) {
     .map((lens) => jobs.get(lens.id))
     .filter(Boolean);
 }
+
+export function teamJobsForActivePhase(
+  phases,
+  phaseIndex,
+  {
+    isMirrored = false,
+    fallbackResponsibilities = [],
+  } = {},
+) {
+  const phase = phases?.[phaseIndex] ?? phases?.[0];
+  const phaseJobs = teamJobsFromPhase(phase, isMirrored);
+  return phaseJobs.length > 0
+    ? phaseJobs
+    : teamJobsFromPresentation(fallbackResponsibilities);
+}

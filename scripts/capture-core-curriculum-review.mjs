@@ -18,9 +18,9 @@ const coreTacticIds = {
 const coreTacticLabels = {
   defence: [
     '1-2-2 Strong-Side Lock',
-    'Watch Your Man, Not the Ball',
-    'Gap Control',
-    'Instant Backchecking on Turnovers',
+    'Protect the House, Track Your Check',
+    'Close Space, Protect the Middle',
+    'Instant Recovery to the 1-2-2',
   ],
   offence: [
     'Triangle Spacing & Support',

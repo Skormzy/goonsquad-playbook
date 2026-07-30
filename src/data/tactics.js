@@ -584,8 +584,85 @@ function releaseMatchupsAfterPossessionWin(tactic) {
   };
 }
 
+function replaceSceneCaptions(scene, captions) {
+  return {
+    ...scene,
+    phases: scene.phases.map((phase, phaseIndex) => (
+      captions[phaseIndex]
+        ? { ...phase, caption: captions[phaseIndex] }
+        : phase
+    )),
+  };
+}
+
+function alignTacticWithTeamSystem(tactic) {
+  if (tactic.id === 'watch-your-man') {
+    return {
+      ...tactic,
+      title: 'Protect the House, Track Your Check',
+      subtitle: 'See the ball and your check without abandoning the middle',
+      principle: 'In our zone, protect the house first, then stay connected to the nearest dangerous attacker. Keep your body goal-side, scan the ball and your check, and exchange coverage when players cross. Do not chase a fixed matchup through the middle or behind the net.',
+      why: 'Blind ball chasing opens the slot, but blind man-to-man chasing can do the same thing. House-first coverage keeps five defenders connected while still accounting for every dangerous attacker.',
+      keyPoints: [
+        'Protect the slot and back door before extending toward the ball',
+        'See both the ball and your check with constant shoulder checks',
+        'Stay goal-side and hand off crossing attackers with a clear call',
+        'Pressure only when the rest of the unit has shifted behind you',
+      ],
+      mistakeScene: replaceSceneCaptions(tactic.mistakeScene, [
+        'They enter wide. Our five-player shape has time to protect the middle.',
+        'Everyone chases the ball side and abandons the house.',
+        'The open slot receives before anyone can recover.',
+        'A clean middle chance punishes the broken shape.',
+      ]),
+      correctScene: replaceSceneCaptions(tactic.correctScene, [
+        'They enter wide. Our forwards recover inside and the back two stay connected.',
+        'Pressure stays goal-side while every teammate sees the ball and a check.',
+        'The house and slot lane remain closed through the rotation.',
+        'They are forced outside into a low-danger play.',
+      ]),
+    };
+  }
+
+  if (tactic.id === 'gap-control') {
+    return {
+      ...tactic,
+      title: 'Close Space, Protect the Middle',
+      subtitle: 'Match the carrier while support determines the gap',
+      principle: 'Gap is dynamic. Close space early, stay inside the carrier, and match their speed without crossing your feet or surrendering the middle. Your distance depends on the carrier\'s pace, your support, and the available space behind you.',
+      why: 'Backing in freely gives away the slot. Lunging without support gives away the outside lane. A connected defender closes usable space, buys time for the 1-2-2 to recover, and forces the carrier toward a low-danger area.',
+      keyPoints: [
+        'Close space before the carrier reaches our blue line',
+        'Stay inside and goal-side while matching the carrier\'s speed',
+        'Use support and available depth to decide how tight the gap can be',
+        'Force the carrier wide, then contain instead of reaching or lunging',
+      ],
+    };
+  }
+
+  if (tactic.id === 'instant-backcheck') {
+    return {
+      ...tactic,
+      title: 'Instant Recovery to the 1-2-2',
+      subtitle: 'The first three seconds rebuild our team shape',
+      principle: 'The moment possession is lost, sprint inside and above the ball. The nearest ball-side winger becomes the 1, the center and weak-side winger rebuild the second layer, and both defenders stay connected behind them.',
+      why: 'A fast inside recovery removes the opponent\'s middle lane before they can build speed. Chasing individual matchups from behind leaves gaps; rebuilding the three layers turns a dangerous turnover into the coach\'s normal defensive system.',
+      keyPoints: [
+        'React on the turnover and sprint through the middle immediately',
+        'Nearest ball-side winger becomes the 1 and closes inside-out',
+        'Center and weak-side winger recover as the second layer',
+        'Both defenders hold connected depth behind the pressure',
+      ],
+    };
+  }
+
+  return tactic;
+}
+
 export const TACTICS = LEGACY_TACTICS.map((tactic) => (
   releaseMatchupsAfterPossessionWin(
-    STRATEGY_FIRST_TACTIC_OVERRIDES[tactic.id] ?? tactic,
+    alignTacticWithTeamSystem(
+      STRATEGY_FIRST_TACTIC_OVERRIDES[tactic.id] ?? tactic,
+    ),
   )
 ));

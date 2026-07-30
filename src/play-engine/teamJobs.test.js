@@ -4,6 +4,7 @@ import {
   roleLensForPosition,
   roleMatchesLens,
   rolesForRoleLens,
+  teamJobsForActivePhase,
   teamJobsFromPhase,
   teamJobsFromPresentation,
 } from './teamJobs';
@@ -46,6 +47,24 @@ describe('team jobs', () => {
     expect(jobs.map((job) => job.id)).toEqual(['wingers', 'center', 'defense']);
     expect(jobs.find((job) => job.id === 'wingers').actions[0].text)
       .toBe('Receive on the wall and carry wide.');
+  });
+
+  it('keeps 3D role coaching synchronized with the active authored phase', () => {
+    const play = PLAYS.find((entry) => entry.id === 'pomr');
+    const openingJobs = teamJobsForActivePhase(play.phases, 0);
+    const recoveryJobs = teamJobsForActivePhase(play.phases, 2);
+    const openingWingerText = openingJobs
+      .find((job) => job.id === 'wingers').actions.map((action) => action.text);
+    const recoveryWingerText = recoveryJobs
+      .find((job) => job.id === 'wingers').actions.map((action) => action.text);
+
+    expect(openingWingerText).toContain(
+      'F1 with secure possession. Protect the ball and scan inside.',
+    );
+    expect(recoveryWingerText).toContain(
+      'Become the 1. Get goal-side, close inside-out, and slow the carrier.',
+    );
+    expect(recoveryWingerText).not.toEqual(openingWingerText);
   });
 
   it('exposes grouped role membership without turning team view into a selection', () => {

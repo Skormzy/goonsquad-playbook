@@ -37,7 +37,7 @@ import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout';
 import {
   roleLensForPosition,
   rolesForRoleLens,
-  teamJobsFromPresentation,
+  teamJobsForActivePhase,
 } from '../play-engine/teamJobs';
 import { standardBreakoutTacticalSpacing } from '../play-engine/tacticalSpacing';
 import { productionRenderProfile } from '../vnext3d/renderProfile';
@@ -89,7 +89,9 @@ export default function TacticalReplayPreview() {
   const {
     currentPhase,
     currentPlay,
+    currentReplayPhases,
     currentReplayScene: replay,
+    isMirrored,
     isPlaying,
     playbackTime,
     replay3dCamera,
@@ -118,8 +120,11 @@ export default function TacticalReplayPreview() {
     [],
   );
   const teamJobs = useMemo(
-    () => teamJobsFromPresentation(replay?.presentation?.responsibilities ?? []),
-    [replay],
+    () => teamJobsForActivePhase(currentReplayPhases, currentPhase, {
+      isMirrored,
+      fallbackResponsibilities: replay?.presentation?.responsibilities ?? [],
+    }),
+    [currentPhase, currentReplayPhases, isMirrored, replay],
   );
   const stageRef = useRef(null);
   const [cameraFollowing, setCameraFollowing] = useState(true);

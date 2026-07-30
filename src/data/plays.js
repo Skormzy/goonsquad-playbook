@@ -261,6 +261,13 @@ const REVIEWED_PHASE_CORRECTIONS = Object.freeze({
   },
 });
 
+const REVIEWED_PLAY_CORRECTIONS = Object.freeze({
+  zent: {
+    desc: "Enter with support: attack open space, use a short pass, or place the ball behind pressure.",
+    strat: "Read the space and the support before choosing the entry. If the defense gives ground, carry with pace while teammates fill three layers. If a short support pass is open, use it. Place the ball behind pressure only when the carrier is closed, the space is available, and teammates can arrive first. Never force a low-percentage entry or send the ball away without connected support.",
+  },
+});
+
 function mergeRolePatches(players, patches = {}) {
   return Object.fromEntries(
     Object.entries(players).map(([role, player]) => [
@@ -278,12 +285,14 @@ function mergeOpponentPatches(players, patches = {}) {
 
 function applyReviewedCorrections(play) {
   const corrections = REVIEWED_PHASE_CORRECTIONS[play.id];
-  if (!corrections) return play;
+  const playCorrection = REVIEWED_PLAY_CORRECTIONS[play.id];
+  if (!corrections && !playCorrection) return play;
 
   return {
     ...play,
+    ...playCorrection,
     phases: play.phases.map((phase) => {
-      const correction = corrections[phase.id];
+      const correction = corrections?.[phase.id];
       if (!correction) return phase;
       return {
         ...phase,
