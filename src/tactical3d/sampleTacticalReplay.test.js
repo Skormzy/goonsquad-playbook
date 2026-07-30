@@ -89,7 +89,7 @@ describe('sampleTacticalReplay', () => {
     const receivedFrame = sampleTacticalReplay(standardBreakout3dReplay, 4.6);
     const finalFrame = sampleTacticalReplay(standardBreakout3dReplay, standardBreakout3dReplay.duration);
 
-    expect(impactFrame.ball.worldPosition[0]).toBeCloseTo(-11.04, 2);
+    expect(impactFrame.ball.worldPosition[0]).toBeCloseTo(11.04, 2);
     expect(receivedFrame.ball.ownerId).toBe('US_LW');
     expect(finalFrame.ball.ownerId).toBe('US_LW');
     expect(finalFrame.ball.segmentType).toBe('carry');

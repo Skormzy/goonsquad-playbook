@@ -1,11 +1,11 @@
-import { samplePlayScene } from './samplePlayScene';
+import { sampleTacticalReplay } from '../tactical3d/sampleTacticalReplay';
 
 const HOME_ROLES = ['LW', 'C', 'RW', 'LD', 'RD', 'G'];
 
-function movementLabel(action) {
-  if (action === 'sprint-forward') return 'sprint';
-  if (action === 'jog-forward') return 'run';
-  if (action === 'goalie-ready') return 'drift';
+function movementLabel(player) {
+  if (player.clipName === 'sprint') return 'sprint';
+  if (player.clipName === 'jog') return 'run';
+  if (player.role === 'G') return 'drift';
   return 'hold';
 }
 
@@ -22,7 +22,7 @@ function currentPassingLane(frame) {
 }
 
 export function playSceneToRinkPhase(scene, requestedTime) {
-  const frame = samplePlayScene(scene, requestedTime);
+  const frame = sampleTacticalReplay(scene, requestedTime);
   const homePlayers = frame.players.filter((player) => player.team === 'us');
   const opponentPlayers = frame.players.filter((player) => player.team === 'opponent');
   const pos = Object.fromEntries(HOME_ROLES.map((role) => {
@@ -33,7 +33,7 @@ export function playSceneToRinkPhase(scene, requestedTime) {
       x: player.position.x,
       y: player.position.y,
       role: player.label || player.role,
-      u: movementLabel(player.action),
+      u: movementLabel(player),
       ball: frame.ball.ownerId === player.id,
       inactive: player.active === false,
       status: player.status,
@@ -55,7 +55,7 @@ export function playSceneToRinkPhase(scene, requestedTime) {
       inactive: player.active === false,
       status: player.status,
     })),
-    ball: { x: frame.ball.position.x, y: frame.ball.position.y },
+    ball: frame.ball.rinkPosition,
     ballPath: frame.ball.path ?? null,
     lanes: currentPassingLane(frame),
     sceneFrame: frame,

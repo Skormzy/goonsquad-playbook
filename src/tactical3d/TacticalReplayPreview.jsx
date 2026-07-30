@@ -40,11 +40,8 @@ import {
   teamJobsFromPresentation,
 } from '../play-engine/teamJobs';
 import { standardBreakoutTacticalSpacing } from '../play-engine/tacticalSpacing';
-import {
-  COURT_LENGTH_METERS,
-  COURT_WIDTH_METERS,
-} from '../play-engine/movementMetrics';
 import { productionRenderProfile } from '../vnext3d/renderProfile';
+import { worldPositionToRink } from '../vnext3d/runtimeMapping';
 import {
   CAMERA_GESTURE_MODES,
   productionCameraPose,
@@ -323,10 +320,7 @@ export default function TacticalReplayPreview() {
       ...frame,
       ball: {
         ...frame.ball,
-        trajectoryPosition: {
-          x: (frame.ball.worldPosition[0] / COURT_WIDTH_METERS + 0.5) * 100,
-          y: (frame.ball.worldPosition[2] / COURT_LENGTH_METERS + 0.5) * 100,
-        },
+        trajectoryPosition: worldPositionToRink(frame.ball.worldPosition),
       },
     })
     : { phase: `phase-${currentPhase + 1}`, status: 'pass' };

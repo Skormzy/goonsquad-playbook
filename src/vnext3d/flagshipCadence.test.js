@@ -20,11 +20,11 @@ describe('Standard Breakout production cadence', () => {
     expect(carrier).toMatchObject({ clipName: 'sprint', speedMps: 2.97 });
     expect(carrier.locomotionCadence.cycleDurationSeconds).toBeCloseTo(0.8168, 4);
     expect(carrier.worldVelocity).toEqual([
-      expect.closeTo(-1, 3),
+      expect.closeTo(1, 3),
       0,
       expect.closeTo(2.8, 3),
     ]);
-    expect(carrier.worldAngularVelocity).toBeCloseTo(0.25, 3);
+    expect(carrier.worldAngularVelocity).toBeCloseTo(-0.25, 3);
   });
 
   it('matches the wing release to a near-source sprint cycle', () => {

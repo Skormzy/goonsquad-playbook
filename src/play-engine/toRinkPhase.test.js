@@ -33,7 +33,7 @@ describe('playSceneToRinkPhase', () => {
 
     expect(phase.time).toBe(standardBreakout3dReplay.duration);
     expect(phase.pos.LW.ball).toBe(true);
-    expect(phase.ball).toEqual(phase.sceneFrame.ball.position);
+    expect(phase.ball).toEqual(phase.sceneFrame.ball.rinkPosition);
   });
 
   it('preserves the penalty-box state for the shared 2D rink', () => {

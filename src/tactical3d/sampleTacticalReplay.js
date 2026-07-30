@@ -6,7 +6,9 @@ import {
 import {
   productionAssetKey,
   productionPenaltyBoxPose,
+  rinkFacingToWorldRotation,
   rinkPositionToWorld,
+  worldPositionToRink,
 } from '../vnext3d/runtimeMapping';
 import { isPenaltyBoxPlayer } from '../play-engine/penaltyBox';
 
@@ -187,12 +189,14 @@ export function sampleTacticalPlayerTrack(player, requestedTime) {
   };
   const world = rinkPositionToWorld(position);
   const worldVelocity = [
-    trackSample.derivative.x / 100 * 24,
+    -trackSample.derivative.x / 100 * 24,
     0,
     trackSample.derivative.y / 100 * 48,
   ];
   const speedMps = Math.hypot(worldVelocity[0], worldVelocity[2]);
-  const authoredRotation = authoredFacing(player, index, progress);
+  const authoredRotation = rinkFacingToWorldRotation(
+    authoredFacing(player, index, progress),
+  );
   const movementRotation = speedMps >= MOVEMENT_HEADING_SPEED_MPS
     ? Math.atan2(worldVelocity[0], worldVelocity[2])
     : authoredRotation;
@@ -607,13 +611,23 @@ function activeBallSegment(scene, requestedTime) {
 
 function sampleBall(scene, sampledPlayers, requestedTime) {
   const { segment, segmentIndex } = activeBallSegment(scene, requestedTime);
+  let sampled;
   if (segment.type === 'board-pass') {
-    return sampleBoardPass(scene, segment, requestedTime);
+    sampled = sampleBoardPass(scene, segment, requestedTime);
+  } else if (segment.type === 'carry') {
+    sampled = sampleCarry(scene, segment, sampledPlayers, requestedTime, segmentIndex);
+  } else {
+    sampled = sampleGenericFlight(scene, segment, requestedTime);
   }
-  if (segment.type === 'carry') {
-    return sampleCarry(scene, segment, sampledPlayers, requestedTime, segmentIndex);
-  }
-  return sampleGenericFlight(scene, segment, requestedTime);
+
+  const path = segment.type === 'board-pass'
+    ? [segment.incoming, segment.impact, segment.exitTarget]
+    : segment.path ?? [segment.start, segment.end];
+  return {
+    ...sampled,
+    rinkPosition: worldPositionToRink(sampled.position),
+    path: path.filter(Boolean),
+  };
 }
 
 export function tacticalBallMotionStreakWidth(ball) {

@@ -25,20 +25,27 @@ import {
   productionLocomotionCadence,
   productionLocomotionCycles,
   productionMovementClipName,
+  rinkFacingToWorldRotation,
   rinkPositionToWorld,
+  worldPositionToRink,
 } from './runtimeMapping';
 
 describe('vNext production athlete runtime mapping', () => {
   it('maps percentage rink coordinates into the production court', () => {
     expect(rinkPositionToWorld({ x: 0, y: 0 })).toEqual({
-      x: -COURT_WIDTH_METERS / 2,
+      x: COURT_WIDTH_METERS / 2,
       z: -COURT_LENGTH_METERS / 2,
     });
     expect(rinkPositionToWorld({ x: 50, y: 50 })).toEqual({ x: 0, z: 0 });
     expect(rinkPositionToWorld({ x: 100, y: 100 })).toEqual({
-      x: COURT_WIDTH_METERS / 2,
+      x: -COURT_WIDTH_METERS / 2,
       z: COURT_LENGTH_METERS / 2,
     });
+    expect(worldPositionToRink(rinkPositionToWorld({ x: 18, y: 73 }))).toEqual({
+      x: 18,
+      y: 73,
+    });
+    expect(rinkFacingToWorldRotation(Math.PI / 3)).toBeCloseTo(-Math.PI / 3);
   });
 
   it('selects only accepted field and goalie variants', () => {

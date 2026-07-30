@@ -83,9 +83,25 @@ const FIELD_ACTIONS = Object.freeze({
 
 export function rinkPositionToWorld(position) {
   return {
-    x: ((position.x - 50) / 100) * COURT_WIDTH_METERS,
+    // Three.js uses a right-handed floor plane. Negating rink x keeps the
+    // vertical playbook's left/right orientation intact when cameras look
+    // from our end toward their end.
+    x: ((50 - position.x) / 100) * COURT_WIDTH_METERS,
     z: ((position.y - 50) / 100) * COURT_LENGTH_METERS,
   };
+}
+
+export function worldPositionToRink(position) {
+  const worldX = Array.isArray(position) ? position[0] : position.x;
+  const worldZ = Array.isArray(position) ? position[2] : position.z;
+  return {
+    x: 50 - (worldX / COURT_WIDTH_METERS) * 100,
+    y: 50 + (worldZ / COURT_LENGTH_METERS) * 100,
+  };
+}
+
+export function rinkFacingToWorldRotation(facing = 0) {
+  return -facing;
 }
 
 export function productionAssetKey(player) {
@@ -227,7 +243,10 @@ function productionWorldMotion(player, requestedTime) {
   const end = rinkPositionToWorld(next.position);
   return {
     velocity: [(end.x - start.x) / duration, 0, (end.z - start.z) / duration],
-    angularVelocity: ((next.facing ?? 0) - (segment.facing ?? 0)) / duration,
+    angularVelocity: (
+      rinkFacingToWorldRotation(next.facing)
+      - rinkFacingToWorldRotation(segment.facing)
+    ) / duration,
   };
 }
 
@@ -298,7 +317,7 @@ export function createProductionRuntimePlayers(frame, motionReview = null, motio
       ...(penaltyBoxPose ?? {
         penaltyBox: false,
         worldPosition: [world.x, 0, world.z],
-        worldRotation: player.facing ?? 0,
+        worldRotation: rinkFacingToWorldRotation(player.facing),
         worldVelocity: worldMotion.velocity,
         worldAngularVelocity: worldMotion.angularVelocity,
       }),
