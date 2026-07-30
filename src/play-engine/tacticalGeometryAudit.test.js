@@ -7,6 +7,7 @@ import { rinkDistanceMeters } from './movementMetrics';
 import { compilePlayThreeDScene, compileStrategyThreeDScene } from './compileThreeDScene';
 import { samplePlayScene } from './samplePlayScene';
 import {
+  auditDefensiveCarrierContainment,
   auditPrimaryPassingLanes,
   auditTacticalCatalog,
 } from './tacticalGeometryAudit';
@@ -71,6 +72,21 @@ describe('catalog-wide tactical geometry', () => {
     ]);
   });
 
+  it('rejects defensive pressure that leaves the forward or middle lane open', () => {
+    expect(auditDefensiveCarrierContainment([{
+      pos: {
+        RW: { x: 81, y: 55 },
+      },
+      opp: [
+        { id: 'op-ld', l: 'LD', x: 78, y: 56, hasBall: true },
+      ],
+      coverage: { RW: 'op-ld' },
+    }], 'test play')).toEqual([
+      'test play phase 1: RW gives op-ld the forward lane with only 0.48m of goal-side leverage',
+      'test play phase 1: RW is outside op-ld instead of protecting the middle',
+    ]);
+  });
+
   it('uses the same mirrored opponent orientation in every Create template', () => {
     PLAYMAKER_TEMPLATES.forEach(({ id }) => {
       const players = createPlaymakerDraft(id).frames[0].players;
@@ -80,6 +96,18 @@ describe('catalog-wide tactical geometry', () => {
   });
 
   it('closes the boards from inside and goal-side before both strong-side reversals', () => {
+    const rightPressure = PRIMARY_DEFENSIVE_PLAY.phases[1];
+    const rightPoint = rightPressure.opp.find(
+      (player) => player.id === rightPressure.ballOwner,
+    );
+    expect(rightPoint.l).toBe('LD');
+    expect(rightPressure.pos.RW.x).toBeLessThan(rightPoint.x);
+    expect(rightPressure.pos.RW.y).toBeLessThanOrEqual(rightPoint.y - 4);
+    expect(rinkDistanceMeters(rightPressure.pos.RW, rightPoint))
+      .toBeGreaterThanOrEqual(2);
+    expect(rinkDistanceMeters(rightPressure.pos.RW, rightPoint))
+      .toBeLessThanOrEqual(3);
+
     const rightLock = PRIMARY_DEFENSIVE_PLAY.phases[2];
     const rightCarrier = rightLock.opp.find((player) => player.id === rightLock.ballOwner);
     expect(rightCarrier.l).toBe('LW');

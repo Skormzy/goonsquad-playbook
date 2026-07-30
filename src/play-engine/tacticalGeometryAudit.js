@@ -8,6 +8,8 @@ const EXPLICIT_OPPONENT_ROLES = new Set(['LW', 'C', 'RW', 'LD', 'RD', 'G']);
 const HOME_ROLES = ['LW', 'C', 'RW', 'LD', 'RD', 'G'];
 const MINIMUM_TEAMMATE_SPACING_METERS = 0.75;
 const MINIMUM_PRIMARY_LANE_CLEARANCE_METERS = 1.35;
+const MINIMUM_GOAL_SIDE_LEAD_METERS = 0.75;
+const MINIMUM_INSIDE_LEAD_METERS = 0.2;
 
 export function opponentRole(player) {
   const role = String(player?.l ?? player?.label ?? '').trim().toUpperCase();
@@ -161,6 +163,73 @@ export function auditCoverageGeometry(
   return issues;
 }
 
+export function auditDefensiveCarrierContainment(
+  phases,
+  source,
+  sceneCoverage = null,
+  homeKey = 'pos',
+) {
+  const issues = [];
+
+  phases.forEach((phase, phaseIndex) => {
+    const carrier = phase.opp?.find((player) => (
+      player.id === phase.ballOwner || player.hasBall
+    ));
+    if (!carrier || !isOnFloor(carrier) || opponentRole(carrier) === 'G') return;
+
+    const coverage = phase.coverage ?? sceneCoverage ?? {};
+    const coverageEntries = Object.entries(coverage);
+    if (coverageEntries.length === 0) return;
+
+    const assignment = coverageEntries
+      .find(([, opponentId]) => opponentId === carrier.id);
+    if (!assignment) {
+      issues.push(issue(
+        source,
+        phaseIndex,
+        `opponent carrier ${carrier.id} has no assigned defender`,
+      ));
+      return;
+    }
+
+    const [role] = assignment;
+    const defender = phase[homeKey]?.[role];
+    if (!defender || !activeFloorPlayer(defender, role)) return;
+
+    const goalSideLeadMeters = (
+      (carrier.y - defender.y) / 100
+    ) * COURT_LENGTH_METERS;
+    if (goalSideLeadMeters < MINIMUM_GOAL_SIDE_LEAD_METERS) {
+      issues.push(issue(
+        source,
+        phaseIndex,
+        `${role} gives ${carrier.id} the forward lane with only `
+          + `${goalSideLeadMeters.toFixed(2)}m of goal-side leverage`,
+      ));
+    }
+
+    const carrierIsOnRight = carrier.x >= 55;
+    const carrierIsOnLeft = carrier.x <= 45;
+    if (!carrierIsOnRight && !carrierIsOnLeft) return;
+
+    const insideLeadRinkUnits = carrierIsOnRight
+      ? carrier.x - defender.x
+      : defender.x - carrier.x;
+    const insideLeadMeters = (
+      insideLeadRinkUnits / 100
+    ) * COURT_WIDTH_METERS;
+    if (insideLeadMeters < MINIMUM_INSIDE_LEAD_METERS) {
+      issues.push(issue(
+        source,
+        phaseIndex,
+        `${role} is outside ${carrier.id} instead of protecting the middle`,
+      ));
+    }
+  });
+
+  return issues;
+}
+
 export function auditPrimaryPassingLanes(phases, source, homeKey = 'pos') {
   const issues = [];
   phases.forEach((phase, phaseIndex) => {
@@ -246,6 +315,12 @@ export function auditTacticalCatalog(plays, tactics) {
       ...auditOpponentGeometry(play.phases ?? [], `play ${play.id}`),
       ...auditPhaseRosterAndSpacing(play.phases ?? [], `play ${play.id}`),
       ...auditCoverageGeometry(play.phases ?? [], `play ${play.id}`, null, 'pos'),
+      ...auditDefensiveCarrierContainment(
+        play.phases ?? [],
+        `play ${play.id}`,
+        null,
+        'pos',
+      ),
       ...auditPrimaryPassingLanes(play.phases ?? [], `play ${play.id}`),
     ]),
     ...tactics.flatMap((tactic) => [
@@ -281,6 +356,12 @@ export function auditTacticalCatalog(plays, tactics) {
         tactic.correctScene?.phases ?? [],
         `strategy ${tactic.id} correct`,
         tactic.correctScene?.coverage,
+      ),
+      ...auditDefensiveCarrierContainment(
+        tactic.correctScene?.phases ?? [],
+        `strategy ${tactic.id} correct`,
+        tactic.correctScene?.coverage,
+        'our',
       ),
       ...auditPrimaryPassingLanes(
         tactic.correctScene?.phases ?? [],

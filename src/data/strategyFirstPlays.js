@@ -57,11 +57,11 @@ export const PRIMARY_DEFENSIVE_PLAY = Object.freeze({
       id: 1,
       duration: 3,
       t: 'Strong-Side Winger Is the 1',
-      desc: 'RW closes inside-out on their LD. The other four squeeze toward the ball side.',
+      desc: 'RW gets goal-side, then closes inside-out on their LD. The other four squeeze toward the ball side.',
       pos: {
         LW: { x: 38, y: 44, role: 'Close the far-side middle lane. Do not stay glued to the boards.', u: 'run' },
         C: { x: 55, y: 45, role: 'Slide under RW. Take away the central support pass.', u: 'run' },
-        RW: { x: 72, y: 55, role: 'Inside-out pressure. Keep the carrier outside and slow the advance.', u: 'sprint', key: 'Do not dive at the ball. Your angle removes the middle.' },
+        RW: { x: 75, y: 51, role: 'Get in front of the carrier, then close inside-out. Seal the wall lane and slow the advance.', u: 'sprint', key: 'Do not chase from behind. Arrive goal-side, then angle from the middle toward the boards.' },
         LD: { x: 41, y: 34, role: 'Shift right while protecting the center lane.', u: 'run' },
         RD: { x: 66, y: 34, role: 'Ball-side defender. Hold the line behind RW.', u: 'run' },
         G: { ...HOME_GOALIE, x: 51 },

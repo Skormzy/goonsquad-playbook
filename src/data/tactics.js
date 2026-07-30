@@ -63,7 +63,7 @@ const LEGACY_TACTICS = [
         opp: [ {id:'o1',x:12,y:18,label:'RW',hasBall:true},{id:'o2',x:54,y:22,label:'C'},{id:'o3',x:80,y:18,label:'LW'},{id:'o4',x:28,y:40,label:'RD'},{id:'o5',x:66,y:38,label:'LD'},{id:'og',x:50,y:93,label:'G',isGoalie:true} ],
         ball:{x:12,y:18}, arrows:[] },
       { duration: 3.5, caption: 'Forced outside. Low-percentage play. Defense holds.',
-        our: { G:{x:48,y:7}, LW:{x:63,y:33}, C:{x:54,y:17}, RW:{x:33,y:33}, LD:{x:17,y:13}, RD:{x:77,y:14} },
+        our: { G:{x:48,y:7}, LW:{x:63,y:33}, C:{x:54,y:17}, RW:{x:33,y:33}, LD:{x:17,y:12}, RD:{x:77,y:14} },
         opp: [ {id:'o1',x:10,y:14,label:'RW',hasBall:true},{id:'o2',x:56,y:24,label:'C'},{id:'o3',x:84,y:16,label:'LW'},{id:'o4',x:30,y:40,label:'RD'},{id:'o5',x:66,y:40,label:'LD'},{id:'og',x:51,y:93,label:'G',isGoalie:true} ],
         ball:{x:10,y:14}, arrows:[] },
     ]},
