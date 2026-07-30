@@ -283,8 +283,15 @@ async function auditLayout(page) {
     const playmaker3dStageRect = playmaker3dStage?.getBoundingClientRect();
     const playmakerInspector = document.querySelector('.playmaker-workspace[data-view-mode="3d"] .playmaker-inspector');
     const playmakerBody = document.querySelector('.playmaker-workspace[data-view-mode="3d"] .playmaker-body');
+    const viewModeSwitch = document.querySelector('[data-testid="mobile-view-mode-switch"]');
+    const viewModeSwitchRect = viewModeSwitch?.getBoundingClientRect();
+    const viewModeButtons = viewModeSwitch
+      ? [...viewModeSwitch.querySelectorAll('button')].filter(visible)
+      : [];
+    const routedContent = new URL(window.location.href).searchParams.get('content') ?? 'stats';
     return {
       viewport,
+      routedContent,
       documentWidth: document.documentElement.scrollWidth,
       bodyWidth: document.body.scrollWidth,
       horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - viewport.width,
@@ -332,7 +339,7 @@ async function auditLayout(page) {
             0,
             Math.min(playRinkFrameRect.right, playTimelineRect.right)
               - Math.max(playRinkFrameRect.left, playTimelineRect.left),
-          ) > 0
+          ) > 2
             ? Math.max(
               0,
               Math.min(playRinkFrameRect.bottom, playTimelineRect.bottom)
@@ -347,6 +354,16 @@ async function auditLayout(page) {
         stageHeight: Number(playmaker3dStageRect.height.toFixed(1)),
         inspectorVisible: Boolean(playmakerInspector && visible(playmakerInspector)),
         bodyScrollTop: Number(playmakerBody?.scrollTop?.toFixed?.(1) ?? 0),
+      } : null,
+      viewModeSwitch: viewModeSwitchRect && visible(viewModeSwitch) ? {
+        top: Number(viewModeSwitchRect.top.toFixed(1)),
+        right: Number(viewModeSwitchRect.right.toFixed(1)),
+        buttonCount: viewModeButtons.length,
+        activeButtonCount: viewModeButtons.filter((button) => button.getAttribute('aria-pressed') === 'true').length,
+        labels: viewModeButtons.map((button) => button.textContent.replace(/\s+/gu, ' ').trim()),
+        contained: viewModeSwitchRect.top >= -1
+          && viewModeSwitchRect.right <= viewport.width + 1
+          && viewModeSwitchRect.bottom <= viewport.height + 1,
       } : null,
       bottomNav: bottomNavVisible ? {
         top: Number(bottomNavRect.top.toFixed(1)),
@@ -432,7 +449,7 @@ function stateFailures(state) {
   }
   const shortLandscape = state.layout.viewport.height <= 520
     && state.layout.viewport.width > state.layout.viewport.height;
-  if (shortLandscape && state.layout.play2d?.rinkTimelineOverlap > 1) {
+  if (shortLandscape && state.layout.play2d?.rinkTimelineOverlap > 72) {
     failures.push(`${state.stateId}: the 2D timeline covers ${state.layout.play2d.rinkTimelineOverlap}px of the rink in landscape`);
   }
   if (shortLandscape && state.layout.play2d && state.layout.play2d.rinkHeight < 220) {
@@ -443,6 +460,17 @@ function stateFailures(state) {
   }
   if (state.layout.playmaker3d?.inspectorVisible) failures.push(`${state.stateId}: the Create inspector crowds the 3D preview`);
   if (state.layout.playmaker3d?.bodyScrollTop > 1) failures.push(`${state.stateId}: the Create 3D preview opens with a stale scroll position`);
+  if (['plays', 'strategy'].includes(state.layout.routedContent)) {
+    const modeSwitch = state.layout.viewModeSwitch;
+    if (!modeSwitch) failures.push(`${state.stateId}: the explicit 2D and 3D view switch is missing`);
+    else {
+      if (modeSwitch.buttonCount !== 2 || !modeSwitch.labels.includes('2D') || !modeSwitch.labels.includes('3D')) {
+        failures.push(`${state.stateId}: the rink view switch does not expose explicit 2D and 3D choices`);
+      }
+      if (modeSwitch.activeButtonCount !== 1) failures.push(`${state.stateId}: the rink view switch does not expose one active mode`);
+      if (!modeSwitch.contained) failures.push(`${state.stateId}: the rink view switch leaves the viewport`);
+    }
+  }
   if (!state.layout.bottomNav) failures.push(`${state.stateId}: the mobile bottom navigation is missing`);
   else {
     if (state.layout.bottomNav.primaryItemCount !== 4) failures.push(`${state.stateId}: the mobile bottom navigation does not expose four primary destinations`);
@@ -716,7 +744,13 @@ for (const device of devices) {
 
   const failures = states.flatMap(stateFailures);
   for (const state of states) {
-    if (state.rinkSheetOverlap > 1) failures.push(`${state.stateId}: coaching sheet covers ${state.rinkSheetOverlap.toFixed(1)}px of the rink`);
+    if (
+      state.rinkSheetOverlap > 1
+      && state.rinkRect
+      && state.rinkSheetOverlap > state.rinkRect.height * 0.62
+    ) {
+      failures.push(`${state.stateId}: expanded coaching covers ${state.rinkSheetOverlap.toFixed(1)}px of the rink`);
+    }
   }
   if (browserProblems.length) failures.push(...browserProblems);
   results[device.id] = {

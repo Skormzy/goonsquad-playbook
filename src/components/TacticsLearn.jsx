@@ -11,6 +11,7 @@ import {
 } from '../data/coreCatalog';
 import { CAT_COLORS } from '../context/ThemeContext';
 import CurriculumLaneSwitch from './CurriculumLaneSwitch';
+import MobileViewModeSwitch from './MobileViewModeSwitch';
 import PlaybackControls from './PlaybackControls';
 import SceneRink2D from './SceneRink2D';
 
@@ -342,7 +343,10 @@ export default function TacticsLearn() {
       ) : (
         // ─── MOBILE: single column ───
         <div className="tactics-mobile-workspace" style={{ width: '100%', maxWidth: 430, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          {mobileStrategyBrowser}
+          <div className="tactics-mobile-topbar">
+            {mobileStrategyBrowser}
+            <MobileViewModeSwitch />
+          </div>
           {tabToggleBlock}
           <div className="tactics-mobile-rink" data-mobile-strategy-rink>
             {rinkBlock}

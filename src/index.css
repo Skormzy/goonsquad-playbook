@@ -9545,7 +9545,7 @@ input:focus:not(:focus-visible) { outline: none; }
 
   .stats-game-detail-button {
     min-width: 72px;
-    width: auto;
+    width: auto !important;
     padding-inline: 10px;
   }
 
@@ -10198,6 +10198,12 @@ input:focus:not(:focus-visible) { outline: none; }
   .play-mobile-title {
     width: 100%;
     padding: 2px 5px 4px;
+  }
+
+  .play-workspace-mobile,
+  .play-workspace-tablet {
+    grid-template-rows: 48px 58px minmax(0, 1fr);
+    gap: 0 10px;
   }
 
   .play-mobile-title .play-identity {
@@ -11165,7 +11171,7 @@ input:focus:not(:focus-visible) { outline: none; }
   }
 
   .play-mobile-rink .play-rink-frame {
-    width: auto;
+    width: auto !important;
     height: 100%;
     max-width: 100%;
     max-height: 100%;
@@ -11925,5 +11931,1008 @@ input:focus:not(:focus-visible) { outline: none; }
   .play-mobile-timeline .playback-play-button span,
   .vnext3d-preview-transport .playback-play-button span {
     display: none;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .play-mobile-title {
+    align-self: start;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .app-shell:has(.play-workspace-mobile) > .app-header,
+  .app-shell:has(.play-workspace-tablet) > .app-header,
+  .app-shell:has(.tactics-mobile-workspace) > .app-header,
+  .app-shell:has(.app-content-replay3d) > .app-header {
+    display: none;
+  }
+
+  .play-mobile-title {
+    min-height: 44px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 112px;
+    align-items: stretch;
+    gap: 5px;
+    padding: 0;
+  }
+
+  .play-mobile-title .play-identity {
+    min-width: 0;
+    min-height: 44px;
+    padding-inline: 8px;
+    overflow: hidden;
+    border: 1px solid var(--gs-border);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 92%, transparent);
+    box-shadow: 0 8px 22px var(--gs-shadow);
+    backdrop-filter: blur(14px);
+  }
+
+  .play-mobile-title .mobile-view-mode-switch,
+  .tactics-mobile-topbar .mobile-view-mode-switch {
+    min-height: 48px;
+  }
+
+  .play-mobile-title .mobile-view-mode-switch button,
+  .tactics-mobile-topbar .mobile-view-mode-switch button {
+    min-height: 40px;
+  }
+
+  .tactics-mobile-topbar {
+    position: relative;
+    z-index: 12;
+    min-width: 0;
+    grid-column: 2;
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 112px;
+    align-items: stretch;
+    gap: 5px;
+  }
+
+  .tactics-mobile-topbar .tactics-mobile-browser {
+    width: auto;
+    min-width: 0;
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0;
+  }
+
+  .tactics-mobile-topbar .tactics-mobile-browser > summary {
+    min-height: 44px;
+  }
+
+  .tactics-mobile-workspace .tactics-comparison {
+    width: 100% !important;
+  }
+
+  .mobile-view-mode-switch.is-three-d-stage {
+    position: absolute;
+    z-index: 11;
+    top: max(5px, env(safe-area-inset-top));
+    right: max(5px, env(safe-area-inset-right));
+    width: 112px;
+    min-width: 112px;
+  }
+
+  .vnext3d-sequence-dock {
+    top: max(5px, env(safe-area-inset-top));
+    left: max(5px, env(safe-area-inset-left));
+    width: min(310px, calc(100% - 127px));
+  }
+
+  .vnext3d-mobile-camera-picker {
+    z-index: 11;
+    top: calc(max(5px, env(safe-area-inset-top)) + 49px);
+    right: max(5px, env(safe-area-inset-right));
+    width: 112px;
+  }
+}
+
+/* Rink HUD: the tactical surface owns the mobile viewport. Identity, view
+   choice, coaching, and transport borrow only its edges as glass controls. */
+.mobile-view-mode-switch {
+  display: none;
+}
+
+@media (max-width: 699px), (max-height: 520px) and (orientation: landscape) {
+  .mobile-view-mode-switch {
+    min-width: 112px;
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid color-mix(in srgb, var(--gs-border) 82%, var(--gs-muted));
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 91%, transparent);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--gs-shadow) 72%, transparent);
+    backdrop-filter: blur(14px) saturate(1.12);
+  }
+
+  .mobile-view-mode-switch button {
+    min-width: 0;
+    min-height: 40px;
+    display: grid;
+    grid-template-columns: 15px auto;
+    place-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 0 5px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--gs-muted);
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .mobile-view-mode-switch button svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2.2;
+  }
+
+  .mobile-view-mode-switch button:first-child.is-active {
+    border-color: color-mix(in srgb, var(--gs-cyan) 78%, var(--gs-border));
+    background: color-mix(in srgb, var(--gs-cyan) 14%, var(--gs-panel));
+    color: var(--gs-cyan);
+  }
+
+  .mobile-view-mode-switch button:last-child.is-active {
+    border-color: color-mix(in srgb, var(--gs-red) 78%, var(--gs-border));
+    background: color-mix(in srgb, var(--gs-red) 12%, var(--gs-panel));
+    color: var(--gs-red);
+  }
+
+  .mobile-view-mode-switch button:not(.is-active):active {
+    background: var(--gs-overlay-hover);
+    color: var(--gs-white);
+  }
+
+  .mobile-bottom-nav,
+  .mobile-bottom-nav[data-has-mode-switch='true'] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .app-header.is-mobile-replay.is-mobile-collapsed .app-header-actions {
+    display: none;
+  }
+
+  .play-mobile-timeline .playback-phase-selector,
+  .vnext3d-preview-transport .playback-phase-selector,
+  .tactics-playback-shell .playback-phase-selector,
+  .play-mobile-timeline [data-testid='playback-rewind'],
+  .vnext3d-preview-transport [data-testid='playback-rewind'],
+  .tactics-playback-shell [data-testid='playback-rewind'],
+  .play-mobile-timeline .playback-timecode,
+  .vnext3d-preview-transport .playback-timecode,
+  .tactics-playback-shell .playback-timecode {
+    display: none;
+  }
+
+  .play-mobile-timeline .playback-phase-jump,
+  .vnext3d-preview-transport .playback-phase-jump,
+  .tactics-playback-shell .playback-phase-jump {
+    display: none;
+  }
+
+  .play-mobile-timeline .playback-transport-row,
+  .vnext3d-preview-transport .playback-transport-row,
+  .tactics-playback-shell .playback-transport-row {
+    grid-template-columns: minmax(0, 1fr) 40px;
+    gap: 2px;
+  }
+
+  .play-mobile-timeline .playback-transport-buttons,
+  .vnext3d-preview-transport .playback-transport-buttons,
+  .tactics-playback-shell .playback-transport-buttons {
+    grid-column: 1;
+  }
+
+  .play-mobile-timeline .playback-speed-control,
+  .vnext3d-preview-transport .playback-speed-control,
+  .tactics-playback-shell .playback-speed-control {
+    width: 40px;
+    grid-column: 2;
+  }
+
+  .play-mobile-timeline .playback-timeline-row,
+  .vnext3d-preview-transport .playback-timeline-row,
+  .tactics-playback-shell .playback-timeline-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 699px) and (orientation: portrait) {
+  .play-workspace-mobile,
+  .play-workspace-mobile.is-coaching-open {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    display: block;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .play-mobile-rink {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .play-mobile-rink .play-rink-frame {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .play-mobile-rink .play-rink-frame > svg {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .play-mobile-title {
+    position: absolute;
+    z-index: 20;
+    top: max(5px, env(safe-area-inset-top));
+    right: max(5px, env(safe-area-inset-right));
+    left: max(5px, env(safe-area-inset-left));
+    width: auto;
+    min-width: 0;
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 112px;
+    align-items: stretch;
+    gap: 5px;
+    padding: 0;
+    pointer-events: none;
+  }
+
+  .play-mobile-title > * {
+    pointer-events: auto;
+  }
+
+  .play-mobile-title .play-identity {
+    min-width: 0;
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: center;
+    align-items: center;
+    gap: 2px 7px;
+    padding: 5px 9px 5px 11px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--gs-border) 84%, var(--gs-muted));
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 91%, transparent);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--gs-shadow) 72%, transparent);
+    text-align: left;
+    backdrop-filter: blur(14px) saturate(1.12);
+  }
+
+  .play-mobile-title .play-identity > small {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0;
+    font-size: 7.5px;
+    white-space: nowrap;
+  }
+
+  .play-mobile-title .play-identity > div {
+    min-width: 0;
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-start;
+  }
+
+  .play-mobile-title .play-identity h1 {
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .play-mobile-title .play-identity p {
+    display: none;
+  }
+
+  .play-mobile-timeline {
+    position: absolute;
+    z-index: 21;
+    right: max(5px, env(safe-area-inset-right));
+    bottom: 0;
+    left: max(5px, env(safe-area-inset-left));
+    width: auto;
+    min-width: 0;
+    height: 72px;
+    display: grid;
+    grid-template-columns: minmax(104px, 0.34fr) minmax(0, 0.66fr);
+    align-items: stretch;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid color-mix(in srgb, var(--gs-border) 86%, var(--gs-muted));
+    border-bottom: 0;
+    border-radius: 7px 7px 0 0;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 92%, transparent);
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--gs-shadow) 68%, transparent);
+    backdrop-filter: blur(16px) saturate(1.12);
+  }
+
+  .play-mobile-timeline .play-phase-summary {
+    min-width: 0;
+    min-height: 64px;
+    max-height: 64px;
+    align-content: center;
+    gap: 2px;
+    padding: 5px 7px;
+    overflow: hidden;
+    border-radius: 4px;
+    text-align: left;
+  }
+
+  .play-mobile-timeline .play-phase-summary > span {
+    font-size: 8px;
+  }
+
+  .play-mobile-timeline .play-phase-copy > strong {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.12;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .play-mobile-timeline .play-phase-copy > small {
+    display: none;
+  }
+
+  .play-mobile-timeline .playback-controls {
+    min-width: 0;
+    height: 64px;
+    display: grid;
+    grid-template-rows: 40px 23px;
+    align-content: center;
+    gap: 1px;
+  }
+
+  .play-mobile-timeline .playback-transport-row {
+    min-width: 0;
+    min-height: 40px;
+  }
+
+  .play-mobile-timeline .playback-transport-buttons {
+    grid-template-columns: 40px 40px minmax(42px, 1fr) 40px;
+    gap: 2px;
+  }
+
+  .play-mobile-timeline .playback-icon-button,
+  .play-mobile-timeline .playback-play-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    height: 40px;
+  }
+
+  .play-mobile-timeline .playback-play-button span {
+    display: none;
+  }
+
+  .play-mobile-timeline .playback-speed-control select {
+    min-height: 40px;
+    height: 40px;
+    padding-inline: 4px 15px;
+    font-size: 9px;
+  }
+
+  .play-mobile-timeline .playback-timeline-row {
+    min-width: 0;
+    min-height: 23px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+
+  .play-mobile-timeline .playback-phase-jump select {
+    width: 78px;
+    min-height: 23px;
+    height: 23px;
+    padding: 0 16px 0 5px;
+    font-size: 8px;
+  }
+
+  .play-mobile-timeline .playback-range-wrap,
+  .play-mobile-timeline .playback-range-wrap input[type='range'] {
+    min-height: 23px;
+    height: 23px;
+  }
+
+  .play-bottom-sheet,
+  .play-workspace-mobile.is-coaching-open .play-bottom-sheet {
+    position: absolute;
+    z-index: 24;
+    right: max(5px, env(safe-area-inset-right));
+    bottom: 72px;
+    left: max(5px, env(safe-area-inset-left));
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--gs-border) 86%, var(--gs-muted));
+    border-radius: 6px 6px 0 0;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 93%, transparent) !important;
+    box-shadow: 0 -7px 22px color-mix(in srgb, var(--gs-shadow) 62%, transparent);
+    backdrop-filter: blur(15px) saturate(1.1);
+  }
+
+  .play-bottom-sheet-toggle {
+    min-height: 40px;
+    grid-template-columns: minmax(0, 1fr) 18px;
+    padding: 4px 8px 3px 10px;
+  }
+
+  .play-bottom-sheet-handle {
+    display: none;
+  }
+
+  .play-bottom-sheet-title {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+  }
+
+  .play-bottom-sheet-title > span {
+    white-space: nowrap;
+  }
+
+  .play-bottom-sheet-title small {
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .play-bottom-sheet.is-open,
+  .play-workspace-mobile.is-coaching-open .play-bottom-sheet.is-open {
+    max-height: min(56dvh, 430px);
+    display: grid;
+    grid-template-rows: 40px minmax(0, 1fr);
+  }
+
+  .play-bottom-sheet.is-open .play-bottom-sheet-content {
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .play-bottom-sheet.is-open .play-neighbor-nav {
+    margin-bottom: 0;
+  }
+
+  .app-content-replay3d {
+    position: relative;
+    overflow: hidden !important;
+  }
+
+  .app-content-replay3d .vnext3d-preview-view {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    display: block;
+    overflow: hidden;
+  }
+
+  .app-content-replay3d .vnext3d-preview-stage:not(:fullscreen):not(.is-immersive) {
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .mobile-view-mode-switch.is-three-d-stage {
+    position: absolute;
+    z-index: 11;
+    top: max(5px, env(safe-area-inset-top));
+    right: max(5px, env(safe-area-inset-right));
+  }
+
+  .vnext3d-sequence-dock {
+    z-index: 13;
+    top: max(5px, env(safe-area-inset-top));
+    left: max(5px, env(safe-area-inset-left));
+    width: calc(100% - 127px - env(safe-area-inset-left) - env(safe-area-inset-right));
+    min-width: 0;
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 91%, transparent);
+    backdrop-filter: blur(14px) saturate(1.12);
+  }
+
+  .vnext3d-sequence-dock > button,
+  .vnext3d-sequence-current {
+    min-height: 42px;
+  }
+
+  .vnext3d-sequence-current {
+    grid-template-columns: 15px minmax(0, 1fr);
+    padding-inline: 6px;
+  }
+
+  .vnext3d-sequence-current small {
+    font-size: 7px;
+  }
+
+  .vnext3d-sequence-current strong {
+    font-size: 10px;
+  }
+
+  .vnext3d-sequence-browse {
+    display: none;
+  }
+
+  .vnext3d-mobile-camera-picker {
+    z-index: 11;
+    top: calc(max(5px, env(safe-area-inset-top)) + 47px);
+    right: max(5px, env(safe-area-inset-right));
+    width: 112px;
+  }
+
+  .vnext3d-mobile-camera-current {
+    min-height: 40px;
+  }
+
+  .vnext3d-preview-console {
+    position: absolute;
+    z-index: 15;
+    right: max(5px, env(safe-area-inset-right));
+    bottom: 0;
+    left: max(5px, env(safe-area-inset-left));
+    min-width: 0;
+    min-height: 72px;
+    height: 72px;
+    display: grid;
+    grid-template-columns: minmax(104px, 0.34fr) minmax(0, 0.66fr);
+    align-items: stretch;
+    padding: 4px;
+    overflow: visible;
+    border: 1px solid color-mix(in srgb, var(--gs-border) 86%, var(--gs-muted));
+    border-bottom: 0;
+    border-radius: 7px 7px 0 0;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 92%, transparent);
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--gs-shadow) 68%, transparent);
+    backdrop-filter: blur(16px) saturate(1.12);
+  }
+
+  .vnext3d-content-picker {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 5px);
+    width: min(250px, calc(100vw - 10px));
+    border: 1px solid var(--gs-border);
+    border-radius: 6px;
+    background: var(--gs-overlay-solid);
+    box-shadow: 0 12px 28px var(--gs-shadow);
+  }
+
+  .vnext3d-mobile-coaching {
+    position: relative;
+    min-width: 0;
+    grid-column: 1;
+    grid-row: 1;
+    border: 0;
+    background: transparent;
+  }
+
+  .vnext3d-mobile-coaching > summary {
+    min-height: 64px;
+    grid-template-columns: minmax(0, 1fr) 16px;
+    grid-template-rows: auto auto;
+    align-content: center;
+    gap: 2px 4px;
+    padding: 5px 4px 5px 9px;
+  }
+
+  .vnext3d-mobile-coaching > summary::before {
+    top: 6px;
+    bottom: 6px;
+  }
+
+  .vnext3d-mobile-coaching > summary > span {
+    font-size: 8px;
+  }
+
+  .vnext3d-mobile-coaching > summary > strong {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.12;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .vnext3d-mobile-coaching > summary > small {
+    display: none;
+  }
+
+  .vnext3d-mobile-coaching[open] > div {
+    right: -4px;
+    bottom: calc(100% + 8px);
+    left: -4px;
+    width: calc(100vw - 10px);
+    max-height: min(58dvh, 430px);
+  }
+
+  .vnext3d-preview-transport {
+    min-width: 0;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    padding: 0;
+  }
+
+  .vnext3d-preview-transport .playback-controls {
+    min-width: 0;
+    height: 64px;
+    display: grid;
+    grid-template-rows: 40px 23px;
+    align-content: center;
+    gap: 1px;
+  }
+
+  .vnext3d-preview-transport .playback-transport-row {
+    min-width: 0;
+    min-height: 40px;
+  }
+
+  .vnext3d-preview-transport .playback-transport-buttons {
+    grid-template-columns: 40px 40px minmax(42px, 1fr) 40px;
+    gap: 2px;
+  }
+
+  .vnext3d-preview-transport .playback-icon-button,
+  .vnext3d-preview-transport .playback-play-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    height: 40px;
+  }
+
+  .vnext3d-preview-transport .playback-play-button span {
+    display: none;
+  }
+
+  .vnext3d-preview-transport .playback-speed-control select {
+    min-height: 40px;
+    height: 40px;
+    padding-inline: 4px 15px;
+    font-size: 9px;
+  }
+
+  .vnext3d-preview-transport .playback-timeline-row {
+    min-width: 0;
+    min-height: 23px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+
+  .vnext3d-preview-transport .playback-phase-jump select {
+    width: 78px;
+    min-height: 23px;
+    height: 23px;
+    padding: 0 16px 0 5px;
+    font-size: 8px;
+  }
+
+  .vnext3d-preview-transport .playback-range-wrap,
+  .vnext3d-preview-transport .playback-range-wrap input[type='range'] {
+    min-height: 23px;
+    height: 23px;
+  }
+
+  .tactics-learn {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+
+  .tactics-mobile-workspace {
+    position: relative;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100%;
+    min-height: 0;
+    display: block !important;
+    overflow: hidden;
+  }
+
+  .tactics-mobile-topbar {
+    position: absolute;
+    z-index: 20;
+    top: max(5px, env(safe-area-inset-top));
+    right: max(5px, env(safe-area-inset-right));
+    left: max(5px, env(safe-area-inset-left));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 112px;
+    gap: 5px;
+    pointer-events: none;
+  }
+
+  .tactics-mobile-topbar > * {
+    pointer-events: auto;
+  }
+
+  .tactics-mobile-browser {
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 91%, transparent);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--gs-shadow) 72%, transparent);
+    backdrop-filter: blur(14px) saturate(1.12);
+  }
+
+  .tactics-mobile-browser > summary {
+    min-height: 48px;
+    padding-block: 4px;
+  }
+
+  .tactics-mobile-browser > summary > strong {
+    font-size: 12px;
+  }
+
+  .tactics-mobile-browser[open] > div {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    max-height: min(55dvh, 430px);
+    overflow-y: auto;
+    border: 1px solid var(--gs-border);
+    border-radius: 6px;
+    background: var(--gs-overlay-solid);
+    box-shadow: 0 14px 30px var(--gs-shadow);
+  }
+
+  .tactics-mobile-rink {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .tactics-mobile-rink .tactics-rink,
+  .tactics-mobile-rink svg {
+    width: auto !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
+  .tactics-mobile-workspace .tactics-comparison {
+    position: absolute;
+    z-index: 18;
+    right: max(5px, env(safe-area-inset-right));
+    bottom: 78px;
+    left: max(5px, env(safe-area-inset-left));
+    width: auto !important;
+    margin: 0 !important;
+    padding: 3px;
+    border: 1px solid var(--gs-border);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 91%, transparent);
+    box-shadow: 0 -6px 18px var(--gs-shadow);
+    backdrop-filter: blur(14px);
+  }
+
+  .tactics-mobile-workspace .tactics-comparison button {
+    min-height: 40px !important;
+    padding-block: 3px !important;
+  }
+
+  .tactics-mobile-transport {
+    position: absolute;
+    z-index: 21;
+    right: max(5px, env(safe-area-inset-right));
+    bottom: 0;
+    left: max(5px, env(safe-area-inset-left));
+    height: 72px;
+    display: grid;
+    grid-template-columns: minmax(104px, 0.34fr) minmax(0, 0.66fr);
+    align-items: stretch;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid color-mix(in srgb, var(--gs-border) 86%, var(--gs-muted));
+    border-bottom: 0;
+    border-radius: 7px 7px 0 0;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 92%, transparent);
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--gs-shadow) 68%, transparent);
+    backdrop-filter: blur(16px) saturate(1.12);
+  }
+
+  .tactics-mobile-transport > div:first-child {
+    min-width: 0;
+    min-height: 64px !important;
+    max-height: 64px;
+    display: grid;
+    align-content: center;
+    overflow: hidden;
+    padding: 5px 7px !important;
+    border-radius: 4px;
+  }
+
+  .tactics-mobile-transport > div:first-child > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tactics-mobile-transport .tactics-phase-indicator {
+    display: none;
+  }
+
+  .tactics-playback-shell {
+    min-width: 0;
+    align-self: center;
+  }
+
+  .tactics-playback-shell .playback-controls {
+    min-width: 0;
+    height: 64px;
+    display: grid;
+    grid-template-rows: 40px 23px;
+    align-content: center;
+    gap: 1px;
+  }
+
+  .tactics-playback-shell .playback-transport-row {
+    min-width: 0;
+    min-height: 40px;
+  }
+
+  .tactics-playback-shell .playback-transport-buttons {
+    grid-template-columns: 40px 40px minmax(42px, 1fr) 40px;
+    gap: 2px;
+  }
+
+  .tactics-playback-shell .playback-icon-button,
+  .tactics-playback-shell .playback-play-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    height: 40px;
+  }
+
+  .tactics-playback-shell .playback-play-button span {
+    display: none;
+  }
+
+  .tactics-playback-shell .playback-speed-control select {
+    min-height: 40px;
+    height: 40px;
+    padding-inline: 4px 15px;
+    font-size: 9px;
+  }
+
+  .tactics-playback-shell .playback-timeline-row {
+    min-width: 0;
+    min-height: 23px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+
+  .tactics-playback-shell .playback-phase-jump select {
+    width: 78px;
+    min-height: 23px;
+    height: 23px;
+    padding: 0 16px 0 5px;
+    font-size: 8px;
+  }
+
+  .tactics-playback-shell .playback-range-wrap,
+  .tactics-playback-shell .playback-range-wrap input[type='range'] {
+    min-height: 23px;
+    height: 23px;
+  }
+
+  .tactics-neighbor-nav {
+    display: none !important;
+  }
+
+  .tactics-mobile-coaching {
+    position: absolute;
+    z-index: 22;
+    right: max(5px, env(safe-area-inset-right));
+    bottom: 129px;
+    width: min(142px, calc(100% - 10px));
+    margin: 0;
+    overflow: visible;
+    border: 1px solid var(--gs-border);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 92%, transparent);
+    box-shadow: 0 -6px 18px var(--gs-shadow);
+    backdrop-filter: blur(14px);
+  }
+
+  .tactics-mobile-coaching > summary {
+    min-height: 42px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .tactics-mobile-coaching[open] {
+    left: max(5px, env(safe-area-inset-left));
+    width: auto;
+  }
+
+  .tactics-mobile-coaching[open] > div {
+    position: absolute;
+    right: -1px;
+    bottom: calc(100% + 5px);
+    left: -1px;
+    max-height: min(57dvh, 430px);
+    overflow-y: auto;
+    border: 1px solid var(--gs-border);
+    border-radius: 6px;
+    background: var(--gs-overlay-solid);
+    box-shadow: 0 14px 30px var(--gs-shadow);
+  }
+}
+
+@media (max-width: 374px) and (orientation: portrait) {
+  .play-mobile-title,
+  .tactics-mobile-topbar {
+    grid-template-columns: minmax(0, 1fr) 104px;
+  }
+
+  .mobile-view-mode-switch {
+    min-width: 104px;
+  }
+
+  .play-mobile-timeline,
+  .vnext3d-preview-console,
+  .tactics-mobile-transport {
+    height: 70px;
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .play-mobile-timeline .play-phase-summary,
+  .vnext3d-mobile-coaching > summary,
+  .tactics-mobile-transport > div:first-child {
+    min-height: 62px !important;
+    max-height: 62px;
+  }
+
+  .play-bottom-sheet {
+    bottom: 70px;
+  }
+
+  .play-mobile-timeline .playback-transport-buttons,
+  .vnext3d-preview-transport .playback-transport-buttons,
+  .tactics-playback-shell .playback-transport-buttons {
+    grid-template-columns: 40px 40px minmax(40px, 1fr) 40px;
   }
 }

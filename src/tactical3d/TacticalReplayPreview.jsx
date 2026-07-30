@@ -25,6 +25,7 @@ import {
 } from 'three';
 import PlaybackControls from '../components/PlaybackControls';
 import FaceoffOutcomeControl from '../components/FaceoffOutcomeControl';
+import MobileViewModeSwitch from '../components/MobileViewModeSwitch';
 import CameraGestureControl from '../components/vnext3d/CameraGestureControl';
 import RoleCameraSelector from '../components/vnext3d/RoleCameraSelector';
 import TeamJobsPanel from '../components/TeamJobsPanel';
@@ -416,6 +417,7 @@ export default function TacticalReplayPreview() {
           kind={replay.kind === 'strategy' ? 'strategy' : 'play'}
           onSelect={handleCatalogSelect}
         />
+        {mobileLayout && <MobileViewModeSwitch className="is-three-d-stage" />}
 
         <Canvas
           key={renderProfile.id}

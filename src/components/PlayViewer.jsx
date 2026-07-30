@@ -8,6 +8,7 @@ import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout';
 import { roleLensLabel } from '../play-engine/teamJobs';
 import PhaseControls from './PhaseControls';
 import FaceoffOutcomeControl from './FaceoffOutcomeControl';
+import MobileViewModeSwitch from './MobileViewModeSwitch';
 import ResponsibilityPanel from './ResponsibilityPanel';
 import SceneRink2D from './SceneRink2D';
 import Sidebar from './Sidebar';
@@ -20,11 +21,6 @@ function phaseColor(title, accent) {
   if (title?.includes('✅')) return '#22c55e';
   if (title?.includes('❌')) return '#ef4444';
   return accent;
-}
-
-function isShortLandscape() {
-  return typeof window !== 'undefined'
-    && window.matchMedia('(max-height: 520px) and (orientation: landscape)').matches;
 }
 
 function PlayNavigation({ playIdx, plays, goPlay, muted, border }) {
@@ -115,7 +111,7 @@ export default function PlayViewer() {
     playbackTime,
   } = useApp();
   const layout = useWorkspaceLayout();
-  const [sheetOpen, setSheetOpen] = useState(isShortLandscape);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const lanePlays = itemsForCurriculumLane(CORE_PLAYS, currentPlay?.lane ?? 'defence');
   const playIdx = currentPlay ? lanePlays.findIndex((play) => play.id === currentPlay.id) : -1;
   const phase = currentReplayPhases[currentPhase];
@@ -126,7 +122,7 @@ export default function PlayViewer() {
 
   useEffect(() => {
     const query = window.matchMedia('(max-height: 520px) and (orientation: landscape)');
-    const syncSheet = (event) => setSheetOpen(event.matches);
+    const syncSheet = () => setSheetOpen(false);
     if (query.addEventListener) query.addEventListener('change', syncSheet);
     else query.addListener(syncSheet);
     return () => {
@@ -211,6 +207,7 @@ export default function PlayViewer() {
     >
       <header className="play-mobile-title">
         <PlayIdentity play={currentReplayPlay} color={categoryColor} text={t.tx} muted={t.td} />
+        <MobileViewModeSwitch />
       </header>
 
       <section className="play-mobile-rink" data-region="rink" aria-label="Rink view">

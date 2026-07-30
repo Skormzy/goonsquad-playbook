@@ -6,6 +6,7 @@ const app = readFileSync(new URL('../App.jsx', import.meta.url), 'utf8');
 const appContext = readFileSync(new URL('../context/AppContext.jsx', import.meta.url), 'utf8');
 const header = readFileSync(new URL('./Header.jsx', import.meta.url), 'utf8');
 const mobileBottomNav = readFileSync(new URL('./MobileBottomNav.jsx', import.meta.url), 'utf8');
+const mobileViewModeSwitch = readFileSync(new URL('./MobileViewModeSwitch.jsx', import.meta.url), 'utf8');
 const playViewer = readFileSync(new URL('./PlayViewer.jsx', import.meta.url), 'utf8');
 const phaseControls = readFileSync(new URL('./PhaseControls.jsx', import.meta.url), 'utf8');
 const playback = readFileSync(new URL('./PlaybackControls.jsx', import.meta.url), 'utf8');
@@ -25,15 +26,16 @@ const publicBuildCheck = readFileSync(new URL('../../scripts/check-public-build.
 const packageJson = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
 
 describe('mobile product hardening contracts', () => {
-  it('keeps mobile play coaching in flow and exposes view tools in the team-plan sheet', () => {
+  it('keeps mobile coaching collapsed by default and exposes view tools in an optional rink overlay', () => {
     expect(playViewer).toContain('play-mobile-view-tools');
     expect(playViewer).toContain('team plan and view tools');
     expect(playViewer).toContain("sheetOpen ? 'is-coaching-open' : ''");
-    expect(playViewer).toContain('useState(isShortLandscape)');
+    expect(playViewer).toContain('useState(false)');
+    expect(playViewer).toContain('const syncSheet = () => setSheetOpen(false)');
     expect(css).toContain('.play-bottom-sheet.is-open');
     expect(css).toContain('.play-workspace-mobile.is-coaching-open');
-    expect(css).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))');
-    expect(css).toMatch(/\.play-bottom-sheet\.is-open\s*\{[^}]*position:\s*relative/s);
+    expect(css).toContain('Rink HUD: the tactical surface owns the mobile viewport');
+    expect(css).toMatch(/\.play-bottom-sheet,\s*\.play-workspace-mobile\.is-coaching-open \.play-bottom-sheet\s*\{[^}]*position:\s*absolute/s);
   });
 
   it('keeps the complete strategy rink ahead of optional coaching detail', () => {
@@ -96,8 +98,12 @@ describe('mobile product hardening contracts', () => {
     expect(mobileBottomNav).toContain('aria-label="Main app navigation"');
     expect(mobileBottomNav).toContain('data-testid="mobile-bottom-nav"');
     expect(mobileBottomNav).toContain('window.history.pushState');
-    expect(mobileBottomNav).toContain('className="mobile-bottom-nav-mode"');
-    expect(mobileBottomNav).toContain("setReplay3dCamera('overhead')");
+    expect(mobileBottomNav).not.toContain('mobile-bottom-nav-mode');
+    expect(mobileViewModeSwitch).toContain('aria-label="Choose rink view"');
+    expect(mobileViewModeSwitch).toContain('aria-label={`Open ${label} rink view`}');
+    expect(mobileViewModeSwitch).toContain("setReplay3dCamera('overhead')");
+    expect(playViewer).toContain('<MobileViewModeSwitch />');
+    expect(tactical3d).toContain('<MobileViewModeSwitch className="is-three-d-stage" />');
     expect(appContext).toContain("window.addEventListener('popstate'");
     expect(mobileBottomNav.match(/content: '(stats|plays|strategy|playmaker)'/g)).toHaveLength(4);
     expect(header).toContain('className="app-header-more"');
