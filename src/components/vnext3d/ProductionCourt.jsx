@@ -12,7 +12,6 @@ import {
 import {
   COURT_LENGTH_METERS,
   COURT_WIDTH_METERS,
-  PENALTY_BOX_WORLD_POSITIONS,
 } from '../../vnext3d/runtimeMapping';
 import { neutralFaceoffDots, PRODUCTION_COURT_MARKINGS } from '../../vnext3d/courtMarkings';
 
@@ -227,104 +226,7 @@ function GoalFrame({ z, direction }) {
   );
 }
 
-function PenaltyBox({ active, team, theme }) {
-  const [centerX, , z] = PENALTY_BOX_WORLD_POSITIONS[team];
-  const sideDirection = Math.sign(centerX);
-  const depth = 2.7;
-  const length = 4.45;
-  const accent = team === 'us' ? '#21c7e8' : '#e13f4b';
-  const floor = theme === 'light' ? '#b9c3c9' : '#18212b';
-  const frame = active ? accent : theme === 'light' ? '#65727d' : '#52616f';
-  const glass = theme === 'light' ? '#d9eef1' : '#9dcbd2';
-
-  return (
-    <group name={`penalty-box-${team}`} position={[centerX, 0, z]}>
-      <mesh position={[0, 0.035, 0]}>
-        <boxGeometry args={[depth, 0.07, length]} />
-        <meshStandardMaterial color={floor} roughness={0.86} />
-      </mesh>
-
-      <mesh position={[sideDirection * (depth / 2 - 0.05), 0.31, 0]}>
-        <boxGeometry args={[0.42, 0.48, length - 0.72]} />
-        <meshStandardMaterial color={theme === 'light' ? '#7c8891' : '#303c48'} roughness={0.72} />
-      </mesh>
-
-      <mesh position={[sideDirection * depth / 2, 1.02, 0]}>
-        <boxGeometry args={[0.065, 1.82, length]} />
-        <meshPhysicalMaterial
-          color={glass}
-          transparent
-          opacity={0.2}
-          roughness={0.08}
-          metalness={0.02}
-          depthWrite={false}
-        />
-      </mesh>
-      {[-1, 1].map((side) => (
-        <mesh key={side} position={[0, 1.02, side * length / 2]}>
-          <boxGeometry args={[depth, 1.82, 0.065]} />
-          <meshPhysicalMaterial
-            color={glass}
-            transparent
-            opacity={0.2}
-            roughness={0.08}
-            metalness={0.02}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-
-      <mesh position={[sideDirection * (depth / 2 + 0.035), 1.94, 0]}>
-        <boxGeometry args={[0.11, 0.11, length + 0.08]} />
-        <meshStandardMaterial color={frame} roughness={0.44} metalness={0.2} />
-      </mesh>
-      {[-1, 1].map((side) => (
-        <mesh key={`rail-${side}`} position={[0, 1.94, side * length / 2]}>
-          <boxGeometry args={[depth + 0.08, 0.11, 0.11]} />
-          <meshStandardMaterial color={frame} roughness={0.44} metalness={0.2} />
-        </mesh>
-      ))}
-
-      {[-0.74, 0.74].map((doorZ) => (
-        <mesh
-          key={`door-${doorZ}`}
-          position={[-sideDirection * (depth / 2 - 0.04), 0.75, doorZ]}
-        >
-          <boxGeometry args={[0.1, 1.46, 0.1]} />
-          <meshStandardMaterial color={frame} roughness={0.45} metalness={0.16} />
-        </mesh>
-      ))}
-      <mesh position={[-sideDirection * (depth / 2 - 0.035), 1.48, 0]}>
-        <boxGeometry args={[0.1, 0.1, 1.55]} />
-        <meshStandardMaterial color={frame} roughness={0.45} metalness={0.16} />
-      </mesh>
-
-      <mesh position={[0, 0.055, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2}>
-        <ringGeometry args={[0.55, 0.68, 40]} />
-        <meshBasicMaterial
-          color={accent}
-          transparent
-          opacity={active ? 0.72 : 0.16}
-          depthWrite={false}
-          toneMapped={false}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-function PenaltyBoxComplex({ activeTeams, theme }) {
-  if (activeTeams.length === 0) return null;
-
-  return (
-    <group name="rink-side-penalty-boxes">
-      <PenaltyBox active={activeTeams.includes('us')} team="us" theme={theme} />
-      <PenaltyBox active={activeTeams.includes('opponent')} team="opponent" theme={theme} />
-    </group>
-  );
-}
-
-export default function ProductionCourt({ penaltyBoxTeams = [], theme = 'dark' }) {
+export default function ProductionCourt({ theme = 'dark' }) {
   const geometry = useCourtGeometry();
   const texture = useCourtTexture();
   const { goalLineZ } = PRODUCTION_COURT_MARKINGS;
@@ -354,7 +256,6 @@ export default function ProductionCourt({ penaltyBoxTeams = [], theme = 'dark' }
           <GoalFrame z={zSign * goalLineZ} direction={zSign} />
         </group>
       ))}
-      <PenaltyBoxComplex activeTeams={penaltyBoxTeams} theme={theme} />
     </group>
   );
 }

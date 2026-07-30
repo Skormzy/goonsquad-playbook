@@ -4,12 +4,9 @@ import {
   getPlayScene,
   getRegisteredPlayScenes,
   getRegisteredStrategyScenes,
+  getStrategyScene,
 } from '../play-engine/sceneRegistry';
-import {
-  COURT_WIDTH_METERS,
-  PENALTY_BOX_WORLD_POSITIONS,
-  PENALTY_BOX_WORLD_ROTATION,
-} from '../vnext3d/runtimeMapping';
+import { isPenaltyBoxPlayer } from '../play-engine/penaltyBox';
 import {
   sampleTacticalBallTrail,
   sampleTacticalReplay,
@@ -42,19 +39,41 @@ describe('sampleTacticalReplay', () => {
     ['pkb', 'us'],
     ['pkfo', 'us'],
     ['pkcl', 'us'],
-  ])('keeps the penalized athlete in the attached box for %s', (playId, team) => {
+  ])('omits the penalized athlete from the sampled %s replay', (playId, team) => {
     const replay = getPlayScene(playId);
     const frame = sampleTacticalReplay(replay, replay.duration / 2);
-    const boxedPlayers = frame.players.filter((player) => player.penaltyBox);
 
-    expect(frame.players).toHaveLength(12);
-    expect(boxedPlayers).toHaveLength(1);
-    expect(boxedPlayers[0].team).toBe(team);
-    expect(boxedPlayers[0].worldPosition).toEqual(PENALTY_BOX_WORLD_POSITIONS[team]);
-    expect(boxedPlayers[0].worldPosition[0]).toBeLessThan(-COURT_WIDTH_METERS / 2);
-    expect(boxedPlayers[0].worldRotation).toBe(PENALTY_BOX_WORLD_ROTATION);
-    expect(boxedPlayers[0].worldVelocity).toEqual([0, 0, 0]);
-    expect(boxedPlayers[0].clipName).toBe('ready');
+    expect(frame.players).toHaveLength(11);
+    expect(frame.players.some(isPenaltyBoxPlayer)).toBe(false);
+    expect(frame.players.filter((player) => player.team === team)).toHaveLength(5);
+    expect(frame.players.filter((player) => player.team !== team)).toHaveLength(6);
+  });
+
+  it.each(['correct', 'mistake'])(
+    'omits the penalized athlete from the sampled defensive-box-pk %s strategy',
+    (variant) => {
+      const replay = getStrategyScene('defensive-box-pk', variant);
+      const frame = sampleTacticalReplay(replay, replay.duration / 2);
+
+      expect(frame.players).toHaveLength(11);
+      expect(frame.players.some(isPenaltyBoxPlayer)).toBe(false);
+      expect(frame.players.filter((player) => player.team === 'us')).toHaveLength(5);
+      expect(frame.players.filter((player) => player.team === 'opponent')).toHaveLength(6);
+    },
+  );
+
+  it('applies the omission rule across every registered play and strategy scene', () => {
+    const scenes = [...getRegisteredPlayScenes(), ...getRegisteredStrategyScenes()];
+
+    scenes.forEach((scene) => {
+      const authoredPenalties = scene.players.filter(isPenaltyBoxPlayer);
+      const frame = sampleTacticalReplay(scene, scene.duration / 2);
+
+      expect(authoredPenalties.length, scene.id).toBeLessThanOrEqual(1);
+      expect(frame.players, scene.id).toHaveLength(scene.players.length - authoredPenalties.length);
+      expect(frame.players.some(isPenaltyBoxPlayer), scene.id).toBe(false);
+      expect(frame.players, scene.id).toHaveLength(authoredPenalties.length === 1 ? 11 : 12);
+    });
   });
 
   it('keeps the ball continuous through release, board impact, and reception', () => {

@@ -26,6 +26,16 @@ describe('team jobs', () => {
     expect(teamJobsFromPhase(twoOnOnePhase).some((job) => job.id === 'goalie')).toBe(true);
   });
 
+  it('omits the inactive player responsibility from special-teams coaching', () => {
+    const penaltyKillPhase = PLAYS.find((play) => play.id === 'pkb').phases[0];
+    const wingerJob = teamJobsFromPhase(penaltyKillPhase)
+      .find((job) => job.id === 'wingers');
+
+    expect(wingerJob.actions).toHaveLength(1);
+    expect(wingerJob.actions[0].role).toBe('LW');
+    expect(wingerJob.actions.some((action) => /penalty box/i.test(action.text))).toBe(false);
+  });
+
   it('normalizes concise 3D presentation responsibilities into the same contract', () => {
     const jobs = teamJobsFromPresentation([
       { role: 'Defense', action: 'Draw pressure and bank the ball wide.' },

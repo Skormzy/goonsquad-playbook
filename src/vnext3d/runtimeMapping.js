@@ -62,11 +62,6 @@ export const FIELD_ACTION_CONTACT_PHASE = Object.freeze({
 
 export const BALL_RADIUS_METERS = 0.033;
 export const BOARD_IMPACT_HOP_MAX_METERS = 0.042;
-export const PENALTY_BOX_WORLD_POSITIONS = Object.freeze({
-  us: Object.freeze([-COURT_WIDTH_METERS / 2 - 1.45, 0, -2.7]),
-  opponent: Object.freeze([-COURT_WIDTH_METERS / 2 - 1.45, 0, 2.7]),
-});
-export const PENALTY_BOX_WORLD_ROTATION = Math.PI / 2;
 const BOARD_IMPACT_HOP_WINDOW = 0.16;
 const GOALIE_SHUFFLE_SPEED_MPS = 0.04;
 const OUR_DEFENSIVE_ZONE_MAX_Y = 36;
@@ -107,18 +102,6 @@ export function rinkFacingToWorldRotation(facing = 0) {
 export function productionAssetKey(player) {
   const side = player.team === 'us' ? 'home' : 'away';
   return player.role === 'G' ? `goalie-${side}` : `field-${side}`;
-}
-
-export function productionPenaltyBoxPose(player) {
-  const position = PENALTY_BOX_WORLD_POSITIONS[player?.team]
-    ?? PENALTY_BOX_WORLD_POSITIONS.us;
-  return {
-    penaltyBox: true,
-    worldPosition: [...position],
-    worldRotation: PENALTY_BOX_WORLD_ROTATION,
-    worldVelocity: [0, 0, 0],
-    worldAngularVelocity: 0,
-  };
 }
 
 function controllingTeam(frame) {
@@ -294,33 +277,24 @@ export function productionClipPhaseOffset(clipName, motionReview = null, motionT
 }
 
 export function createProductionRuntimePlayers(frame, motionReview = null, motionTuning = null) {
-  return frame.players.map((player) => {
-    const inPenaltyBox = isPenaltyBoxPlayer(player);
-    const penaltyBoxPose = inPenaltyBox ? productionPenaltyBoxPose(player) : null;
-    const world = inPenaltyBox ? null : rinkPositionToWorld(player.position);
-    const clipName = inPenaltyBox ? 'ready' : productionClipName(player, frame);
-    const worldMotion = inPenaltyBox
-      ? { velocity: [0, 0, 0], angularVelocity: 0 }
-      : productionWorldMotion(player, frame.time);
-    return {
-      ...player,
-      assetKey: productionAssetKey(player),
-      clipName,
-      actionPhase: inPenaltyBox ? null : productionActionPhase(player, frame),
-      locomotionCadence: inPenaltyBox
-        ? null
-        : productionLocomotionCadence(clipName, player.speedMps, motionReview),
-      motionPhaseCycles: inPenaltyBox
-        ? 0
-        : productionLocomotionCycles(player, frame.time, motionReview)
+  return frame.players
+    .filter((player) => !isPenaltyBoxPlayer(player))
+    .map((player) => {
+      const world = rinkPositionToWorld(player.position);
+      const clipName = productionClipName(player, frame);
+      const worldMotion = productionWorldMotion(player, frame.time);
+      return {
+        ...player,
+        assetKey: productionAssetKey(player),
+        clipName,
+        actionPhase: productionActionPhase(player, frame),
+        locomotionCadence: productionLocomotionCadence(clipName, player.speedMps, motionReview),
+        motionPhaseCycles: productionLocomotionCycles(player, frame.time, motionReview)
           + productionClipPhaseOffset(clipName, motionReview, motionTuning),
-      ...(penaltyBoxPose ?? {
-        penaltyBox: false,
         worldPosition: [world.x, 0, world.z],
         worldRotation: rinkFacingToWorldRotation(player.facing),
         worldVelocity: worldMotion.velocity,
         worldAngularVelocity: worldMotion.angularVelocity,
-      }),
-    };
-  });
+      };
+    });
 }

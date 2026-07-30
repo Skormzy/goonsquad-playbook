@@ -36,16 +36,20 @@ describe('playSceneToRinkPhase', () => {
     expect(phase.ball).toEqual(phase.sceneFrame.ball.rinkPosition);
   });
 
-  it('preserves the penalty-box state for the shared 2D rink', () => {
+  it('omits the penalized athlete from shared 2D rink frames', () => {
     const powerPlay = playSceneToRinkPhase(getPlayScene('ppum'), 0);
     const penaltyKill = playSceneToRinkPhase(getPlayScene('pkb'), 0);
-    const boxedOpponent = powerPlay.opp.filter((player) => player.status === 'penalty-box');
-    const boxedHome = Object.values(penaltyKill.pos)
-      .filter((player) => player?.status === 'penalty-box');
 
-    expect(boxedOpponent).toHaveLength(1);
-    expect(boxedOpponent[0]).toMatchObject({ inactive: true, l: 'PEN' });
-    expect(boxedHome).toHaveLength(1);
-    expect(boxedHome[0]).toMatchObject({ inactive: true, role: 'PEN' });
+    expect(Object.values(powerPlay.pos).filter(Boolean)).toHaveLength(6);
+    expect(powerPlay.opp).toHaveLength(5);
+    expect(powerPlay.opp.every((player) => player.status !== 'penalty-box')).toBe(true);
+    expect(Object.values(penaltyKill.pos).filter(Boolean)).toHaveLength(5);
+    expect(penaltyKill.pos.RW).toBeNull();
+    expect(penaltyKill.opp).toHaveLength(6);
+    expect(
+      Object.values(penaltyKill.pos)
+        .filter(Boolean)
+        .every((player) => player.status !== 'penalty-box'),
+    ).toBe(true);
   });
 });

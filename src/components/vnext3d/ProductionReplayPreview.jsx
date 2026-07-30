@@ -508,10 +508,6 @@ function ReplayScene({
   const focusPlayer = athletes.find((player) => player.team === 'us' && player.role === selectedPosition)
     ?? athletes.find((player) => player.team === 'us' && player.role !== 'G');
   const cameraBallPosition = useMemo(() => productionBallPosition(frame.ball, null), [frame.ball]);
-  const penaltyBoxTeams = useMemo(
-    () => [...new Set(athletes.filter((player) => player.penaltyBox).map((player) => player.team))],
-    [athletes],
-  );
   const sceneBackground = theme === 'light' ? '#dfe5e8' : '#080c13';
   const sceneGroundColor = theme === 'light' ? '#aeb9c1' : '#182331';
   const presentationScale = tacticalAthletePresentationScale(cameraId, size.width);
@@ -523,7 +519,7 @@ function ReplayScene({
       <hemisphereLight intensity={2.2} color="#f4fbff" groundColor={sceneGroundColor} />
       <directionalLight intensity={3.4} color="#fff7ea" position={[14, 30, -20]} />
       <directionalLight intensity={1.6} color="#9fd8ff" position={[-18, 18, 24]} />
-      <ProductionCourt penaltyBoxTeams={penaltyBoxTeams} theme={theme} />
+      <ProductionCourt theme={theme} />
       {focusPlayer && (
         <mesh
           position={[focusPlayer.worldPosition[0], 0.018, focusPlayer.worldPosition[2]]}
@@ -829,7 +825,6 @@ export default function ProductionReplayPreview() {
   const selectedAthlete = athletes.find((player) => (
     player.team === 'us' && player.role === selectedPosition
   ));
-  const boxedAthlete = athletes.find((player) => player.penaltyBox);
   const roleCameraState = productionCameraPose('player', {
     ball: frame.ball,
     ballPosition: productionBallPosition(frame.ball, null),
@@ -873,10 +868,6 @@ export default function ProductionReplayPreview() {
       data-motion-blend-seconds={motionTuning?.blendSeconds ?? 0.18}
       data-replay-time={playbackTime}
       data-player-count={frame.players.length}
-      data-penalty-box-player={boxedAthlete?.id ?? 'none'}
-      data-penalty-box-team={boxedAthlete?.team ?? 'none'}
-      data-penalty-box-world-x={boxedAthlete?.worldPosition?.[0] ?? 'none'}
-      data-penalty-box-world-z={boxedAthlete?.worldPosition?.[2] ?? 'none'}
       data-ball-segment={frame.ball.segmentType}
       data-ball-owner={frame.ball.ownerId ?? 'none'}
       data-ball-x={frame.ball.position.x}

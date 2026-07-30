@@ -305,12 +305,8 @@ export default function TacticalReplayScene({
     () => new Set(rolesForRoleLens(roleFocusMode)),
     [roleFocusMode],
   );
-  const penaltyBoxTeams = useMemo(
-    () => [...new Set(
-      replay.players
-        .filter(isPenaltyBoxPlayer)
-        .map((player) => player.team),
-    )],
+  const visibleReplayPlayers = useMemo(
+    () => replay.players.filter((player) => !isPenaltyBoxPlayer(player)),
     [replay],
   );
   const presentationScale = tacticalAthletePresentationScale(cameraId, size.width);
@@ -453,7 +449,7 @@ export default function TacticalReplayScene({
       <directionalLight intensity={3.2} color="#fff8ed" position={[14, 30, -20]} />
       <directionalLight intensity={1.35} color="#9cd7ff" position={[-18, 18, 24]} />
 
-      <ProductionCourt penaltyBoxTeams={penaltyBoxTeams} theme={theme} />
+      <ProductionCourt theme={theme} />
 
       <TacticalReplayLayers
         focusRoles={focusRoles}
@@ -463,7 +459,7 @@ export default function TacticalReplayScene({
         replay={replay}
       />
 
-      {replay.players.map((player) => (
+      {visibleReplayPlayers.map((player) => (
         <RegisteredAthlete
           key={player.id}
           playerId={player.id}
@@ -475,7 +471,7 @@ export default function TacticalReplayScene({
         />
       ))}
 
-      {replay.players
+      {visibleReplayPlayers
         .filter((player) => player.team === 'us')
         .map((player) => (
           <mesh

@@ -1,4 +1,5 @@
 import { resolveRoleFocus } from './roleFocus';
+import { isPenaltyBoxPlayer } from './penaltyBox';
 
 export const ROLE_LENSES = Object.freeze([
   { id: 'team', label: 'Team', roles: [] },
@@ -48,7 +49,7 @@ export function teamJobsFromPhase(phase, isMirrored = false) {
     const entries = lens.roles.map((role) => {
       const focus = resolveRoleFocus(phase, role, isMirrored);
       const responsibility = focus.responsibility;
-      if (!responsibility?.role) return null;
+      if (!responsibility?.role || isPenaltyBoxPlayer(responsibility)) return null;
       return {
         callout: responsibility.comm ?? null,
         hasBall: Boolean(responsibility.ball),
