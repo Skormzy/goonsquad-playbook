@@ -63,7 +63,7 @@ async function analyzePngPixels(page, pngBuffer) {
 async function seekToSecuredDraw(page) {
   const namedPhaseButton = page.getByTestId('playback-phase-2').first();
   if (await namedPhaseButton.count()) {
-    await namedPhaseButton.click();
+    await namedPhaseButton.evaluate((button) => button.click());
     return;
   }
   await page.getByRole('button', { name: /^Go to phase 3:/ }).first().click();

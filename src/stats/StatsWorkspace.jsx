@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -760,6 +761,7 @@ export default function StatsWorkspace() {
   const [selectedPlayerId, setSelectedPlayerId] = useState(() => initialQueryValue('player'));
   const [linkCopied, setLinkCopied] = useState(false);
   const [managerOpen, setManagerOpen] = useState(false);
+  const workspaceRef = useRef(null);
   const t = themes[theme];
 
   const refresh = useCallback(async () => {
@@ -904,6 +906,22 @@ export default function StatsWorkspace() {
     snapshot?.stage,
   ]);
 
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      if (workspaceRef.current) workspaceRef.current.scrollTop = 0;
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [
+    seasonId,
+    selectedFixtureId,
+    selectedGameId,
+    selectedOpponentSlug,
+    selectedPlayerId,
+    stage,
+    tab,
+    teamId,
+  ]);
+
   if (!dataset || !snapshot) return <div className="stats-loading"><RefreshCw aria-hidden="true" /> Loading team statistics…</div>;
 
   const canManage = account.configured && ['admin', 'stat_manager'].includes(account.profile?.role) && !snapshot.isSeasonAggregate;
@@ -1015,7 +1033,7 @@ export default function StatsWorkspace() {
   };
 
   return (
-    <main className="stats-workspace" style={{
+    <main ref={workspaceRef} className="stats-workspace" style={{
       '--stats-bg': t.bg,
       '--stats-surface': t.sf,
       '--stats-panel': t.cb,

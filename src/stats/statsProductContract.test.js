@@ -64,6 +64,8 @@ describe('team account and statistics product contract', () => {
     expect(workspaceSource).toContain("url.searchParams.set('opponent'");
     expect(workspaceSource).toContain("initialQueryValue('player')");
     expect(workspaceSource).toContain("url.searchParams.set('player'");
+    expect(workspaceSource).toContain('ref={workspaceRef}');
+    expect(workspaceSource).toContain('workspaceRef.current.scrollTop = 0');
     expect(workspaceSource).toContain('PlayerProfilePage');
     expect(workspaceSource).toContain('Every Goonsquad player');
     expect(workspaceSource).toContain('playerRosterCandidates');

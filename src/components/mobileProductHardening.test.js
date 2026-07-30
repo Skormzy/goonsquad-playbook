@@ -27,12 +27,16 @@ const publicBuildCheck = readFileSync(new URL('../../scripts/check-public-build.
 const packageJson = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
 
 describe('mobile product hardening contracts', () => {
-  it('keeps mobile coaching collapsed by default and exposes view tools in an optional rink overlay', () => {
+  it('keeps portrait coaching collapsed, fills short landscape, and exposes view tools in a rink overlay', () => {
     expect(playViewer).toContain('play-mobile-view-tools');
     expect(playViewer).toContain('team plan and view tools');
+    expect(playViewer).toContain('className="play-mobile-library-trigger"');
+    expect(playViewer).toContain("aria-label={sidebarOpen ? 'Hide play library' : 'Open play library'}");
+    expect(css).toMatch(/\.play-library-backdrop\s*\{[^}]*z-index:\s*219;/s);
     expect(playViewer).toContain("sheetOpen ? 'is-coaching-open' : ''");
     expect(playViewer).toContain('useState(false)');
-    expect(playViewer).toContain('const syncSheet = () => setSheetOpen(false)');
+    expect(playViewer).toContain('const syncSheet = () => setSheetOpen(query.matches)');
+    expect(playViewer).toContain('syncSheet();');
     expect(css).toContain('.play-bottom-sheet.is-open');
     expect(css).toContain('.play-workspace-mobile.is-coaching-open');
     expect(css).toContain('Rink HUD: the tactical surface owns the mobile viewport');
@@ -118,7 +122,10 @@ describe('mobile product hardening contracts', () => {
     expect(tactical3d).toContain('<details className="vnext3d-mobile-coaching">');
     expect(tactical3d).toContain('vnext3d-mobile-camera-picker');
     expect(tactical3d).toContain('mobileCameraToolsOpen');
+    expect(tactical3d).toContain("mobileLayout && !stageFullscreen && replay.kind === 'play'");
+    expect(tactical3d).toContain("!mobileLayout && replay.kind === 'play'");
     expect(css).toContain('Mobile replay final containment overrides');
+    expect(css).toContain('bottom: calc(140px + env(safe-area-inset-bottom));');
     expect(css).toMatch(/\.play-workspace-mobile\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s);
     expect(css).toContain('.vnext3d-mobile-coaching:not([open]) > :not(summary)');
   });

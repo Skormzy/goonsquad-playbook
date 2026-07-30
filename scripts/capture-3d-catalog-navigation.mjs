@@ -21,7 +21,7 @@ const journeys = [
     currentId: 'dzfl',
     targetId: 'zent',
     browseLane: 'offence',
-    expectedCount: 6,
+    expectedCount: 7,
     search: 'slot',
   },
   {
@@ -59,7 +59,7 @@ const journeys = [
 const laneSequences = {
   play: {
     defence: ['trap', 'dzfl', 'nfd', 'bck', 'pkb', 'pomr'],
-    offence: ['brk', 'zent', 'slot-window', 'lcl', 'pts', 'ppum'],
+    offence: ['brk', 'zent', 'ozfl', 'slot-window', 'lcl', 'pts', 'ppum'],
   },
   strategy: {
     defence: ['protect-the-middle', 'watch-your-man', 'gap-control', 'instant-backcheck'],
@@ -108,6 +108,14 @@ async function analyzePngPixels(page, pngBuffer) {
 
 function relative(filePath) {
   return path.relative(root, filePath).replaceAll('\\', '/');
+}
+
+async function ensureCameraToolsOpen(page) {
+  const fullscreen = page.getByRole('button', { name: 'View 3D replay full screen' });
+  if (await fullscreen.isVisible().catch(() => false)) return;
+
+  await page.getByRole('button', { name: 'Open camera tools' }).click();
+  await fullscreen.waitFor({ state: 'visible' });
 }
 
 await mkdir(outputDir, { recursive: true });
@@ -236,6 +244,7 @@ for (const journey of journeys) {
     new URL(window.location.href).searchParams.get(parameter) === value
   ), { parameter: itemParam, value: journey.targetId }, { timeout: 10_000 });
 
+  await ensureCameraToolsOpen(page);
   await page.getByRole('button', { name: 'View 3D replay full screen' }).click();
   await page.waitForFunction(() => (
     document.querySelector('.vnext3d-preview-stage')?.classList.contains('is-immersive')

@@ -169,9 +169,11 @@ export default function App() {
   useEffect(() => {
     if (!['playbook', 'replay3d', 'tactics', 'strategy3d'].includes(activeView)) return;
     const handler = (e) => {
+      const target = e.target instanceof Element ? e.target : null;
+      if (target?.closest('input,select,textarea,[contenteditable="true"]')) return;
       if (
-        e.target instanceof Element
-        && e.target.closest('button,a[href],summary,input,select,textarea,[contenteditable="true"],[role="tab"],[role="menuitem"]')
+        target?.closest('button,a[href],summary,[role="tab"],[role="menuitem"]')
+        && ['ArrowRight', 'ArrowLeft', ' '].includes(e.key)
       ) return;
 
       if (e.key === 'ArrowRight') go(currentPhase + 1);

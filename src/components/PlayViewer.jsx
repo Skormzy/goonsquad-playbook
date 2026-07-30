@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FlipHorizontal2, UsersRound } from 'lucide-react';
+import { ChevronDown, FlipHorizontal2, UsersRound } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
 import { CAT_COLORS } from '../context/ThemeContext';
@@ -90,6 +90,8 @@ export default function PlayViewer() {
     setIsPlaying,
     setPreviousPositions,
     cancelPlaybackRestart,
+    sidebarOpen,
+    setSidebarOpen,
     selectedPosition,
     roleFocusMode,
     playbackTime,
@@ -105,7 +107,8 @@ export default function PlayViewer() {
 
   useEffect(() => {
     const query = window.matchMedia('(max-height: 520px) and (orientation: landscape)');
-    const syncSheet = () => setSheetOpen(false);
+    const syncSheet = () => setSheetOpen(query.matches);
+    syncSheet();
     if (query.addEventListener) query.addEventListener('change', syncSheet);
     else query.addListener(syncSheet);
     return () => {
@@ -186,7 +189,18 @@ export default function PlayViewer() {
       style={workspaceStyle}
     >
       <header className="play-mobile-title">
-        <PlayIdentity play={currentReplayPlay} color={categoryColor} text={t.tx} muted={t.td} />
+        <button
+          type="button"
+          className="play-mobile-library-trigger"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          aria-label={sidebarOpen ? 'Hide play library' : 'Open play library'}
+          aria-expanded={sidebarOpen}
+        >
+          <PlayIdentity play={currentReplayPlay} color={categoryColor} text={t.tx} muted={t.td} />
+          <span className="play-mobile-library-hint" aria-hidden="true">
+            Browse <ChevronDown />
+          </span>
+        </button>
         <MobileViewModeSwitch />
       </header>
 

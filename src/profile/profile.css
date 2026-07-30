@@ -11,6 +11,16 @@
   background: var(--profile-bg);
 }
 
+.profile-workspace.is-signed-out {
+  display: grid;
+  place-items: center;
+  padding-block: clamp(20px, 6vh, 68px);
+}
+
+.profile-workspace.is-signed-out .profile-gate {
+  margin-block: 0;
+}
+
 .profile-workspace button,
 .profile-workspace input,
 .profile-workspace a { font: inherit; }
@@ -267,6 +277,10 @@
 }
 
 @media (max-width: 640px) {
+  .profile-workspace.is-signed-out {
+    padding: 18px 12px;
+  }
+
   .profile-hero { grid-template-columns: 54px minmax(0, 1fr); gap: 12px; min-height: 0; padding: 19px 14px; }
   .profile-hero::before { inset-block: 19px; }
   .profile-avatar { width: 54px; height: 54px; font-size: 27px; }

@@ -400,7 +400,7 @@ export default function TacticalReplayPreview() {
         />
         {mobileLayout && <MobileViewModeSwitch className="is-three-d-stage" />}
         <ReplayTeachingCue accent={teachingAccent} className="is-three-d">
-          {replay.kind === 'play' && currentPlay?.faceoff
+          {mobileLayout && !stageFullscreen && replay.kind === 'play' && currentPlay?.faceoff
             ? <FaceoffOutcomeControl compact />
             : null}
         </ReplayTeachingCue>
@@ -608,7 +608,7 @@ export default function TacticalReplayPreview() {
       </section>
 
       <section className="vnext3d-preview-console" aria-label="3D replay controls and status">
-        {replay.kind === 'play' && currentPlay?.faceoff && (
+        {!mobileLayout && replay.kind === 'play' && currentPlay?.faceoff && (
           <div className="vnext3d-content-picker vnext3d-faceoff-outcome">
             <FaceoffOutcomeControl />
           </div>

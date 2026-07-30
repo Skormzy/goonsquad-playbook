@@ -25,12 +25,12 @@
   --gs-shadow: rgba(0, 0, 0, 0.34);
   --font-body: "Manrope Variable", "Segoe UI Variable", sans-serif;
   --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
-  --type-micro: 11px;
-  --type-label: 12px;
-  --type-small: 13px;
-  --type-body: 14px;
-  --type-control: 13px;
-  --type-data: 13px;
+  --type-micro: 11.5px;
+  --type-label: 12.5px;
+  --type-small: 14px;
+  --type-body: 15px;
+  --type-control: 14px;
+  --type-data: 14px;
 }
 
 :root[data-theme="light"] {
@@ -1282,6 +1282,38 @@ input:focus:not(:focus-visible) { outline: none; }
   width: min(100%, 640px);
   flex: 0 0 auto;
   padding: 2px 6px 5px;
+}
+
+.play-mobile-library-trigger {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+}
+
+.play-mobile-library-hint {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding-inline: 8px;
+  color: var(--play-accent);
+  font-family: var(--font-display);
+  font-size: var(--type-micro);
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.play-mobile-library-hint svg {
+  width: 13px;
+  height: 13px;
 }
 
 .play-mobile-rink {
@@ -8298,7 +8330,7 @@ input:focus:not(:focus-visible) { outline: none; }
   .vnext3d-camera-operator {
     top: auto;
     right: 8px;
-    bottom: 8px;
+    bottom: calc(140px + env(safe-area-inset-bottom));
     grid-auto-flow: column;
   }
 
@@ -10502,7 +10534,7 @@ input:focus:not(:focus-visible) { outline: none; }
 
 .play-library-backdrop {
   position: absolute;
-  z-index: 19;
+  z-index: 219;
   inset: 0;
   background: var(--gs-scrim);
   touch-action: none;
@@ -12366,6 +12398,21 @@ input:focus:not(:focus-visible) { outline: none; }
     backdrop-filter: blur(14px);
   }
 
+  .play-mobile-library-trigger {
+    border: 1px solid var(--gs-border);
+    background: color-mix(in srgb, var(--gs-overlay-solid) 92%, transparent);
+    box-shadow: 0 8px 22px var(--gs-shadow);
+    backdrop-filter: blur(14px);
+  }
+
+  .play-mobile-library-trigger .play-identity {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
   .play-mobile-title .mobile-view-mode-switch,
   .tactics-mobile-topbar .mobile-view-mode-switch {
     min-height: 48px;
@@ -12617,6 +12664,26 @@ input:focus:not(:focus-visible) { outline: none; }
     box-shadow: 0 8px 22px color-mix(in srgb, var(--gs-shadow) 72%, transparent);
     text-align: left;
     backdrop-filter: blur(14px) saturate(1.12);
+  }
+
+  .play-mobile-library-trigger {
+    border: 1px solid color-mix(in srgb, var(--gs-border) 84%, var(--gs-muted));
+    background: color-mix(in srgb, var(--gs-overlay-solid) 91%, transparent);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--gs-shadow) 72%, transparent);
+    backdrop-filter: blur(14px) saturate(1.12);
+  }
+
+  .play-mobile-library-trigger .play-identity {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .play-mobile-library-hint {
+    padding-inline: 6px;
+    font-size: 9.5px;
   }
 
   .play-mobile-title .play-identity > small {
@@ -13775,8 +13842,23 @@ input:focus:not(:focus-visible) { outline: none; }
     width: min(560px, calc(100% - 110px));
   }
 
+  .vnext3d-sequence-dock {
+    width: min(260px, calc(31vw - 10px));
+  }
+
+  .vnext3d-sequence-current strong {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
   .vnext3d-preview-stage > .replay-teaching-cue {
-    width: min(540px, calc(100% - 160px));
+    right: max(122px, calc(env(safe-area-inset-right) + 122px));
+    left: min(270px, calc(31vw + 5px));
+    width: auto;
+    max-width: 620px;
+    transform: none;
   }
 
   .replay-teaching-cue-copy p {
@@ -13894,6 +13976,39 @@ input:focus:not(:focus-visible) { outline: none; }
     width: auto;
     align-self: end;
     justify-content: flex-end;
+  }
+}
+
+/* Compact play picker: one readable title, one explicit browse affordance.
+   Situation detail remains in the teaching cue instead of crowding the HUD. */
+@media (max-width: 699px), (max-height: 520px) and (orientation: landscape) {
+  .play-mobile-library-trigger .play-identity {
+    display: flex;
+    align-items: center;
+    padding-inline: 10px 4px;
+  }
+
+  .play-mobile-library-trigger .play-identity > small {
+    display: none;
+  }
+
+  .play-mobile-library-trigger .play-identity > div {
+    width: 100%;
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .play-mobile-library-trigger .play-identity h1 {
+    overflow: visible;
+    font-size: 15px;
+    line-height: 1;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
+
+  .play-mobile-library-hint {
+    align-self: stretch;
+    border-left: 1px solid color-mix(in srgb, var(--play-border) 78%, transparent);
   }
 }
 

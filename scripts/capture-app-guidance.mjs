@@ -66,7 +66,12 @@ for (const viewport of viewports) {
   await page.locator('.playmaker-workspace').waitFor({ state: 'visible', timeout: 60_000 });
   await page.evaluate(() => document.fonts.ready);
 
-  await page.getByRole('button', { name: 'Open product guide' }).click();
+  if (viewport.width <= 390) {
+    await page.getByLabel('Open more app actions').click();
+    await page.getByRole('button', { name: 'Guide' }).click();
+  } else {
+    await page.getByRole('button', { name: 'Open product guide' }).click();
+  }
   const guide = page.getByRole('dialog', { name: 'Goonsquad product guide' });
   await guide.waitFor({ state: 'visible' });
   await page.waitForTimeout(320);

@@ -9,7 +9,7 @@ const outputDir = path.join(root, 'docs', 'vnext', 'evidence', 'core-curriculum'
 const baseUrl = process.env.GOONSQUAD_CORE_URL ?? 'http://127.0.0.1:55601/';
 const corePlayIds = {
   defence: ['trap', 'dzfl', 'nfd', 'bck', 'pkb', 'pomr'],
-  offence: ['brk', 'zent', 'slot-window', 'lcl', 'pts', 'ppum'],
+  offence: ['brk', 'zent', 'ozfl', 'slot-window', 'lcl', 'pts', 'ppum'],
 };
 const coreTacticIds = {
   defence: ['protect-the-middle', 'watch-your-man', 'gap-control', 'instant-backcheck'],
@@ -153,6 +153,9 @@ for (const viewport of viewports) {
   const archivedSearchResults = await library.locator('[data-play-id]').count();
 
   await goto(page, strategyRoute('2d', 'breakout-patterns'));
+  if (viewport.id === 'mobile') {
+    await page.locator('summary[aria-label="Browse strategy principles"]').click();
+  }
   const principleSelect = page.getByRole('combobox', { name: 'Strategy principle' });
   await principleSelect.waitFor({ state: 'visible' });
   const defensiveTacticLabels2d = await principleSelect.locator('option').allTextContents();
@@ -160,6 +163,9 @@ for (const viewport of viewports) {
   await page.waitForTimeout(200);
   const offensiveTacticLabels2d = await principleSelect.locator('option').allTextContents();
   const selectedTacticIndex = await principleSelect.inputValue();
+  if (viewport.id === 'mobile') {
+    await page.locator('summary[aria-label="Browse strategy principles"]').click();
+  }
   const strategyScreenshot = await screenshot(page, viewport, 'core-strategies');
 
   await goto(page, playRoute('3d'));

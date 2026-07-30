@@ -69,7 +69,11 @@ for (const viewport of viewports) {
 
   const statsPath = path.join(outputDir, `${viewport.id}-statistics-${viewport.width}x${viewport.height}.png`);
   await page.screenshot({ path: statsPath, fullPage: false });
-  const navigation = await page.locator('.workspace-primary-nav').getByRole('button').allTextContents();
+  const navigationSurface = viewport.id === 'mobile'
+    ? page.getByTestId('mobile-bottom-nav')
+    : page.locator('.workspace-primary-nav');
+  const navigation = (await navigationSurface.getByRole('button').allTextContents())
+    .map((label) => label.trim().toUpperCase());
   const summary = await page.locator('.stats-metric-strip').innerText();
   const matchday = await page.locator('.stats-matchday-card').allTextContents();
   const teamLabels = await page.locator('.stats-team-switcher button').allTextContents();
@@ -188,8 +192,11 @@ for (const viewport of viewports) {
   if (!gameDetailSource?.startsWith('https://www.yorkcentralbhl.com/game/')) throw new Error(`${viewport.id}: game-sheet provenance is missing.`);
   if (stageLabels.join('|') !== 'Regular season|Playoffs|All games') throw new Error(`${viewport.id}: stage filtering is incomplete.`);
   if (
-    !/(?:Continue|Sign up|Sign in) with Google/u.test(accountText)
+    !accountText.includes('Display name')
     || !accountText.includes('Username')
+    || !accountText.includes('Email')
+    || !accountText.includes('Password')
+    || !accountText.includes('Keep me signed in on this device')
     || !accountText.includes('Create account')
   ) {
     throw new Error(`${viewport.id}: connected account launch state is unclear.`);

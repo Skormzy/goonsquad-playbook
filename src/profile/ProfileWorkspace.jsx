@@ -187,7 +187,7 @@ export default function ProfileWorkspace() {
   };
 
   return (
-    <main className="profile-workspace" style={{
+    <main className={`profile-workspace ${!account.user ? 'is-signed-out' : ''}`} style={{
       '--profile-bg': t.bg,
       '--profile-surface': t.sf,
       '--profile-panel': t.cb,

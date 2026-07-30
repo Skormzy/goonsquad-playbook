@@ -88,7 +88,7 @@ export default function Sidebar({ embedded = false }) {
         width: embedded ? '100%' : 272,
         height: embedded ? '100%' : undefined,
         background: t.sf, borderRight: `1px solid ${t.bd}`,
-        zIndex: embedded ? 1 : 20, display: 'flex', flexDirection: 'column',
+        zIndex: embedded ? 1 : 220, display: 'flex', flexDirection: 'column',
       }}
       >
       {!embedded && (

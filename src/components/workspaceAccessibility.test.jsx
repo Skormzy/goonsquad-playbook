@@ -6,6 +6,7 @@ import { ThemeProvider } from '../context/ThemeContext';
 import Sidebar from './Sidebar';
 
 const mainSource = readFileSync(new URL('../main.jsx', import.meta.url), 'utf8');
+const appSource = readFileSync(new URL('../App.jsx', import.meta.url), 'utf8');
 const rinkSource = readFileSync(new URL('./RinkSVG.jsx', import.meta.url), 'utf8');
 const strategySource = readFileSync(new URL('./TacticsLearn.jsx', import.meta.url), 'utf8');
 const guideSource = readFileSync(new URL('./KeyboardHelp.jsx', import.meta.url), 'utf8');
@@ -71,5 +72,12 @@ describe('workspace accessibility contract', () => {
     expect(playmakerSource).toContain('label="About ball decisions"');
     expect(tutorialSource).toContain('aria-label="Create tutorial"');
     expect(tutorialSource).toContain('aria-label="Exit Create tutorial"');
+  });
+
+  it('keeps catalog shortcuts available after a user clicks a replay control', () => {
+    expect(appSource).toContain("target?.closest('input,select,textarea,[contenteditable=\"true\"]')");
+    expect(appSource).toContain("['ArrowRight', 'ArrowLeft', ' '].includes(e.key)");
+    expect(appSource).toContain("e.key === '['");
+    expect(appSource).toContain("e.key === ']'");
   });
 });

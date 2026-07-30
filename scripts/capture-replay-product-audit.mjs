@@ -286,7 +286,11 @@ for (const journey of journeys) {
   await page.screenshot({ path: screenshotPath, fullPage: false });
 
   const minimumExpectedHeight = journey.touch ? 40 : 32;
-  const expectedItems = journey.content === 'strategy' ? 4 : 6;
+  const expectedItems = journey.content === 'strategy'
+    ? 4
+    : journey.itemId === 'brk'
+      ? 7
+      : 6;
   const passed = browserProblems.length === 0
     && Number(await preview.getAttribute('data-player-count')) === 12
     && layout.bodyWidth <= layout.viewportWidth + 1

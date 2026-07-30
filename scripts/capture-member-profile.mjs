@@ -93,8 +93,8 @@ for (const viewport of viewports) {
     && layout.accountScrollWidth <= layout.accountClientWidth
     && layout.heading.length > 0
     && layout.accountHeading === 'Create your account'
-    && layout.signupFields === 4
-    && layout.googleVisible
+    && layout.signupFields === 5
+    && !layout.googleVisible
     && layout.usernameVisible
     && accountFrameRect?.width > 0
     && insideViewport(primaryButtonRect, viewport)

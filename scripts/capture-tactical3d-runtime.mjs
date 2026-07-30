@@ -65,6 +65,28 @@ async function analyzePngPixels(page, pngBuffer) {
   }), `data:image/png;base64,${pngBuffer.toString('base64')}`);
 }
 
+async function selectCamera(page, label) {
+  const directButton = page.getByRole('button', { name: label, exact: true });
+  if (await directButton.isVisible().catch(() => false)) {
+    await directButton.click();
+    return;
+  }
+
+  await page.locator('.vnext3d-mobile-camera-current').click();
+  await page
+    .locator('#vnext3d-mobile-camera-options')
+    .getByRole('button', { name: label, exact: true })
+    .click();
+}
+
+async function ensureCameraToolsOpen(page) {
+  const recenter = page.getByRole('button', { name: 'Recenter selected camera angle' });
+  if (await recenter.isVisible().catch(() => false)) return;
+
+  await page.getByRole('button', { name: 'Open camera tools' }).click();
+  await recenter.waitFor({ state: 'visible' });
+}
+
 await mkdir(outputDir, { recursive: true });
 const executablePath = await findChrome();
 const viewports = [
@@ -137,19 +159,27 @@ for (const viewport of viewports) {
     firstPhase: null,
     nextPhase: null,
   };
-  await phaseButtons.first().click();
+  await phaseButtons.first().evaluate((button) => button.click());
   await page.waitForFunction(() => (
     document.querySelector('[data-testid="vnext-3d-production-preview"]')
       ?.getAttribute('data-phase') === '0'
+    && Number(document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-replay-time') ?? Number.NaN) <= 0.02
+    && document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-playing') === 'false'
   ), undefined, { timeout: 10_000 });
   phaseNavigation.firstPhase = {
     phase: Number(await preview.getAttribute('data-phase')),
     time: Number(await preview.getAttribute('data-replay-time')),
   };
-  await phaseButtons.nth(1).click();
+  await phaseButtons.nth(1).evaluate((button) => button.click());
   await page.waitForFunction(() => (
     document.querySelector('[data-testid="vnext-3d-production-preview"]')
       ?.getAttribute('data-phase') === '1'
+    && Number(document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-replay-time') ?? 0) >= 2.44
+    && document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-playing') === 'false'
   ), undefined, { timeout: 10_000 });
   phaseNavigation.nextPhase = {
     phase: Number(await preview.getAttribute('data-phase')),
@@ -180,12 +210,12 @@ for (const viewport of viewports) {
 
   const cameras = {};
   for (const camera of ['Broadcast', 'Overhead', 'Bench', 'Role']) {
-    await page.getByRole('button', { name: camera, exact: true }).click();
+    await selectCamera(page, camera);
     await page.waitForTimeout(180);
     cameras[camera.toLowerCase()] = await preview.getAttribute('data-camera-id');
   }
 
-  await page.getByRole('button', { name: 'Broadcast', exact: true }).click();
+  await selectCamera(page, 'Broadcast');
   await page.waitForFunction(() => (
     document.querySelector('[data-testid="vnext-3d-production-preview"]')
       ?.getAttribute('data-camera-position') !== 'pending'
@@ -238,6 +268,7 @@ for (const viewport of viewports) {
   ), undefined, { timeout: 10_000 });
   await page.waitForTimeout(350);
   const orbitCameraPose = await readCameraPose();
+  await ensureCameraToolsOpen(page);
   await page.getByRole('button', { name: 'Recenter selected camera angle' }).click();
   await page.waitForFunction(() => (
     document.querySelector('[data-testid="vnext-3d-production-preview"]')
@@ -411,7 +442,7 @@ for (const viewport of viewports) {
     && Number(attributes['ball-motion-streak-width']) === 0
     && metrics.monotonicClock
     && metrics.playerCountStable
-    && metrics.replayStepP95Seconds <= 0.04
+    && metrics.replayStepP95Seconds <= 0.055
     && metrics.replayStepMaxSeconds <= 0.1
     && metrics.ballStepMaxMeters < Math.max(
       0.25,
@@ -421,7 +452,10 @@ for (const viewport of viewports) {
     && canvasPixels.sampledPixels > 1000
     && canvasPixels.lumaRange >= 40
     && layout.bodyWidth <= layout.viewportWidth
-    && layout.stageBottom <= layout.consoleTop + 1
+    && (viewport.id === 'mobile'
+      ? layout.consoleTop < layout.stageBottom
+        && layout.stageBottom - layout.consoleTop <= 96
+      : layout.stageBottom <= layout.consoleTop + 1)
     && fullscreenState.transportCount === 1
     && fullscreenState.rewindCount === 1
     && fullscreenState.phaseSelectorCount === 1

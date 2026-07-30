@@ -24,6 +24,8 @@ describe('responsive play workspace structure', () => {
   it('uses a separate mobile bottom sheet and rink-first bounded height', () => {
     expect(viewer).toContain('data-testid="play-bottom-sheet"');
     expect(viewer).toContain('aria-controls="mobile-coaching-detail"');
+    expect(viewer).toContain('className="play-mobile-library-trigger"');
+    expect(viewer).toContain('const syncSheet = () => setSheetOpen(query.matches)');
     expect(css).toContain('.play-bottom-sheet');
     expect(css).toContain('height: min(58svh, 520px)');
     expect(css).toContain('.curriculum-lane-switch');
