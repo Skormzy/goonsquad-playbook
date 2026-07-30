@@ -12,6 +12,8 @@ import {
 import {
   phaseTransitionDuration,
   phaseTransitionTime,
+  shouldSkipPhaseTransition,
+  steppedPhaseTarget,
 } from '../play-engine/phaseTransition';
 import { createWorkspaceUrl, readWorkspaceUrl } from '../routing/workspaceUrlState';
 import { useAccount } from '../account/AccountContext';
@@ -116,6 +118,8 @@ export function AppProvider({ children }) {
   const playbackRef = useRef(initial.playback);
   const playbackTimerRef = useRef(null);
   const phaseTransitionFrameRef = useRef(null);
+  const phaseTransitionTargetRef = useRef(null);
+  const phaseNavigationLastRequestAtRef = useRef(Number.NEGATIVE_INFINITY);
   const [phaseTransitionTarget, setPhaseTransitionTarget] = useState(null);
   const [isPlaying, setIsPlaying] = useState(initial.playing);
   const [isMirrored, setIsMirrored] = useState(false);
@@ -155,10 +159,12 @@ export function AppProvider({ children }) {
       clearTimeout(playbackTimerRef.current);
       playbackTimerRef.current = null;
     }
-    if (phaseTransitionFrameRef.current) {
+    if (phaseTransitionFrameRef.current !== null) {
       cancelAnimationFrame(phaseTransitionFrameRef.current);
       phaseTransitionFrameRef.current = null;
     }
+    phaseTransitionTargetRef.current = null;
+    phaseNavigationLastRequestAtRef.current = Number.NEGATIVE_INFINITY;
     setPhaseTransitionTarget(null);
   }, []);
 
@@ -242,11 +248,31 @@ export function AppProvider({ children }) {
   }, [currentReplayScene, phaseCount]);
 
   const transitionToPhase = useCallback((value) => {
-    cancelPlaybackRestart();
     const requested = typeof value === 'function'
       ? value(playbackRef.current.phase)
       : value;
     const targetPhase = clampPhase(requested, phaseCount);
+    const requestedAt = performance.now();
+    const activeTransition = phaseTransitionFrameRef.current !== null;
+    // One deliberate step teaches the movement. Repeated taps become direct
+    // navigation so users can scan phases without queuing more slow travel.
+    const skipAnimation = shouldSkipPhaseTransition({
+      activeTransition,
+      lastRequestAt: phaseNavigationLastRequestAtRef.current,
+      requestedAt,
+    });
+    phaseNavigationLastRequestAtRef.current = requestedAt;
+
+    if (playbackTimerRef.current) {
+      clearTimeout(playbackTimerRef.current);
+      playbackTimerRef.current = null;
+    }
+    if (phaseTransitionFrameRef.current !== null) {
+      cancelAnimationFrame(phaseTransitionFrameRef.current);
+      phaseTransitionFrameRef.current = null;
+    }
+    phaseTransitionTargetRef.current = null;
+    setPhaseTransitionTarget(null);
 
     if (!currentReplayScene || phaseCount <= 0) {
       dispatchPlayback({
@@ -264,7 +290,7 @@ export function AppProvider({ children }) {
     const reducedMotion = typeof window !== 'undefined'
       && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-    if (reducedMotion || Math.abs(toTime - fromTime) < 0.01) {
+    if (skipAnimation || reducedMotion || Math.abs(toTime - fromTime) < 0.01) {
       const nextPlayback = { phase: targetPhase, time: toTime };
       playbackRef.current = nextPlayback;
       dispatchPlayback({
@@ -276,6 +302,7 @@ export function AppProvider({ children }) {
       return;
     }
 
+    phaseTransitionTargetRef.current = targetPhase;
     setPhaseTransitionTarget(targetPhase);
     const duration = phaseTransitionDuration(fromTime, toTime, speed);
     const startedAt = performance.now();
@@ -299,6 +326,7 @@ export function AppProvider({ children }) {
       }
 
       phaseTransitionFrameRef.current = null;
+      phaseTransitionTargetRef.current = null;
       playbackRef.current = { phase: targetPhase, time: toTime };
       dispatchPlayback({
         type: 'phase',
@@ -310,7 +338,17 @@ export function AppProvider({ children }) {
     };
 
     phaseTransitionFrameRef.current = requestAnimationFrame(tick);
-  }, [cancelPlaybackRestart, currentReplayScene, phaseCount, speed]);
+  }, [currentReplayScene, phaseCount, speed]);
+
+  const stepPhase = useCallback((delta) => {
+    const targetPhase = steppedPhaseTarget({
+      currentPhase: playbackRef.current.phase,
+      transitionTarget: phaseTransitionTargetRef.current,
+      delta,
+      phaseCount,
+    });
+    transitionToPhase(targetPhase);
+  }, [phaseCount, transitionToPhase]);
 
   // Favorites — persisted to localStorage
   const [favorites, setFavorites] = useState(() => new Set(readFavoriteIds(null)));
@@ -433,7 +471,7 @@ export function AppProvider({ children }) {
       selectedTactic, selectedTacticId, setSelectedTacticId,
       strategyVariant, setStrategyVariant,
       currentReplayScene, currentReplayPhases,
-      currentPhase, setCurrentPhase, transitionToPhase, phaseTransitionTarget,
+      currentPhase, setCurrentPhase, transitionToPhase, stepPhase, phaseTransitionTarget,
       playbackTime, setPlaybackTime,
       isPlaying, setIsPlaying,
       isMirrored, setIsMirrored,

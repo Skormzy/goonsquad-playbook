@@ -30,6 +30,7 @@ export default function PlaybackControls({ compact = false }) {
     currentPhase,
     setCurrentPhase,
     transitionToPhase,
+    stepPhase,
     phaseTransitionTarget,
     playbackTime,
     setPlaybackTime,
@@ -67,11 +68,16 @@ export default function PlaybackControls({ compact = false }) {
   }, [compact, navigationPhase, phaseCount]);
 
   const goPhase = (nextPhase) => {
-    cancelPlaybackRestart();
     if (nextPhase < 0 || nextPhase >= phaseCount) return;
     setIsPlaying(false);
     setPreviousPositions(currentReplayPhases[currentPhase]?.pos || null);
     transitionToPhase(nextPhase);
+  };
+
+  const goRelativePhase = (delta) => {
+    setIsPlaying(false);
+    setPreviousPositions(currentReplayPhases[currentPhase]?.pos || null);
+    stepPhase(delta);
   };
 
   const replay = () => {
@@ -188,7 +194,7 @@ export default function PlaybackControls({ compact = false }) {
           <button
             type="button"
             className="playback-icon-button"
-            onClick={() => goPhase(navigationPhase - 1)}
+            onClick={() => goRelativePhase(-1)}
             disabled={navigationPhase === 0}
             title="Previous phase (Left arrow)"
             aria-label="Previous phase"
@@ -211,7 +217,7 @@ export default function PlaybackControls({ compact = false }) {
           <button
             type="button"
             className="playback-icon-button"
-            onClick={() => goPhase(navigationPhase + 1)}
+            onClick={() => goRelativePhase(1)}
             disabled={navigationPhase >= phaseCount - 1}
             title="Next phase (Right arrow)"
             aria-label="Next phase"

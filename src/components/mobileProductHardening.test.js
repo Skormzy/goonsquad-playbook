@@ -112,7 +112,12 @@ describe('mobile product hardening contracts', () => {
 
   it('uses smooth phase seeking and a rink-first mobile replay shell in both dimensions', () => {
     expect(appContext).toContain('const transitionToPhase = useCallback');
+    expect(appContext).toContain('const stepPhase = useCallback');
+    expect(appContext).toContain('shouldSkipPhaseTransition');
     expect(playback).toContain('transitionToPhase(nextPhase)');
+    expect(playback).toContain('stepPhase(delta)');
+    expect(app).toContain("if (e.key === 'ArrowRight') step(1)");
+    expect(app).toContain('if (dx < 0) step(1)');
     expect(playback).toContain('aria-label="Jump to replay phase"');
     expect(playViewer).toContain('<PhaseControls compact />');
     expect(phaseControls).toContain('<PlaybackControls compact={compact} />');

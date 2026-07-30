@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  PHASE_NAVIGATION_BURST_WINDOW_MS,
   PHASE_TRANSITION_DEFAULT_RATE,
   PHASE_TRANSITION_RATE_MULTIPLIER,
   phaseTransitionDuration,
   phaseTransitionProgress,
   phaseTransitionTime,
+  shouldSkipPhaseTransition,
+  steppedPhaseTarget,
 } from './phaseTransition';
 
 describe('phase transitions', () => {
@@ -37,5 +40,62 @@ describe('phase transitions', () => {
     const duration = phaseTransitionDuration(2, 8);
     const oneSecondProgress = 1000 / duration;
     expect(phaseTransitionTime(2, 8, oneSecondProgress)).toBeCloseTo(3.2);
+  });
+
+  it('animates one deliberate phase request but skips an active or rapid repeat', () => {
+    expect(PHASE_NAVIGATION_BURST_WINDOW_MS).toBe(600);
+    expect(shouldSkipPhaseTransition({
+      activeTransition: false,
+      lastRequestAt: Number.NEGATIVE_INFINITY,
+      requestedAt: 1000,
+    })).toBe(false);
+    expect(shouldSkipPhaseTransition({
+      activeTransition: true,
+      lastRequestAt: 0,
+      requestedAt: 5000,
+    })).toBe(true);
+    expect(shouldSkipPhaseTransition({
+      activeTransition: false,
+      lastRequestAt: 1000,
+      requestedAt: 1500,
+    })).toBe(true);
+    expect(shouldSkipPhaseTransition({
+      activeTransition: false,
+      lastRequestAt: 1000,
+      requestedAt: 1601,
+    })).toBe(false);
+  });
+
+  it('steps rapid navigation from the intended destination instead of an intermediate frame', () => {
+    expect(steppedPhaseTarget({
+      currentPhase: 4,
+      transitionTarget: null,
+      delta: -1,
+      phaseCount: 6,
+    })).toBe(3);
+    expect(steppedPhaseTarget({
+      currentPhase: 4,
+      transitionTarget: 3,
+      delta: -1,
+      phaseCount: 6,
+    })).toBe(2);
+    expect(steppedPhaseTarget({
+      currentPhase: 4,
+      transitionTarget: 0,
+      delta: 1,
+      phaseCount: 6,
+    })).toBe(1);
+    expect(steppedPhaseTarget({
+      currentPhase: 2,
+      transitionTarget: null,
+      delta: -3,
+      phaseCount: 6,
+    })).toBe(0);
+    expect(steppedPhaseTarget({
+      currentPhase: 4,
+      transitionTarget: null,
+      delta: 8,
+      phaseCount: 6,
+    })).toBe(5);
   });
 });

@@ -36,7 +36,7 @@ export default function App() {
   const workspaceLayout = useWorkspaceLayout();
   const {
     activeView,
-    currentPlay, setCurrentPlay, currentPhase, setCurrentPhase, transitionToPhase,
+    currentPlay, setCurrentPlay, currentPhase, setCurrentPhase, stepPhase,
     currentReplayScene: currentScene,
     currentReplayPhases,
     playbackTime, setPlaybackTime,
@@ -79,12 +79,10 @@ export default function App() {
   }, [currentPlay, setCurrentPlay]);
 
   // Navigate phases
-  const go = useCallback((n) => {
-    cancelPlaybackRestart();
-    if (n < 0 || n >= tot) return;
+  const step = useCallback((delta) => {
     setPreviousPositions(currentReplayPhases[currentPhase]?.pos || null);
-    transitionToPhase(n);
-  }, [currentPhase, currentReplayPhases, tot, setPreviousPositions, transitionToPhase, cancelPlaybackRestart]);
+    stepPhase(delta);
+  }, [currentPhase, currentReplayPhases, setPreviousPositions, stepPhase]);
 
   // Navigate plays
   const goPlay = useCallback((p) => {
@@ -182,8 +180,8 @@ export default function App() {
         && ['ArrowRight', 'ArrowLeft', ' '].includes(e.key)
       ) return;
 
-      if (e.key === 'ArrowRight') go(currentPhase + 1);
-      else if (e.key === 'ArrowLeft') go(currentPhase - 1);
+      if (e.key === 'ArrowRight') step(1);
+      else if (e.key === 'ArrowLeft') step(-1);
       else if (e.key === ' ') {
         e.preventDefault();
         togglePlayback();
@@ -208,7 +206,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [activeView, currentPhase, lanePlays, laneTactics, playIdx, tacticIdx, go, goPlay, goTactic, restartPlayback, setIsMirrored, setKeyboardHelpOpen, setShowOpponents, togglePlayback, toggleTheme]);
+  }, [activeView, lanePlays, laneTactics, playIdx, tacticIdx, step, goPlay, goTactic, restartPlayback, setIsMirrored, setKeyboardHelpOpen, setShowOpponents, togglePlayback, toggleTheme]);
 
   // Global ? shortcut (works outside playbook too)
   useEffect(() => {
@@ -240,9 +238,9 @@ export default function App() {
       e.target instanceof Element
       && e.target.closest('button,a[href],summary,input,select,textarea,[contenteditable="true"],[role="tab"]')
     ) return;
-    if (dx < 0) go(currentPhase + 1);
-    else go(currentPhase - 1);
-  }, [activeView, go, currentPhase]);
+    if (dx < 0) step(1);
+    else step(-1);
+  }, [activeView, step]);
 
   return (
     <div
