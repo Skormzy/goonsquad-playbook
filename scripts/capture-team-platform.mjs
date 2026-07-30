@@ -172,7 +172,7 @@ for (const viewport of viewports) {
   if (!/\d+–\d+–\d+/u.test(summary) || !/\d+ games · 2 leagues/u.test(summary)) {
     throw new Error(`${viewport.id}: combined current-season record is missing.`);
   }
-  if (teamLabels.join('|') !== 'All teams|Monday / Thursday League|Sunday League') throw new Error(`${viewport.id}: current league schedules are incorrect.`);
+  if (teamLabels.join('|') !== 'All teams|Monday League|Sunday League') throw new Error(`${viewport.id}: current league schedules are incorrect.`);
   if (scheduleRows.length !== 2 || !scheduleRows.some((row) => row.includes('MON/THU TIER 5')) || !scheduleRows.some((row) => row.includes('SUNDAY TIER 5'))) throw new Error(`${viewport.id}: current league coverage is incomplete.`);
   if (seasonOptions.length !== 16) throw new Error(`${viewport.id}: expected 16 official seasons, received ${seasonOptions.length}.`);
   if (leaderCount < 1) throw new Error(`${viewport.id}: official player leaders are missing.`);

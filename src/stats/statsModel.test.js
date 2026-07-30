@@ -194,7 +194,7 @@ describe('statistics model', () => {
 
     const snapshot = statsSnapshot(dataset, 's1', ALL_SEASON_TEAMS_ID);
     expect(snapshot.isSeasonAggregate).toBe(true);
-    expect(snapshot.seasonSchedules.map((schedule) => schedule.label)).toEqual(['Monday / Thursday League', 'Sunday League']);
+    expect(snapshot.seasonSchedules.map((schedule) => schedule.label)).toEqual(['Monday League', 'Sunday League']);
     expect(snapshot.games.map((game) => game.id)).toEqual(['m1', 's1']);
     expect(snapshot.summary).toMatchObject({ gamesPlayed: 2, wins: 1, losses: 1, points: 2, goalsFor: 5, goalsAgainst: 5 });
     expect(snapshot.fieldPlayers[0]).toMatchObject({ playerId: 'shared-player', gamesPlayed: 2, goals: 2, assists: 1, points: 3 });
@@ -204,6 +204,8 @@ describe('statistics model', () => {
   });
 
   it('expands official schedule abbreviations without changing source identity', () => {
+    expect(formatScheduleName({ scheduleLabel: 'MON/THU' })).toBe('Monday League');
+    expect(formatScheduleName({ scheduleLabel: 'THURSDAY / MONDAY' })).toBe('Monday League');
     expect(formatScheduleName({ scheduleLabel: 'MON/WED' })).toBe('Monday / Wednesday League');
     expect(formatScheduleName({ scheduleLabel: 'SUNDAY' })).toBe('Sunday League');
   });

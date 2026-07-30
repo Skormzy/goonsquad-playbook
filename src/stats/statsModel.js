@@ -51,6 +51,9 @@ export function formatScheduleName(team) {
     const normalized = day.toUpperCase();
     return SCHEDULE_DAY_NAMES[normalized] || day.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
   });
+  if (days.length === 2 && days.includes('Monday') && days.includes('Thursday')) {
+    return 'Monday League';
+  }
   return `${days.join(' / ')} League`;
 }
 

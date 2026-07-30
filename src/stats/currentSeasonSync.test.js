@@ -1,8 +1,15 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   divisionStandings,
   mergeCurrentSeasonSnapshot,
+  parseSchedule,
 } from '../../scripts/sync-york-central-stats.mjs';
+
+const syncWorkflow = readFileSync(
+  new URL('../../.github/workflows/sync-team-statistics.yml', import.meta.url),
+  'utf8',
+);
 
 function snapshot(overrides = {}) {
   return {
@@ -29,6 +36,59 @@ function snapshot(overrides = {}) {
 }
 
 describe('current-season statistics sync', () => {
+  it('checks every active official schedule every 30 minutes', () => {
+    expect(syncWorkflow).toContain("cron: '*/30 * * * *'");
+    expect(syncWorkflow).toContain('npm run stats:sync:york-central');
+    expect(syncWorkflow).toContain('STATS_SYNC_SCOPE: current');
+  });
+
+  it('keeps Thursday make-up games inside the Monday schedule import', () => {
+    const html = `
+      <table class="statistic">
+        <tr>
+          <th>Date</th><th>Time</th><th>Home team</th><th>Score</th>
+          <th>Away team</th><th>Score</th><th>Location</th><th>Status</th><th></th>
+        </tr>
+        <tr>
+          <td class="date">Mon Jul. 27</td><td class="date">8:00 pm</td>
+          <td class="team"><a href="/team/7250-goonsquad">GOONSQUAD</a></td><td class="score">3</td>
+          <td class="team"><a href="/team/7248-red-wolves">RED WOLVES</a></td><td class="score">6</td>
+          <td class="location">Markham</td><td class="status">Final</td>
+          <td class="anchor"><a href="/game/53050-goonsquad-red-wolves">View</a></td>
+        </tr>
+        <tr>
+          <td class="date">Thu Jul. 30</td><td class="date">7:00 pm</td>
+          <td class="team"><a href="/team/7250-goonsquad">GOONSQUAD</a></td><td class="score">-</td>
+          <td class="team"><a href="/team/7251-viperz">VIPERZ</a></td><td class="score">-</td>
+          <td class="location">Scarborough</td><td class="status">Scheduled</td>
+          <td class="anchor"><a href="/game/53057-goonsquad-viperz">View</a></td>
+        </tr>
+      </table>
+    `;
+
+    const games = parseSchedule(
+      '/team/7250-goonsquad',
+      'summer-2026-mon-thu',
+      'Summer 2026',
+      html,
+    );
+
+    expect(games).toEqual([
+      expect.objectContaining({
+        id: 'ycbhl-game-53050',
+        seasonTeamId: 'summer-2026-mon-thu',
+        scheduledAt: '2026-07-27T20:00:00',
+        status: 'final',
+      }),
+      expect.objectContaining({
+        id: 'ycbhl-game-53057',
+        seasonTeamId: 'summer-2026-mon-thu',
+        scheduledAt: '2026-07-30T19:00:00',
+        status: 'scheduled',
+      }),
+    ]);
+  });
+
   it('replaces active-season rows while preserving the historical archive', () => {
     const existing = snapshot({
       seasons: [

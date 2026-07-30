@@ -68,7 +68,7 @@ describe('opponent matchup model', () => {
     const weekday = findOpponentMatchup(
       buildOpponentMatchups(dataset, new Date('2026-07-29T12:00:00'), {
         seasonTeamIds: ['mon'],
-        scopeLabel: 'Spring 2026 · Monday / Thursday League',
+        scopeLabel: 'Spring 2026 · Monday League',
       }),
       'RED WOLVES',
     );
@@ -136,7 +136,7 @@ describe('opponent matchup model', () => {
     });
   });
 
-  it('separates the current Sunday and Monday/Thursday Viperz records', () => {
+  it('separates the current Sunday and Monday League Viperz records', () => {
     const sunday = findOpponentMatchup(
       buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-29T12:00:00-04:00'), {
         seasonTeamIds: ['summer-2026-sunday'],
@@ -147,7 +147,7 @@ describe('opponent matchup model', () => {
     const weekday = findOpponentMatchup(
       buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-29T12:00:00-04:00'), {
         seasonTeamIds: ['summer-2026-mon-thu'],
-        scopeLabel: 'Summer 2026 · Monday / Thursday League',
+        scopeLabel: 'Summer 2026 · Monday League',
       }),
       'VIPERZ',
     );

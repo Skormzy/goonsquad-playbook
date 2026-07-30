@@ -683,7 +683,7 @@ function StatsManager({ dataset, onClose, onUpdated, snapshot }) {
     <div className="stats-manager-backdrop" role="presentation" onMouseDown={onClose}>
       <section className="stats-manager" role="dialog" aria-modal="true" aria-labelledby="stats-manager-title" onMouseDown={(event) => event.stopPropagation()}>
         <header className="stats-manager-header">
-          <div><span>AUTHORIZED ENTRY</span><h2 id="stats-manager-title">Manage {snapshot.team?.name}</h2></div>
+          <div><span>AUTHORIZED ENTRY</span><h2 id="stats-manager-title">Manage {formatScheduleName(snapshot.team)}</h2></div>
           <button type="button" onClick={onClose} aria-label="Close statistics manager" title="Close"><X aria-hidden="true" /></button>
         </header>
         <div className="stats-manager-tabs" role="tablist" aria-label="Statistics entry type">
