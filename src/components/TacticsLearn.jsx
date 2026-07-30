@@ -107,8 +107,6 @@ export default function TacticsLearn() {
   }, [cancelPlaybackRestart, setPreviousPositions, setCurrentPlay, setCurrentPhase, setIsPlaying, setActiveView]);
 
   const FF = 'var(--font-body)';
-  const truncP = (title, n = 26) => title.length > n ? title.slice(0, n) + '…' : title;
-
   // ─── UI blocks ───
 
   const selectorBlock = (
@@ -167,7 +165,7 @@ export default function TacticsLearn() {
           aria-pressed={activeTab === tab.id}
           style={{
             flex: 1, padding: '6px 8px', borderRadius: 6,
-            fontSize: 12, fontWeight: 800, cursor: 'pointer',
+            fontSize: 13.5, fontWeight: 800, cursor: 'pointer',
             border: activeTab === tab.id ? `1px solid ${tab.color}44` : '1px solid transparent',
             background: activeTab === tab.id ? `${tab.color}22` : 'transparent',
             color: activeTab === tab.id ? tab.color : t.td,
@@ -182,7 +180,7 @@ export default function TacticsLearn() {
 
   const rinkBlock = (
     <div className="tactics-rink-stage">
-      <ReplayTeachingCue accent={tabAccent} />
+      {!isDesktop && <ReplayTeachingCue accent={tabAccent} />}
       <div className="tactics-rink" style={{ width: '100%' }}>
         <SceneRink2D
           scene={currentReplayScene}
@@ -204,13 +202,13 @@ export default function TacticsLearn() {
   const navBlock = (
     <div className="tactics-neighbor-nav" style={{ display: 'flex', gap: 6, width: '100%', margin: '2px 0 8px', padding: isDesktop ? 0 : '0 8px' }}>
       {activePrinciple > 0 ? (
-        <button onClick={() => selectPrinciple(activePrinciple - 1)} style={{ flex: 1, padding: '5px 8px', textAlign: 'left', borderRadius: 5, border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: FF }}>
-          ← {truncP(laneTactics[activePrinciple - 1].title)}
+        <button onClick={() => selectPrinciple(activePrinciple - 1)} style={{ flex: 1, padding: '7px 9px', textAlign: 'left', borderRadius: 5, border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FF }}>
+          ← {laneTactics[activePrinciple - 1].title}
         </button>
       ) : <div style={{ flex: 1 }} />}
       {activePrinciple < laneTactics.length - 1 ? (
-        <button onClick={() => selectPrinciple(activePrinciple + 1)} style={{ flex: 1, padding: '5px 8px', textAlign: 'right', borderRadius: 5, border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: FF }}>
-          {truncP(laneTactics[activePrinciple + 1].title)} →
+        <button onClick={() => selectPrinciple(activePrinciple + 1)} style={{ flex: 1, padding: '7px 9px', textAlign: 'right', borderRadius: 5, border: `1px solid ${t.bd}`, background: 'transparent', color: t.tm, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FF }}>
+          {laneTactics[activePrinciple + 1].title} →
         </button>
       ) : <div style={{ flex: 1 }} />}
     </div>
@@ -218,26 +216,26 @@ export default function TacticsLearn() {
 
   const laneAccent = principle.lane === 'offence' ? '#e3263f' : '#39d7ff';
   const categoryBadgeBlock = (
-    <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0, color: laneAccent, background: `${laneAccent}18`, border: `1px solid ${laneAccent}33`, padding: '3px 10px', borderRadius: 10, marginBottom: 5, fontFamily: 'var(--font-display)', alignSelf: isDesktop ? 'flex-start' : 'center' }}>
+    <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0, color: laneAccent, background: `${laneAccent}18`, border: `1px solid ${laneAccent}33`, padding: '4px 10px', borderRadius: 5, marginBottom: 7, fontFamily: 'var(--font-display)', alignSelf: isDesktop ? 'flex-start' : 'center' }}>
       {principle.lane.toUpperCase()} / {principle.situation.toUpperCase()}
     </div>
   );
 
   const titleBlock = (
-    <div style={{ textAlign: isDesktop ? 'left' : 'center', marginBottom: 4 }}>
-      <div style={{ fontSize: isDesktop ? 21 : 19, fontFamily: 'var(--font-display)', fontWeight: 800, color: t.tx, lineHeight: 1.1 }}>{principle.title}</div>
-      <div style={{ fontSize: 12, color: t.tm, marginTop: 3, fontFamily: FF }}>{principle.subtitle}</div>
+    <div style={{ textAlign: isDesktop ? 'left' : 'center', marginBottom: 7 }}>
+      <div style={{ fontSize: isDesktop ? 28 : 22, fontFamily: 'var(--font-display)', fontWeight: 800, color: t.tx, lineHeight: 1.05 }}>{principle.title}</div>
+      <div style={{ fontSize: isDesktop ? 14.5 : 14, color: t.tm, marginTop: 4, lineHeight: 1.4, fontFamily: FF }}>{principle.subtitle}</div>
     </div>
   );
 
   const principleTextBlock = (
-    <div style={{ fontSize: 12, color: t.tm, textAlign: isDesktop ? 'left' : 'center', maxWidth: isDesktop ? undefined : 340, lineHeight: 1.55, margin: '2px 0 10px', fontFamily: FF }}>
+    <div style={{ fontSize: isDesktop ? 15 : 14, color: t.tm, textAlign: isDesktop ? 'left' : 'center', maxWidth: isDesktop ? undefined : 340, lineHeight: 1.6, margin: '2px 0 12px', fontFamily: FF }}>
       {principle.principle}
     </div>
   );
 
   const legendBlock = (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: isDesktop ? 'flex-start' : 'center', padding: '7px 0', fontSize: 10.5, color: t.tm, fontFamily: FF, borderTop: `1px solid ${t.bd}`, width: '100%', marginBottom: isDesktop ? 0 : 8 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: isDesktop ? 'flex-start' : 'center', padding: '8px 0', fontSize: 12.5, color: t.tm, fontFamily: FF, borderTop: `1px solid ${t.bd}`, width: '100%', marginBottom: isDesktop ? 0 : 8 }}>
       <LegendItem color={t.pc.C} label="Our Team" />
       <LegendItem color={t.oc} label="Opponent" />
       <LegendItem color={BALL_COLOR} label="Ball" />
@@ -249,17 +247,17 @@ export default function TacticsLearn() {
 
   const whyBlock = (
     <div style={{ width: '100%', paddingBottom: 4 }}>
-      <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0, color: t.td, fontFamily: 'var(--font-display)', marginBottom: 5 }}>WHY IT MATTERS</div>
-      <div style={{ fontSize: 12.5, color: t.tm, lineHeight: 1.55, fontFamily: FF }}>{principle.why}</div>
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0, color: t.td, fontFamily: 'var(--font-display)', marginBottom: 6 }}>WHY IT MATTERS</div>
+      <div style={{ fontSize: isDesktop ? 15 : 14, color: t.tm, lineHeight: 1.6, fontFamily: FF }}>{principle.why}</div>
     </div>
   );
 
   const keyPointsBlock = (
     <div style={{ width: '100%', paddingBottom: isDesktop ? 8 : 16 }}>
-      <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0, color: t.td, fontFamily: 'var(--font-display)', marginBottom: 7 }}>KEY POINTS</div>
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0, color: t.td, fontFamily: 'var(--font-display)', marginBottom: 8 }}>KEY POINTS</div>
       {principle.keyPoints.map((kp, i) => (
-        <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, fontSize: 12, color: t.tx, lineHeight: 1.45, fontFamily: FF }}>
-          <span style={{ color: TC.defense, fontWeight: 800, flexShrink: 0, fontFamily: 'var(--font-display)', fontSize: 12 }}>{i + 1}.</span>
+        <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 9, fontSize: 14, color: t.tx, lineHeight: 1.5, fontFamily: FF }}>
+          <span style={{ color: TC.defense, fontWeight: 800, flexShrink: 0, fontFamily: 'var(--font-display)', fontSize: 14 }}>{i + 1}.</span>
           <span>{kp}</span>
         </div>
       ))}
@@ -268,7 +266,7 @@ export default function TacticsLearn() {
 
   const linkedPlaysBlock = principle.linkedPlays.length > 0 && (
     <div style={{ width: '100%', paddingBottom: isDesktop ? 8 : 24, borderTop: `1px solid ${t.bd}`, paddingTop: 10 }}>
-      <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0, color: t.td, fontFamily: 'var(--font-display)', marginBottom: 7 }}>SEE IT IN PLAYS</div>
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0, color: t.td, fontFamily: 'var(--font-display)', marginBottom: 8 }}>SEE IT IN PLAYS</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
         {principle.linkedPlays.map(playId => {
           const play = PLAYS.find(p => p.id === playId);
@@ -284,7 +282,7 @@ export default function TacticsLearn() {
                 border: `1px solid ${cc}55`,
                 background: `${cc}14`,
                 color: cc, cursor: 'pointer',
-                fontSize: 11, fontWeight: 800, fontFamily: FF,
+                fontSize: 13, fontWeight: 800, fontFamily: FF,
                 transition: 'all .15s',
               }}
             >

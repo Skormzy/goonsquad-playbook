@@ -14,10 +14,6 @@ import ResponsibilityPanel from './ResponsibilityPanel';
 import SceneRink2D from './SceneRink2D';
 import Sidebar from './Sidebar';
 
-function truncate(value, limit = 20) {
-  return value.length > limit ? `${value.slice(0, limit)}…` : value;
-}
-
 function phaseColor(title, accent) {
   if (title?.includes('✅')) return '#22c55e';
   if (title?.includes('❌')) return '#ef4444';
@@ -33,12 +29,12 @@ function PlayNavigation({ playIdx, plays, goPlay, muted, border }) {
       {previous ? (
         <button type="button" onClick={() => goPlay(previous)} title={previous.n} style={{ color: muted, borderColor: border }}>
           <span aria-hidden="true">←</span>
-          <span>{truncate(previous.n)}</span>
+          <span>{previous.n}</span>
         </button>
       ) : <span />}
       {next ? (
         <button type="button" onClick={() => goPlay(next)} title={next.n} style={{ color: muted, borderColor: border }}>
-          <span>{truncate(next.n)}</span>
+          <span>{next.n}</span>
           <span aria-hidden="true">→</span>
         </button>
       ) : <span />}
@@ -154,9 +150,6 @@ export default function PlayViewer() {
         </header>
 
         <section className="play-region play-region-rink" data-region="rink" aria-label="Rink view">
-          <ReplayTeachingCue accent={currentPhaseColor}>
-            {currentPlay?.faceoff ? <FaceoffOutcomeControl compact /> : null}
-          </ReplayTeachingCue>
           <div className="play-rink-frame">
             <SceneRink2D
               scene={currentReplayScene}
@@ -170,7 +163,11 @@ export default function PlayViewer() {
         </section>
 
         <aside className="play-region play-region-detail" data-region="detail" style={{ borderColor: t.bd }}>
-          <div className="play-region-label" style={{ color: t.td }}>TEAM PLAN</div>
+          {currentPlay?.faceoff ? (
+            <div className="play-detail-faceoff">
+              <FaceoffOutcomeControl compact />
+            </div>
+          ) : null}
           <ResponsibilityPanel compact embedded />
           <StrategyButton color={categoryColor} onClick={() => setStrategyOpen(true)} />
         </aside>

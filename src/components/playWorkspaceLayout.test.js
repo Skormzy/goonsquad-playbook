@@ -15,6 +15,12 @@ describe('responsive play workspace structure', () => {
     expect(css).toContain('minmax(340px, 500px)');
   });
 
+  it('uses one desktop coaching source while retaining guided cues on compact layouts', () => {
+    expect(viewer.match(/<ReplayTeachingCue accent=\{currentPhaseColor\}>/g)).toHaveLength(1);
+    expect(viewer).toContain('<div className="play-detail-faceoff">');
+    expect(viewer).not.toContain('<div className="play-region-label"');
+  });
+
   it('uses a separate mobile bottom sheet and rink-first bounded height', () => {
     expect(viewer).toContain('data-testid="play-bottom-sheet"');
     expect(viewer).toContain('aria-controls="mobile-coaching-detail"');
@@ -25,5 +31,18 @@ describe('responsive play workspace structure', () => {
 
   it('does not use page zoom as a responsive layout mechanism', () => {
     expect(css).not.toMatch(/\.app-content\s*\{[^}]*zoom:/s);
+  });
+
+  it('keeps instructional copy complete and readable at every compact breakpoint', () => {
+    const readabilitySeal = css.split('/* Replay coaching readability seal')[1];
+
+    expect(readabilitySeal).toBeTruthy();
+    expect(readabilitySeal).toContain('.replay-teaching-cue-copy p');
+    expect(readabilitySeal).toContain('white-space: normal');
+    expect(readabilitySeal).toContain('text-overflow: clip');
+    expect(readabilitySeal).toContain('-webkit-line-clamp: unset');
+    expect(readabilitySeal).toContain('font-size: 13px');
+    expect(readabilitySeal).not.toMatch(/-webkit-line-clamp:\s*[12]\s*;/);
+    expect(readabilitySeal).not.toContain('text-overflow: ellipsis');
   });
 });

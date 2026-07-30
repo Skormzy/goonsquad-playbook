@@ -13465,3 +13465,422 @@ input:focus:not(:focus-visible) { outline: none; }
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Replay coaching readability seal ---------------------------------------
+   Instructional copy is never clipped. Desktop uses the coaching rail as
+   its single lesson surface; compact layouts keep the guided rink cue. */
+.play-workspace-desktop {
+  grid-template-columns: minmax(190px, 218px) minmax(340px, 500px) minmax(260px, 330px);
+}
+
+.play-workspace-desktop .play-region-title {
+  min-height: 72px;
+  padding-block: 7px;
+}
+
+.play-workspace-desktop .play-region-title .play-identity {
+  width: min(50%, 500px);
+}
+
+.play-workspace-desktop .play-identity h1,
+.play-workspace-desktop .play-identity p,
+.play-mobile-title .play-identity h1,
+.play-library-item-meta,
+.play-library-item-detail p,
+.play-neighbor-nav button,
+.play-neighbor-nav button span,
+.team-jobs-heading > small,
+.team-job-card p,
+.team-job-detail-actions p,
+.team-job-detail-actions strong,
+.play-bottom-sheet-title small,
+.replay-teaching-cue-copy small,
+.replay-teaching-cue-copy strong,
+.replay-teaching-cue-copy p {
+  display: block;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: initial;
+  -webkit-line-clamp: unset;
+}
+
+.play-workspace-desktop .play-identity h1 {
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+.play-workspace-desktop .play-identity p {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.play-neighbor-nav button {
+  min-height: 38px;
+  overflow: visible;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.play-library-item-meta {
+  margin-bottom: 4px;
+  font-size: 11px;
+  line-height: 1.15;
+}
+
+.play-library-item-detail {
+  gap: 7px;
+}
+
+.play-library-item-detail > span {
+  margin-top: 6px;
+}
+
+.play-library-item-detail p {
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.play-region-detail {
+  padding: 10px 10px 12px 16px;
+  background: color-mix(in srgb, var(--play-panel) 38%, transparent);
+}
+
+.play-detail-faceoff {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--play-border);
+}
+
+.play-region-detail > .team-jobs-panel {
+  gap: 11px;
+}
+
+.play-region-detail .team-jobs-heading {
+  gap: 5px;
+  padding: 10px 11px 11px;
+  border-left: 4px solid var(--play-accent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--play-accent) 8%, var(--play-panel));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--gs-shadow) 54%, transparent);
+}
+
+.team-jobs-heading > span {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.team-jobs-heading > strong {
+  font-size: 21px;
+  line-height: 1.08;
+}
+
+.team-jobs-heading > small {
+  color: var(--play-muted, #91a0b0);
+  font-size: 13.5px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.team-job-lenses button {
+  min-height: 36px;
+  font-size: 13px;
+}
+
+.team-job-card {
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 10px;
+  padding: 9px 10px;
+}
+
+.team-job-card > span,
+.team-job-detail-heading > span {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.team-job-card p,
+.team-job-detail-actions p,
+.team-jobs-panel.is-compact .team-job-card p {
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.team-job-detail-heading > small,
+.team-job-detail-actions > div > span {
+  font-size: 11px;
+}
+
+.team-job-detail-actions strong {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.play-region-detail .play-strategy-button {
+  min-height: 38px;
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: 14px;
+}
+
+.tactics-coaching-column {
+  padding: 11px 14px 18px;
+  border-left: 4px solid var(--gs-cyan);
+  background: color-mix(in srgb, var(--gs-cyan) 4%, transparent);
+}
+
+.tactics-desktop-workspace {
+  width: min(100%, 840px);
+  grid-template-columns: minmax(0, 420px) minmax(0, 396px);
+  gap: 24px;
+}
+
+.replay-teaching-cue {
+  min-height: 82px;
+  gap: 12px;
+  padding: 11px 14px 14px;
+  overflow: visible;
+  border-left-width: 0;
+  box-shadow:
+    0 12px 30px color-mix(in srgb, var(--gs-shadow) 72%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--gs-white) 9%, transparent);
+}
+
+.replay-teaching-cue-status {
+  min-width: 76px;
+  min-height: 38px;
+  font-size: 11px;
+}
+
+.replay-teaching-cue-copy {
+  gap: 3px;
+}
+
+.replay-teaching-cue-copy small {
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.replay-teaching-cue-copy strong {
+  font-size: 21px;
+  line-height: 1.08;
+}
+
+.replay-teaching-cue-copy p {
+  margin: 0;
+  color: var(--gs-muted);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.play-bottom-sheet-title small {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+@media (max-width: 699px), (max-height: 520px) and (orientation: landscape) {
+  .replay-teaching-cue {
+    min-height: 0;
+    grid-template-columns: 60px minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
+    padding: 10px 10px 13px;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] {
+    grid-template-columns: 60px minmax(0, 1fr);
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .replay-teaching-cue-action {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+    justify-content: flex-end;
+  }
+
+  .replay-teaching-cue-status {
+    min-width: 60px;
+    min-height: 34px;
+    padding-inline: 6px;
+    font-size: 10px;
+  }
+
+  .replay-teaching-cue-copy small {
+    font-size: 10.5px;
+    line-height: 1.25;
+  }
+
+  .replay-teaching-cue-copy strong {
+    font-size: 17px;
+    line-height: 1.08;
+  }
+
+  .replay-teaching-cue-copy p {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .play-mobile-title .play-identity > small {
+    font-size: 11px;
+  }
+
+  .play-mobile-title .play-identity h1 {
+    font-size: 18px;
+    line-height: 1.1;
+  }
+}
+
+@media (max-width: 374px) and (orientation: portrait) {
+  .replay-teaching-cue {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 7px;
+    padding-inline: 8px;
+  }
+
+  .replay-teaching-cue-status {
+    min-width: 56px;
+  }
+
+  .replay-teaching-cue-copy strong {
+    font-size: 16px;
+  }
+
+  .replay-teaching-cue-copy p {
+    display: block;
+    font-size: 12.5px;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .play-mobile-rink > .replay-teaching-cue,
+  .tactics-rink-stage > .replay-teaching-cue {
+    width: min(560px, calc(100% - 110px));
+  }
+
+  .vnext3d-preview-stage > .replay-teaching-cue {
+    width: min(540px, calc(100% - 160px));
+  }
+
+  .replay-teaching-cue-copy p {
+    display: block;
+  }
+}
+
+@media (max-width: 699px) and (orientation: portrait) {
+  .replay-teaching-cue[data-has-action='true'] {
+    grid-template-columns: 60px minmax(0, 1fr) 82px;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .replay-teaching-cue-action {
+    grid-column: auto;
+    width: auto;
+    align-self: end;
+    justify-content: flex-end;
+  }
+}
+
+.faceoff-outcome-control.is-compact .faceoff-outcome-label {
+  font-size: 10.5px;
+}
+
+.faceoff-outcome-control.is-compact .faceoff-outcome-options button {
+  font-size: 11px;
+}
+
+@media (max-width: 699px) and (orientation: portrait) {
+  .replay-teaching-cue[data-has-action='true'] {
+    grid-template-columns: 54px minmax(0, 1fr) 50px;
+    gap: 6px;
+    padding: 6px 8px 8px;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .replay-teaching-cue-status {
+    min-width: 54px;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .replay-teaching-cue-copy p {
+    font-size: 12.5px;
+    line-height: 1.3;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .faceoff-outcome-label {
+    display: none;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .faceoff-outcome-options {
+    width: 50px;
+    grid-template-columns: 50px;
+    grid-template-rows: repeat(2, 44px);
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .faceoff-outcome-options button {
+    min-height: 44px;
+    padding-inline: 3px;
+    border-top: 1px solid var(--play-border, #363b42);
+    border-left: 0;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .faceoff-outcome-options button:first-child {
+    border-top: 0;
+  }
+}
+
+@media (max-width: 374px) and (orientation: portrait) {
+  .replay-teaching-cue[data-has-action='true'] {
+    grid-template-columns: 52px minmax(0, 1fr) 48px;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .replay-teaching-cue-status {
+    min-width: 52px;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .faceoff-outcome-options {
+    width: 48px;
+    grid-template-columns: 48px;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .replay-teaching-cue[data-has-action='true'] .faceoff-outcome-label {
+    display: none;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .play-mobile-rink {
+    overflow: visible;
+  }
+
+  .play-mobile-rink > .replay-teaching-cue {
+    top: 96px;
+    left: calc(100% + 8px);
+    width: min(620px, calc(100vw - 218px));
+    transform: none;
+  }
+
+  .tactics-rink-stage > .replay-teaching-cue {
+    top: auto;
+    right: auto;
+    bottom: 0;
+    left: calc(100% + 8px);
+    width: min(620px, calc(100vw - 174px));
+    transform: none;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] {
+    grid-template-columns: 60px minmax(0, 1fr) 82px;
+  }
+
+  .replay-teaching-cue[data-has-action='true'] .replay-teaching-cue-action {
+    grid-column: auto;
+    width: auto;
+    align-self: end;
+    justify-content: flex-end;
+  }
+}

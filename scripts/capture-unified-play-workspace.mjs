@@ -106,7 +106,12 @@ for (const viewport of viewports) {
     document.querySelector('[data-testid="vnext-3d-production-preview"]')
       ?.getAttribute('data-frame-sample-count') ?? 0,
   ) >= 60, undefined, { timeout: 120_000 });
-  await page.getByTestId('role-lens-wingers').click();
+  if (viewport.id === 'mobile') {
+    await page.locator('.vnext3d-mobile-coaching > summary').click();
+  }
+  const threeDimensionalWingerLens = page.getByTestId('role-lens-wingers');
+  await threeDimensionalWingerLens.waitFor({ state: 'visible' });
+  await threeDimensionalWingerLens.click();
   await page.waitForFunction(() => (
     document.querySelector('[data-testid="vnext-3d-production-preview"]')
       ?.getAttribute('data-role-lens') === 'wingers'

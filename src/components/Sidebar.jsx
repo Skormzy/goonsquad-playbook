@@ -249,7 +249,7 @@ export default function Sidebar({ embedded = false }) {
                     {p.isPrimarySystem ? 'PRIMARY SYSTEM' : p.situation.toUpperCase()}
                   </div>
                   <div style={{
-                    fontSize: 11, fontWeight: 600, marginBottom: 2,
+                    fontSize: 13.5, fontWeight: 750, marginBottom: 3,
                     color: t.tx, lineHeight: 1.3,
                   }}>
                     {p.n}

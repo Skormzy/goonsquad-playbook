@@ -64,6 +64,7 @@ export default function ReplayTeachingCue({
     <section
       className={`replay-teaching-cue ${className}`.trim()}
       data-stage={stageId}
+      data-has-action={children ? 'true' : undefined}
       data-testid="replay-teaching-cue"
       style={{
         '--phase-count': phaseCount,

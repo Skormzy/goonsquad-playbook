@@ -27,6 +27,7 @@ describe('RoleFocusCard', () => {
   it('packages the primary system as complete grouped team jobs', () => {
     const markup = renderWithApp(<ResponsibilityPanel compact embedded />);
 
+    expect(markup).toContain('PHASE 1 OF');
     expect(markup).toContain('data-testid="role-lens-team"');
     expect(markup).toContain('data-testid="role-lens-wingers"');
     expect(markup).toContain('data-testid="role-lens-center"');

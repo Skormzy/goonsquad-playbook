@@ -6,13 +6,16 @@ export default function ResponsibilityPanel({ compact = false }) {
   const { currentReplayPhases, currentPhase, isMirrored } = useApp();
   const phase = currentReplayPhases[currentPhase];
   if (!phase) return null;
+  const title = phase.t || phase.desc || `Phase ${currentPhase + 1}`;
+  const description = phase.desc && phase.desc !== title ? phase.desc : null;
 
   return (
     <TeamJobsPanel
       compact={compact}
-      eyebrow="PHASE PLAN"
+      eyebrow={`PHASE ${currentPhase + 1} OF ${currentReplayPhases.length}`}
       jobs={teamJobsFromPhase(phase, isMirrored)}
-      summary={phase.desc}
+      meta={description}
+      summary={title}
     />
   );
 }

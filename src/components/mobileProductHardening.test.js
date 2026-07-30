@@ -49,6 +49,12 @@ describe('mobile product hardening contracts', () => {
     expect(css).toContain('.tactics-phase-dot');
   });
 
+  it('keeps strategy teaching on the coaching rail at desktop and on-rink at compact sizes', () => {
+    expect(strategy).toContain('{!isDesktop && <ReplayTeachingCue accent={tabAccent} />}');
+    expect(css).toContain('.tactics-coaching-column');
+    expect(css).toContain('border-left: 4px solid var(--gs-cyan)');
+  });
+
   it('clamps mobile phase targets inside the timeline while preserving their exact phase value', () => {
     expect(playback).toContain("'--playback-marker-position': `${markerPosition}%`");
     expect(css).toContain('left: clamp(20px, var(--playback-marker-position), calc(100% - 20px))');
