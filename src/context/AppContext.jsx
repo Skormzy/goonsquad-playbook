@@ -34,12 +34,23 @@ function isStrategyView(activeView) {
   return activeView === 'tactics' || activeView === 'strategy3d';
 }
 
+function strategyPhaseTitle(phase, index) {
+  const explicitTitle = phase.title?.trim();
+  if (explicitTitle) return explicitTitle;
+
+  const caption = phase.caption?.trim();
+  if (!caption) return `Phase ${index + 1}`;
+
+  const firstSentence = caption.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? caption;
+  return firstSentence.replace(/[.!?]+$/, '').trim();
+}
+
 function replayPhasesForStrategy(tactic, variant) {
   if (!tactic) return [];
   const source = variant === 'mistake' ? tactic.mistakeScene : tactic.correctScene;
   return source.phases.map((phase, index) => ({
     id: index,
-    t: phase.caption,
+    t: strategyPhaseTitle(phase, index),
     desc: phase.caption,
     pos: phase.our,
   }));

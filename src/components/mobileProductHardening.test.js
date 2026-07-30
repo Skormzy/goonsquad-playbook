@@ -55,6 +55,30 @@ describe('mobile product hardening contracts', () => {
     expect(css).toContain('border-left: 4px solid var(--gs-cyan)');
   });
 
+  it('keeps the desktop strategy command deck and complete phase rail above a viewport-contained rink', () => {
+    const commandIndex = strategy.indexOf('tactics-desktop-command-row');
+    const transportIndex = strategy.indexOf('tactics-desktop-transport');
+    const rinkIndex = strategy.indexOf('tactics-desktop-rink');
+    const legendIndex = strategy.indexOf('tactics-desktop-legend');
+
+    expect(commandIndex).toBeGreaterThan(-1);
+    expect(transportIndex).toBeGreaterThan(commandIndex);
+    expect(rinkIndex).toBeGreaterThan(transportIndex);
+    expect(legendIndex).toBeGreaterThan(rinkIndex);
+    expect(css).toContain('Desktop strategy console');
+    expect(css).toMatch(/\.tactics-learn\s*\{[^}]*height:\s*100%;[^}]*overflow:\s*hidden !important;/s);
+    expect(css).toMatch(/\.tactics-desktop-transport \.playback-phase-rail button > strong\s*\{[^}]*text-overflow:\s*clip;[^}]*white-space:\s*normal;/s);
+    expect(css).toMatch(/\.tactics-desktop-rink \.tactics-rink\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;/s);
+    expect(css).toMatch(/\.tactics-desktop-rink \.tactics-rink > svg\s*\{[^}]*width:\s*100% !important;[^}]*height:\s*100% !important;/s);
+    expect(css).toContain('.tactics-desktop-legend .tactics-legend');
+  });
+
+  it('uses concise strategy phase names without discarding the complete coaching caption', () => {
+    expect(appContext).toContain('function strategyPhaseTitle');
+    expect(appContext).toContain('t: strategyPhaseTitle(phase, index)');
+    expect(appContext).toContain('desc: phase.caption');
+  });
+
   it('clamps mobile phase targets inside the timeline while preserving their exact phase value', () => {
     expect(playback).toContain("'--playback-marker-position': `${markerPosition}%`");
     expect(css).toContain('left: clamp(20px, var(--playback-marker-position), calc(100% - 20px))');

@@ -19,6 +19,7 @@ const opponentGoalie = (x = 50, y = 93) => ({
 const PRIMARY_DEFENSIVE_TACTIC_PHASES = Object.freeze(
   PRIMARY_DEFENSIVE_PLAY.phases.map((phase) => Object.freeze({
     duration: phase.duration,
+    title: phase.t,
     caption: phase.desc,
     our: phase.pos,
     opp: phase.opp.map((player) => ({
@@ -53,6 +54,7 @@ export const STRONG_SIDE_LOCK_TACTIC = Object.freeze({
       PRIMARY_DEFENSIVE_TACTIC_PHASES[0],
       {
         duration: 3.25,
+        title: 'Pressure Breaks Shape',
         caption: 'RW chases from the outside while C drifts to the wall. The middle opens.',
         our: {
           G: { x: 51, y: 8 },
@@ -75,6 +77,7 @@ export const STRONG_SIDE_LOCK_TACTIC = Object.freeze({
       },
       {
         duration: 3.25,
+        title: 'Middle Opens',
         caption: 'Their center receives through the open middle with speed.',
         our: {
           G: { x: 50, y: 8 },
@@ -99,6 +102,7 @@ export const STRONG_SIDE_LOCK_TACTIC = Object.freeze({
       },
       {
         duration: 3.5,
+        title: 'Slot Chance',
         caption: 'The broken shape gives up a clean slot chance.',
         our: {
           G: { x: 49, y: 8 },
