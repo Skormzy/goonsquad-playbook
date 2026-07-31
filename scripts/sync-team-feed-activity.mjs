@@ -10,6 +10,8 @@ const DEFAULT_BACKFILL_SINCE = '2026-01-01T00:00:00.000Z';
 const TORONTO_TIME_ZONE = 'America/Toronto';
 const MAX_BODY_LENGTH = 3000;
 const MAX_SOURCE_TITLE_LENGTH = 240;
+const YOUTUBE_PUBLIC_RECENT_LIMIT = 12;
+const YOUTUBE_PUBLIC_MAX_REQUESTS = 12;
 
 async function loadLocalEnvironment() {
   try {
@@ -32,6 +34,61 @@ function truncate(value, limit) {
   const text = clean(value);
   if (text.length <= limit) return text;
   return `${text.slice(0, Math.max(0, limit - 1)).trimEnd()}…`;
+}
+
+function extractAssignedJson(text, marker) {
+  const markerIndex = text.indexOf(marker);
+  if (markerIndex < 0) return null;
+  const startIndex = text.indexOf('{', markerIndex + marker.length);
+  if (startIndex < 0) return null;
+  let depth = 0;
+  let escaped = false;
+  let insideString = false;
+  for (let index = startIndex; index < text.length; index += 1) {
+    const character = text[index];
+    if (insideString) {
+      if (escaped) escaped = false;
+      else if (character === '\\') escaped = true;
+      else if (character === '"') insideString = false;
+      continue;
+    }
+    if (character === '"') {
+      insideString = true;
+      continue;
+    }
+    if (character === '{') depth += 1;
+    if (character !== '}') continue;
+    depth -= 1;
+    if (depth !== 0) continue;
+    return JSON.parse(text.slice(startIndex, index + 1));
+  }
+  return null;
+}
+
+function collectByKey(node, key, output = []) {
+  if (!node || typeof node !== 'object') return output;
+  if (Object.hasOwn(node, key)) output.push(node[key]);
+  Object.values(node).forEach((value) => collectByKey(value, key, output));
+  return output;
+}
+
+function normalizeYoutubeHandle(value) {
+  const input = clean(value);
+  if (!input) return '';
+  try {
+    const url = new URL(input);
+    return url.pathname.split('/').find((part) => part.startsWith('@')) || '';
+  } catch {
+    return input.startsWith('@') ? input : `@${input}`;
+  }
+}
+
+async function mapInBatches(items, batchSize, mapper) {
+  const mapped = [];
+  for (let index = 0; index < items.length; index += batchSize) {
+    mapped.push(...await Promise.all(items.slice(index, index + batchSize).map(mapper)));
+  }
+  return mapped;
 }
 
 function scheduleName(team) {
@@ -223,6 +280,140 @@ export function youtubeItemsFromApiResponse(items = []) {
     .filter(Boolean);
 }
 
+export function youtubeItemFromPlayerResponse(
+  response,
+  { expectedChannelId = '' } = {},
+) {
+  const details = response?.videoDetails;
+  const microformat = response?.microformat?.playerMicroformatRenderer;
+  const publishedAt = microformat?.uploadDate || microformat?.publishDate;
+  if (
+    !details?.videoId
+    || !details?.title
+    || !publishedAt
+    || (expectedChannelId && details.channelId !== expectedChannelId)
+  ) {
+    return null;
+  }
+  const thumbnails = details.thumbnail?.thumbnails || [];
+  return youtubeFeedItem({
+    videoId: details.videoId,
+    title: details.title,
+    description: details.shortDescription,
+    publishedAt,
+    thumbnailUrl: thumbnails.at(-1)?.url || '',
+  });
+}
+
+async function youtubeItemsFromPublicChannel({
+  channelHandle,
+  channelId,
+  fullScan,
+  recentLimit = YOUTUBE_PUBLIC_RECENT_LIMIT,
+  since,
+}) {
+  const normalizedHandle = normalizeYoutubeHandle(channelHandle);
+  if (!normalizedHandle) throw new Error('The YouTube channel handle is invalid.');
+  const headers = {
+    'accept-language': 'en-CA,en;q=0.9',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/138.0.0.0 Safari/537.36',
+  };
+  const channelResponse = await fetch(
+    `https://www.youtube.com/${encodeURI(normalizedHandle)}/videos`,
+    { headers },
+  );
+  if (!channelResponse.ok) {
+    throw new Error(`YouTube channel page lookup failed (${channelResponse.status}).`);
+  }
+  const channelHtml = await channelResponse.text();
+  const initialData = (
+    extractAssignedJson(channelHtml, 'var ytInitialData =')
+    || extractAssignedJson(channelHtml, 'window["ytInitialData"] =')
+  );
+  if (!initialData) throw new Error('YouTube channel catalogue was not found.');
+
+  const videoIds = new Set(
+    collectByKey(initialData, 'videoId')
+      .filter((value) => /^[A-Za-z0-9_-]{11}$/u.test(value)),
+  );
+
+  if (fullScan) {
+    const apiKey = channelHtml.match(/"INNERTUBE_API_KEY":"([^"]+)"/u)?.[1];
+    const clientVersion = channelHtml.match(/"INNERTUBE_CLIENT_VERSION":"([^"]+)"/u)?.[1];
+    const visitorData = channelHtml.match(/"VISITOR_DATA":"([^"]+)"/u)?.[1];
+    const pendingTokens = collectByKey(initialData, 'continuationItemRenderer')
+      .map((item) => item?.continuationEndpoint?.continuationCommand?.token)
+      .filter(Boolean);
+    const visitedTokens = new Set();
+    let requestCount = 0;
+    while (
+      apiKey
+      && clientVersion
+      && visitorData
+      && pendingTokens.length
+      && requestCount < YOUTUBE_PUBLIC_MAX_REQUESTS
+      && videoIds.size < 250
+    ) {
+      const token = pendingTokens.shift();
+      if (!token || visitedTokens.has(token)) continue;
+      visitedTokens.add(token);
+      const response = await fetch(
+        `https://www.youtube.com/youtubei/v1/browse?key=${encodeURIComponent(apiKey)}`,
+        {
+          method: 'POST',
+          headers: {
+            ...headers,
+            'content-type': 'application/json',
+            'x-goog-visitor-id': decodeURIComponent(visitorData),
+          },
+          body: JSON.stringify({
+            context: {
+              client: {
+                clientName: 'WEB',
+                clientVersion,
+                visitorData: decodeURIComponent(visitorData),
+              },
+            },
+            continuation: token,
+          }),
+        },
+      );
+      requestCount += 1;
+      if (!response.ok) continue;
+      const payload = await response.json();
+      collectByKey(payload, 'videoId')
+        .filter((value) => /^[A-Za-z0-9_-]{11}$/u.test(value))
+        .forEach((value) => videoIds.add(value));
+      collectByKey(payload, 'continuationItemRenderer')
+        .map((item) => item?.continuationEndpoint?.continuationCommand?.token)
+        .filter(Boolean)
+        .forEach((value) => pendingTokens.push(value));
+    }
+  }
+
+  const selectedIds = fullScan
+    ? [...videoIds]
+    : [...videoIds].slice(0, recentLimit);
+  const items = await mapInBatches(selectedIds, 6, async (videoId) => {
+    const response = await fetch(
+      `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`,
+      { headers },
+    );
+    if (!response.ok) return null;
+    const html = await response.text();
+    const playerResponse = (
+      extractAssignedJson(html, 'var ytInitialPlayerResponse =')
+      || extractAssignedJson(html, 'ytInitialPlayerResponse =')
+    );
+    return youtubeItemFromPlayerResponse(playerResponse, {
+      expectedChannelId: channelId,
+    });
+  });
+  return items.filter(
+    (item) => item && new Date(item.sourcePublishedAt).getTime() >= since,
+  );
+}
+
 async function youtubeItemsFromDataApi({ apiKey, channelId, playlistId, since }) {
   let uploadsPlaylistId = playlistId;
   if (!uploadsPlaylistId) {
@@ -350,22 +541,49 @@ function dedupeFeedItems(items) {
     ));
 }
 
-async function collectConfiguredSocialItems(since) {
+async function collectConfiguredSocialItems(
+  since,
+  { fullYoutubeScan = false } = {},
+) {
   const items = [];
   const warnings = [];
   const youtubeChannelId = process.env.TEAM_YOUTUBE_CHANNEL_ID;
-  if (youtubeChannelId) {
+  const youtubeChannelHandle = process.env.TEAM_YOUTUBE_CHANNEL_HANDLE;
+  if (youtubeChannelId || youtubeChannelHandle) {
     try {
-      items.push(...(
-        process.env.YOUTUBE_API_KEY
-          ? await youtubeItemsFromDataApi({
-            apiKey: process.env.YOUTUBE_API_KEY,
-            channelId: youtubeChannelId,
-            playlistId: process.env.TEAM_YOUTUBE_PLAYLIST_ID,
-            since,
-          })
-          : await youtubeItemsFromRss({ channelId: youtubeChannelId, since })
-      ));
+      if (process.env.YOUTUBE_API_KEY && youtubeChannelId) {
+        items.push(...await youtubeItemsFromDataApi({
+          apiKey: process.env.YOUTUBE_API_KEY,
+          channelId: youtubeChannelId,
+          playlistId: process.env.TEAM_YOUTUBE_PLAYLIST_ID,
+          since,
+        }));
+      } else {
+        let rssItems = [];
+        if (youtubeChannelId) {
+          try {
+            rssItems = await youtubeItemsFromRss({
+              channelId: youtubeChannelId,
+              since,
+            });
+          } catch {
+            // Some public channels do not expose an RSS feed. The channel-page
+            // fallback below uses the same public videos that viewers see.
+          }
+        }
+        items.push(...(
+          rssItems.length
+            ? rssItems
+            : await youtubeItemsFromPublicChannel({
+              channelHandle: youtubeChannelHandle,
+              channelId: youtubeChannelId,
+              fullScan: fullYoutubeScan,
+              recentLimit: Number(process.env.TEAM_YOUTUBE_RECENT_LIMIT)
+                || YOUTUBE_PUBLIC_RECENT_LIMIT,
+              since,
+            })
+        ));
+      }
     } catch (error) {
       warnings.push(error instanceof Error ? error.message : String(error));
     }
@@ -440,7 +658,12 @@ export async function main() {
   const since = new Date(sinceText).getTime();
   if (!Number.isFinite(since)) throw new Error('TEAM_FEED_BACKFILL_SINCE is invalid.');
   const resultItems = buildResultFeedItems(snapshot, { since: sinceText });
-  const social = await collectConfiguredSocialItems(since);
+  const social = await collectConfiguredSocialItems(since, {
+    fullYoutubeScan: (
+      process.env.TEAM_YOUTUBE_PUBLIC_FULL_SCAN === '1'
+      || process.argv.includes('--full-social-backfill')
+    ),
+  });
   const items = dedupeFeedItems([...resultItems, ...social.items]);
 
   if (process.argv.includes('--dry-run')) {

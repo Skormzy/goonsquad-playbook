@@ -202,6 +202,33 @@ const QA_POSTS = Object.freeze([
     comments: [],
     mentions: [],
   },
+  {
+    id: 'qa-youtube-1',
+    authorId: null,
+    author: null,
+    body: 'Full game replay from the Monday League.',
+    linkUrl: 'https://www.youtube.com/watch?v=JEnVPcwJiFU',
+    mediaPath: '',
+    mediaKind: '',
+    mediaUrl: '',
+    sourceType: 'youtube',
+    sourceKey: 'youtube:JEnVPcwJiFU',
+    sourceLabel: 'Goon Squad YouTube',
+    sourceTitle: 'Goonsquad vs Dew Lang Ducks (Away View) - Game 6',
+    sourceImageUrl: 'https://i.ytimg.com/vi/JEnVPcwJiFU/hqdefault.jpg',
+    sourcePublishedAt: '2026-07-30T03:59:10Z',
+    sourceMetadata: {
+      videoId: 'JEnVPcwJiFU',
+    },
+    pinnedAt: null,
+    createdAt: '2026-07-30T03:59:10Z',
+    reactions: [
+      { userId: 'qa-user', reaction: 'fire' },
+      { userId: 'qa-winger', reaction: 'celebrate' },
+    ],
+    comments: [],
+    mentions: [],
+  },
 ]);
 
 function Avatar({ member, size = 'md' }) {

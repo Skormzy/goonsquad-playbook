@@ -99,6 +99,13 @@ for (const viewport of viewports) {
   const officialResultText = (await officialResultCard.innerText()).replace(/\s+/gu, ' ').trim();
   const officialResultPath = path.join(outputDir, `${viewport.id}-official-result-feed-${viewport.width}x${viewport.height}.png`);
   await page.screenshot({ path: officialResultPath, fullPage: false });
+
+  await page.getByRole('tab', { name: 'Social', exact: true }).click();
+  const youtubePost = page.locator('.feed-post.is-source.is-youtube').first();
+  await youtubePost.waitFor({ state: 'visible', timeout: 30_000 });
+  const youtubePostText = (await youtubePost.innerText()).replace(/\s+/gu, ' ').trim();
+  const youtubePath = path.join(outputDir, `${viewport.id}-youtube-feed-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: youtubePath, fullPage: false });
   await page.getByRole('tab', { name: 'All', exact: true }).click();
 
   await page.getByTestId(viewport.id === 'mobile' ? 'mobile-nav-stats' : 'workspace-content-stats').click();
@@ -184,6 +191,7 @@ for (const viewport of viewports) {
     composerVisible,
     memberDocumentOverflow,
     officialResultText,
+    youtubePostText,
     summary: summary.replace(/\s+/gu, ' ').trim(),
     matchday: matchday.map((value) => value.replace(/\s+/gu, ' ').trim()),
     teamLabels,
@@ -208,6 +216,7 @@ for (const viewport of viewports) {
       path.relative(root, homePath).replaceAll('\\', '/'),
       path.relative(root, memberHomePath).replaceAll('\\', '/'),
       path.relative(root, officialResultPath).replaceAll('\\', '/'),
+      path.relative(root, youtubePath).replaceAll('\\', '/'),
       path.relative(root, statsPath).replaceAll('\\', '/'),
       path.relative(root, gameDetailPath).replaceAll('\\', '/'),
       path.relative(root, gameBoxScorePath).replaceAll('\\', '/'),
@@ -227,6 +236,12 @@ for (const viewport of viewports) {
     || !officialResultText.toUpperCase().includes('FULL GAME SHEET')
   ) {
     throw new Error(`${viewport.id}: official result feed card is incomplete.`);
+  }
+  if (
+    !youtubePostText.includes('Goonsquad vs Dew Lang Ducks')
+    || !youtubePostText.includes('WATCH ON YOUTUBE')
+  ) {
+    throw new Error(`${viewport.id}: YouTube feed card is incomplete.`);
   }
   if (matchday.length !== 2 || !matchday[0].includes('NEXT GAME') || !matchday[1].includes('LATEST RESULT')) throw new Error(`${viewport.id}: matchday summary is incomplete.`);
   if (!/\d+–\d+–\d+/u.test(summary) || !/\d+ games · 2 leagues/u.test(summary)) {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildResultFeedItems,
   instagramItemsFromApiResponse,
+  youtubeItemFromPlayerResponse,
   youtubeItemsFromApiResponse,
 } from '../../scripts/sync-team-feed-activity.mjs';
 
@@ -90,6 +91,58 @@ describe('automated Squad Live activity', () => {
       linkUrl: 'https://www.youtube.com/watch?v=video-1',
       sourceImageUrl: 'https://i.ytimg.com/video-1.jpg',
     });
+  });
+
+  it('normalizes public YouTube watch metadata from the official channel', () => {
+    const item = youtubeItemFromPlayerResponse({
+      videoDetails: {
+        videoId: 'JEnVPcwJiFU',
+        title: 'Goon Squad game night',
+        shortDescription: 'Full game replay.',
+        channelId: 'UCtNyBYGsEMv_puzlZn_yntg',
+        thumbnail: {
+          thumbnails: [
+            { url: 'https://i.ytimg.com/vi/JEnVPcwJiFU/default.jpg' },
+            { url: 'https://i.ytimg.com/vi/JEnVPcwJiFU/hqdefault.jpg' },
+          ],
+        },
+      },
+      microformat: {
+        playerMicroformatRenderer: {
+          uploadDate: '2026-07-29T20:59:10-07:00',
+        },
+      },
+    }, {
+      expectedChannelId: 'UCtNyBYGsEMv_puzlZn_yntg',
+    });
+
+    expect(item).toMatchObject({
+      sourceKey: 'youtube:JEnVPcwJiFU',
+      sourceType: 'youtube',
+      sourceLabel: 'Goon Squad YouTube',
+      sourceTitle: 'Goon Squad game night',
+      body: 'Full game replay.',
+      linkUrl: 'https://www.youtube.com/watch?v=JEnVPcwJiFU',
+      sourceImageUrl: 'https://i.ytimg.com/vi/JEnVPcwJiFU/hqdefault.jpg',
+      sourceMetadata: { videoId: 'JEnVPcwJiFU' },
+    });
+  });
+
+  it('rejects public YouTube watch metadata from another channel', () => {
+    expect(youtubeItemFromPlayerResponse({
+      videoDetails: {
+        videoId: 'other-video',
+        title: 'Not our upload',
+        channelId: 'another-channel',
+      },
+      microformat: {
+        playerMicroformatRenderer: {
+          uploadDate: '2026-07-29',
+        },
+      },
+    }, {
+      expectedChannelId: 'UCtNyBYGsEMv_puzlZn_yntg',
+    })).toBeNull();
   });
 
   it('normalizes official Instagram media without inventing account data', () => {

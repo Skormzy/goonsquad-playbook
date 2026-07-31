@@ -37,11 +37,13 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           TEAM_FEED_INGEST_TOKEN: ${{ secrets.TEAM_FEED_INGEST_TOKEN }}
           TEAM_FEED_BACKFILL_SINCE: '2026-01-01T00:00:00.000Z'
-          TEAM_YOUTUBE_CHANNEL_ID: ${{ secrets.TEAM_YOUTUBE_CHANNEL_ID }}
+          TEAM_YOUTUBE_CHANNEL_ID: UCtNyBYGsEMv_puzlZn_yntg
+          TEAM_YOUTUBE_CHANNEL_HANDLE: GoonsquadBHC
+          TEAM_YOUTUBE_RECENT_LIMIT: '12'
           TEAM_YOUTUBE_PLAYLIST_ID: ${{ secrets.TEAM_YOUTUBE_PLAYLIST_ID }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           TEAM_INSTAGRAM_USER_ID: ${{ secrets.TEAM_INSTAGRAM_USER_ID }}
-          TEAM_INSTAGRAM_LABEL: ${{ secrets.TEAM_INSTAGRAM_LABEL }}
+          TEAM_INSTAGRAM_LABEL: '@goonsquad_bhc'
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
       - name: Publish changed official data
         shell: bash
