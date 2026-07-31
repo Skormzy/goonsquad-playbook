@@ -32,6 +32,16 @@ describe('Squad Live product contract', () => {
     expect(home).toContain('Pin for team');
   });
 
+  it('uses resumable mobile uploads and permits private Supabase video playback', () => {
+    expect(cloud).toContain("import('tus-js-client')");
+    expect(cloud).toContain('chunkSize: RESUMABLE_CHUNK_BYTES');
+    expect(cloud).toContain('findPreviousUploads()');
+    expect(cloud).toContain('previousUploads[0].metadata?.objectName');
+    expect(home).toContain('Media upload progress');
+    expect(home).toContain('Open in native player');
+    expect(deployment).toContain("media-src 'self' blob: https://*.supabase.co");
+  });
+
   it('treats official results and social posts as deduplicated feed activity', () => {
     expect(activityMigration).toContain('source_key text');
     expect(activityMigration).toContain('team_feed_posts_source_key_unique_idx');

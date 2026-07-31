@@ -12,6 +12,13 @@ const AUTH_PERSISTENCE_KEY = 'goonsquad:auth:persistence';
 
 export const playmakerCloudConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
+export function playmakerCloudResumableStorageUrl() {
+  const hostname = new URL(supabaseUrl).hostname;
+  const projectRef = hostname.split('.')[0];
+  if (!projectRef || !/^[a-z0-9-]+$/u.test(projectRef)) return '';
+  return `https://${projectRef}.storage.supabase.co/storage/v1/upload/resumable`;
+}
+
 let client = null;
 let rememberAuth = true;
 

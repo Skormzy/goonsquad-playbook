@@ -66,6 +66,7 @@ import {
   FEED_COMMENT_MAX_LENGTH,
   FEED_POST_MAX_LENGTH,
   FEED_REACTIONS,
+  feedMediaContentType,
   feedTextParts,
   formatFeedTime,
   initialsForMember,
@@ -544,6 +545,7 @@ function PostComposer({
   onClose,
   onPublish,
   publishing,
+  uploadProgress,
 }) {
   const [body, setBody] = useState('');
   const [file, setFile] = useState(null);
@@ -551,6 +553,7 @@ function PostComposer({
   const [linkOpen, setLinkOpen] = useState(false);
   const [error, setError] = useState('');
   const previewUrl = useMemo(() => file ? URL.createObjectURL(file) : '', [file]);
+  const fileIsVideo = feedMediaContentType(file).startsWith('video/');
 
   useEffect(() => {
     return () => {
@@ -574,7 +577,11 @@ function PostComposer({
       return;
     }
     setError('');
-    await onPublish({ body, file, linkUrl });
+    try {
+      await onPublish({ body, file, linkUrl });
+    } catch (publishError) {
+      setError(publishError?.message || 'The post could not be published.');
+    }
   };
 
   return (
@@ -595,7 +602,9 @@ function PostComposer({
             disabled={publishing || !canPublishFeedPost({ body, file, linkUrl })}
             onClick={publish}
           >
-            {publishing ? 'Posting…' : 'Post'}
+            {publishing
+              ? (file ? `${uploadProgress}%` : 'Posting…')
+              : 'Post'}
           </button>
         </header>
         <div className="feed-composer-author">
@@ -613,10 +622,34 @@ function PostComposer({
         />
         {previewUrl && (
           <div className="feed-composer-preview">
-            {file.type.startsWith('video/')
-              ? <video src={previewUrl} controls />
+            {fileIsVideo
+              ? <video src={previewUrl} controls playsInline preload="metadata" />
               : <img src={previewUrl} alt="Selected upload preview" />}
-            <button type="button" onClick={() => setFile(null)} aria-label="Remove attachment"><X /></button>
+            <button
+              type="button"
+              disabled={publishing}
+              onClick={() => setFile(null)}
+              aria-label="Remove attachment"
+            >
+              <X />
+            </button>
+          </div>
+        )}
+        {publishing && file && (
+          <div
+            className="feed-upload-progress"
+            role="progressbar"
+            aria-label="Media upload progress"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow={uploadProgress}
+          >
+            <span>
+              <strong>{fileIsVideo ? 'Uploading video' : 'Uploading photo'}</strong>
+              <em>{uploadProgress}%</em>
+            </span>
+            <div><i style={{ width: `${uploadProgress}%` }} /></div>
+            <small>Upload continues in resumable chunks if the mobile connection briefly drops.</small>
           </div>
         )}
         {linkOpen && (
@@ -639,6 +672,7 @@ function PostComposer({
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
+              disabled={publishing}
               onChange={(event) => chooseFile(event.target.files?.[0] || null)}
             />
           </label>
@@ -647,15 +681,16 @@ function PostComposer({
             <span className="sr-only">Add video</span>
             <input
               type="file"
-              accept="video/mp4,video/webm,video/quicktime"
+              accept="video/*"
+              disabled={publishing}
               onChange={(event) => chooseFile(event.target.files?.[0] || null)}
             />
           </label>
-          <button type="button" className={linkOpen ? 'is-active' : ''} onClick={() => setLinkOpen((open) => !open)} title="Add link">
+          <button type="button" disabled={publishing} className={linkOpen ? 'is-active' : ''} onClick={() => setLinkOpen((open) => !open)} title="Add link">
             <Link2 aria-hidden="true" />
             <span className="sr-only">Add link</span>
           </button>
-          <button type="button" title="Tag teammate" onClick={() => setBody((current) => `${current}${current && !current.endsWith(' ') ? ' ' : ''}@`)}>
+          <button type="button" disabled={publishing} title="Tag teammate" onClick={() => setBody((current) => `${current}${current && !current.endsWith(' ') ? ' ' : ''}@`)}>
             <AtSign aria-hidden="true" />
             <span className="sr-only">Tag teammate</span>
           </button>
@@ -663,6 +698,28 @@ function PostComposer({
         </footer>
       </section>
     </div>
+  );
+}
+
+function MemberFeedVideo({ mediaUrl }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className="feed-member-video-fallback">
+        <Film aria-hidden="true" />
+        <strong>This device cannot decode the original video.</strong>
+        <a href={mediaUrl} target="_blank" rel="noreferrer">Open in native player</a>
+      </div>
+    );
+  }
+  return (
+    <video
+      src={mediaUrl}
+      controls
+      playsInline
+      preload="metadata"
+      onError={() => setFailed(true)}
+    />
   );
 }
 
@@ -768,7 +825,7 @@ function PostCard({
       {post.mediaUrl && (
         <div className={`feed-post-media is-${post.mediaKind}`}>
           {post.mediaKind === 'video'
-            ? <video src={post.mediaUrl} controls playsInline preload="metadata" />
+            ? <MemberFeedVideo key={post.mediaUrl} mediaUrl={post.mediaUrl} />
             : <img src={post.mediaUrl} alt="Shared by a team member" loading="lazy" />}
         </div>
       )}
@@ -997,6 +1054,7 @@ export default function TeamHome() {
   const [filter, setFilter] = useState('latest');
   const [composerOpen, setComposerOpen] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [pendingAction, setPendingAction] = useState('');
   const [status, setStatus] = useState('');
   const refreshTimerRef = useRef(null);
@@ -1140,11 +1198,13 @@ export default function TeamHome() {
 
   const publish = async (payload) => {
     setPublishing(true);
+    setUploadProgress(0);
     try {
       if (!qaFeed) {
         await createTeamFeedPost({
           ...payload,
           members: feed.members,
+          onUploadProgress: setUploadProgress,
           userId: currentUserId,
         });
         await refreshFeed();
@@ -1156,6 +1216,7 @@ export default function TeamHome() {
       throw error;
     } finally {
       setPublishing(false);
+      setUploadProgress(0);
     }
   };
 
@@ -1368,6 +1429,7 @@ export default function TeamHome() {
           currentMember={currentMember}
           members={feed.members}
           publishing={publishing}
+          uploadProgress={uploadProgress}
           onClose={() => !publishing && setComposerOpen(false)}
           onPublish={publish}
         />

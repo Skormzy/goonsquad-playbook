@@ -25,6 +25,17 @@ export const FEED_MEDIA_TYPES = Object.freeze({
   'video/quicktime': 'video',
 });
 
+const FEED_MEDIA_EXTENSION_TYPES = Object.freeze({
+  gif: 'image/gif',
+  jpeg: 'image/jpeg',
+  jpg: 'image/jpeg',
+  mov: 'video/quicktime',
+  mp4: 'video/mp4',
+  png: 'image/png',
+  webm: 'video/webm',
+  webp: 'image/webp',
+});
+
 const USERNAME_PATTERN = /(^|[^\w])@([a-z0-9_]{3,24})\b/giu;
 const URL_PATTERN = /\bhttps?:\/\/[^\s<>()]+/iu;
 
@@ -54,6 +65,17 @@ export function normalizeExternalUrl(value) {
   }
 }
 
+export function feedMediaContentType(file) {
+  const declaredType = String(file?.type || '').trim().toLowerCase();
+  if (FEED_MEDIA_TYPES[declaredType]) return declaredType;
+  const extension = String(file?.name || '')
+    .split('.')
+    .pop()
+    ?.trim()
+    .toLowerCase();
+  return FEED_MEDIA_EXTENSION_TYPES[extension] || '';
+}
+
 export function linkDomain(value) {
   try {
     return new URL(value).hostname.replace(/^www\./u, '');
@@ -64,7 +86,7 @@ export function linkDomain(value) {
 
 export function validateFeedMedia(file) {
   if (!file) return { valid: true, kind: null, message: '' };
-  const kind = FEED_MEDIA_TYPES[file.type];
+  const kind = FEED_MEDIA_TYPES[feedMediaContentType(file)];
   if (!kind) {
     return {
       valid: false,

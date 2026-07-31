@@ -3,6 +3,7 @@ import {
   canPublishFeedPost,
   extractFirstUrl,
   extractMentionUsernames,
+  feedMediaContentType,
   feedTextParts,
   formatFeedTime,
   normalizeExternalUrl,
@@ -26,6 +27,8 @@ describe('team feed model', () => {
 
   it('accepts supported media and rejects oversized files', () => {
     expect(validateFeedMedia({ type: 'image/jpeg', size: 100 }).kind).toBe('image');
+    expect(feedMediaContentType({ name: 'iphone-clip.MOV', type: '' })).toBe('video/quicktime');
+    expect(validateFeedMedia({ name: 'iphone-clip.MOV', type: '', size: 100 }).kind).toBe('video');
     expect(validateFeedMedia({ type: 'video/mp4', size: 60 * 1024 * 1024 }).valid).toBe(false);
     expect(validateFeedMedia({ type: 'application/pdf', size: 100 }).valid).toBe(false);
   });

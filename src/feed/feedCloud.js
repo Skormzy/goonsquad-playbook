@@ -1,15 +1,20 @@
-import { getPlaymakerCloudClient } from '../playmaker/playmakerCloud';
+import {
+  getPlaymakerCloudClient,
+  playmakerCloudResumableStorageUrl,
+} from '../playmaker/playmakerCloud';
 import {
   extractFirstUrl,
   extractMentionUsernames,
   FEED_COMMENT_MAX_LENGTH,
   FEED_POST_MAX_LENGTH,
   FEED_REACTION_IDS,
+  feedMediaContentType,
   normalizeExternalUrl,
   validateFeedMedia,
 } from './feedModel';
 
 const MEDIA_BUCKET = 'team-feed-media';
+const RESUMABLE_CHUNK_BYTES = 6 * 1024 * 1024;
 
 function requireCloud() {
   const cloud = getPlaymakerCloudClient();
@@ -211,19 +216,82 @@ export async function loadTeamFeed({ limit = 140, userId = '' } = {}) {
   };
 }
 
-async function uploadFeedMedia(cloud, userId, file) {
+function resumableStorageEndpoint() {
+  const endpoint = playmakerCloudResumableStorageUrl();
+  if (!endpoint) {
+    throw new Error('Video storage is not configured correctly.');
+  }
+  return endpoint;
+}
+
+async function resumableUpload(cloud, path, file, onProgress) {
+  const { Upload } = await import('tus-js-client');
+  const { data, error } = await cloud.auth.getSession();
+  throwIfError(error);
+  if (!data.session?.access_token) throw new Error('Sign in again before uploading this video.');
+
+  return new Promise((resolve, reject) => {
+    let uploadedPath = path;
+    const upload = new Upload(file, {
+      endpoint: resumableStorageEndpoint(),
+      retryDelays: [0, 1000, 3000, 5000, 10000, 20000],
+      headers: {
+        authorization: `Bearer ${data.session.access_token}`,
+      },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      chunkSize: RESUMABLE_CHUNK_BYTES,
+      metadata: {
+        bucketName: MEDIA_BUCKET,
+        objectName: path,
+        contentType: feedMediaContentType(file),
+        cacheControl: '3600',
+      },
+      onError: reject,
+      onProgress(bytesUploaded, bytesTotal) {
+        const progress = bytesTotal > 0
+          ? Math.min(100, Math.round((bytesUploaded / bytesTotal) * 100))
+          : 0;
+        onProgress?.(progress);
+      },
+      onSuccess() {
+        onProgress?.(100);
+        resolve(uploadedPath);
+      },
+    });
+
+    upload.findPreviousUploads()
+      .then((previousUploads) => {
+        if (previousUploads.length) {
+          uploadedPath = previousUploads[0].metadata?.objectName || path;
+          upload.resumeFromPreviousUpload(previousUploads[0]);
+        }
+        upload.start();
+      })
+      .catch(() => upload.start());
+  });
+}
+
+async function uploadFeedMedia(cloud, userId, file, onProgress) {
   const validation = validateFeedMedia(file);
   if (!validation.valid) throw new Error(validation.message);
   if (!file) return { mediaPath: null, mediaKind: null };
   const path = `${userId}/${crypto.randomUUID()}.${mediaExtension(file)}`;
+  const contentType = feedMediaContentType(file);
+  onProgress?.(0);
+  if (validation.kind === 'video' || file.size > RESUMABLE_CHUNK_BYTES) {
+    const uploadedPath = await resumableUpload(cloud, path, file, onProgress);
+    return { mediaPath: uploadedPath, mediaKind: validation.kind };
+  }
   const { error } = await cloud.storage
     .from(MEDIA_BUCKET)
     .upload(path, file, {
       cacheControl: '3600',
-      contentType: file.type,
+      contentType,
       upsert: false,
     });
   throwIfError(error);
+  onProgress?.(100);
   return { mediaPath: path, mediaKind: validation.kind };
 }
 
@@ -253,13 +321,14 @@ export async function createTeamFeedPost({
   file = null,
   linkUrl = '',
   members = [],
+  onUploadProgress,
   userId,
 }) {
   const cloud = requireCloud();
   requireUserId(userId);
   const cleanBody = String(body || '').trim().slice(0, FEED_POST_MAX_LENGTH);
   const normalizedLink = normalizeExternalUrl(linkUrl || extractFirstUrl(cleanBody)) || null;
-  const media = await uploadFeedMedia(cloud, userId, file);
+  const media = await uploadFeedMedia(cloud, userId, file, onUploadProgress);
   let postId = '';
   try {
     const { data, error } = await cloud

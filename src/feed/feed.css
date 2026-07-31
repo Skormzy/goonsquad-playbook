@@ -604,6 +604,40 @@
   object-fit: contain;
 }
 
+.feed-member-video-fallback {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 28px;
+  color: #fff;
+  text-align: center;
+}
+
+.feed-member-video-fallback svg {
+  width: 34px;
+  height: 34px;
+  color: var(--gs-cyan);
+}
+
+.feed-member-video-fallback strong {
+  font-size: 15px;
+}
+
+.feed-member-video-fallback a {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 13px;
+  border: 1px solid rgb(255 255 255 / 32%);
+  border-radius: 4px;
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 850;
+}
+
 .feed-source-media {
   position: relative;
   display: block;
@@ -1600,6 +1634,55 @@
   height: 16px;
 }
 
+.feed-upload-progress {
+  display: grid;
+  gap: 7px;
+  margin: 0 15px 12px;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--gs-cyan) 45%, var(--feed-border));
+  border-radius: 5px;
+  background: var(--gs-accent-bg);
+}
+
+.feed-upload-progress > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.feed-upload-progress strong,
+.feed-upload-progress em {
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.feed-upload-progress em {
+  color: var(--gs-cyan);
+}
+
+.feed-upload-progress > div {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--feed-border) 76%, transparent);
+}
+
+.feed-upload-progress i {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: var(--gs-cyan);
+  transition: width 160ms ease-out;
+}
+
+.feed-upload-progress small {
+  color: var(--feed-muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
 .feed-link-field {
   min-height: 44px;
   display: grid;
@@ -1668,6 +1751,12 @@
 
 .feed-composer-sheet > footer input {
   display: none;
+}
+
+.feed-composer-sheet > footer button:disabled,
+.feed-composer-sheet > footer label:has(input:disabled) {
+  cursor: default;
+  opacity: 0.42;
 }
 
 .feed-composer-sheet > footer svg {
