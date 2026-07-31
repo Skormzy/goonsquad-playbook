@@ -1,4 +1,8 @@
 import { getPlaymakerCloudClient, playmakerCloudConfigured } from '../playmaker/playmakerCloud';
+import {
+  applyGameStatOverrides,
+  mapGameStatOverrideRow,
+} from './gameStatOverrides';
 
 export const PUBLIC_STATISTICS_QUERIES = Object.freeze({
   seasons: Object.freeze({
@@ -134,6 +138,22 @@ async function enrichPublicPlayerAvatars(dataset, cloud) {
   } catch {
     return dataset;
   }
+}
+
+async function enrichPublicGameStatOverrides(dataset, cloud) {
+  if (!cloud || typeof cloud.rpc !== 'function') return dataset;
+  try {
+    const { data, error } = await cloud.rpc('list_public_team_game_stat_overrides');
+    if (error || !Array.isArray(data) || !data.length) return dataset;
+    return applyGameStatOverrides(dataset, data);
+  } catch {
+    return dataset;
+  }
+}
+
+async function enrichRuntimeStatistics(dataset, cloud) {
+  const withAvatars = await enrichPublicPlayerAvatars(dataset, cloud);
+  return enrichPublicGameStatOverrides(withAvatars, cloud);
 }
 
 function mapMembership(row) {
@@ -407,7 +427,7 @@ export async function loadStatisticsDataset({
   const runtimeDataset = await loadRuntimeStatisticsDataset();
   const cloud = getPlaymakerCloudClient();
   if (!playmakerCloudConfigured || !cloud) return runtimeDataset;
-  if (!useCloudProjection) return enrichPublicPlayerAvatars(runtimeDataset, cloud);
+  if (!useCloudProjection) return enrichRuntimeStatistics(runtimeDataset, cloud);
   try {
     const queries = PUBLIC_STATISTICS_QUERIES;
     const [seasons, teams, players, memberships, games, teamGameStats, playerGameStats, goalieGameStats, gameEvents, teamSeasonSummaries, playerSeasonStats, goalieSeasonStats] = await Promise.all([
@@ -439,10 +459,39 @@ export async function loadStatisticsDataset({
       playerSeasonStats: playerSeasonStats.map(mapPlayerSeasonLine),
       goalieSeasonStats: goalieSeasonStats.map(mapGoalieSeasonLine),
     });
-    return enrichPublicPlayerAvatars(merged, cloud);
+    return enrichRuntimeStatistics(merged, cloud);
   } catch {
-    return enrichPublicPlayerAvatars(runtimeDataset, cloud);
+    return enrichRuntimeStatistics(runtimeDataset, cloud);
   }
+}
+
+export async function saveTeamGameStatOverride({
+  gameKey,
+  gameExternalId,
+  seasonTeamId,
+  payload,
+  note = '',
+}) {
+  const cloud = getPlaymakerCloudClient();
+  if (!cloud) throw new Error('Team statistics are not connected.');
+  const { data, error } = await cloud.rpc('upsert_team_game_stat_override', {
+    p_game_key: gameKey,
+    p_game_external_id: gameExternalId || null,
+    p_season_team_id: seasonTeamId,
+    p_payload: payload,
+    p_note: note,
+  });
+  if (error) throw error;
+  return mapGameStatOverrideRow(Array.isArray(data) ? data[0] || {} : data || {});
+}
+
+export async function removeTeamGameStatOverride(gameKey) {
+  const cloud = getPlaymakerCloudClient();
+  if (!cloud) throw new Error('Team statistics are not connected.');
+  const { error } = await cloud.rpc('delete_team_game_stat_override', {
+    p_game_key: gameKey,
+  });
+  if (error) throw error;
 }
 
 export async function addRosterPlayer({ seasonTeamId, displayName, jerseyNumber, position }) {

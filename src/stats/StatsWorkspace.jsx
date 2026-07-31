@@ -71,6 +71,7 @@ import {
 import PlayerProfilePage from './PlayerProfilePage';
 import TournamentWorkspace from './TournamentWorkspace';
 import AllTimeRecords from './AllTimeRecords';
+import GameStatCorrectionPanel from './GameStatCorrectionPanel';
 import { buildAllTimeRecords } from './allTimeRecordsModel';
 import {
   TOURNAMENT_ARCHIVE,
@@ -473,8 +474,12 @@ function GameDetails({
   onBack,
   onCopyLink,
   onOpenPlayer,
+  onUpdated,
+  rosterPlayers,
+  canCorrect,
   copied,
 }) {
+  const [correctionOpen, setCorrectionOpen] = useState(false);
   if (!game || !details) return null;
   const events = [...details.events].sort((a, b) => a.period - b.period || (a.clockSeconds ?? 0) - (b.clockSeconds ?? 0));
   const hasPublishedDetails = Boolean(details.team || details.players.length || details.goalies.length || details.events.length);
@@ -486,6 +491,7 @@ function GameDetails({
       <div className="stats-game-page-toolbar">
         <button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> All games</button>
         <div>
+          {canCorrect && <button type="button" className="stats-game-correct-button" onClick={() => setCorrectionOpen(true)}><Settings2 aria-hidden="true" /> {game.adminCorrection ? 'Edit correction' : 'Correct game'}</button>}
           <button type="button" onClick={onCopyLink}><Copy aria-hidden="true" /> {copied ? 'Link copied' : 'Copy link'}</button>
           {game.sourceUrl && <a href={game.sourceUrl} target="_blank" rel="noreferrer">Official game sheet <ExternalLink aria-hidden="true" /></a>}
         </div>
@@ -497,6 +503,7 @@ function GameDetails({
             <span>{details.schedule ? `${formatScheduleName(details.schedule).toUpperCase()} · ` : ''}{game.stage === 'playoffs' ? 'PLAYOFFS' : 'REGULAR SEASON'}</span>
             <h2>Goonsquad <b>vs</b> {game.opponent}</h2>
             <p>{formatGameDate(game.scheduledAt)} · {venue}{game.location ? ` · ${game.location}` : ''}</p>
+            {game.adminCorrection && <div className="stats-game-correction-badge"><ShieldCheck aria-hidden="true" /><span>ADMIN VERIFIED</span><strong>Team correction applied</strong>{game.adminCorrection.updatedAt && <small>{formatGameDate(game.adminCorrection.updatedAt)}</small>}</div>}
           </div>
           <div className={`stats-game-score is-${result.toLowerCase()}`}>
             <span>{result}{game.overtime ? ' · OT' : ''}</span>
@@ -524,6 +531,7 @@ function GameDetails({
           </section>
         </div>}
       </article>
+      {correctionOpen && <GameStatCorrectionPanel game={game} details={details} rosterPlayers={rosterPlayers} onClose={() => setCorrectionOpen(false)} onSaved={onUpdated} />}
     </section>
   );
 }
@@ -789,6 +797,8 @@ export default function StatsWorkspace() {
   const t = themes[theme];
   const developmentTournamentAdmin = import.meta.env.DEV
     && initialQueryValue('qaTournamentAdmin') === '1';
+  const developmentGameAdmin = import.meta.env.DEV
+    && initialQueryValue('qaGameAdmin') === '1';
   const canManageTournaments = account.profile?.role === 'admin' || developmentTournamentAdmin;
   const resolvedTournamentControlRoom = developmentTournamentAdmin
     ? { ...tournamentControlRoom, configured: true }
@@ -955,6 +965,17 @@ export default function StatsWorkspace() {
   }, [dataset, opponentMatchups, selectedFixtureId, selectedGameContext, selectedOpponentSlug]);
 
   const selectedFinalGameContext = selectedGameContext?.game.status === 'final' ? selectedGameContext : null;
+  const selectedGameRosterPlayers = useMemo(() => {
+    if (!dataset || !selectedFinalGameContext) return [];
+    const ids = new Set(dataset.memberships
+      .filter((membership) => membership.seasonTeamId === selectedFinalGameContext.game.seasonTeamId)
+      .map((membership) => String(membership.playerId)));
+    selectedFinalGameContext.details.players.forEach((line) => ids.add(String(line.playerId)));
+    selectedFinalGameContext.details.goalies.forEach((line) => ids.add(String(line.playerId)));
+    return dataset.players
+      .filter((player) => ids.has(String(player.id)))
+      .sort((a, b) => a.displayName.localeCompare(b.displayName));
+  }, [dataset, selectedFinalGameContext]);
   const selectedPlayerDetail = useMemo(
     () => resolvePlayerDetailState(dataset, selectedPlayerId),
     [dataset, selectedPlayerId],
@@ -1196,7 +1217,17 @@ export default function StatsWorkspace() {
       </section> : selectedPlayerDetail.status === 'not-found' ? <section className="stats-content is-player-page">
         <PlayerNotFound playerId={selectedPlayerId} onBack={closeDetail} />
       </section> : selectedFinalGameContext ? <section className="stats-content is-game-page">
-        <GameDetails game={selectedFinalGameContext.game} details={selectedFinalGameContext.details} onBack={closeDetail} onCopyLink={copyDetailLink} onOpenPlayer={openPlayer} copied={linkCopied} />
+        <GameDetails
+          game={selectedFinalGameContext.game}
+          details={selectedFinalGameContext.details}
+          rosterPlayers={selectedGameRosterPlayers}
+          canCorrect={account.profile?.role === 'admin' || developmentGameAdmin}
+          onBack={closeDetail}
+          onCopyLink={copyDetailLink}
+          onOpenPlayer={openPlayer}
+          onUpdated={refresh}
+          copied={linkCopied}
+        />
       </section> : selectedOpponentContext ? <section className="stats-content is-game-page">
         <OpponentHeadToHead
           matchup={selectedOpponentContext.matchup}
