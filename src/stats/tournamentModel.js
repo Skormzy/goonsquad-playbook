@@ -93,6 +93,9 @@ export function normalizeTournament(tournament = {}) {
     standings: Array.isArray(tournament.standings) ? tournament.standings : [],
     games: Array.isArray(tournament.games) ? tournament.games : [],
     bracket: Array.isArray(tournament.bracket) ? tournament.bracket : [],
+    leaders: Array.isArray(tournament.leaders) ? tournament.leaders : [],
+    playerStats: Array.isArray(tournament.playerStats) ? tournament.playerStats : [],
+    goalieStats: Array.isArray(tournament.goalieStats) ? tournament.goalieStats : [],
     display: normalizeTournamentDisplay(tournament.display),
   };
 }
@@ -145,6 +148,35 @@ export function buildTournamentArchive(
     .sort((a, b) => String(b.startDate).localeCompare(String(a.startDate)));
 }
 
+function sourceSnapshotKey(tournament = {}) {
+  const source = tournament.source || {};
+  if (!source.capturedAt) return '';
+  return [source.provider, source.seasonId, source.teamId, source.capturedAt]
+    .map((value) => String(value || '').trim())
+    .join(':');
+}
+
+function mergeSeedTournament(seed, payload) {
+  if (!payload) return seed;
+  const seedSnapshot = sourceSnapshotKey(seed);
+  const payloadSnapshot = sourceSnapshotKey(payload);
+  const sourceRefreshRequired = Boolean(seedSnapshot && seedSnapshot !== payloadSnapshot);
+
+  if (sourceRefreshRequired) {
+    return {
+      ...payload,
+      ...seed,
+      display: { ...seed.display },
+    };
+  }
+
+  return {
+    ...seed,
+    ...payload,
+    display: { ...seed.display, ...payload.display },
+  };
+}
+
 export function mergeTournamentRecords(
   seedTournaments = [],
   records = [],
@@ -157,19 +189,18 @@ export function mergeTournamentRecords(
   seedTournaments.forEach((seed) => {
     const record = recordById.get(seed.id);
     if (record && !record.isPublished && !includeDrafts) return;
-    const payload = record?.payload
-      ? {
-        ...seed,
-        ...record.payload,
-        display: { ...seed.display, ...record.payload.display },
-      }
-      : seed;
+    const payload = mergeSeedTournament(seed, record?.payload);
     merged.push({
       ...payload,
       _record: {
         hasOverride: Boolean(record?.payload),
         isPublished: record ? Boolean(record.isPublished) : true,
         isSeed: true,
+        sourceRefreshRequired: Boolean(
+          record?.payload
+          && sourceSnapshotKey(seed)
+          && sourceSnapshotKey(seed) !== sourceSnapshotKey(record.payload)
+        ),
         updatedAt: record?.updatedAt || '',
       },
     });
@@ -219,6 +250,9 @@ export function tournamentSummary(tournament) {
   const ties = scored.filter((game) => game.scoreFor === game.scoreAgainst).length;
   const opponents = new Set(games.map((game) => game.opponent).filter(Boolean));
   const videoAngles = games.reduce((total, game) => total + (game.media?.length || 0), 0);
+  const goalsFor = scored.reduce((total, game) => total + game.scoreFor, 0);
+  const goalsAgainst = scored.reduce((total, game) => total + game.scoreAgainst, 0);
+  const teamStats = tournament?.teamStats || {};
 
   return {
     documentedGames: games.length,
@@ -230,6 +264,14 @@ export function tournamentSummary(tournament) {
     opponents: opponents.size,
     videoAngles,
     record: scored.length ? `${wins}-${losses}-${ties}` : 'Archive pending',
+    goalsFor: Number.isFinite(teamStats.goalsFor) ? teamStats.goalsFor : goalsFor,
+    goalsAgainst: Number.isFinite(teamStats.goalsAgainst) ? teamStats.goalsAgainst : goalsAgainst,
+    goalDifferential: Number.isFinite(teamStats.goalDifferential)
+      ? teamStats.goalDifferential
+      : goalsFor - goalsAgainst,
+    finish: tournament?.finish || '',
+    poolFinish: tournament?.pool?.finish || null,
+    poolRecord: tournament?.pool?.record || '',
   };
 }
 

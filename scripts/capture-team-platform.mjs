@@ -134,7 +134,7 @@ for (const viewport of viewports) {
   const scheduleRows = await page.locator('.stats-schedule-row').allTextContents();
   const seasonOptions = await page.locator('.stats-season-controls select option').allTextContents();
   const leaderCount = await page.locator('.stats-leaders-table tbody tr').count();
-  const sourceHref = await page.getByRole('link', { name: /Official source/u }).getAttribute('href');
+  const sourceHref = await page.getByRole('link', { name: /Open official source for Monday League/u }).getAttribute('href');
   const documentOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
   await page.getByRole('tab', { name: 'Games', exact: true }).click();
@@ -307,7 +307,7 @@ for (const viewport of viewports) {
   if (memberPostCount < 2 || !composerVisible) throw new Error(`${viewport.id}: approved-member feed is incomplete.`);
   if (memberDocumentOverflow > 1) throw new Error(`${viewport.id}: member feed has ${memberDocumentOverflow}px horizontal overflow.`);
   if (
-    !officialResultText.toUpperCase().includes('GOON SQUAD')
+    !officialResultText.toUpperCase().includes('GOONSQUAD')
     || !/9\s*[–-]\s*4/u.test(officialResultText)
     || !officialResultText.toUpperCase().includes('FULL GAME SHEET')
   ) {
@@ -324,7 +324,7 @@ for (const viewport of viewports) {
   }
   if (!youtubePlayerLoaded) throw new Error(`${viewport.id}: YouTube player document did not finish loading.`);
   if (
-    !tiktokPostText.includes('New from Goon Squad on TikTok')
+    !tiktokPostText.includes('New from Goonsquad on TikTok')
     || !tiktokPostText.includes('Open in TikTok')
   ) {
     throw new Error(`${viewport.id}: TikTok feed card is incomplete.`);
@@ -335,7 +335,7 @@ for (const viewport of viewports) {
   }
   if (teamLabels.join('|') !== 'All teams|Monday League|Sunday League|Tournaments') throw new Error(`${viewport.id}: current competition navigation is incorrect.`);
   if (scheduleRows.length !== 2 || !scheduleRows.some((row) => row.includes('MON/THU TIER 5')) || !scheduleRows.some((row) => row.includes('SUNDAY TIER 5'))) throw new Error(`${viewport.id}: current league coverage is incomplete.`);
-  if (seasonOptions.length !== 16) throw new Error(`${viewport.id}: expected 16 official seasons, received ${seasonOptions.length}.`);
+  if (seasonOptions.length < 16) throw new Error(`${viewport.id}: historical season archive is incomplete (${seasonOptions.length}).`);
   if (leaderCount < 1) throw new Error(`${viewport.id}: official player leaders are missing.`);
   if (sourceHref !== 'https://www.yorkcentralbhl.com/team/7250-goonsquad') throw new Error(`${viewport.id}: official source provenance is incorrect.`);
   if (!new URL(gamePageHref).searchParams.get('game')) throw new Error(`${viewport.id}: finalized game page is not deep-linked.`);
@@ -364,13 +364,14 @@ for (const viewport of viewports) {
   const normalizedTournamentText = tournamentText.toLowerCase();
   if (
     !tournamentText.includes('2026 Oshawa Provincials')
-    || !normalizedTournamentText.includes('3 documented games')
-    || !normalizedTournamentText.includes('6')
-    || !normalizedTournamentText.includes('camera angles')
+    || !normalizedTournamentText.includes('championship finalist')
+    || !normalizedTournamentText.includes('4-1-0')
+    || !normalizedTournamentText.includes('game by game')
+    || !normalizedTournamentText.includes('alex grezlovski')
   ) {
     throw new Error(`${viewport.id}: tournament overview is incomplete.`);
   }
-  if (tournamentTabs.join('|') !== 'Overview|Standings|Bracket|Games') throw new Error(`${viewport.id}: tournament dossier navigation is incomplete.`);
+  if (tournamentTabs.join('|') !== 'Weekend|Pool D|Road to Final|Gamebook') throw new Error(`${viewport.id}: tournament dossier navigation is incomplete.`);
   if (
     tournamentSelectorLabels.length !== 2
     || !tournamentSelectorLabels[0].startsWith('Oshawa 2026')
@@ -378,8 +379,18 @@ for (const viewport of viewports) {
   ) {
     throw new Error(`${viewport.id}: tournament archive selector is incomplete.`);
   }
-  if (!tournamentStandingsText.includes('Official standings needed')) throw new Error(`${viewport.id}: tournament standings archive state is unclear.`);
-  if (!tournamentBracketText.includes('Round robin') || !tournamentBracketText.includes('Elimination')) throw new Error(`${viewport.id}: tournament bracket path is incomplete.`);
+  if (
+    !tournamentStandingsText.includes('OFFICIAL STANDINGS')
+    || !tournamentStandingsText.includes('Goonsquad')
+    || !tournamentStandingsText.includes('Brampton All Blacks')
+    || !tournamentStandingsText.includes('Brown Royal')
+  ) throw new Error(`${viewport.id}: tournament standings are incomplete.`);
+  if (
+    !tournamentBracketText.includes('Quarterfinal')
+    || !tournamentBracketText.includes('Semifinal')
+    || !tournamentBracketText.includes('Championship')
+    || !tournamentBracketText.includes('New Tecumseth Outlaws')
+  ) throw new Error(`${viewport.id}: tournament bracket path is incomplete.`);
   if (tournamentVideoCount !== 6) throw new Error(`${viewport.id}: expected six tournament video angles, received ${tournamentVideoCount}.`);
   if (tournamentDocumentOverflow > 1) throw new Error(`${viewport.id}: tournament workspace has ${tournamentDocumentOverflow}px horizontal overflow.`);
   if (

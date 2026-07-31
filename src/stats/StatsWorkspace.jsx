@@ -1178,7 +1178,7 @@ export default function StatsWorkspace() {
   };
 
   return (
-    <main ref={workspaceRef} className="stats-workspace" style={{
+    <main ref={workspaceRef} className={`stats-workspace${tournamentMode ? ' is-tournament-mode' : ''}`} style={{
       '--stats-bg': t.bg,
       '--stats-surface': t.sf,
       '--stats-panel': t.cb,

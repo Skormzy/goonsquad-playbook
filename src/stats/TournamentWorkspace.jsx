@@ -1,11 +1,15 @@
 import { createElement, useMemo, useState } from 'react';
 import {
+  Award,
+  BarChart3,
   CalendarDays,
+  CheckCircle2,
   ChevronRight,
   CircleDot,
   ExternalLink,
   Film,
   GitBranch,
+  Medal,
   MapPin,
   Play,
   Settings2,
@@ -81,6 +85,24 @@ function resultTone(game) {
   return 'tie';
 }
 
+function resultLetter(game) {
+  const tone = resultTone(game);
+  if (tone === 'win') return 'W';
+  if (tone === 'loss') return 'L';
+  if (tone === 'tie') return 'T';
+  return '—';
+}
+
+function formatPercentage(value) {
+  if (!Number.isFinite(value)) return '—';
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatDifference(value) {
+  if (!Number.isFinite(value)) return '—';
+  return `${value > 0 ? '+' : ''}${value}`;
+}
+
 function TournamentSelector({ tournaments, selectedTournamentId, onSelectTournament }) {
   return (
     <div className="stats-tournament-selector" role="group" aria-label="Tournament">
@@ -103,14 +125,15 @@ function TournamentSelector({ tournaments, selectedTournamentId, onSelectTournam
   );
 }
 
-function ArchiveNotice({ title, children, sourceUrl }) {
+function ArchiveNotice({ title, children, sourceUrl, source }) {
   return (
     <section className="tournament-archive-notice">
       <ShieldCheck aria-hidden="true" />
       <div>
-        <span>VERIFIED ARCHIVE</span>
+        <span>{source?.provider ? `${source.provider} RECEIPT` : 'VERIFIED ARCHIVE'}</span>
         <h3>{title}</h3>
         <p>{children}</p>
+        {source?.capturedAt && <small>Checked {formatTournamentDate(source.capturedAt)} · Season {source.seasonId}</small>}
       </div>
       {sourceUrl && (
         <a href={sourceUrl} target="_blank" rel="noreferrer">
@@ -124,10 +147,26 @@ function ArchiveNotice({ title, children, sourceUrl }) {
 
 function TournamentMetrics({ tournament, summary }) {
   const metrics = [
-    { label: 'Games documented', value: summary.documentedGames, detail: `${summary.opponents} opponents` },
-    { label: 'Tournament record', value: summary.record, detail: summary.scoredGames ? `${summary.scoredGames} scored games` : 'scores needed' },
-    { label: 'Game footage', value: summary.videoAngles, detail: 'camera angles' },
-    { label: 'Format', value: tournament.format || 'Pending', detail: tournament.division || 'division pending' },
+    {
+      label: 'Finish',
+      value: tournament.finish || `${summary.documentedGames} games`,
+      detail: tournament.finish ? tournament.division : `${summary.opponents} opponents`,
+    },
+    {
+      label: 'Tournament record',
+      value: summary.record,
+      detail: summary.scoredGames ? `${summary.goalsFor} GF · ${summary.goalsAgainst} GA` : 'scores needed',
+    },
+    {
+      label: tournament.pool?.name || 'Game footage',
+      value: tournament.pool?.record || summary.videoAngles,
+      detail: tournament.pool?.finish ? `Finished ${tournament.pool.finish === 1 ? '1st' : `#${tournament.pool.finish}`}` : 'camera angles',
+    },
+    {
+      label: 'Goal differential',
+      value: summary.scoredGames ? formatDifference(summary.goalDifferential) : tournament.format || 'Pending',
+      detail: summary.scoredGames ? `${summary.goalsFor}-${summary.goalsAgainst} scoring` : tournament.division || 'division pending',
+    },
   ];
   return (
     <section className="tournament-metric-strip" aria-label="Tournament snapshot">
@@ -153,7 +192,7 @@ function TournamentField({ tournament }) {
   if (uniqueTeams.length < 2) return null;
   return (
     <section className="tournament-field" aria-label="Tournament teams">
-      <header><Users aria-hidden="true" /><div><span>TOURNAMENT FIELD</span><h3>{uniqueTeams.length} teams documented</h3></div></header>
+      <header><Users aria-hidden="true" /><div><span>GOONSQUAD OPPONENTS</span><h3>{uniqueTeams.length - 1} teams on the path</h3></div></header>
       <div>{uniqueTeams.map((team) => <span className={team.isGoonSquad ? 'is-goonsquad' : ''} key={team.id || team.name}><strong>{team.name}</strong>{team.pool && <small>{team.pool}</small>}{team.seed && <small>Seed {team.seed}</small>}</span>)}</div>
     </section>
   );
@@ -186,18 +225,23 @@ function TournamentGameCard({ game, featured = false }) {
   return (
     <article className={`tournament-game-card ${featured ? 'is-featured' : ''}`}>
       <header>
-        <span>GAME {String(game.gameNumber).padStart(2, '0')}</span>
-        <em className={`is-${resultTone(game)}`}>{scoreLabel(game)}</em>
+        <span>{game.stageLabel || game.stage}</span>
+        <em className={`is-${resultTone(game)}`}>{resultLetter(game)}</em>
       </header>
       <div className="tournament-game-matchup">
         <div>
-          <small>GOONSQUAD</small>
+          <small>GAME {String(game.gameNumber).padStart(2, '0')}{game.officialGameNumber ? ` · OFFICIAL ${game.officialGameNumber}` : ''}</small>
           <strong>vs {game.opponent}</strong>
+          <p>{[game.date && formatTournamentDate(game.date, { short: true }), formatTournamentTime(game.time)].filter(Boolean).join(' · ')}</p>
         </div>
-        <Trophy aria-hidden="true" />
+        <div className={`tournament-card-score is-${resultTone(game)}`}>
+          <b>{Number.isFinite(game.scoreFor) ? game.scoreFor : '–'}</b>
+          <i>:</i>
+          <b>{Number.isFinite(game.scoreAgainst) ? game.scoreAgainst : '–'}</b>
+        </div>
       </div>
       <footer>
-        <span>{game.stageLabel || game.stage}</span>
+        <span>{game.location || 'Venue pending'}</span>
         {game.media?.length ? <span>{game.media.length} views</span> : <span>Video pending</span>}
       </footer>
       {primaryMedia && <GameVideo media={primaryMedia} compact />}
@@ -205,11 +249,61 @@ function TournamentGameCard({ game, featured = false }) {
   );
 }
 
+function TournamentLeaders({ tournament }) {
+  const leaders = tournament.leaders || [];
+  const skaters = (tournament.playerStats || []).slice(0, 5);
+  const goalies = tournament.goalieStats || [];
+  if (!leaders.length && !skaters.length && !goalies.length) return null;
+
+  return (
+    <section className="tournament-leaders">
+      <header>
+        <div><span>TOURNAMENT LEADERS</span><h3>Who drove the run</h3></div>
+        <small>Official GameSheet totals</small>
+      </header>
+      {leaders.length > 0 && <div className="tournament-leader-cards">
+        {leaders.map((leader) => (
+          <article key={`${leader.type}-${leader.player}`}>
+            <div><Award aria-hidden="true" /><small>{leader.label}</small></div>
+            <strong>{leader.value}</strong>
+            <h4><b>#{leader.number}</b> {leader.player}</h4>
+            <p>{leader.detail}</p>
+          </article>
+        ))}
+      </div>}
+      <div className="tournament-leader-detail">
+        {skaters.length > 0 && <div className="tournament-scorer-board">
+          <header><BarChart3 aria-hidden="true" /><div><span>TOP FIVE</span><strong>Scoring</strong></div></header>
+          {skaters.map((player) => (
+            <div key={player.name}>
+              <b>#{player.number}</b>
+              <span>{player.name}<small>{player.gamesPlayed} GP</small></span>
+              <em>{player.goals}<small>G</small></em>
+              <em>{player.assists}<small>A</small></em>
+              <strong>{player.points}<small>PTS</small></strong>
+            </div>
+          ))}
+        </div>}
+        {goalies.length > 0 && <div className="tournament-goalie-board">
+          <header><Medal aria-hidden="true" /><div><span>GOALTENDING</span><strong>Last line</strong></div></header>
+          {goalies.map((goalie) => (
+            <article key={goalie.name}>
+              <div><b>#{goalie.number}</b><span>{goalie.name}</span></div>
+              <strong>{goalie.wins}-{goalie.losses}<small>RECORD</small></strong>
+              <strong>{goalie.goalsAgainstAverage.toFixed(2)}<small>GAA</small></strong>
+              <strong>{goalie.shutouts}<small>SO</small></strong>
+            </article>
+          ))}
+        </div>}
+      </div>
+    </section>
+  );
+}
+
 function TournamentOverview({ tournament, summary, onOpenGames }) {
   return (
     <div className="tournament-overview">
       <TournamentMetrics tournament={tournament} summary={summary} />
-      <TournamentField tournament={tournament} />
       <section className="tournament-journey">
         <header>
           <div>
@@ -225,7 +319,9 @@ function TournamentOverview({ tournament, summary, onOpenGames }) {
           {tournament.games.map((game) => <TournamentGameCard key={game.id} game={game} />)}
         </div>
       </section>
-      {tournament.display.showVerification && <ArchiveNotice title="What is verified today" sourceUrl={tournament.sourceUrl}>
+      <TournamentLeaders tournament={tournament} />
+      <TournamentField tournament={tournament} />
+      {tournament.display.showVerification && <ArchiveNotice title="Official source receipt" sourceUrl={tournament.sourceUrl} source={tournament.source}>
         {tournament.verificationNote || tournament.summary}
       </ArchiveNotice>}
     </div>
@@ -256,32 +352,38 @@ function TournamentStandings({ tournament }) {
   return (
     <section className="tournament-standings">
       <header>
-        <span>POOL STANDINGS</span>
-        <h3>{tournament.name}</h3>
+        <div><span>OFFICIAL STANDINGS</span><h3>{tournament.pool?.name || tournament.name}</h3></div>
+        {tournament.source?.standingsUrl && <a href={tournament.source.standingsUrl} target="_blank" rel="noreferrer">GameSheet <ExternalLink aria-hidden="true" /></a>}
       </header>
       <div className="tournament-standings-table" role="table" aria-label={`${tournament.name} standings`}>
         <div role="row" className="is-header">
-          <span role="columnheader">Rank</span>
+          <span role="columnheader">RK</span>
           <span role="columnheader">Team</span>
           <span role="columnheader">GP</span>
           <span role="columnheader">W</span>
           <span role="columnheader">L</span>
-          <span role="columnheader">T</span>
+          <span role="columnheader">GF</span>
+          <span role="columnheader">GA</span>
           <span role="columnheader">Diff</span>
+          <span role="columnheader">PP</span>
+          <span role="columnheader">PK</span>
           <span role="columnheader">Pts</span>
         </div>
         {standings.map((row) => {
           const difference = (row.goalsFor ?? 0) - (row.goalsAgainst ?? 0);
           return (
             <div key={row.team} role="row" className={row.isGoonSquad ? 'is-goonsquad' : ''}>
-              <strong role="cell">{row.rank}</strong>
+              <strong role="cell" data-label="Rank">{row.rank}</strong>
               <span role="cell"><b>{row.team}</b>{row.isGoonSquad && <small>OUR TEAM</small>}</span>
-              <span role="cell">{row.gamesPlayed ?? 0}</span>
-              <span role="cell">{row.wins ?? 0}</span>
-              <span role="cell">{row.losses ?? 0}</span>
-              <span role="cell">{row.ties ?? 0}</span>
-              <span role="cell">{difference > 0 ? '+' : ''}{difference}</span>
-              <strong role="cell">{row.points ?? 0}</strong>
+              <span role="cell" data-label="GP">{row.gamesPlayed ?? 0}</span>
+              <span role="cell" data-label="W">{row.wins ?? 0}</span>
+              <span role="cell" data-label="L">{row.losses ?? 0}</span>
+              <span role="cell" data-label="GF">{row.goalsFor ?? 0}</span>
+              <span role="cell" data-label="GA">{row.goalsAgainst ?? 0}</span>
+              <span role="cell" data-label="Diff">{formatDifference(difference)}</span>
+              <span role="cell" data-label="PP">{formatPercentage(row.powerPlayPercentage)}</span>
+              <span role="cell" data-label="PK">{formatPercentage(row.penaltyKillPercentage)}</span>
+              <strong role="cell" data-label="Pts">{row.points ?? 0}</strong>
             </div>
           );
         })}
@@ -358,8 +460,8 @@ function TournamentBracket({ tournament }) {
   return (
     <section className="tournament-bracket-shell">
       <header>
-        <div><span>TOURNAMENT PATH</span><h3>Elimination bracket</h3></div>
-        <small>Swipe rounds on mobile</small>
+        <div><span>GOONSQUAD PATH</span><h3>{tournament.finish ? `Road to the ${tournament.finish.toLowerCase()}` : 'Elimination bracket'}</h3></div>
+        <small>Swipe the run on mobile</small>
       </header>
       <div className="tournament-bracket-board">
         {rounds.map((round, index) => (
@@ -369,6 +471,9 @@ function TournamentBracket({ tournament }) {
           </div>
         ))}
       </div>
+      {tournament.bracket.some((match) => String(match.label || '').includes('inferred')) && (
+        <p className="tournament-path-note"><ShieldCheck aria-hidden="true" /> Scores and official game numbers come from GameSheet. Quarterfinal and semifinal labels follow the recorded elimination sequence.</p>
+      )}
     </section>
   );
 }
@@ -378,10 +483,10 @@ function TournamentGames({ tournament }) {
     <section className="tournament-games">
       <header>
         <div>
-          <span>GAME ARCHIVE</span>
-          <h3>Every documented matchup</h3>
+          <span>OFFICIAL GAMEBOOK</span>
+          <h3>Every game in the run</h3>
         </div>
-        <small>{tournament.games.reduce((total, game) => total + (game.media?.length || 0), 0)} video angles</small>
+        <small>{tournament.games.length} game sheets · {tournament.games.reduce((total, game) => total + (game.media?.length || 0), 0)} video angles</small>
       </header>
       <div>
         {tournament.games.map((game) => (
@@ -389,6 +494,7 @@ function TournamentGames({ tournament }) {
             <div className="tournament-game-number">
               <small>GAME</small>
               <strong>{String(game.gameNumber).padStart(2, '0')}</strong>
+              {game.officialGameNumber && <em>#{game.officialGameNumber}</em>}
             </div>
             <div className="tournament-game-copy">
               <span>{game.stageLabel || game.stage}</span>
@@ -399,12 +505,18 @@ function TournamentGames({ tournament }) {
                 game.site,
                 game.location || tournament.location,
               ].filter(Boolean).join(' · ')}</p>
+              <div className="tournament-game-facts">
+                {Array.isArray(game.periodScoreFor) && <span><small>PERIODS</small>{game.periodScoreFor.map((score, index) => <b key={`${game.id}-period-${index}`}>{score}-{game.periodScoreAgainst?.[index] ?? '–'}</b>)}</span>}
+                {Number.isFinite(game.shotsFor) && <span><small>SHOTS</small><b>{game.shotsFor}-{game.shotsAgainst}</b></span>}
+                {game.shotsStatus && <span><small>SHOTS</small><b>{game.shotsStatus === 'not-recorded' ? 'Not recorded' : 'Incomplete'}</b></span>}
+              </div>
             </div>
             <strong className={`tournament-game-score is-${resultTone(game)}`}>{scoreLabel(game)}</strong>
             <div className="tournament-game-media">
               {game.media?.length
                 ? game.media.map((media) => <GameVideo key={media.videoId || media.url} media={media} />)
                 : <span>Game footage pending</span>}
+              {game.sourceUrl && <a className="tournament-official-game" href={game.sourceUrl} target="_blank" rel="noreferrer"><CheckCircle2 aria-hidden="true" /> Official game sheet <ExternalLink aria-hidden="true" /></a>}
             </div>
           </article>
         ))}
@@ -488,6 +600,7 @@ export default function TournamentWorkspace({
           <span>TOURNAMENT DOSSIER / {tournament.dataStatus === 'partial' ? 'ARCHIVE IN PROGRESS' : 'VERIFIED'}</span>
           <h2>{tournament.name}</h2>
           <p>{tournament.series}</p>
+          {tournament.summary && <strong className="tournament-hero-summary">{tournament.summary}</strong>}
           <div>
             <span><CalendarDays aria-hidden="true" /> {tournamentDateRange(tournament)}</span>
             <span><MapPin aria-hidden="true" /> {tournament.location}</span>
@@ -495,8 +608,13 @@ export default function TournamentWorkspace({
         </div>
         <div className="tournament-hero-mark">
           <Trophy aria-hidden="true" />
-          <span>{summary.documentedGames}</span>
-          <small>documented games</small>
+          {tournament.finish ? <>
+            <span className="is-finish">{tournament.finish}</span>
+            <small>{summary.record} · {summary.goalsFor}-{summary.goalsAgainst}</small>
+          </> : <>
+            <span>{summary.documentedGames}</span>
+            <small>documented games</small>
+          </>}
         </div>
         {canManage && <button type="button" className="tournament-manage-button" onClick={() => setAdminOpen(true)}><Settings2 aria-hidden="true" /><span>Manage tournament<small>{tournament._record?.isPublished === false ? 'Admin draft' : 'Results, teams & layout'}</small></span></button>}
       </section>

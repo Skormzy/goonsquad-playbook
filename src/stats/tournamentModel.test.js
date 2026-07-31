@@ -43,25 +43,48 @@ describe('tournament archive model', () => {
     });
   });
 
-  it('enriches the verified Oshawa dossier with all three games and six camera angles', () => {
+  it('builds the complete official Oshawa run and keeps team videos on the matching games', () => {
     const tournament = TOURNAMENT_ARCHIVE.find((item) => item.id === '2026-oshawa-provincials');
     const summary = tournamentSummary(tournament);
 
     expect(tournament).toBeTruthy();
-    expect(tournament.games).toHaveLength(3);
+    expect(tournament.dataStatus).toBe('verified');
+    expect(tournament.finish).toBe('Championship finalist');
+    expect(tournament.source).toMatchObject({ seasonId: '14928', teamId: '514449' });
+    expect(tournament.games).toHaveLength(5);
     expect(tournament.games.map((game) => game.opponent)).toEqual([
       'Brown Royal',
       'Brampton All Blacks',
       'Vaughan Knights',
+      'Toronto Jets',
+      'New Tecumseth Outlaws',
     ]);
-    expect(tournament.games.every((game) => game.media.length === 2)).toBe(true);
+    expect(tournament.games.map((game) => game.officialGameNumber)).toEqual([29, 37, 43, 49, 53]);
+    expect(tournament.games.map((game) => [game.scoreFor, game.scoreAgainst])).toEqual([
+      [7, 3],
+      [8, 1],
+      [3, 2],
+      [4, 0],
+      [1, 6],
+    ]);
+    expect(tournament.games.slice(0, 3).every((game) => game.media.length === 2)).toBe(true);
+    expect(tournament.games.slice(3).every((game) => game.media.length === 0)).toBe(true);
+    expect(tournament.standings[0]).toMatchObject({ team: 'Goonsquad', rank: 1, points: 8 });
+    expect(tournament.playerStats[0]).toMatchObject({ number: 17, goals: 9, assists: 7, points: 16 });
     expect(summary).toMatchObject({
-      documentedGames: 3,
-      scoredGames: 0,
-      opponents: 3,
+      documentedGames: 5,
+      scoredGames: 5,
+      opponents: 5,
       videoAngles: 6,
-      record: 'Archive pending',
+      record: '4-1-0',
+      goalsFor: 23,
+      goalsAgainst: 12,
+      goalDifferential: 11,
+      poolFinish: 1,
+      poolRecord: '2-0-0',
     });
+    expect(tournamentBracketRounds(tournament.bracket).map((round) => round.id))
+      .toEqual(['quarterfinal', 'semifinal', 'final']);
   });
 
   it('preserves the official 2024 pool schedule and tournament-format bracket', () => {
@@ -143,6 +166,68 @@ describe('tournament archive model', () => {
     expect(published[0].name).toBe('Edited event');
     expect(hidden).toEqual([]);
     expect(admin[0]).toMatchObject({ name: 'Private draft', _record: { isPublished: false } });
+  });
+
+  it('refreshes a stale manual dossier to the current source-backed experience', () => {
+    const merged = mergeTournamentRecords([{
+      id: 'official-event',
+      name: 'Official event',
+      dataStatus: 'verified',
+      source: { provider: 'GameSheet', capturedAt: '2026-07-31', seasonId: '1' },
+      games: [{ id: 'official-game', scoreFor: 7, scoreAgainst: 3 }],
+      standings: [{ team: 'Goonsquad', points: 8 }],
+      bracket: [],
+      display: { gamesLabel: 'Gamebook', accent: 'red' },
+    }], [{
+      id: 'official-event',
+      isPublished: true,
+      payload: {
+        id: 'official-event',
+        name: 'Old manual event',
+        games: [{ id: 'manual-game', scoreFor: null, scoreAgainst: null }],
+        standings: [],
+        bracket: [],
+        display: { gamesLabel: 'Matchups', accent: 'gold' },
+      },
+    }], { activities: [] });
+
+    expect(merged[0]).toMatchObject({
+      name: 'Official event',
+      dataStatus: 'verified',
+      display: { gamesLabel: 'Gamebook', accent: 'red' },
+      _record: { hasOverride: true, sourceRefreshRequired: true },
+    });
+    expect(merged[0].games[0]).toMatchObject({ id: 'official-game', scoreFor: 7, scoreAgainst: 3 });
+    expect(merged[0].standings[0]).toMatchObject({ team: 'Goonsquad', points: 8 });
+  });
+
+  it('keeps admin fact overrides after they are saved against the current source snapshot', () => {
+    const source = { provider: 'GameSheet', capturedAt: '2026-07-31', seasonId: '1' };
+    const merged = mergeTournamentRecords([{
+      id: 'official-event',
+      name: 'Official event',
+      source,
+      games: [{ id: 'game', scoreFor: 7, scoreAgainst: 3 }],
+      standings: [],
+      bracket: [],
+    }], [{
+      id: 'official-event',
+      isPublished: true,
+      payload: {
+        id: 'official-event',
+        name: 'Admin corrected event',
+        source,
+        games: [{ id: 'game', scoreFor: 8, scoreAgainst: 3 }],
+        standings: [],
+        bracket: [],
+      },
+    }], { activities: [] });
+
+    expect(merged[0]).toMatchObject({
+      name: 'Admin corrected event',
+      _record: { sourceRefreshRequired: false },
+    });
+    expect(merged[0].games[0].scoreFor).toBe(8);
   });
 
   it('removes runtime video enrichment before persisting an admin edit', () => {

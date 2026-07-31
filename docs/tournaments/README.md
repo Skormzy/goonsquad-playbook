@@ -30,7 +30,7 @@ Add one object to `src/stats/tournaments.json`:
   "dataStatus": "verified",
   "division": "Men's C",
   "format": "Round robin + elimination",
-  "teamName": "Goon Squad",
+  "teamName": "Goonsquad",
   "summary": "Short description of the tournament run.",
   "sourceUrl": "https://official-event-page.example",
   "standings": [],
@@ -46,7 +46,7 @@ result has a reliable source. Unknown values stay `null`; never infer them.
 
 ```json
 {
-  "team": "Goon Squad",
+  "team": "Goonsquad",
   "isGoonSquad": true,
   "gamesPlayed": 3,
   "wins": 2,
@@ -92,7 +92,7 @@ Each bracket entry is one match. Shared `roundId` values form a column.
   "order": 1,
   "label": "Semifinal 1",
   "status": "final",
-  "homeTeam": { "name": "Goon Squad", "seed": 2 },
+  "homeTeam": { "name": "Goonsquad", "seed": 2 },
   "awayTeam": { "name": "Example Opponent", "seed": 3 },
   "homeScore": 3,
   "awayScore": 1,
@@ -100,16 +100,29 @@ Each bracket entry is one match. Shared `roundId` values form a column.
 }
 ```
 
-## Oshawa 2026 Gap
+## Source-backed snapshots
 
-The official OBHF event listing and six Goon Squad video angles verify the
-2026 Oshawa Provincials dossier, three opponents, dates, and location. The
-official pool table, scores, division, and elimination bracket were not
-recoverable from the public archive.
+Completed tournaments should be captured as source-backed snapshots instead
+of scraped in the browser at runtime. Include a `source` object with the
+provider, source IDs, capture date, and direct links whenever the organizer
+exposes them. This keeps a completed tournament fast and stable while the admin
+override layer can still correct or enrich any field later.
+
+The 2026 Oshawa dossier is a complete official snapshot. OBHF and GameSheet
+verify all five results, the official table, team totals, player and goalie
+leaders, roster, venues, and period scoring. GameSheet labels games 43 and 49
+only as tournament games, so their quarterfinal and semifinal labels are marked
+as `inferred-from-official-sequence`; the underlying opponents and scores are
+official. Six Goonsquad YouTube angles attach to the first three games through
+the title-matching convention above.
+
+Use `dataStatus: "verified"` only when all visible competitive data is supported
+by the linked source. Use `verificationNote` to disclose any reconstructed
+stage names or other limited inference.
 
 The surviving official 2024 OBHF tournament package verifies the Mississauga
 event, Men's REC division, Pool A opponents, all three fixtures, venues, and
 semifinal-to-final format. It does not include the played results.
 
-A photo, screenshot, spreadsheet, or message containing either event's missing
-scores and final table is enough to complete its dossier.
+A photo, screenshot, spreadsheet, or message containing the 2024 event's
+missing scores and final table is enough to complete that dossier.
