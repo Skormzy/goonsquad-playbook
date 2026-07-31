@@ -16,13 +16,25 @@ function playerPositionMap(frame, sampledPlayers) {
   return new Map(Object.entries(frame.players).map(([id, player]) => [id, player]));
 }
 
-function BallMarker({ ball, positions }) {
+function BallMarker({ ball, draggable, onKeyDown, onPointerDown, positions }) {
   const position = ball?.position
     ?? (ball?.ownerId ? positions.get(ball.ownerId) : ball?.target);
   if (!position) return null;
   return (
-    <g className="playmaker-ball-marker" transform={`translate(${position.x} ${toSvgY(position.y)})`}>
-      <circle r="2.15" />
+    <g
+      className={`playmaker-ball-marker ${draggable ? 'is-draggable' : ''}`}
+      data-testid={draggable ? 'playmaker-loose-ball' : 'playmaker-ball-marker'}
+      data-rink-x={Number(position.x.toFixed(2))}
+      data-rink-y={Number(position.y.toFixed(2))}
+      transform={`translate(${position.x} ${toSvgY(position.y)})`}
+      role={draggable ? 'button' : undefined}
+      tabIndex={draggable ? 0 : undefined}
+      aria-label={draggable ? 'Loose ball. Drag or use arrow keys to position it.' : undefined}
+      onKeyDown={draggable ? onKeyDown : undefined}
+      onPointerDown={draggable ? onPointerDown : undefined}
+    >
+      {draggable && <circle r="8.5" className="playmaker-ball-hit-target" />}
+      <circle r="2.15" className="playmaker-ball-core" />
       <circle r="3.2" className="playmaker-ball-marker-ring" />
     </g>
   );
@@ -79,6 +91,7 @@ export default function PlaymakerCourt({
   frame,
   interactive = true,
   nextFrame = null,
+  onMoveBall,
   onMovePlayer,
   onPlaceBallTarget,
   onSelectPlayer,
@@ -93,6 +106,16 @@ export default function PlaymakerCourt({
     () => playerPositionMap(frame, sampledPlayers),
     [frame, sampledPlayers],
   );
+  const displayedBall = ball ?? frame.ball;
+  const looseBallPosition = displayedBall?.position
+    ?? (displayedBall?.ownerId ? positions.get(displayedBall.ownerId) : displayedBall?.target);
+  const looseBallDraggable = Boolean(
+    interactive
+    && !targetMode
+    && !displayedBall?.ownerId
+    && looseBallPosition
+    && onMoveBall,
+  );
 
   const rinkPointFromPointer = (event) => {
     const rect = svgRef.current.getBoundingClientRect();
@@ -102,23 +125,40 @@ export default function PlaymakerCourt({
     };
   };
 
-  const startDrag = (event, playerId) => {
+  const startPlayerDrag = (event, playerId) => {
     event.stopPropagation();
     onSelectPlayer(playerId);
     if (!interactive || targetMode) return;
-    dragRef.current = { playerId, pointerId: event.pointerId };
+    dragRef.current = { kind: 'player', playerId, pointerId: event.pointerId };
+    svgRef.current?.setPointerCapture(event.pointerId);
+  };
+
+  const startBallDrag = (event) => {
+    event.stopPropagation();
+    if (!looseBallDraggable) return;
+    dragRef.current = { kind: 'ball', pointerId: event.pointerId };
     svgRef.current?.setPointerCapture(event.pointerId);
   };
 
   const moveDrag = (event) => {
     if (!dragRef.current || dragRef.current.pointerId !== event.pointerId) return;
-    onMovePlayer(dragRef.current.playerId, rinkPointFromPointer(event), { transient: true });
+    const position = rinkPointFromPointer(event);
+    if (dragRef.current.kind === 'ball') {
+      onMoveBall(position, { transient: true });
+    } else {
+      onMovePlayer(dragRef.current.playerId, position, { transient: true });
+    }
   };
 
   const finishDrag = (event) => {
     if (!dragRef.current || dragRef.current.pointerId !== event.pointerId) return;
-    const { playerId } = dragRef.current;
-    onMovePlayer(playerId, rinkPointFromPointer(event), { transient: false });
+    const drag = dragRef.current;
+    const position = rinkPointFromPointer(event);
+    if (drag.kind === 'ball') {
+      onMoveBall(position, { transient: false });
+    } else {
+      onMovePlayer(drag.playerId, position, { transient: false });
+    }
     dragRef.current = null;
     if (svgRef.current?.hasPointerCapture(event.pointerId)) {
       svgRef.current.releasePointerCapture(event.pointerId);
@@ -148,13 +188,32 @@ export default function PlaymakerCourt({
     }, { transient: false });
   };
 
+  const nudgeLooseBall = (event) => {
+    if (!looseBallDraggable) return;
+    const deltas = {
+      ArrowLeft: [-1, 0],
+      ArrowRight: [1, 0],
+      ArrowUp: [0, 1],
+      ArrowDown: [0, -1],
+    };
+    const delta = deltas[event.key];
+    if (!delta) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const step = event.shiftKey ? 3 : 1;
+    onMoveBall({
+      x: clamp(looseBallPosition.x + delta[0] * step, 2, 98),
+      y: clamp(looseBallPosition.y + delta[1] * step, 2, 98),
+    }, { transient: false });
+  };
+
   return (
     <svg
       ref={svgRef}
       className={`playmaker-court ${targetMode ? 'is-targeting' : ''}`}
       viewBox="0 0 100 200"
       role="application"
-      aria-label="Playmaker court. Drag players or use arrow keys to position the selected player."
+      aria-label="Playmaker court. Drag players or a loose ball, or use arrow keys for precise positioning."
       tabIndex={0}
       onKeyDown={nudgeSelected}
       onPointerDown={handleCourtPointerDown}
@@ -212,7 +271,7 @@ export default function PlaymakerCourt({
             role="button"
             tabIndex={0}
             aria-label={`${player.team === 'us' ? 'Our' : 'Opponent'} ${player.label}`}
-            onPointerDown={(event) => startDrag(event, player.id)}
+            onPointerDown={(event) => startPlayerDrag(event, player.id)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') onSelectPlayer(player.id);
             }}
@@ -227,7 +286,13 @@ export default function PlaymakerCourt({
         );
       })}
 
-      <BallMarker ball={ball ?? frame.ball} positions={positions} />
+      <BallMarker
+        ball={displayedBall}
+        draggable={looseBallDraggable}
+        onKeyDown={nudgeLooseBall}
+        onPointerDown={startBallDrag}
+        positions={positions}
+      />
       {targetMode && (
         <g className="playmaker-target-cursor" transform={`translate(${frame.ball.target.x} ${toSvgY(frame.ball.target.y)})`}>
           <circle r="4" />

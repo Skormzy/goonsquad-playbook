@@ -165,7 +165,7 @@ export const GUIDE_TOPICS = Object.freeze({
       },
       {
         title: 'Author the ball contract',
-        body: 'Set who has the ball now. Then choose carry, direct pass, boards pass, shot, or loose ball for the move into the next moment.',
+        body: 'Set who has the ball now. When it is loose, drag the orange ball to its exact rink position. Then choose carry, direct pass, boards pass, shot, or loose ball for the move into the next moment.',
       },
       {
         title: 'Select the exact receiver',
@@ -372,7 +372,7 @@ export const GUIDE_TOPICS = Object.freeze({
       { title: 'Carrier', body: 'The player with authoritative possession at the current moment.' },
       { title: 'Direct pass', body: 'A teammate-to-teammate ball flight without a board impact.' },
       { title: 'Boards pass', body: 'A pass whose authored target includes one controlled board impact before reception.' },
-      { title: 'Loose ball', body: 'A ball target with no owner until a later authored possession event.' },
+      { title: 'Loose ball', body: 'A draggable ball position with no owner until a later authored possession event.' },
       { title: 'Role lens', body: 'A focused explanation for one position while the complete team remains visible.' },
       { title: 'Coaching layer', body: 'An optional 3D overlay for coverage, routes, the next ball lane, or next-position targets.' },
       { title: 'Readiness', body: 'Create validation for player movement, ball continuity, and a structured 3D replay.' },

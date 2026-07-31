@@ -15,6 +15,7 @@ function renderCourt(props) {
   return renderToStaticMarkup(
     <PlaymakerCourt
       interactive
+      onMoveBall={() => {}}
       onMovePlayer={() => {}}
       onPlaceBallTarget={() => {}}
       onSelectPlayer={() => {}}
@@ -40,5 +41,27 @@ describe('PlaymakerCourt ball decisions', () => {
 
     expect(markup).toContain('data-receiver-id="US_RW"');
     expect(markup).not.toContain('data-receiver-id="US_LW"');
+  });
+
+  it('exposes an ownerless ball as a draggable rink object', () => {
+    const draft = createPlaymakerDraft('breakout');
+    draft.frames[0].ball.ownerId = null;
+    draft.frames[0].ball.transition = 'loose';
+    draft.frames[0].ball.target = { x: 73, y: 41 };
+    const markup = renderCourt({ frame: draft.frames[0] });
+
+    expect(markup).toContain('data-testid="playmaker-loose-ball"');
+    expect(markup).toContain('data-rink-x="73"');
+    expect(markup).toContain('data-rink-y="41"');
+    expect(markup).toContain('playmaker-ball-hit-target');
+    expect(markup).toContain('Loose ball. Drag or use arrow keys to position it.');
+  });
+
+  it('does not make a possessed ball independently draggable', () => {
+    const draft = createPlaymakerDraft('breakout');
+    const markup = renderCourt({ frame: draft.frames[0] });
+
+    expect(markup).toContain('data-testid="playmaker-ball-marker"');
+    expect(markup).not.toContain('data-testid="playmaker-loose-ball"');
   });
 });

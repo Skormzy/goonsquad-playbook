@@ -114,6 +114,7 @@ for (const viewport of viewports) {
   page.on('pageerror', (error) => problems.push(`pageerror: ${error.message}`));
 
   const url = new URL(baseUrl);
+  url.searchParams.set('qaTeamAccess', '1');
   url.searchParams.set('content', 'playmaker');
   await page.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await page.locator('.playmaker-workspace').waitFor({ state: 'visible', timeout: 60_000 });
@@ -136,6 +137,45 @@ for (const viewport of viewports) {
   ));
   twoDimensionalState.destinationMomentReceiver = await decision.getAttribute('data-receiver-id');
   const twoDimensionalScreenshot = await screenshot(page, viewport, '2d-right-winger-pass');
+
+  await page.getByLabel('Carrier at this moment').selectOption('');
+  const looseBall = page.getByTestId('playmaker-loose-ball');
+  await looseBall.waitFor({ state: 'visible' });
+  const looseBallStart = await looseBall.boundingBox();
+  const looseBallTarget = await looseBall.evaluate((node, rinkPosition) => {
+    const svg = node.ownerSVGElement;
+    const point = svg.createSVGPoint();
+    point.x = rinkPosition.x;
+    point.y = 200 - rinkPosition.y * 2;
+    const screenPoint = point.matrixTransform(svg.getScreenCTM());
+    return { x: screenPoint.x, y: screenPoint.y };
+  }, { x: 73, y: 41 });
+  await page.mouse.move(
+    looseBallStart.x + looseBallStart.width / 2,
+    looseBallStart.y + looseBallStart.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(looseBallTarget.x, looseBallTarget.y, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForFunction(() => {
+    const node = document.querySelector('[data-testid="playmaker-loose-ball"]');
+    return Math.abs(Number(node?.getAttribute('data-rink-x')) - 73) < 0.25
+      && Math.abs(Number(node?.getAttribute('data-rink-y')) - 41) < 0.25;
+  });
+  const looseBallDrag = await looseBall.evaluate((node) => ({
+    x: Number(node.getAttribute('data-rink-x')),
+    y: Number(node.getAttribute('data-rink-y')),
+  }));
+  looseBallDrag.widthInput = Number(await page.getByLabel('Ball width').inputValue());
+  looseBallDrag.depthInput = Number(await page.getByLabel('Ball depth').inputValue());
+  looseBallDrag.screenshot = await screenshot(page, viewport, '2d-loose-ball-drag');
+
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await page.waitForFunction(() => (
+    document.querySelector('[data-testid="playmaker-ball-decision"]')
+      ?.getAttribute('data-receiver-id') === 'US_RW'
+  ));
 
   await page.getByRole('button', { name: 'Preview', exact: true }).click();
   const stage = page.locator('.playmaker-3d-stage');
@@ -187,6 +227,10 @@ for (const viewport of viewports) {
     && twoDimensionalState.receiver === 'US_RW'
     && twoDimensionalState.destinationMomentReceiver === 'US_RW'
     && twoDimensionalState.label.includes('C to RW')
+    && Math.abs(looseBallDrag.x - 73) < 0.25
+    && Math.abs(looseBallDrag.y - 41) < 0.25
+    && looseBallDrag.widthInput === 73
+    && looseBallDrag.depthInput === 41
     && threeDimensionalState.from === 'US_C'
     && threeDimensionalState.receiver === 'US_RW'
     && threeDimensionalState.segment === 'pass'
@@ -204,8 +248,10 @@ for (const viewport of viewports) {
     viewport: [viewport.width, viewport.height],
     screenshots: {
       twoDimensional: twoDimensionalScreenshot,
+      looseBall: looseBallDrag.screenshot,
       threeDimensional: threeDimensionalScreenshot,
     },
+    looseBallDrag,
     twoDimensionalState,
     threeDimensionalState,
     activeCamera: activeCamera.trim(),

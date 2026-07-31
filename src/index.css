@@ -3185,7 +3185,7 @@ input:focus:not(:focus-visible) { outline: none; }
   vector-effect: non-scaling-stroke;
 }
 
-.playmaker-ball-marker circle:first-child {
+.playmaker-ball-core {
   fill: #ff7b1c;
   stroke: #ffffff;
   stroke-width: 0.55;
@@ -3197,6 +3197,27 @@ input:focus:not(:focus-visible) { outline: none; }
   stroke: rgba(255, 123, 28, 0.68);
   stroke-width: 0.65;
   vector-effect: non-scaling-stroke;
+}
+
+.playmaker-ball-marker.is-draggable {
+  cursor: grab;
+  outline: none;
+}
+
+.playmaker-ball-marker.is-draggable:active {
+  cursor: grabbing;
+}
+
+.playmaker-ball-hit-target {
+  fill: transparent;
+  stroke: transparent;
+  pointer-events: all;
+}
+
+.playmaker-ball-marker.is-draggable:focus-visible .playmaker-ball-marker-ring {
+  fill: rgba(255, 123, 28, 0.12);
+  stroke: #0891b2;
+  stroke-width: 1.15;
 }
 
 .playmaker-ball-decision > path {
@@ -3267,6 +3288,29 @@ input:focus:not(:focus-visible) { outline: none; }
   font-weight: 800;
   text-align: center;
   pointer-events: none;
+}
+
+.playmaker-loose-ball-controls {
+  display: grid;
+  gap: 8px;
+  padding: 9px 10px;
+  border-left: 3px solid #ff7b1c;
+  background: color-mix(in srgb, #ff7b1c 8%, var(--pm-panel));
+}
+
+.playmaker-loose-ball-controls > strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--pm-text);
+  font-family: var(--font-display);
+  font-size: var(--type-small);
+}
+
+.playmaker-loose-ball-controls > strong svg {
+  width: 15px;
+  height: 15px;
+  color: #ff7b1c;
 }
 
 .playmaker-inspector {

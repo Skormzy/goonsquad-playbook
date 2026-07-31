@@ -12,6 +12,7 @@ import {
   Download,
   FolderOpen,
   GraduationCap,
+  Move,
   Pause,
   Play,
   Plus,
@@ -339,6 +340,31 @@ export default function PlaymakerWorkspace() {
     });
   };
 
+  const moveLooseBall = (position, { transient }) => {
+    if (transient) {
+      if (!dragOriginRef.current) dragOriginRef.current = history.present;
+      replace((next) => {
+        const ballState = next.frames[selectedFrameIndex].ball;
+        if (!ballState.ownerId) ballState.target = { ...ballState.target, ...position };
+      });
+      return;
+    }
+
+    setHistory((current) => {
+      const next = updateDraft(current.present, (value) => {
+        const ballState = value.frames[selectedFrameIndex].ball;
+        if (!ballState.ownerId) ballState.target = { ...ballState.target, ...position };
+      });
+      const origin = dragOriginRef.current ?? current.present;
+      dragOriginRef.current = null;
+      return {
+        past: [...current.past, origin].slice(-HISTORY_LIMIT),
+        present: next,
+        future: [],
+      };
+    });
+  };
+
   const goToMoment = (index) => {
     const safeIndex = Math.max(0, Math.min(index, draft.frames.length - 1));
     setSelectedFrameIndex(safeIndex);
@@ -473,6 +499,9 @@ export default function PlaymakerWorkspace() {
   const assignCurrentBallOwner = (ownerId) => {
     commit((value) => {
       const current = value.frames[selectedFrameIndex];
+      const currentOwnerPosition = current.ball.ownerId
+        ? current.players[current.ball.ownerId]
+        : null;
       const source = value.frames[selectedFrameIndex - 1];
       const sourceOwner = playmakerPlayerById(source?.ball.ownerId);
       const nextOwner = playmakerPlayerById(ownerId);
@@ -493,6 +522,9 @@ export default function PlaymakerWorkspace() {
         current.ball.transition = 'loose';
         current.ball.receiverId = null;
         current.ball.target = { ...current.players[ownerId] };
+      }
+      if (!ownerId && currentOwnerPosition) {
+        current.ball.target = { x: currentOwnerPosition.x, y: currentOwnerPosition.y };
       }
 
       const destination = value.frames[selectedFrameIndex + 1];
@@ -591,6 +623,7 @@ export default function PlaymakerWorkspace() {
                 frame={editorFrame}
                 interactive={!isPlaying}
                 nextFrame={nextFrame}
+                onMoveBall={moveLooseBall}
                 onMovePlayer={movePlayer}
                 onPlaceBallTarget={placeTarget}
                 onSelectPlayer={setSelectedPlayerId}
@@ -735,6 +768,33 @@ export default function PlaymakerWorkspace() {
             <button type="button" className="playmaker-secondary-button playmaker-give-ball" onClick={() => assignCurrentBallOwner(selectedPlayerId)}>
               Give ball to {selectedPlayer.label}
             </button>
+            {!currentFrame.ball.ownerId && (
+              <div className="playmaker-loose-ball-controls" aria-label="Loose ball position">
+                <strong><Move aria-hidden="true" /> Loose ball position</strong>
+                <div className="playmaker-position-fields">
+                  <label className="playmaker-field">
+                    <span>Ball width</span>
+                    <input
+                      type="number"
+                      min="2"
+                      max="98"
+                      value={Math.round(currentFrame.ball.target.x)}
+                      onChange={(event) => moveLooseBall({ x: Number(event.target.value) }, { transient: false })}
+                    />
+                  </label>
+                  <label className="playmaker-field">
+                    <span>Ball depth</span>
+                    <input
+                      type="number"
+                      min="2"
+                      max="98"
+                      value={Math.round(currentFrame.ball.target.y)}
+                      onChange={(event) => moveLooseBall({ y: Number(event.target.value) }, { transient: false })}
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
 
             {nextFrame ? (
               <>

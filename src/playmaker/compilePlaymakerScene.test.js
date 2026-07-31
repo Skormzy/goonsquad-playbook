@@ -137,4 +137,22 @@ describe('playmaker scene compiler', () => {
     expect(frame.ball.position.x).toBeTypeOf('number');
     expect(frame.ball.position.y).toBeTypeOf('number');
   });
+
+  it('preserves an authored loose-ball position across 2D and 3D compilation', () => {
+    const draft = movingDraft();
+    draft.frames[1].ball.transition = 'loose';
+    draft.frames[1].ball.ownerId = null;
+    draft.frames[1].ball.receiverId = null;
+    draft.frames[1].ball.target = { x: 73, y: 41 };
+
+    const scene = compilePlaymakerScene(draft);
+    const frame = samplePlayScene(scene, scene.duration);
+
+    expect(scene.ball.segments[0]).toMatchObject({
+      type: 'loose',
+      end: { x: 73, y: 41 },
+    });
+    expect(frame.ball.position.x).toBeCloseTo(73, 5);
+    expect(frame.ball.position.y).toBeCloseTo(41, 5);
+  });
 });

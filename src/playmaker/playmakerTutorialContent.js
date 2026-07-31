@@ -46,8 +46,8 @@ export const PLAYMAKER_TUTORIAL_STEPS = Object.freeze([
     target: '[data-tutorial="ball"]',
     eyebrow: 'BALL CONTRACT',
     title: 'Set possession, then the next decision',
-    body: 'First select the carrier at this moment. Then define carry, direct pass, boards pass, shot, or loose ball into the next moment.',
-    detail: 'For every pass, select the exact receiver. That identity controls the 2D line and destination possession, and remains the destination in all 3D cameras.',
+    body: 'First select the carrier at this moment. If the ball is loose, drag the orange ball to its exact rink position. Then define carry, direct pass, boards pass, shot, or loose ball into the next moment.',
+    detail: 'For every pass, select the exact receiver. That identity controls the 2D line and destination possession, and remains the destination in all 3D cameras. Loose-ball positions follow the same 2D-to-3D contract.',
   },
   {
     id: 'timeline',
