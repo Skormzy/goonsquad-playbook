@@ -47,14 +47,31 @@ export function formatScheduleName(team) {
     .replace(/\s+Team$/i, '')
     .trim();
   if (!source) return 'League schedule';
-  const days = source.split(/\s*\/\s*/).map((day) => {
-    const normalized = day.toUpperCase();
-    return SCHEDULE_DAY_NAMES[normalized] || day.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
-  });
+  const dayTokens = source.toUpperCase().match(/\b(?:MON(?:DAY)?|TUE(?:SDAY)?|WED(?:NESDAY)?|THU(?:RSDAY)?|FRI(?:DAY)?|SAT(?:URDAY)?|SUN(?:DAY)?)\b/g) || [];
+  const days = [...new Set(dayTokens.map((day) => SCHEDULE_DAY_NAMES[day] || day))];
   if (days.length === 2 && days.includes('Monday') && days.includes('Thursday')) {
     return 'Monday League';
   }
-  return `${days.join(' / ')} League`;
+  if (days.length) return `${days.join(' / ')} League`;
+  return `${source.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase())} League`;
+}
+
+export function formatLeagueName(item) {
+  const name = String(item?.leagueName || '').trim();
+  const sourceUrl = String(item?.sourceUrl || '');
+  if (/York Central/i.test(name) || item?.leagueKey === 'york-central' || /yorkcentralbhl\.com/i.test(sourceUrl)) return 'York Central BHL';
+  if (/Greater Toronto/i.test(name) || item?.leagueKey === 'greater-toronto' || /greatertorontobhl\.com/i.test(sourceUrl)) return 'Greater Toronto BHL';
+  return name || 'League archive';
+}
+
+export function formatSeasonSelectorLabel(season, teams = []) {
+  const match = String(season?.name || '').match(/^(Fall|Summer|Spring|Winter)\s+(.+)$/i);
+  const years = match?.[2]?.replace(/^(\d{4})-(\d{2})(\d{2})$/, '$1-$3');
+  const seasonLabel = match ? `${years} ${match[1][0].toUpperCase()}${match[1].slice(1).toLowerCase()}` : season?.name || 'Season';
+  const scopedTeams = teams.filter((team) => team.seasonId === season?.id);
+  const leagueNames = [...new Set((scopedTeams.length ? scopedTeams : [season]).map(formatLeagueName))];
+  const dayNames = [...new Set(scopedTeams.map((team) => formatScheduleName(team).replace(/\s+League$/, '')))];
+  return [seasonLabel, leagueNames.join(' + '), dayNames.join(' + ')].filter(Boolean).join(' · ');
 }
 
 function uniqueById(items) {

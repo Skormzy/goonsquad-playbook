@@ -4581,7 +4581,8 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 .stats-season-controls select {
-  min-width: 190px;
+  width: clamp(300px, 34vw, 440px);
+  max-width: 100%;
   padding: 7px 32px 7px 11px;
 }
 

@@ -4,11 +4,39 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import * as cheerio from 'cheerio';
 
-const BASE_URL = 'https://www.yorkcentralbhl.com';
-const START_TEAM_PATH = '/team/7250-goonsquad';
+const SOURCE_CONFIGS = Object.freeze({
+  'york-central': Object.freeze({
+    key: 'york-central',
+    idPrefix: 'ycbhl',
+    externalIdPrefix: '',
+    seasonIdPrefix: '',
+    baseUrl: 'https://www.yorkcentralbhl.com',
+    startTeamPath: '/team/7250-goonsquad',
+    sourceName: 'York Central Ball Hockey League',
+    outputFile: '../src/stats/yorkCentralSnapshot.json',
+    historical: false,
+  }),
+  'greater-toronto': Object.freeze({
+    key: 'greater-toronto',
+    idPrefix: 'gtbhl',
+    externalIdPrefix: 'gtbhl:',
+    seasonIdPrefix: 'gtbhl-',
+    baseUrl: 'https://www.greatertorontobhl.com',
+    startTeamPath: '/team/3878-goonsquad',
+    sourceName: 'Greater Toronto Ball Hockey League',
+    outputFile: '../src/stats/greaterTorontoSnapshot.json',
+    historical: true,
+  }),
+});
+const requestedSource = process.argv.find((argument) => argument.startsWith('--source='))?.split('=')[1]
+  || process.env.STATS_SOURCE;
+const SOURCE_KEY = requestedSource === 'greater-toronto' ? 'greater-toronto' : 'york-central';
+const SOURCE = SOURCE_CONFIGS[SOURCE_KEY];
+const BASE_URL = SOURCE.baseUrl;
+const START_TEAM_PATH = SOURCE.startTeamPath;
 const OUTPUT_PATH = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '../src/stats/yorkCentralSnapshot.json',
+  SOURCE.outputFile,
 );
 const SEASON_PATTERN = /^(summer|spring|winter|fall)\s+\d{4}(?:-\d{4})?\s+-\s+/i;
 const MONTHS = Object.freeze({
@@ -57,6 +85,15 @@ function scheduleTeamName(value) {
   return `${words.map((part) => /^[a-z]/.test(part) ? `${part[0].toUpperCase()}${part.slice(1)}` : part).join('')} Team`;
 }
 
+function sourceExternalId(value) {
+  const id = clean(value);
+  return id ? `${SOURCE.externalIdPrefix}${id}` : '';
+}
+
+function sourceEntityId(kind, value) {
+  return `${SOURCE.idPrefix}-${kind}-${value}`;
+}
+
 function absoluteUrl(value) {
   return new URL(value, BASE_URL).toString();
 }
@@ -73,7 +110,7 @@ async function fetchHtml(url, attempt = 1) {
     await new Promise((resolve) => setTimeout(resolve, 350 * attempt));
     return fetchHtml(url, attempt + 1);
   }
-  throw new Error(`York Central request failed (${response.status}) for ${absoluteUrl(url)}`);
+  throw new Error(`${SOURCE.sourceName} request failed (${response.status}) for ${absoluteUrl(url)}`);
 }
 
 function extractExternalId(value, kind) {
@@ -124,15 +161,18 @@ function teamMetadata(teamPath, html) {
   const seasonName = titleSeason($(breadcrumb[0]).text());
   const division = clean($(breadcrumb[1]).text());
   const scheduleLabel = clean(division.replace(/\s+TIER\b.*$/i, ''));
-  const seasonSlug = slugify(seasonName);
-  const externalId = extractExternalId(teamPath, 'team');
+  const seasonSlug = `${SOURCE.seasonIdPrefix}${slugify(seasonName)}`;
+  const providerExternalId = extractExternalId(teamPath, 'team');
   return {
-    externalId,
+    externalId: sourceExternalId(providerExternalId),
+    providerExternalId,
     seasonName,
     seasonSlug,
     division,
     scheduleLabel,
     id: `${seasonSlug}-${slugify(scheduleLabel)}`,
+    leagueKey: SOURCE.key,
+    leagueName: SOURCE.sourceName,
     sourceUrl: absoluteUrl(teamPath),
   };
 }
@@ -207,8 +247,8 @@ function parseSchedule(teamPath, teamId, seasonName, html, stage = 'regular') {
       const isFinal = Number.isFinite(homeScore) && Number.isFinite(awayScore);
       const leagueStatus = clean($(row).find('td.status').text());
       games.push({
-        id: externalId ? `ycbhl-game-${externalId}` : `${teamId}-${slugify(`${dates[0]}-${homeName}-${awayName}`)}`,
-        externalId: externalId || null,
+        id: externalId ? sourceEntityId('game', externalId) : `${teamId}-${slugify(`${dates[0]}-${homeName}-${awayName}`)}`,
+        externalId: sourceExternalId(externalId) || null,
         seasonTeamId: teamId,
         stage,
         scheduledAt: parseGameDate(dates[0], dates[1], seasonName),
@@ -239,8 +279,8 @@ function playerIdentity($, row) {
   const href = anchor.attr('href') ?? '';
   const externalId = extractExternalId(href, 'player');
   return {
-    id: externalId ? `ycbhl-player-${externalId}` : `ycbhl-player-${slugify(anchor.text())}`,
-    externalId: externalId || null,
+    id: externalId ? sourceEntityId('player', externalId) : sourceEntityId('player', slugify(anchor.text())),
+    externalId: sourceExternalId(externalId) || null,
     displayName: clean(anchor.clone().find('.not-on-roster').remove().end().text()),
     active: $(anchor).find('.not-on-roster').length === 0,
     sourceUrl: href ? absoluteUrl(href) : null,
@@ -265,7 +305,7 @@ function parsePlayerLeaders(teamId, html, stage = 'regular') {
       const values = rowValues($, row, headers);
       players.push({ ...player, primaryPosition: null, persisted: false });
       lines.push({
-        id: `${teamId}-${player.id}-field`,
+        id: `${teamId}-${stage}-${player.id}-field`,
         seasonTeamId: teamId,
         stage,
         playerId: player.id,
@@ -297,7 +337,7 @@ function parseGoalieLeaders(teamId, html, stage = 'regular') {
       const values = rowValues($, row, headers);
       players.push({ ...player, primaryPosition: 'G', persisted: false });
       lines.push({
-        id: `${teamId}-${player.id}-goalie`,
+        id: `${teamId}-${stage}-${player.id}-goalie`,
         seasonTeamId: teamId,
         stage,
         playerId: player.id,
@@ -333,11 +373,11 @@ function parseRoster(teamId, html) {
     const externalId = extractExternalId(href, 'player');
     const displayName = clean(anchor.text());
     if (!displayName) return;
-    const playerId = externalId ? `ycbhl-player-${externalId}` : `ycbhl-player-${slugify(displayName)}`;
+    const playerId = externalId ? sourceEntityId('player', externalId) : sourceEntityId('player', slugify(displayName));
     const active = clean($(cells[1]).text()).toUpperCase() === 'YES';
     players.push({
       id: playerId,
-      externalId: externalId || null,
+      externalId: sourceExternalId(externalId) || null,
       displayName,
       primaryPosition: null,
       active,
@@ -370,8 +410,8 @@ function gamePlayer($, anchor, teamExternalId) {
   return {
     isUs,
     player: isUs && externalId ? {
-      id: `ycbhl-player-${externalId}`,
-      externalId,
+      id: sourceEntityId('player', externalId),
+      externalId: sourceExternalId(externalId),
       displayName: clean($(anchor).attr('title') || $(anchor).text()),
       primaryPosition: null,
       active: false,
@@ -397,7 +437,7 @@ function parseGameDetails(game, team, html) {
     $(table).find('tr').each((__, row) => {
       const anchor = $(row).find('td.team a[href^="/player/"]').first();
       if (!anchor.length) return;
-      const identity = gamePlayer($, anchor, team.externalId);
+      const identity = gamePlayer($, anchor, team.providerExternalId);
       const values = $(row).find('td.item').map((___, cell) => clean($(cell).text())).get();
       const byHeader = Object.fromEntries(headers.slice(1).map((header, index) => [header, values[index]]));
       if (isGoalieTable) {
@@ -465,10 +505,10 @@ function parseGameDetails(game, team, html) {
     const scorerAnchor = $(row).find('td.player a[href^="/player/"]').first();
     if (!time || !scorerAnchor.length) return;
     const teamHref = $(row).find('td.team a').attr('href') ?? '';
-    const scorer = gamePlayer($, scorerAnchor, team.externalId);
+    const scorer = gamePlayer($, scorerAnchor, team.providerExternalId);
     if (scorer.player) players.push(scorer.player);
     const assistPlayers = $(row).find('td.assisted a[href^="/player/"]').map((__, anchor) => {
-      const identity = gamePlayer($, anchor, team.externalId);
+      const identity = gamePlayer($, anchor, team.providerExternalId);
       if (identity.player) players.push(identity.player);
       return identity;
     }).get();
@@ -479,7 +519,7 @@ function parseGameDetails(game, team, html) {
       period,
       clockSeconds: clockSeconds(time),
       eventType: 'goal',
-      teamSide: teamHref.includes(`/team/${team.externalId}-goonsquad`) ? 'us' : 'opponent',
+      teamSide: teamHref.includes(`/team/${team.providerExternalId}-goonsquad`) ? 'us' : 'opponent',
       primaryPlayerId: scorer.player?.id ?? null,
       secondaryPlayerId: assistPlayers.find((identity) => identity.player)?.player?.id ?? null,
       detail: {
@@ -503,7 +543,7 @@ function parseGameDetails(game, team, html) {
     const playerAnchor = $(row).find('td.player a[href^="/player/"]').first();
     if (!time || !playerAnchor.length) return;
     const teamHref = $(row).find('td.team a').attr('href') ?? '';
-    const penalized = gamePlayer($, playerAnchor, team.externalId);
+    const penalized = gamePlayer($, playerAnchor, team.providerExternalId);
     if (penalized.player) players.push(penalized.player);
     gameEvents.push({
       id: `${game.id}-penalty-${period}-${clockSeconds(time) ?? index}-${index}`,
@@ -511,7 +551,7 @@ function parseGameDetails(game, team, html) {
       period,
       clockSeconds: clockSeconds(time),
       eventType: 'penalty',
-      teamSide: teamHref.includes(`/team/${team.externalId}-goonsquad`) ? 'us' : 'opponent',
+      teamSide: teamHref.includes(`/team/${team.providerExternalId}-goonsquad`) ? 'us' : 'opponent',
       primaryPlayerId: penalized.player?.id ?? null,
       secondaryPlayerId: null,
       detail: {
@@ -726,13 +766,13 @@ async function buildSnapshot({ scope = 'all', existingSnapshot = null } = {}) {
     const teamHtml = entry.href === START_TEAM_PATH ? startHtml : await fetchHtml(entry.href);
     const team = teamMetadata(entry.href, teamHtml);
     const [regularScheduleHtml, playoffScheduleHtml, regularPlayersHtml, playoffPlayersHtml, regularGoaliesHtml, playoffGoaliesHtml, rosterHtml] = await Promise.all([
-      fetchHtml(`/schedule/team/${team.externalId}-goonsquad?id_stage=1&id_filter=1`),
-      fetchHtml(`/schedule/team/${team.externalId}-goonsquad?id_stage=2&id_filter=1`),
-      fetchHtml(`/leaders/players/team/${team.externalId}-goonsquad?id_stage=1`),
-      fetchHtml(`/leaders/players/team/${team.externalId}-goonsquad?id_stage=2`),
-      fetchHtml(`/leaders/goalies/team/${team.externalId}-goonsquad?id_stage=1`),
-      fetchHtml(`/leaders/goalies/team/${team.externalId}-goonsquad?id_stage=2`),
-      fetchHtml(`/roster/${team.externalId}-goonsquad`),
+      fetchHtml(`/schedule/team/${team.providerExternalId}-goonsquad?id_stage=1&id_filter=1`),
+      fetchHtml(`/schedule/team/${team.providerExternalId}-goonsquad?id_stage=2&id_filter=1`),
+      fetchHtml(`/leaders/players/team/${team.providerExternalId}-goonsquad?id_stage=1`),
+      fetchHtml(`/leaders/players/team/${team.providerExternalId}-goonsquad?id_stage=2`),
+      fetchHtml(`/leaders/goalies/team/${team.providerExternalId}-goonsquad?id_stage=1`),
+      fetchHtml(`/leaders/goalies/team/${team.providerExternalId}-goonsquad?id_stage=2`),
+      fetchHtml(`/roster/${team.providerExternalId}-goonsquad`),
     ]);
     const regularPlayerLeaders = parsePlayerLeaders(team.id, regularPlayersHtml, 'regular');
     const playoffPlayerLeaders = parsePlayerLeaders(team.id, playoffPlayersHtml, 'playoffs');
@@ -760,16 +800,22 @@ async function buildSnapshot({ scope = 'all', existingSnapshot = null } = {}) {
       name: team.seasonName,
       startDate: null,
       endDate: null,
-      status: team.seasonName === currentSeasonName ? 'active' : 'complete',
-      current: team.seasonName === currentSeasonName,
+      status: !SOURCE.historical && team.seasonName === currentSeasonName ? 'active' : 'complete',
+      current: !SOURCE.historical && team.seasonName === currentSeasonName,
+      leagueKey: team.leagueKey,
+      leagueName: team.leagueName,
+      sourceUrl: team.sourceUrl,
     });
     teams.push({
       id: team.id,
       externalId: team.externalId,
+      providerExternalId: team.providerExternalId,
       seasonId: team.seasonSlug,
       name: scheduleTeamName(team.scheduleLabel),
       scheduleLabel: team.scheduleLabel,
       division: team.division,
+      leagueKey: team.leagueKey,
+      leagueName: team.leagueName,
       sourceUrl: team.sourceUrl,
     });
     await new Promise((resolve) => setTimeout(resolve, 120));
@@ -808,7 +854,8 @@ async function buildSnapshot({ scope = 'all', existingSnapshot = null } = {}) {
 
   const dataset = {
     source: 'league-snapshot',
-    sourceName: 'York Central Ball Hockey League',
+    sourceKey: SOURCE.key,
+    sourceName: SOURCE.sourceName,
     sourceUrl: absoluteUrl(START_TEAM_PATH),
     capturedAt: new Date().toISOString(),
     seasons: [...seasons.values()],

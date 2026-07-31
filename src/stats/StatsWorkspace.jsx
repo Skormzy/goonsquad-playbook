@@ -41,6 +41,7 @@ import {
 import {
   ALL_SEASON_TEAMS_ID,
   formatGameDate,
+  formatSeasonSelectorLabel,
   formatPercentage,
   formatScheduleName,
   statsSnapshot,
@@ -1200,7 +1201,7 @@ export default function StatsWorkspace() {
               : `${formatScheduleName(snapshot.team)} performance, fixtures, and player totals.`}</p>
         </div>
         {!tournamentMode && <div className="stats-season-controls">
-          <label><span>Season</span><select value={snapshot.season?.id ?? ''} onChange={(event) => { setSeasonId(event.target.value); setTeamId(''); setStage('regular'); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }} disabled={!dataset.seasons.length}>{dataset.seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
+          <label><span>Season and league</span><select value={snapshot.season?.id ?? ''} onChange={(event) => { setSeasonId(event.target.value); setTeamId(''); setStage('regular'); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }} disabled={!dataset.seasons.length}>{dataset.seasons.map((season) => <option key={season.id} value={season.id}>{formatSeasonSelectorLabel(season, dataset.teams)}</option>)}</select></label>
           {canManage && <button type="button" className="stats-manage-button" onClick={() => setManagerOpen(true)}><Settings2 aria-hidden="true" /> Manage data</button>}
         </div>}
       </header>}

@@ -30,6 +30,10 @@ jobs:
         run: npm run stats:sync:york-central
         env:
           STATS_SYNC_SCOPE: current
+      - name: Verify Greater Toronto archive
+        run: npm run stats:sync:greater-toronto
+      - name: Publish combined runtime snapshot
+        run: npm run stats:publish:snapshot
       - name: Publish new results and social activity to Squad Live
         run: npm run feed:sync:activity
         env:
@@ -51,13 +55,13 @@ jobs:
       - name: Publish changed official data
         shell: bash
         run: |
-          if git diff --quiet -- src/stats/yorkCentralSnapshot.json src/feed/officialYoutubeActivity.json; then
+          if git diff --quiet -- src/stats/yorkCentralSnapshot.json src/stats/greaterTorontoSnapshot.json src/feed/officialYoutubeActivity.json; then
             echo "No official team data changes detected." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           git config user.name "goonsquad-stats-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add src/stats/yorkCentralSnapshot.json src/feed/officialYoutubeActivity.json
+          git add src/stats/yorkCentralSnapshot.json src/stats/greaterTorontoSnapshot.json src/feed/officialYoutubeActivity.json
           git commit -m "chore(data): refresh official team activity"
           git pull --rebase origin main
           git push origin HEAD:main

@@ -4,7 +4,11 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import * as cheerio from 'cheerio';
 import { createClient } from '@supabase/supabase-js';
-import snapshot from '../src/stats/yorkCentralSnapshot.json' with { type: 'json' };
+import greaterTorontoSnapshot from '../src/stats/greaterTorontoSnapshot.json' with { type: 'json' };
+import yorkCentralSnapshot from '../src/stats/yorkCentralSnapshot.json' with { type: 'json' };
+import { mergeLeagueSnapshots } from '../src/stats/leagueSnapshotMerge.js';
+
+const snapshot = mergeLeagueSnapshots(yorkCentralSnapshot, greaterTorontoSnapshot);
 
 const DEFAULT_BACKFILL_SINCE = '2026-01-01T00:00:00.000Z';
 const TORONTO_TIME_ZONE = 'America/Toronto';

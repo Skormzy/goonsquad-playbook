@@ -94,6 +94,7 @@
     "qa:account": "node scripts/capture-member-profile.mjs",
     "qa:themes": "node scripts/capture-theme-integrity.mjs",
     "stats:sync:york-central": "node scripts/sync-york-central-stats.mjs",
+    "stats:sync:greater-toronto": "node scripts/sync-york-central-stats.mjs --source=greater-toronto",
     "feed:sync:activity": "node scripts/sync-team-feed-activity.mjs",
     "stats:publish:snapshot": "node scripts/write-public-stats-snapshot.mjs",
     "stats:push:supabase": "node scripts/push-york-central-stats-to-supabase.mjs",

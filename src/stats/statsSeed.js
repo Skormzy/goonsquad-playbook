@@ -1,4 +1,6 @@
-import officialSnapshot from './yorkCentralSnapshot.json';
+import greaterTorontoSnapshot from './greaterTorontoSnapshot.json';
+import yorkCentralSnapshot from './yorkCentralSnapshot.json';
+import { mergeLeagueSnapshots } from './leagueSnapshotMerge';
 
 export const EMPTY_STATS_DATASET = Object.freeze({
   source: 'structure',
@@ -35,4 +37,7 @@ export const EMPTY_STATS_DATASET = Object.freeze({
   goalieSeasonStats: Object.freeze([]),
 });
 
-export const OFFICIAL_STATS_DATASET = Object.freeze(officialSnapshot);
+export const OFFICIAL_STATS_DATASET = Object.freeze(mergeLeagueSnapshots(
+  yorkCentralSnapshot,
+  greaterTorontoSnapshot,
+));

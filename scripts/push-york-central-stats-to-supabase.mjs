@@ -1,7 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import process from 'node:process';
 import { createClient } from '@supabase/supabase-js';
-import snapshot from '../src/stats/yorkCentralSnapshot.json' with { type: 'json' };
+import greaterTorontoSnapshot from '../src/stats/greaterTorontoSnapshot.json' with { type: 'json' };
+import yorkCentralSnapshot from '../src/stats/yorkCentralSnapshot.json' with { type: 'json' };
+import { mergeLeagueSnapshots } from '../src/stats/leagueSnapshotMerge.js';
+
+const snapshot = mergeLeagueSnapshots(yorkCentralSnapshot, greaterTorontoSnapshot);
 
 async function loadLocalEnvironment() {
   try {
@@ -82,7 +86,7 @@ async function importSnapshot() {
     is_current: season.current,
     is_visible: true,
     source: 'league',
-    source_url: snapshot.sourceUrl,
+    source_url: season.sourceUrl || snapshot.sourceUrl,
   })), 'id');
 
   await upsert('season_teams', snapshot.teams.map((team) => ({

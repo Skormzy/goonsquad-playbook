@@ -22,7 +22,7 @@ describe('team account and statistics product contract', () => {
     expect(OFFICIAL_STATS_DATASET.goalieGameStats.length).toBeGreaterThanOrEqual(280);
     expect(OFFICIAL_STATS_DATASET.gameEvents.length).toBeGreaterThanOrEqual(2768);
     expect(OFFICIAL_STATS_DATASET.standings.length).toBeGreaterThanOrEqual(154);
-    expect(new Set(OFFICIAL_STATS_DATASET.standings.map((row) => row.seasonTeamId)).size).toBe(23);
+    expect(new Set(OFFICIAL_STATS_DATASET.standings.map((row) => row.seasonTeamId)).size).toBeGreaterThanOrEqual(28);
     expect(OFFICIAL_STATS_DATASET.teams.filter((team) => team.seasonId === 'summer-2026').map((team) => team.name)).toEqual(['Mon/Thu Team', 'Sunday Team']);
     expect(OFFICIAL_STATS_DATASET.games.every((game) => game.sourceUrl && game.verified)).toBe(true);
     expect(OFFICIAL_STATS_DATASET.seasons.every((season) => season.startDate === null && season.endDate === null)).toBe(true);
