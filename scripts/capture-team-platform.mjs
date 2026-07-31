@@ -93,6 +93,14 @@ for (const viewport of viewports) {
   const memberHomePath = path.join(outputDir, `${viewport.id}-member-feed-${viewport.width}x${viewport.height}.png`);
   await page.screenshot({ path: memberHomePath, fullPage: false });
 
+  await page.getByRole('tab', { name: 'Scores', exact: true }).click();
+  const officialResultCard = page.locator('.feed-result-card').first();
+  await officialResultCard.waitFor({ state: 'visible', timeout: 30_000 });
+  const officialResultText = (await officialResultCard.innerText()).replace(/\s+/gu, ' ').trim();
+  const officialResultPath = path.join(outputDir, `${viewport.id}-official-result-feed-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: officialResultPath, fullPage: false });
+  await page.getByRole('tab', { name: 'All', exact: true }).click();
+
   await page.getByTestId(viewport.id === 'mobile' ? 'mobile-nav-stats' : 'workspace-content-stats').click();
   await page.locator('.stats-workspace').waitFor({ state: 'visible', timeout: 30_000 });
   const statsPath = path.join(outputDir, `${viewport.id}-statistics-${viewport.width}x${viewport.height}.png`);
@@ -175,6 +183,7 @@ for (const viewport of viewports) {
     memberPostCount,
     composerVisible,
     memberDocumentOverflow,
+    officialResultText,
     summary: summary.replace(/\s+/gu, ' ').trim(),
     matchday: matchday.map((value) => value.replace(/\s+/gu, ' ').trim()),
     teamLabels,
@@ -198,6 +207,7 @@ for (const viewport of viewports) {
     screenshots: [
       path.relative(root, homePath).replaceAll('\\', '/'),
       path.relative(root, memberHomePath).replaceAll('\\', '/'),
+      path.relative(root, officialResultPath).replaceAll('\\', '/'),
       path.relative(root, statsPath).replaceAll('\\', '/'),
       path.relative(root, gameDetailPath).replaceAll('\\', '/'),
       path.relative(root, gameBoxScorePath).replaceAll('\\', '/'),
@@ -211,6 +221,13 @@ for (const viewport of viewports) {
   if (!publicPulseText.includes('SEASON RECORD') || !publicPulseText.includes('LATEST RESULT')) throw new Error(`${viewport.id}: public game pulse is incomplete.`);
   if (memberPostCount < 2 || !composerVisible) throw new Error(`${viewport.id}: approved-member feed is incomplete.`);
   if (memberDocumentOverflow > 1) throw new Error(`${viewport.id}: member feed has ${memberDocumentOverflow}px horizontal overflow.`);
+  if (
+    !officialResultText.toUpperCase().includes('GOON SQUAD')
+    || !/9\s*[–-]\s*4/u.test(officialResultText)
+    || !officialResultText.toUpperCase().includes('FULL GAME SHEET')
+  ) {
+    throw new Error(`${viewport.id}: official result feed card is incomplete.`);
+  }
   if (matchday.length !== 2 || !matchday[0].includes('NEXT GAME') || !matchday[1].includes('LATEST RESULT')) throw new Error(`${viewport.id}: matchday summary is incomplete.`);
   if (!/\d+–\d+–\d+/u.test(summary) || !/\d+ games · 2 leagues/u.test(summary)) {
     throw new Error(`${viewport.id}: combined current-season record is missing.`);

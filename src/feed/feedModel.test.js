@@ -6,6 +6,7 @@ import {
   feedTextParts,
   formatFeedTime,
   normalizeExternalUrl,
+  summarizeFeedReactions,
   validateFeedMedia,
 } from './feedModel';
 
@@ -58,6 +59,18 @@ describe('team feed model', () => {
         },
       },
       { type: 'text', value: '!' },
+    ]);
+  });
+
+  it('summarizes supported emoji reactions in a stable display order', () => {
+    expect(summarizeFeedReactions([
+      { userId: 'a', reaction: 'fire' },
+      { userId: 'b', reaction: 'like' },
+      { userId: 'c', reaction: 'fire' },
+      { userId: 'd', reaction: 'unsupported' },
+    ])).toEqual([
+      { id: 'like', emoji: '👍', label: 'Like', count: 1 },
+      { id: 'fire', emoji: '🔥', label: 'Fire', count: 2 },
     ]);
   });
 });

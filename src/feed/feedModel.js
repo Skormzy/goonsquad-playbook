@@ -2,6 +2,19 @@ export const FEED_POST_MAX_LENGTH = 3000;
 export const FEED_COMMENT_MAX_LENGTH = 1000;
 export const FEED_MEDIA_MAX_BYTES = 50 * 1024 * 1024;
 
+export const FEED_REACTIONS = Object.freeze([
+  { id: 'like', emoji: '👍', label: 'Like' },
+  { id: 'heart', emoji: '❤️', label: 'Love it' },
+  { id: 'fire', emoji: '🔥', label: 'Fire' },
+  { id: 'celebrate', emoji: '🙌', label: 'Celebrate' },
+  { id: 'laugh', emoji: '😂', label: 'Laugh' },
+  { id: 'wow', emoji: '😮', label: 'Wow' },
+]);
+
+export const FEED_REACTION_IDS = Object.freeze(
+  FEED_REACTIONS.map((reaction) => reaction.id),
+);
+
 export const FEED_MEDIA_TYPES = Object.freeze({
   'image/jpeg': 'image',
   'image/png': 'image',
@@ -72,6 +85,20 @@ export function validateFeedMedia(file) {
 export function canPublishFeedPost({ body, linkUrl, file }) {
   const text = String(body || '').trim();
   return Boolean(text || normalizeExternalUrl(linkUrl) || file);
+}
+
+export function summarizeFeedReactions(reactions = []) {
+  const counts = new Map();
+  reactions.forEach(({ reaction }) => {
+    if (!FEED_REACTION_IDS.includes(reaction)) return;
+    counts.set(reaction, (counts.get(reaction) || 0) + 1);
+  });
+  return FEED_REACTIONS
+    .filter(({ id }) => counts.has(id))
+    .map((reaction) => ({
+      ...reaction,
+      count: counts.get(reaction.id),
+    }));
 }
 
 export function formatFeedTime(value, now = new Date()) {

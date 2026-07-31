@@ -1,0 +1,112 @@
+import { describe, expect, it } from 'vitest';
+import {
+  buildResultFeedItems,
+  instagramItemsFromApiResponse,
+  youtubeItemsFromApiResponse,
+} from '../../scripts/sync-team-feed-activity.mjs';
+
+const dataset = {
+  teams: [{
+    id: 'summer-2026-mon-thu',
+    scheduleLabel: 'MON/THU',
+  }],
+  players: [{
+    id: 'p1',
+    displayName: 'Alex Example',
+  }],
+  games: [{
+    id: 'ycbhl-game-123',
+    externalId: '123',
+    seasonTeamId: 'summer-2026-mon-thu',
+    stage: 'regular',
+    scheduledAt: '2026-07-30T19:00:00',
+    opponent: 'VIPERZ',
+    venue: 'home',
+    location: 'Stephen Leacock',
+    status: 'final',
+    goalsFor: 4,
+    goalsAgainst: 2,
+    sourceUrl: 'https://www.yorkcentralbhl.com/game/123-goonsquad-viperz',
+  }],
+  teamGameStats: [{
+    gameId: 'ycbhl-game-123',
+    shotsFor: 21,
+    shotsAgainst: 14,
+  }],
+  playerGameStats: [{
+    gameId: 'ycbhl-game-123',
+    playerId: 'p1',
+    goals: 2,
+    assists: 1,
+  }],
+};
+
+describe('automated Squad Live activity', () => {
+  it('turns a verified final into one stable, source-linked result post', () => {
+    const [item] = buildResultFeedItems(dataset);
+    expect(item).toMatchObject({
+      sourceKey: 'result:ycbhl-game-123',
+      sourceType: 'result',
+      sourceLabel: 'Official result · Monday League',
+      sourceTitle: 'Goon Squad 4–2 VIPERZ',
+      linkUrl: 'https://www.yorkcentralbhl.com/game/123-goonsquad-viperz',
+      sourceMetadata: {
+        outcome: 'win',
+        goalsFor: 4,
+        goalsAgainst: 2,
+        shotsFor: 21,
+        shotsAgainst: 14,
+      },
+    });
+    expect(item.body).toContain('Shots: 21–14');
+    expect(item.body).toContain('Alex Example 2G · 1A');
+  });
+
+  it('filters out scheduled games and finals before the backfill window', () => {
+    const scheduled = {
+      ...dataset,
+      games: [{ ...dataset.games[0], status: 'scheduled' }],
+    };
+    expect(buildResultFeedItems(scheduled)).toEqual([]);
+    expect(buildResultFeedItems(dataset, {
+      since: '2026-08-01T00:00:00.000Z',
+    })).toEqual([]);
+  });
+
+  it('normalizes YouTube uploads into playable source cards', () => {
+    const [item] = youtubeItemsFromApiResponse([{
+      contentDetails: { videoId: 'video-1' },
+      snippet: {
+        title: 'Game night',
+        description: 'Highlights from the win.',
+        publishedAt: '2026-06-01T12:00:00Z',
+        thumbnails: { high: { url: 'https://i.ytimg.com/video-1.jpg' } },
+      },
+    }]);
+    expect(item).toMatchObject({
+      sourceKey: 'youtube:video-1',
+      sourceType: 'youtube',
+      sourceTitle: 'Game night',
+      linkUrl: 'https://www.youtube.com/watch?v=video-1',
+      sourceImageUrl: 'https://i.ytimg.com/video-1.jpg',
+    });
+  });
+
+  it('normalizes official Instagram media without inventing account data', () => {
+    const [item] = instagramItemsFromApiResponse([{
+      id: 'media-1',
+      caption: 'Big team win',
+      media_type: 'IMAGE',
+      media_url: 'https://cdn.example.com/media-1.jpg',
+      permalink: 'https://www.instagram.com/p/media-1/',
+      timestamp: '2026-05-01T12:00:00Z',
+    }], { accountLabel: '@goonsquad' });
+    expect(item).toMatchObject({
+      sourceKey: 'instagram:media-1',
+      sourceType: 'instagram',
+      sourceLabel: '@goonsquad',
+      sourceTitle: 'Big team win',
+      linkUrl: 'https://www.instagram.com/p/media-1/',
+    });
+  });
+});

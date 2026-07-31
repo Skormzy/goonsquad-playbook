@@ -30,6 +30,19 @@ jobs:
         run: npm run stats:sync:york-central
         env:
           STATS_SYNC_SCOPE: current
+      - name: Publish new results and social activity to Squad Live
+        run: npm run feed:sync:activity
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          TEAM_FEED_INGEST_TOKEN: ${{ secrets.TEAM_FEED_INGEST_TOKEN }}
+          TEAM_FEED_BACKFILL_SINCE: '2026-01-01T00:00:00.000Z'
+          TEAM_YOUTUBE_CHANNEL_ID: ${{ secrets.TEAM_YOUTUBE_CHANNEL_ID }}
+          TEAM_YOUTUBE_PLAYLIST_ID: ${{ secrets.TEAM_YOUTUBE_PLAYLIST_ID }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          TEAM_INSTAGRAM_USER_ID: ${{ secrets.TEAM_INSTAGRAM_USER_ID }}
+          TEAM_INSTAGRAM_LABEL: ${{ secrets.TEAM_INSTAGRAM_LABEL }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
       - name: Publish changed official data
         shell: bash
         run: |

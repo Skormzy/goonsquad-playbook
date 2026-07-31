@@ -8,6 +8,8 @@ import {
 import {
   AtSign,
   BarChart3,
+  BadgeCheck,
+  Camera,
   CalendarClock,
   ChevronRight,
   CircleAlert,
@@ -21,6 +23,7 @@ import {
   MessageCircle,
   MoreHorizontal,
   Pin,
+  PlaySquare,
   Plus,
   Radio,
   RefreshCw,
@@ -54,23 +57,28 @@ import {
   loadTeamFeed,
   markTeamFeedMentionsRead,
   setTeamFeedPostPinned,
+  setTeamFeedReaction,
   subscribeTeamFeed,
-  toggleTeamFeedLike,
 } from './feedCloud';
 import {
   canPublishFeedPost,
   FEED_COMMENT_MAX_LENGTH,
   FEED_POST_MAX_LENGTH,
+  FEED_REACTIONS,
   feedTextParts,
   formatFeedTime,
   initialsForMember,
   linkDomain,
+  summarizeFeedReactions,
   validateFeedMedia,
 } from './feedModel';
 import './feed.css';
 
 const FEED_FILTERS = Object.freeze([
-  { id: 'latest', label: 'Latest' },
+  { id: 'latest', label: 'All' },
+  { id: 'member', label: 'Squad' },
+  { id: 'result', label: 'Scores' },
+  { id: 'social', label: 'Social' },
   { id: 'pinned', label: 'Pinned' },
   { id: 'mentions', label: 'Mentions' },
 ]);
@@ -113,7 +121,17 @@ const QA_POSTS = Object.freeze([
     mediaUrl: '',
     pinnedAt: '2026-07-30T14:00:00Z',
     createdAt: '2026-07-30T14:00:00Z',
-    likedBy: ['qa-user', 'qa-winger'],
+    sourceType: 'member',
+    sourceKey: '',
+    sourceLabel: '',
+    sourceTitle: '',
+    sourceImageUrl: '',
+    sourcePublishedAt: '',
+    sourceMetadata: {},
+    reactions: [
+      { userId: 'qa-user', reaction: 'fire' },
+      { userId: 'qa-winger', reaction: 'like' },
+    ],
     comments: [{
       id: 'qa-comment-1',
       postId: 'qa-post-1',
@@ -141,7 +159,46 @@ const QA_POSTS = Object.freeze([
     mediaUrl: '',
     pinnedAt: null,
     createdAt: '2026-07-30T12:00:00Z',
-    likedBy: ['qa-coach'],
+    sourceType: 'member',
+    sourceKey: '',
+    sourceLabel: '',
+    sourceTitle: '',
+    sourceImageUrl: '',
+    sourcePublishedAt: '',
+    sourceMetadata: {},
+    reactions: [{ userId: 'qa-coach', reaction: 'heart' }],
+    comments: [],
+    mentions: [],
+  },
+  {
+    id: 'qa-result-1',
+    authorId: null,
+    author: null,
+    body: 'Shots: 19–16\nLeaders: Yusuf Sadozi 3G · 2A  |  Ryan Hunt 2G · 1A',
+    linkUrl: 'https://www.yorkcentralbhl.com/game/53117-goonsquad-og-viperz',
+    mediaPath: '',
+    mediaKind: '',
+    mediaUrl: '',
+    sourceType: 'result',
+    sourceKey: 'result:ycbhl-game-53117',
+    sourceLabel: 'Official result · Sunday League',
+    sourceTitle: 'Goon Squad 9–4 OG VIPERZ',
+    sourceImageUrl: '',
+    sourcePublishedAt: '2026-07-26T21:00:00Z',
+    sourceMetadata: {
+      outcome: 'win',
+      goalsFor: 9,
+      goalsAgainst: 4,
+      opponent: 'OG VIPERZ',
+      league: 'Sunday League',
+    },
+    pinnedAt: null,
+    createdAt: '2026-07-26T21:00:00Z',
+    reactions: [
+      { userId: 'qa-user', reaction: 'celebrate' },
+      { userId: 'qa-coach', reaction: 'fire' },
+      { userId: 'qa-winger', reaction: 'fire' },
+    ],
     comments: [],
     mentions: [],
   },
@@ -154,6 +211,80 @@ function Avatar({ member, size = 'md' }) {
         ? <img src={member.avatarUrl} alt="" />
         : initialsForMember(member)}
     </span>
+  );
+}
+
+function sourceIdentity(post) {
+  if (post.sourceType === 'result') {
+    return {
+      displayName: 'Goon Squad Scores',
+      username: 'official results',
+      Icon: Trophy,
+    };
+  }
+  if (post.sourceType === 'instagram') {
+    return {
+      displayName: post.sourceLabel || 'Goon Squad Instagram',
+      username: 'instagram',
+      Icon: Camera,
+    };
+  }
+  if (post.sourceType === 'youtube') {
+    return {
+      displayName: post.sourceLabel || 'Goon Squad YouTube',
+      username: 'youtube',
+      Icon: PlaySquare,
+    };
+  }
+  if (post.sourceType === 'system') {
+    return {
+      displayName: post.sourceLabel || 'Goon Squad',
+      username: 'team update',
+      Icon: Radio,
+    };
+  }
+  return null;
+}
+
+function FeedPostAvatar({ post }) {
+  const source = sourceIdentity(post);
+  if (!source) return <Avatar member={post.author} />;
+  const { Icon } = source;
+  return (
+    <span className={`feed-source-avatar is-${post.sourceType}`} aria-hidden="true">
+      <Icon />
+    </span>
+  );
+}
+
+function OfficialResultCard({ post }) {
+  const details = post.sourceMetadata || {};
+  const outcome = details.outcome || 'final';
+  return (
+    <a
+      className={`feed-result-card is-${outcome}`}
+      href={post.linkUrl}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`${post.sourceTitle}. Open official game results`}
+    >
+      <span className="feed-result-kicker">
+        <BadgeCheck /> {post.sourceLabel || 'Official result'}
+      </span>
+      <div className="feed-result-matchup">
+        <strong>GOON SQUAD</strong>
+        <span>
+          <b>{details.goalsFor}</b>
+          <i>–</i>
+          <b>{details.goalsAgainst}</b>
+        </span>
+        <strong>{details.opponent || 'Opponent'}</strong>
+      </div>
+      <footer>
+        <em>{outcome === 'win' ? 'WIN' : outcome === 'loss' ? 'FINAL' : 'TIE'}</em>
+        <span>Full game sheet <ExternalLink /></span>
+      </footer>
+    </a>
   );
 }
 
@@ -384,9 +515,9 @@ function PostCard({
   onComment,
   onDeleteComment,
   onDeletePost,
-  onLike,
   onOpenMember,
   onPin,
+  onReact,
   onShare,
   pendingAction,
   post,
@@ -394,8 +525,19 @@ function PostCard({
   const [comment, setComment] = useState('');
   const [commentsOpen, setCommentsOpen] = useState(post.comments.length > 0);
   const [menuOpen, setMenuOpen] = useState(false);
-  const liked = post.likedBy.includes(currentUserId);
-  const canManage = isAdmin || post.authorId === currentUserId;
+  const [reactionOpen, setReactionOpen] = useState(false);
+  const currentReaction = post.reactions.find(
+    (reaction) => reaction.userId === currentUserId,
+  )?.reaction || '';
+  const currentReactionOption = FEED_REACTIONS.find(
+    (reaction) => reaction.id === currentReaction,
+  );
+  const reactionSummary = summarizeFeedReactions(post.reactions);
+  const source = sourceIdentity(post);
+  const canManage = isAdmin || (
+    post.sourceType === 'member'
+    && post.authorId === currentUserId
+  );
 
   const submitComment = async () => {
     if (!comment.trim()) return;
@@ -414,13 +556,27 @@ function PostCard({
   };
 
   return (
-    <article className={`feed-post ${post.pinnedAt ? 'is-pinned' : ''}`} id={`feed-post-${post.id}`}>
+    <article
+      className={[
+        'feed-post',
+        post.pinnedAt ? 'is-pinned' : '',
+        post.sourceType !== 'member' ? `is-source is-${post.sourceType}` : '',
+      ].filter(Boolean).join(' ')}
+      id={`feed-post-${post.id}`}
+    >
       {post.pinnedAt && <div className="feed-post-pinned"><Pin /> PINNED FOR THE SQUAD</div>}
       <header className="feed-post-header">
-        <Avatar member={post.author} />
+        <FeedPostAvatar post={post} />
         <div>
-          <strong>{post.author?.displayName || 'Goon Squad member'}</strong>
-          <span>@{post.author?.username || 'member'} · {formatFeedTime(post.createdAt)}</span>
+          <strong>
+            {source?.displayName || post.author?.displayName || 'Goon Squad member'}
+            {source && <BadgeCheck className="feed-official-check" aria-label="Official team activity" />}
+          </strong>
+          <span>
+            {source ? source.username : `@${post.author?.username || 'member'}`}
+            {' · '}
+            {formatFeedTime(post.sourcePublishedAt || post.createdAt)}
+          </span>
         </div>
         {canManage && (
           <div className="feed-post-menu">
@@ -442,6 +598,10 @@ function PostCard({
           </div>
         )}
       </header>
+      {post.sourceType === 'result' && <OfficialResultCard post={post} />}
+      {post.sourceType !== 'member' && post.sourceType !== 'result' && post.sourceTitle && (
+        <h3 className="feed-source-title">{post.sourceTitle}</h3>
+      )}
       {post.body && (
         <RichFeedText members={members} onOpenMember={onOpenMember}>
           {post.body}
@@ -454,25 +614,88 @@ function PostCard({
             : <img src={post.mediaUrl} alt="Shared by a team member" loading="lazy" />}
         </div>
       )}
-      {post.linkUrl && (
+      {!post.mediaUrl && post.sourceImageUrl && (
+        <a
+          className={`feed-source-media is-${post.sourceType}`}
+          href={post.linkUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <img src={post.sourceImageUrl} alt="" loading="lazy" />
+          {post.sourceType === 'youtube' && <span><PlaySquare /> WATCH</span>}
+        </a>
+      )}
+      {post.linkUrl && post.sourceType !== 'result' && (
         <a className="feed-link-card" href={post.linkUrl} target="_blank" rel="noreferrer">
-          <span><Link2 /></span>
-          <div><small>SHARED LINK · {linkDomain(post.linkUrl)}</small><strong>{post.linkUrl}</strong></div>
+          <span>
+            {post.sourceType === 'instagram'
+              ? <Camera />
+              : post.sourceType === 'youtube'
+                ? <PlaySquare />
+                : <Link2 />}
+          </span>
+          <div>
+            <small>
+              {post.sourceType === 'instagram'
+                ? 'OPEN ON INSTAGRAM'
+                : post.sourceType === 'youtube'
+                  ? 'WATCH ON YOUTUBE'
+                  : `SHARED LINK · ${linkDomain(post.linkUrl)}`}
+            </small>
+            <strong>{post.sourceTitle || post.linkUrl}</strong>
+          </div>
           <ExternalLink />
         </a>
       )}
-      {(post.likedBy.length > 0 || post.comments.length > 0) && (
+      {(post.reactions.length > 0 || post.comments.length > 0) && (
         <div className="feed-post-counts">
-          <span>{post.likedBy.length ? `${post.likedBy.length} ${post.likedBy.length === 1 ? 'like' : 'likes'}` : ''}</span>
+          <span className="feed-reaction-counts">
+            {reactionSummary.map((reaction) => (
+              <span key={reaction.id} title={`${reaction.count} ${reaction.label}`}>
+                {reaction.emoji}<b>{reaction.count}</b>
+              </span>
+            ))}
+          </span>
           <button type="button" onClick={() => setCommentsOpen((open) => !open)}>
             {post.comments.length ? `${post.comments.length} ${post.comments.length === 1 ? 'comment' : 'comments'}` : ''}
           </button>
         </div>
       )}
       <div className="feed-post-actions">
-        <button type="button" className={liked ? 'is-active' : ''} disabled={pendingAction} onClick={() => onLike(post)}>
-          <Heart fill={liked ? 'currentColor' : 'none'} /> Like
-        </button>
+        <div className="feed-reaction-action">
+          <button
+            type="button"
+            className={currentReaction ? 'is-active' : ''}
+            disabled={pendingAction}
+            onClick={() => setReactionOpen((open) => !open)}
+            aria-expanded={reactionOpen}
+          >
+            {currentReactionOption
+              ? <span aria-hidden="true">{currentReactionOption.emoji}</span>
+              : <Heart />}
+            {currentReactionOption?.label || 'React'}
+          </button>
+          {reactionOpen && (
+            <div className="feed-reaction-picker" role="menu" aria-label="React to post">
+              {FEED_REACTIONS.map((reaction) => (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={reaction.id === currentReaction ? 'is-selected' : ''}
+                  key={reaction.id}
+                  title={reaction.label}
+                  aria-label={reaction.label}
+                  onClick={() => {
+                    setReactionOpen(false);
+                    onReact(post, reaction.id);
+                  }}
+                >
+                  {reaction.emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button type="button" onClick={() => setCommentsOpen(true)}>
           <MessageCircle /> Comment
         </button>
@@ -715,6 +938,19 @@ export default function TeamHome() {
     role: account.profile?.role || 'member',
   };
   const visiblePosts = useMemo(() => {
+    if (filter === 'member') {
+      return feed.posts.filter((post) => post.sourceType === 'member');
+    }
+    if (filter === 'result') {
+      return feed.posts.filter((post) => post.sourceType === 'result');
+    }
+    if (filter === 'social') {
+      return feed.posts.filter((post) => (
+        post.sourceType === 'instagram'
+        || post.sourceType === 'youtube'
+        || post.sourceType === 'system'
+      ));
+    }
     if (filter === 'pinned') return feed.posts.filter((post) => post.pinnedAt);
     if (filter === 'mentions') {
       return feed.posts.filter((post) => post.mentions.some(
@@ -786,8 +1022,8 @@ export default function TeamHome() {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `${post.author?.displayName || 'Goon Squad'} on Squad Live`,
-          text: post.body.slice(0, 140),
+          title: post.sourceTitle || `${post.author?.displayName || 'Goon Squad'} on Squad Live`,
+          text: (post.body || post.sourceTitle || '').slice(0, 140),
           url: shareUrl,
         });
       } else {
@@ -873,22 +1109,36 @@ export default function TeamHome() {
                     pendingAction={pendingAction === post.id}
                     onOpenMember={openMember}
                     onShare={sharePost}
-                    onLike={() => runPostAction(post.id, () => (
+                    onReact={(item, reaction) => runPostAction(post.id, () => (
                       qaFeed
                         ? Promise.resolve(setFeed((current) => ({
                           ...current,
-                          posts: current.posts.map((item) => item.id === post.id
-                            ? {
-                              ...item,
-                              likedBy: item.likedBy.includes(currentUserId)
-                                ? item.likedBy.filter((id) => id !== currentUserId)
-                                : [...item.likedBy, currentUserId],
-                            }
-                            : item),
+                          posts: current.posts.map((candidate) => {
+                            if (candidate.id !== post.id) return candidate;
+                            const existing = candidate.reactions.find(
+                              (entry) => entry.userId === currentUserId,
+                            )?.reaction;
+                            return {
+                              ...candidate,
+                              reactions: existing === reaction
+                                ? candidate.reactions.filter(
+                                  (entry) => entry.userId !== currentUserId,
+                                )
+                                : [
+                                  ...candidate.reactions.filter(
+                                    (entry) => entry.userId !== currentUserId,
+                                  ),
+                                  { userId: currentUserId, reaction },
+                                ],
+                            };
+                          }),
                         })))
-                        : toggleTeamFeedLike({
-                          liked: post.likedBy.includes(currentUserId),
-                          postId: post.id,
+                        : setTeamFeedReaction({
+                          currentReaction: item.reactions.find(
+                            (entry) => entry.userId === currentUserId,
+                          )?.reaction || '',
+                          postId: item.id,
+                          reaction,
                           userId: currentUserId,
                         })
                     ))}

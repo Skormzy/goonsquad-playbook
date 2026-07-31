@@ -4,6 +4,7 @@ import {
   extractMentionUsernames,
   FEED_COMMENT_MAX_LENGTH,
   FEED_POST_MAX_LENGTH,
+  FEED_REACTION_IDS,
   normalizeExternalUrl,
   validateFeedMedia,
 } from './feedModel';
@@ -33,7 +34,8 @@ function sortPosts(posts) {
   return [...posts].sort((left, right) => {
     const pinned = Number(Boolean(right.pinnedAt)) - Number(Boolean(left.pinnedAt));
     if (pinned) return pinned;
-    return new Date(right.pinnedAt || right.createdAt) - new Date(left.pinnedAt || left.createdAt);
+    return new Date(right.pinnedAt || right.sourcePublishedAt || right.createdAt)
+      - new Date(left.pinnedAt || left.sourcePublishedAt || left.createdAt);
   });
 }
 
@@ -93,7 +95,7 @@ export async function loadFeedMembers() {
   }));
 }
 
-export async function loadTeamFeed({ limit = 40, userId = '' } = {}) {
+export async function loadTeamFeed({ limit = 140, userId = '' } = {}) {
   const cloud = requireCloud();
   const [{ data: postRows, error: postsError }, members] = await Promise.all([
     cloud
@@ -112,7 +114,7 @@ export async function loadTeamFeed({ limit = 40, userId = '' } = {}) {
 
   const [
     { data: comments, error: commentsError },
-    { data: likes, error: likesError },
+    { data: reactions, error: reactionsError },
     { data: mentions, error: mentionsError },
   ] = await Promise.all([
     cloud
@@ -121,7 +123,7 @@ export async function loadTeamFeed({ limit = 40, userId = '' } = {}) {
       .in('post_id', postIds)
       .order('created_at', { ascending: true }),
     cloud
-      .from('team_feed_likes')
+      .from('team_feed_reactions')
       .select('*')
       .in('post_id', postIds),
     cloud
@@ -130,7 +132,7 @@ export async function loadTeamFeed({ limit = 40, userId = '' } = {}) {
       .in('post_id', postIds),
   ]);
   throwIfError(commentsError);
-  throwIfError(likesError);
+  throwIfError(reactionsError);
   throwIfError(mentionsError);
 
   const memberById = new Map(members.map((member) => [member.id, member]));
@@ -152,11 +154,15 @@ export async function loadTeamFeed({ limit = 40, userId = '' } = {}) {
     });
     commentsByPost.set(comment.post_id, existing);
   });
-  const likesByPost = new Map();
-  (likes || []).forEach((like) => {
-    const existing = likesByPost.get(like.post_id) || [];
-    existing.push(like.user_id);
-    likesByPost.set(like.post_id, existing);
+  const reactionsByPost = new Map();
+  (reactions || []).forEach((reaction) => {
+    const existing = reactionsByPost.get(reaction.post_id) || [];
+    existing.push({
+      userId: reaction.user_id,
+      reaction: reaction.reaction,
+      createdAt: reaction.created_at,
+    });
+    reactionsByPost.set(reaction.post_id, existing);
   });
   const mentionsByPost = new Map();
   (mentions || []).forEach((mention) => {
@@ -178,6 +184,13 @@ export async function loadTeamFeed({ limit = 40, userId = '' } = {}) {
     mediaPath: post.media_path || '',
     mediaKind: post.media_kind || '',
     mediaUrl: mediaUrls.get(post.media_path) || '',
+    sourceType: post.source_type || 'member',
+    sourceKey: post.source_key || '',
+    sourceLabel: post.source_label || '',
+    sourceTitle: post.source_title || '',
+    sourceImageUrl: post.source_image_url || '',
+    sourcePublishedAt: post.source_published_at || '',
+    sourceMetadata: post.source_metadata || {},
     authorId: post.author_id,
     author: memberById.get(post.author_id) || null,
     pinnedAt: post.pinned_at,
@@ -185,7 +198,7 @@ export async function loadTeamFeed({ limit = 40, userId = '' } = {}) {
     createdAt: post.created_at,
     updatedAt: post.updated_at,
     comments: commentsByPost.get(post.id) || [],
-    likedBy: likesByPost.get(post.id) || [],
+    reactions: reactionsByPost.get(post.id) || [],
     mentions: mentionsByPost.get(post.id) || [],
   })));
 
@@ -319,13 +332,24 @@ export async function createTeamFeedComment({
   }
 }
 
-export async function toggleTeamFeedLike({ liked, postId, userId }) {
+export async function setTeamFeedReaction({
+  currentReaction = '',
+  postId,
+  reaction,
+  userId,
+}) {
   const cloud = requireCloud();
   requireUserId(userId);
-  const query = cloud.from('team_feed_likes');
-  const { error } = liked
+  if (!FEED_REACTION_IDS.includes(reaction)) {
+    throw new Error('Choose a supported reaction.');
+  }
+  const query = cloud.from('team_feed_reactions');
+  const { error } = currentReaction === reaction
     ? await query.delete().eq('post_id', postId).eq('user_id', userId)
-    : await query.insert({ post_id: postId, user_id: userId });
+    : await query.upsert(
+      { post_id: postId, user_id: userId, reaction },
+      { onConflict: 'post_id,user_id' },
+    );
   throwIfError(error);
 }
 
@@ -383,7 +407,7 @@ export function subscribeTeamFeed(onChange) {
     .on('postgres_changes', {
       event: '*',
       schema: 'public',
-      table: 'team_feed_likes',
+      table: 'team_feed_reactions',
     }, onChange)
     .on('postgres_changes', {
       event: '*',

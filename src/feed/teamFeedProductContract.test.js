@@ -6,6 +6,7 @@ const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), '
 const home = read('src/feed/TeamHome.jsx');
 const cloud = read('src/feed/feedCloud.js');
 const migration = read('supabase/migrations/20260730_team_feed.sql');
+const activityMigration = read('supabase/migrations/20260730_team_feed_activity.sql');
 const desktopNav = read('src/components/WorkspaceSwitcher.jsx');
 const mobileNav = read('src/components/MobileBottomNav.jsx');
 
@@ -22,11 +23,23 @@ describe('Squad Live product contract', () => {
     expect(cloud).toContain("createSignedUrls(uniquePaths, 60 * 60)");
     expect(cloud).toContain("table: 'team_feed_posts'");
     expect(cloud).toContain("table: 'team_feed_comments'");
-    expect(cloud).toContain("table: 'team_feed_likes'");
+    expect(cloud).toContain("table: 'team_feed_reactions'");
     expect(cloud).toContain("table: 'team_feed_mentions'");
     expect(home).toContain('Post to the team');
     expect(home).toContain('Tag a teammate');
     expect(home).toContain('Pin for team');
+  });
+
+  it('treats official results and social posts as deduplicated feed activity', () => {
+    expect(activityMigration).toContain('source_key text');
+    expect(activityMigration).toContain('team_feed_posts_source_key_unique_idx');
+    expect(activityMigration).toContain('public.goonsquad_feed_upsert');
+    expect(activityMigration).toContain("'result',");
+    expect(activityMigration).toContain("'instagram',");
+    expect(activityMigration).toContain("'youtube',");
+    expect(activityMigration).toContain('team_feed_reactions');
+    expect(home).toContain('<OfficialResultCard post={post} />');
+    expect(home).toContain('FEED_REACTIONS.map');
   });
 
   it('enforces approved-member access in Postgres and private object storage', () => {
