@@ -281,9 +281,10 @@ function TournamentGamePage({ tournament, game, onBack }) {
   ));
   const hasScore = scoreAvailable(game);
   const winner = hasScore ? (game.awayScore > game.homeScore ? game.awayTeam : game.homeScore > game.awayScore ? game.homeTeam : 'Tie') : '';
+  const sourceUrl = game.sourceUrl || tournament.sourceUrl;
   return (
     <section className="tournament-game-page">
-      <header className="tournament-game-page-nav"><button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> Back to tournament</button><span>{tournament.shortName || tournament.name}</span>{game.sourceUrl ? <a href={game.sourceUrl} target="_blank" rel="noreferrer">Official source <ExternalLink aria-hidden="true" /></a> : <i>Archive record</i>}</header>
+      <header className="tournament-game-page-nav"><button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> Back to tournament</button><span>{tournament.shortName || tournament.name}</span>{sourceUrl ? <a href={sourceUrl} target="_blank" rel="noreferrer">Official source <ExternalLink aria-hidden="true" /></a> : <i>Archive record</i>}</header>
       <div className="tournament-game-page-hero">
         <div><span>{game.stageLabel || game.stage}{game.officialGameNumber ? ` · OFFICIAL GAME ${game.officialGameNumber}` : ''}</span><h2>{game.awayTeam} <i>at</i> {game.homeTeam}</h2><p>{[formatTournamentDate(game.date), formatTournamentTime(game.time), game.location].filter(Boolean).join(' · ')}</p></div>
         <div className={hasScore ? 'is-final' : 'is-pending'}><small>{hasScore ? 'FINAL' : 'ARCHIVE STATUS'}</small><strong>{hasScore ? `${game.awayScore}-${game.homeScore}` : 'RESULT NOT PUBLISHED'}</strong>{game.overtime && <em>OT</em>}</div>

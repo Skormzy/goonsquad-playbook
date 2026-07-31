@@ -142,11 +142,17 @@ for (const viewport of viewports) {
 
   await page.getByRole('tab', { name: 'All games', exact: true }).click();
   const mississaugaGameRows = await page.locator('.tournament-all-games .tournament-event-game').count();
-  await page.locator('.tournament-event-game').filter({ hasText: "Men's REC Championship" }).click();
+  await page.locator('.tournament-event-game').filter({ hasText: '#44' }).click();
   await page.locator('.tournament-game-page').waitFor({ state: 'visible' });
   const mississaugaGameText = (await page.locator('.tournament-game-page').innerText()).replace(/\s+/gu, ' ').trim();
   const mississaugaGameUrl = page.url();
   screenshots.push(await capture(page, viewport, '2024-championship-game'));
+  await page.getByRole('button', { name: 'Back to tournament' }).click();
+  await page.locator('.tournament-event-game').filter({ hasText: '#32' }).click();
+  await page.locator('.tournament-game-page').waitFor({ state: 'visible' });
+  const mississaugaGoonsquadGameText = (await page.locator('.tournament-game-page').innerText()).replace(/\s+/gu, ' ').trim();
+  const mississaugaGoonsquadGameUrl = page.url();
+  screenshots.push(await capture(page, viewport, '2024-goonsquad-game'));
   const mississaugaOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
@@ -177,6 +183,7 @@ for (const viewport of viewports) {
       bracketMatches: mississaugaBracketMatches,
       gameRows: mississaugaGameRows,
       gameUrl: mississaugaGameUrl,
+      goonsquadGameUrl: mississaugaGoonsquadGameUrl,
       horizontalOverflow: mississaugaOverflow,
     },
     horizontalOverflow,
@@ -217,14 +224,17 @@ for (const viewport of viewports) {
   if (!mississaugaOverviewText.includes('2024 OBHF Summer Provincials') || mississaugaTeamGames !== 3) {
     throw new Error(`${viewport.id}: the 2024 tournament dossier is incomplete.`);
   }
-  if (mississaugaPoolTabs !== 2 || mississaugaStandingsRows !== 5 || !mississaugaRoundRobinText.includes('Results not preserved') || !mississaugaRoundRobinText.includes('Blades of Steel')) {
-    throw new Error(`${viewport.id}: the 2024 round-robin archive is incomplete or invents results.`);
+  if (mississaugaPoolTabs !== 2 || mississaugaStandingsRows !== 5 || !mississaugaRoundRobinText.includes('Cambridge Thunder') || !mississaugaRoundRobinText.includes('Goonsquad') || mississaugaRoundRobinText.includes('Result unavailable')) {
+    throw new Error(`${viewport.id}: the verified 2024 round-robin table is incomplete.`);
   }
-  if (mississaugaBracketMatches !== 3 || !mississaugaBracketText.includes('Blades of Steel') || !mississaugaBracketText.includes('Cambridge Thunder')) {
+  if (mississaugaBracketMatches !== 3 || !mississaugaBracketText.includes('Blades of Steel') || !mississaugaBracketText.includes('Cambridge Thunder') || !mississaugaBracketText.includes('Woodstock Toros') || !mississaugaBracketText.includes('Moosehead')) {
     throw new Error(`${viewport.id}: the 2024 elimination bracket is incomplete.`);
   }
-  if (mississaugaGameRows !== 15 || !mississaugaGameText.includes('Blades of Steel') || !mississaugaGameText.includes('Cambridge Thunder') || !mississaugaGameText.includes('0-1') || mississaugaGameText.includes('GOONSQUAD GAME FILE') || !mississaugaGameUrl.includes('tournamentGame=2024-mississauga-final')) {
+  if (mississaugaGameRows !== 15 || !mississaugaGameText.includes('Blades of Steel') || !mississaugaGameText.includes('Cambridge Thunder') || !mississaugaGameText.includes('1-0') || mississaugaGameText.includes('GOONSQUAD GAME FILE') || !mississaugaGameUrl.includes('tournamentGame=2024-mississauga-final')) {
     throw new Error(`${viewport.id}: the verified 2024 championship does not open as an in-app game.`);
+  }
+  if (!mississaugaGoonsquadGameText.includes('Goonsquad') || !mississaugaGoonsquadGameText.includes('Blades of Steel') || !mississaugaGoonsquadGameText.includes('1-8') || !mississaugaGoonsquadGameText.includes('GOONSQUAD GAME FILE') || !mississaugaGoonsquadGameUrl.includes('tournamentGame=2024-mississauga-game-rr-3')) {
+    throw new Error(`${viewport.id}: the recovered 2024 Goonsquad result does not open as a complete in-app game.`);
   }
   if (horizontalOverflow > 1) throw new Error(`${viewport.id}: tournament page has ${horizontalOverflow}px horizontal overflow.`);
   if (mississaugaOverflow > 1) throw new Error(`${viewport.id}: 2024 tournament page has ${mississaugaOverflow}px horizontal overflow.`);

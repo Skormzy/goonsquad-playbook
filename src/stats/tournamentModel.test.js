@@ -121,28 +121,48 @@ describe('tournament archive model', () => {
     expect(bracketRounds.map((round) => round.matches.length)).toEqual([4, 2, 1]);
   });
 
-  it('preserves the official 2024 pool schedule and tournament-format bracket', () => {
+  it('preserves every official 2024 score, pool table, and elimination result', () => {
     const tournament = TOURNAMENT_ARCHIVE.find((item) => item.id === '2024-mississauga-provincials');
 
     expect(tournament).toBeTruthy();
     expect(tournament.division).toBe("Men's REC");
-    expect(tournament.games.map((game) => [game.opponent, game.date, game.time])).toEqual([
-      ['Blades of Steel', '2024-08-23', '20:00'],
-      ['Spartans', '2024-08-24', '12:00'],
-      ['Cambridge Thunder', '2024-08-24', '16:15'],
+    expect(tournament.dataStatus).toBe('verified');
+    expect(tournament.games.map((game) => [game.opponent, game.scoreFor, game.scoreAgainst])).toEqual([
+      ['Blades of Steel', 1, 8],
+      ['Spartans', 2, 9],
+      ['Cambridge Thunder', 1, 7],
     ]);
     expect(tournamentBracketRounds(tournament.bracket).map((round) => round.id))
       .toEqual(['semifinal', 'final']);
     expect(tournamentEventGames(tournament)).toHaveLength(15);
     expect(tournamentEventGames(tournament).filter((game) => game.stage === 'round-robin')).toHaveLength(12);
+    expect(tournamentEventGames(tournament).every((game) => game.status === 'final')).toBe(true);
+    expect(tournamentPoolStandings(tournament, 'pool-a').map((row) => [row.team, row.points])).toEqual([
+      ['Cambridge Thunder', 6],
+      ['Blades of Steel', 4],
+      ['Spartans', 2],
+      ['Goonsquad', 0],
+    ]);
+    expect(tournamentPoolStandings(tournament, 'pool-b').map((row) => [row.team, row.points])).toEqual([
+      ['Moosehead', 6],
+      ['Woodstock Toros', 4],
+      ['Hamilton Rockies', 2],
+      ['Landsharks', 0],
+    ]);
     expect(tournamentGameById(tournament, '2024-mississauga-final')).toMatchObject({
       stage: 'final',
-      awayTeam: 'Cambridge Thunder',
-      awayScore: 0,
-      homeTeam: 'Blades of Steel',
-      homeScore: 1,
+      awayTeam: 'Blades of Steel',
+      awayScore: 1,
+      homeTeam: 'Cambridge Thunder',
+      homeScore: 0,
     });
-    expect(tournamentSummary(tournament).documentedGames).toBe(3);
+    expect(tournamentSummary(tournament)).toMatchObject({
+      documentedGames: 3,
+      scoredGames: 3,
+      record: '0-3-0',
+      goalsFor: 4,
+      goalsAgainst: 24,
+    });
   });
 
   it('sorts a pool table by points, goal difference, then goals scored', () => {

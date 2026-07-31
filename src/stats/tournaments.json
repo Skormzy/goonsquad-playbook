@@ -277,18 +277,23 @@
     "startDate": "2024-08-23",
     "endDate": "2024-08-25",
     "status": "complete",
-    "dataStatus": "partial",
+    "dataStatus": "verified",
     "division": "Men's REC",
     "format": "2 pools · semifinals · final",
     "teamName": "Goonsquad",
-    "summary": "The official tournament package verifies both pools, all 12 round-robin fixtures, venues, and the semifinal-to-final format. OBHF also verifies Blades of Steel's 1-0 championship win over Cambridge Thunder.",
-    "verificationNote": "The official OBHF package verifies the full Men's REC schedule and Pool A placement for Goonsquad. OBHF's championship report verifies the final score. Round-robin and semifinal scores were not preserved publicly, so those results remain clearly marked as unavailable instead of being guessed.",
-    "sourceUrl": "https://ggts.ca/wp-content/uploads/2024/08/2024-OBHF-Summer-Provincial-Tournament-Package-Mens-D-REC-in-Mississauga.pdf",
+    "finish": "4th in Pool A",
+    "summary": "The recovered official archive now captures every Men's REC result: both four-team pools, all 12 round-robin games, both semifinals, and the championship. Goonsquad finished 0-3 in Pool A.",
+    "verificationNote": "The archived OBHF/GGTS score sheet and result board verify official Games 30-44, complete Pool A and Pool B standings, the semifinal matchups, and Blades of Steel's 1-0 championship win over Cambridge Thunder.",
+    "sourceUrl": "https://web.archive.org/web/20241213174640/https://ggts.ca/wp-content/uploads/2024/08/Scores-Mens-D-and-REC-1.pdf",
     "source": {
-      "provider": "OBHF tournament package",
-      "revision": 2,
+      "provider": "OBHF / GGTS archived results",
+      "revision": 3,
       "capturedAt": "2026-07-31",
-      "scope": "Official pools, complete round-robin schedule, elimination format, and published championship result"
+      "scheduleUrl": "https://web.archive.org/web/20241213181811/https://ggts.ca/wp-content/uploads/2024/08/2024-OBHF-Summer-Provincial-Tournament-Package-Mens-D-REC-in-Mississauga.pdf",
+      "scoresUrl": "https://web.archive.org/web/20241213174640/https://ggts.ca/wp-content/uploads/2024/08/Scores-Mens-D-and-REC-1.pdf",
+      "standingsUrl": "https://web.archive.org/web/20250806120405/https://ggts.ca/wp-content/uploads/2024/08/Result-Boards-Mens-D-and-REC-3.pdf",
+      "eventReportUrl": "https://ontarioballhockeyfederation.ca/2024/08/28/2024-obhf-mens-d-recreational-provincials/",
+      "scope": "Official pools, all 12 round-robin scores, complete pool tables, both semifinals, and the championship"
     },
     "display": {
       "layout": "championship",
@@ -304,49 +309,85 @@
       "bracketLabel": "Full bracket",
       "gamesLabel": "All games"
     },
-    "standings": [],
+    "pool": {
+      "name": "Pool A",
+      "finish": 4,
+      "record": "0-3-0",
+      "goalsFor": 4,
+      "goalsAgainst": 24
+    },
+    "teamStats": {
+      "record": "0-3-0",
+      "goalsFor": 4,
+      "goalsAgainst": 24,
+      "goalDifferential": -20,
+      "goalsPerGame": 1.33,
+      "goalsAgainstPerGame": 8
+    },
+    "teams": [
+      { "id": "cambridge-thunder", "name": "Cambridge Thunder", "pool": "Pool A", "seed": 1 },
+      { "id": "blades-of-steel", "name": "Blades of Steel", "pool": "Pool A", "seed": 3 },
+      { "id": "spartans", "name": "Spartans", "pool": "Pool A" },
+      { "id": "goonsquad", "name": "Goonsquad", "pool": "Pool A", "isGoonSquad": true },
+      { "id": "moosehead", "name": "Moosehead", "pool": "Pool B", "seed": 2 },
+      { "id": "woodstock-toros", "name": "Woodstock Toros", "pool": "Pool B", "seed": 4 },
+      { "id": "hamilton-rockies", "name": "Hamilton Rockies", "pool": "Pool B" },
+      { "id": "landsharks", "name": "Landsharks", "pool": "Pool B" }
+    ],
+    "standings": [
+      { "rank": 1, "team": "Cambridge Thunder", "gamesPlayed": 3, "wins": 3, "losses": 0, "ties": 0, "points": 6, "goalsFor": 15, "goalsAgainst": 2 },
+      { "rank": 2, "team": "Blades of Steel", "gamesPlayed": 3, "wins": 2, "losses": 1, "ties": 0, "points": 4, "goalsFor": 14, "goalsAgainst": 5 },
+      { "rank": 3, "team": "Spartans", "gamesPlayed": 3, "wins": 1, "losses": 2, "ties": 0, "points": 2, "goalsFor": 10, "goalsAgainst": 12 },
+      { "rank": 4, "team": "Goonsquad", "isGoonSquad": true, "gamesPlayed": 3, "wins": 0, "losses": 3, "ties": 0, "points": 0, "goalsFor": 4, "goalsAgainst": 24 }
+    ],
     "games": [
       {
         "id": "2024-mississauga-game-1",
         "gameNumber": 1,
+        "officialGameNumber": 32,
         "stage": "round-robin",
         "stageLabel": "Pool A · Round robin",
         "opponent": "Blades of Steel",
-        "status": "documented",
-        "scoreFor": null,
-        "scoreAgainst": null,
+        "status": "final",
+        "scoreFor": 1,
+        "scoreAgainst": 8,
         "date": "2024-08-23",
         "time": "20:00",
         "site": "Away",
-        "location": "Mississauga Valley Community Centre"
+        "location": "Mississauga Valley Community Centre · Pad 1",
+        "sourceUrl": "https://web.archive.org/web/20241213174640/https://ggts.ca/wp-content/uploads/2024/08/Scores-Mens-D-and-REC-1.pdf"
       },
       {
         "id": "2024-mississauga-game-2",
         "gameNumber": 2,
+        "officialGameNumber": 35,
         "stage": "round-robin",
         "stageLabel": "Pool A · Round robin",
         "opponent": "Spartans",
-        "status": "documented",
-        "scoreFor": null,
-        "scoreAgainst": null,
+        "status": "final",
+        "scoreFor": 2,
+        "scoreAgainst": 9,
         "date": "2024-08-24",
         "time": "12:00",
         "site": "Home",
-        "location": "Clarkson Community Centre"
+        "location": "Clarkson Community Centre · Pad 1",
+        "sourceUrl": "https://web.archive.org/web/20241213174640/https://ggts.ca/wp-content/uploads/2024/08/Scores-Mens-D-and-REC-1.pdf"
       },
       {
         "id": "2024-mississauga-game-3",
         "gameNumber": 3,
+        "officialGameNumber": 39,
         "stage": "round-robin",
         "stageLabel": "Pool A · Round robin",
         "opponent": "Cambridge Thunder",
-        "status": "documented",
-        "scoreFor": null,
-        "scoreAgainst": null,
+        "status": "final",
+        "scoreFor": 1,
+        "scoreAgainst": 7,
         "date": "2024-08-24",
         "time": "16:15",
         "site": "Away",
-        "location": "Clarkson Community Centre"
+        "location": "Clarkson Community Centre · Pad 1",
+        "sourceUrl": "https://web.archive.org/web/20241213174640/https://ggts.ca/wp-content/uploads/2024/08/Scores-Mens-D-and-REC-1.pdf"
       }
     ],
     "bracket": [
@@ -358,12 +399,12 @@
         "order": 1,
         "label": "Semifinal 1 · Aug 25 · 9:00 AM",
         "eventGameId": "2024-mississauga-semifinal-1",
-        "status": "documented",
-        "homeTeam": { "name": "1st pool winner" },
-        "awayTeam": { "name": "4th overall" },
-        "homeScore": null,
-        "awayScore": null,
-        "winner": null
+        "status": "final",
+        "homeTeam": { "name": "Cambridge Thunder", "seed": 1 },
+        "awayTeam": { "name": "Woodstock Toros", "seed": 4 },
+        "homeScore": 7,
+        "awayScore": 2,
+        "winner": "home"
       },
       {
         "id": "2024-mississauga-semifinal-2",
@@ -373,12 +414,12 @@
         "order": 2,
         "label": "Semifinal 2 · Aug 25 · 10:00 AM",
         "eventGameId": "2024-mississauga-semifinal-2",
-        "status": "documented",
-        "homeTeam": { "name": "2nd pool winner" },
-        "awayTeam": { "name": "3rd overall" },
-        "homeScore": null,
-        "awayScore": null,
-        "winner": null
+        "status": "final",
+        "homeTeam": { "name": "Moosehead", "seed": 2 },
+        "awayTeam": { "name": "Blades of Steel", "seed": 3 },
+        "homeScore": 0,
+        "awayScore": 3,
+        "winner": "away"
       },
       {
         "id": "2024-mississauga-final",
@@ -389,11 +430,11 @@
         "label": "Final · Aug 25 · 1:30 PM",
         "eventGameId": "2024-mississauga-final",
         "status": "final",
-        "homeTeam": { "name": "Blades of Steel" },
-        "awayTeam": { "name": "Cambridge Thunder" },
-        "homeScore": 1,
-        "awayScore": 0,
-        "winner": "home"
+        "homeTeam": { "name": "Cambridge Thunder", "seed": 1 },
+        "awayTeam": { "name": "Blades of Steel", "seed": 3 },
+        "homeScore": 0,
+        "awayScore": 1,
+        "winner": "away"
       }
     ]
   }
