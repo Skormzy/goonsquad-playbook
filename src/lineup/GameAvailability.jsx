@@ -33,7 +33,9 @@ function Avatar({ member }) {
 }
 
 export default function GameAvailability({
+  accessManager = null,
   account,
+  canRespond = true,
   fixture,
   members = [],
   qaMode = false,
@@ -95,8 +97,12 @@ export default function GameAvailability({
 
   if (!account.hasTeamAccess || !fixture) return null;
 
+  const competitionLabel = fixture.kind === 'tournament'
+    ? [fixture.tournamentName, fixture.stageLabel].filter(Boolean).join(' · ')
+    : formatScheduleName(schedule);
+
   const choose = async (response) => {
-    if (busy || !configured || !actorId) return;
+    if (busy || !configured || !actorId || !canRespond) return;
     setBusy(true);
     setError('');
     const optimistic = {
@@ -133,7 +139,7 @@ export default function GameAvailability({
         <div>
           <span>GAME LINEUP</span>
           <h2 id="game-availability-title">vs {fixture.opponent}</h2>
-          <p>{formatGameDate(fixture.scheduledAt)} · {formatScheduleName(schedule)}</p>
+          <p>{formatGameDate(fixture.scheduledAt)} · {competitionLabel}</p>
         </div>
       </header>
 
@@ -144,24 +150,31 @@ export default function GameAvailability({
         </div>
       ) : (
         <>
-          <div className="game-availability-choice" role="group" aria-label="Your availability">
-            {RESPONSES.map((item) => {
-              const ResponseIcon = item.Icon;
-              return (
-                <button
-                  type="button"
-                  key={item.id}
-                  data-response={item.id}
-                  aria-pressed={current?.response === item.id}
-                  disabled={busy}
-                  onClick={() => choose(item.id)}
-                >
-                  <ResponseIcon aria-hidden="true" />
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
+          {canRespond ? (
+            <div className="game-availability-choice" role="group" aria-label="Your availability">
+              {RESPONSES.map((item) => {
+                const ResponseIcon = item.Icon;
+                return (
+                  <button
+                    type="button"
+                    key={item.id}
+                    data-response={item.id}
+                    aria-pressed={current?.response === item.id}
+                    disabled={busy}
+                    onClick={() => choose(item.id)}
+                  >
+                    <ResponseIcon aria-hidden="true" />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="game-availability-coach-view">
+              <UsersRound aria-hidden="true" />
+              <span><strong>Coach view</strong><small>Add yourself as a player only if you are dressing for this game.</small></span>
+            </div>
+          )}
 
           <button
             type="button"
@@ -207,10 +220,11 @@ export default function GameAvailability({
               </section>
             </div>
           )}
+          {accessManager}
         </>
       )}
       {error && <p className="game-availability-error" role="alert">{error}</p>}
-      <footer><UsersRound aria-hidden="true" /> Approved team members only</footer>
+      <footer><UsersRound aria-hidden="true" /> Game roster and invited call-ups</footer>
     </section>
   );
 }

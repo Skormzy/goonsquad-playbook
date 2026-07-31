@@ -39,10 +39,12 @@ import {
 import { useAccount } from '../account/AccountContext';
 import { teamAccessPromptCopy } from '../account/teamAccess';
 import OfficialSocialLinks from '../brand/OfficialSocialLinks';
-import GameAvailability from '../lineup/GameAvailability';
+import AttendanceBoard from '../lineup/AttendanceBoard';
 import { goonsquadDisplayText } from '../brand/teamBrand';
 import { useApp } from '../context/AppContext';
 import { loadStatisticsDataset } from '../stats/statsCloud';
+import { loadTournamentArchive } from '../stats/tournamentCloud';
+import { TOURNAMENT_ARCHIVE } from '../stats/tournamentModel';
 import {
   ALL_SEASON_TEAMS_ID,
   formatGameDate,
@@ -1058,6 +1060,7 @@ export default function TeamHome() {
   const account = useAccount();
   const { setActiveView } = useApp();
   const [dataset, setDataset] = useState(null);
+  const [tournaments, setTournaments] = useState(TOURNAMENT_ARCHIVE);
   const [feed, setFeed] = useState({ posts: [], members: [], unreadMentionCount: 0 });
   const [feedLoading, setFeedLoading] = useState(account.hasTeamAccess);
   const [feedError, setFeedError] = useState('');
@@ -1080,7 +1083,13 @@ export default function TeamHome() {
     } catch {
       setDataset(null);
     }
-  }, []);
+    try {
+      const result = await loadTournamentArchive(TOURNAMENT_ARCHIVE, { includeDrafts: isAdmin });
+      setTournaments(result.tournaments);
+    } catch {
+      setTournaments(TOURNAMENT_ARCHIVE);
+    }
+  }, [isAdmin]);
 
   const refreshFeed = useCallback(async () => {
     if (!account.hasTeamAccess) return;
@@ -1162,12 +1171,20 @@ export default function TeamHome() {
       : null;
   }, [dataset]);
 
+  const primaryPlayerClaim = account.playerClaims.find((claim) => claim.primary)
+    || account.playerClaims[0]
+    || null;
   const currentMember = feed.members.find((member) => member.id === currentUserId) || {
     id: currentUserId,
     username: account.username || 'member',
     displayName: account.displayName,
     avatarUrl: account.profile?.avatar_url || '',
     role: account.profile?.role || 'member',
+    playerId: primaryPlayerClaim?.player?.id || primaryPlayerClaim?.playerId || '',
+    playerExternalId: primaryPlayerClaim?.player?.externalId || '',
+    playerName: primaryPlayerClaim?.player?.displayName || '',
+    jerseyNumber: primaryPlayerClaim?.player?.jerseyNumber || '',
+    position: primaryPlayerClaim?.player?.primaryPosition || '',
   };
   const visiblePosts = useMemo(() => {
     if (filter === 'member') {
@@ -1278,11 +1295,6 @@ export default function TeamHome() {
       setFeed((current) => ({ ...current, unreadMentionCount: 0 }));
     }
   };
-
-  const nextGame = snapshot ? nextUpcomingGame(snapshot.games) : null;
-  const nextGameSchedule = dataset?.teams?.find(
-    (team) => team.id === nextGame?.seasonTeamId,
-  ) || null;
 
   return (
     <main className="team-home" aria-label="Goonsquad home">
@@ -1439,12 +1451,14 @@ export default function TeamHome() {
               onOpenStats={() => navigate('stats')}
               onOpenGame={(game) => navigate('stats', { game: game.id })}
             />
-            <GameAvailability
+            <AttendanceBoard
               account={account}
-              fixture={nextGame}
+              currentMember={currentMember}
+              dataset={dataset}
+              isAdmin={isAdmin}
               members={feed.members}
               qaMode={qaFeed}
-              schedule={nextGameSchedule}
+              tournaments={tournaments}
             />
           </aside>
         </div>

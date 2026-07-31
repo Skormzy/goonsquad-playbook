@@ -8,7 +8,9 @@ const projectFile = (path) => readFileSync(
 
 describe('private game availability and player pictures', () => {
   const migration = projectFile('supabase/migrations/20260731_player_photos_and_game_availability.sql');
+  const scopedMigration = projectFile('supabase/migrations/20260801_scoped_game_attendance.sql');
   const availability = projectFile('src/lineup/GameAvailability.jsx');
+  const attendanceBoard = projectFile('src/lineup/AttendanceBoard.jsx');
   const home = projectFile('src/feed/TeamHome.jsx');
   const accountCloud = projectFile('src/account/accountCloud.js');
   const profile = projectFile('src/profile/ProfileWorkspace.jsx');
@@ -20,16 +22,27 @@ describe('private game availability and player pictures', () => {
     expect(migration).toContain('public.is_approved_team_member()');
     expect(migration).toContain('user_id = auth.uid() or public.is_team_admin()');
     expect(migration).not.toContain('grant select, insert, update, delete on public.team_game_availability to anon');
+    expect(scopedMigration).toContain('create table if not exists public.team_game_attendance_access');
+    expect(scopedMigration).toContain('create or replace function public.can_access_game_attendance');
+    expect(scopedMigration).toContain("scope_type in ('fixture', 'tournament')");
+    expect(scopedMigration).toContain('join public.roster_memberships membership');
+    expect(scopedMigration).toContain('public.can_access_game_attendance(fixture_id)');
+    expect(scopedMigration).toContain('create policy "Admins update attendance access"');
+    expect(scopedMigration).toContain('create or replace function public.can_access_attendance_scope');
+    expect(scopedMigration).toContain('public.can_access_attendance_scope(scope_type, scope_id)');
   });
 
-  it('lets each approved member answer once for the next published game', () => {
+  it('lets eligible players answer once across a compact multi-game board', () => {
     expect(migration).toContain('primary key (fixture_id, user_id)');
     expect(availability).toContain("label: \"I'm in\"");
     expect(availability).toContain("label: 'Maybe'");
     expect(availability).toContain("label: \"I'm out\"");
-    expect(availability).toContain('Approved team members only');
-    expect(home).toContain('<GameAvailability');
-    expect(home).toContain('fixture={nextGame}');
+    expect(availability).toContain('Game roster and invited call-ups');
+    expect(attendanceBoard).toContain('buildAttendanceFixtures');
+    expect(attendanceBoard).toContain('Manage call-ups');
+    expect(attendanceBoard).toContain("fixture.kind === 'tournament' ? 'tournament' : 'fixture'");
+    expect(home).toContain('<AttendanceBoard');
+    expect(home).toContain('tournaments={tournaments}');
   });
 
   it('stores optional member pictures in the owner folder and exposes only approved links', () => {

@@ -1,4 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -51,6 +56,7 @@ function formatActivity(value) {
 }
 
 export default function AccountAdminPanel({ onClose }) {
+  const editorRef = useRef(null);
   const [accounts, setAccounts] = useState([]);
   const [claims, setClaims] = useState([]);
   const [players, setPlayers] = useState([]);
@@ -132,6 +138,24 @@ export default function AccountAdminPanel({ onClose }) {
     [assignmentPlayerId, players],
   );
 
+  const selectedAccount = useMemo(
+    () => accounts.find((account) => account.id === draft?.id) || null,
+    [accounts, draft?.id],
+  );
+  const accountDetailsChanged = Boolean(
+    draft
+    && selectedAccount
+    && (
+      draft.displayName.trim() !== selectedAccount.displayName.trim()
+      || normalizeUsername(draft.username) !== normalizeUsername(selectedAccount.username)
+      || draft.role !== selectedAccount.role
+    )
+  );
+  const assignmentIsCurrent = Boolean(
+    assignmentPlayerId
+    && selectedClaims.some((claim) => claim.playerId === assignmentPlayerId && claim.primary),
+  );
+
   const selectAccount = (account) => {
     setSelectedId(account.id);
     setDraft({ ...account });
@@ -140,6 +164,9 @@ export default function AccountAdminPanel({ onClose }) {
     setConfirmation(null);
     setStatus('');
     setError('');
+    window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   };
 
   const runAction = async (key, operation, successMessage) => {
@@ -168,6 +195,7 @@ export default function AccountAdminPanel({ onClose }) {
   const draftReady = Boolean(
     draft?.displayName.trim()
     && isValidUsername(draft?.username)
+    && accountDetailsChanged
     && !working,
   );
 
@@ -194,26 +222,36 @@ export default function AccountAdminPanel({ onClose }) {
   const confirmAssignment = () => {
     if (!draft || !assignmentPlayer) return;
     const memberPending = pendingClaims.filter((claim) => claim.userId === draft.id).length;
+    const replacingPrimary = selectedClaims.some((claim) => (
+      claim.primary && claim.playerId !== assignmentPlayer.id
+    ));
     const details = [
-      selectedClaims.some((claim) => claim.primary) ? 'replace the current primary player' : '',
+      replacingPrimary ? 'replace the current primary player' : '',
       memberPending ? `resolve ${memberPending} pending request${memberPending === 1 ? '' : 's'}` : '',
     ].filter(Boolean);
-    setConfirmation({
+    const action = {
       key: `assign:${draft.id}:${assignmentPlayer.id}`,
+      scope: 'player',
       title: `Assign ${assignmentPlayer.displayName} to ${draft.displayName || draft.username}?`,
       detail: details.length
         ? `This will ${details.join(' and ')}. Historical approved records remain available.`
         : 'This links the official player statistics to this account immediately.',
-      confirmLabel: 'Assign player',
+      confirmLabel: replacingPrimary ? 'Confirm replacement' : 'Confirm link',
       operation: () => assignManagedPlayer(draft.id, assignmentPlayer.id),
-      successMessage: 'Player profile assigned.',
-    });
+      successMessage: `${assignmentPlayer.displayName} is now linked to ${draft.displayName || draft.username}.`,
+    };
+    if (!replacingPrimary && !memberPending) {
+      runAction(action.key, action.operation, action.successMessage);
+      return;
+    }
+    setConfirmation(action);
   };
 
   const confirmUnlink = (claim) => {
     if (!draft) return;
     setConfirmation({
       key: `unlink:${draft.id}:${claim.playerId}`,
+      scope: 'player',
       title: `Unlink ${claim.player?.displayName || 'this player profile'}?`,
       detail: `The official statistics remain intact, but they will no longer appear on ${draft.displayName || draft.username}'s profile.`,
       confirmLabel: 'Unlink player',
@@ -251,9 +289,9 @@ export default function AccountAdminPanel({ onClose }) {
         <div><UserRoundCheck aria-hidden="true" /><strong>{summary.pending}</strong><span>Profile requests</span></div>
       </div>
 
-      {error && <p className="account-admin-notice" data-tone="error" role="alert">{error}</p>}
-      {status && <p className="account-admin-notice" data-tone="success" role="status">{status}</p>}
-      {confirmation && (
+      {!draft && error && <p className="account-admin-notice" data-tone="error" role="alert">{error}</p>}
+      {!draft && status && <p className="account-admin-notice" data-tone="success" role="status">{status}</p>}
+      {confirmation && confirmation.scope !== 'player' && (
         <section className="account-admin-confirmation" role="alertdialog" aria-labelledby="account-admin-confirmation-title">
           <AlertTriangle aria-hidden="true" />
           <div>
@@ -348,6 +386,7 @@ export default function AccountAdminPanel({ onClose }) {
 
       {draft && (
         <form
+          ref={editorRef}
           className="account-admin-editor"
           onSubmit={(event) => {
             event.preventDefault();
@@ -364,6 +403,8 @@ export default function AccountAdminPanel({ onClose }) {
             <div><span>MANAGE MEMBER</span><strong>{draft.displayName || draft.email}</strong><small>{draft.email}</small></div>
             <button type="button" onClick={() => { setDraft(null); setSelectedId(''); }}>Close</button>
           </div>
+          {error && <p className="account-admin-notice is-inline" data-tone="error" role="alert">{error}</p>}
+          {status && <p className="account-admin-notice is-inline" data-tone="success" role="status"><CheckCircle2 aria-hidden="true" /> {status}</p>}
           <div className="account-admin-editor-fields">
             <label>
               <span>Display name</span>
@@ -409,9 +450,10 @@ export default function AccountAdminPanel({ onClose }) {
             <header>
               <Link2 aria-hidden="true" />
               <span>
-                <strong>Player profile</strong>
-                <small>Assign this member directly or replace their primary player.</small>
+                <strong>Linked player</strong>
+                <small>This is a separate action and saves immediately.</small>
               </span>
+              {selectedClaims.some((claim) => claim.primary) && <b><CheckCircle2 aria-hidden="true" /> LINKED</b>}
             </header>
             {selectedClaims.length > 0 && (
               <div className="account-admin-player-links">
@@ -438,10 +480,15 @@ export default function AccountAdminPanel({ onClose }) {
             )}
             <div className="account-admin-player-picker">
               <label>
-                <span>Assign squad player</span>
+                <span>Choose the player this account belongs to</span>
                 <select
                   value={assignmentPlayerId}
-                  onChange={(event) => setAssignmentPlayerId(event.target.value)}
+                  onChange={(event) => {
+                    setAssignmentPlayerId(event.target.value);
+                    setConfirmation(null);
+                    setStatus('');
+                    setError('');
+                  }}
                 >
                   <option value="">Choose a player</option>
                   {assignablePlayers.map((player) => (
@@ -459,10 +506,17 @@ export default function AccountAdminPanel({ onClose }) {
               <button
                 type="button"
                 className="is-primary"
-                disabled={Boolean(working) || !assignmentPlayerId}
+                disabled={Boolean(working) || !assignmentPlayerId || assignmentIsCurrent}
                 onClick={confirmAssignment}
               >
-                <UserRoundCheck aria-hidden="true" /> Assign player
+                {working.startsWith('assign:')
+                  ? <LoaderCircle className="is-spinning" aria-hidden="true" />
+                  : <UserRoundCheck aria-hidden="true" />}
+                {assignmentIsCurrent
+                  ? 'Already linked'
+                  : selectedClaims.some((claim) => claim.primary)
+                    ? 'Replace linked player'
+                    : 'Link player now'}
               </button>
             </div>
             {assignmentPlayer && (
@@ -481,11 +535,40 @@ export default function AccountAdminPanel({ onClose }) {
                 )}
               </div>
             )}
+            {confirmation?.scope === 'player' && (
+              <section className="account-admin-confirmation is-inline" role="alertdialog" aria-labelledby="account-admin-player-confirmation-title">
+                <AlertTriangle aria-hidden="true" />
+                <div>
+                  <strong id="account-admin-player-confirmation-title">{confirmation.title}</strong>
+                  <small>{confirmation.detail}</small>
+                </div>
+                <div>
+                  <button type="button" disabled={Boolean(working)} onClick={() => setConfirmation(null)}>Cancel</button>
+                  <button
+                    type="button"
+                    className="is-confirm"
+                    disabled={Boolean(working)}
+                    onClick={() => runAction(
+                      confirmation.key,
+                      confirmation.operation,
+                      confirmation.successMessage,
+                    )}
+                  >
+                    {working === confirmation.key && <LoaderCircle className="is-spinning" aria-hidden="true" />}
+                    {confirmation.confirmLabel}
+                  </button>
+                </div>
+              </section>
+            )}
           </section>
           <div className="account-admin-editor-actions">
             <button type="submit" className="is-primary" disabled={!draftReady}>
-              {working === 'save' ? <LoaderCircle className="is-spinning" aria-hidden="true" /> : <Save aria-hidden="true" />}
-              Save changes
+              {working === 'save'
+                ? <LoaderCircle className="is-spinning" aria-hidden="true" />
+                : accountDetailsChanged
+                  ? <Save aria-hidden="true" />
+                  : <CheckCircle2 aria-hidden="true" />}
+              {accountDetailsChanged ? 'Save account details' : 'Account details saved'}
             </button>
             <button
               type="button"
@@ -534,6 +617,7 @@ export default function AccountAdminPanel({ onClose }) {
               </button>
             )}
           </div>
+          <small className="account-admin-save-note">Name, username, and access level save here. Player links save immediately in the section above.</small>
           {!permissions.isOwner && (
             <small className="account-admin-owner-note">The account owner controls admin promotions.</small>
           )}

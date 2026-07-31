@@ -23,7 +23,10 @@ describe('member profile product contract', () => {
     expect(profile).toContain('Request your squad player record');
     expect(profile).toContain('AWAITING ADMIN REVIEW');
     expect(panel).toContain('Player profile requests');
-    expect(panel).toContain('Assign squad player');
+    expect(panel).toContain('Choose the player this account belongs to');
+    expect(panel).toContain('Link player now');
+    expect(panel).toContain('Save account details');
+    expect(panel).toContain("scope: 'player'");
     expect(api).toContain("body.action === 'review-player-claim'");
     expect(api).toContain("body.action === 'assign-player'");
     expect(api).toContain('assertCanManage(actor, target)');
