@@ -77,6 +77,7 @@ import {
   TOURNAMENT_COMPETITION_ID,
   tournamentById,
 } from './tournamentModel';
+import { loadTournamentArchive } from './tournamentCloud';
 
 const TABS = Object.freeze([
   { id: 'overview', label: 'Overview' },
@@ -762,6 +763,12 @@ export default function StatsWorkspace() {
   const [selectedTournamentId, setSelectedTournamentId] = useState(() => (
     initialQueryValue('tournament') || TOURNAMENT_ARCHIVE[0]?.id || ''
   ));
+  const [tournamentArchive, setTournamentArchive] = useState(TOURNAMENT_ARCHIVE);
+  const [tournamentControlRoom, setTournamentControlRoom] = useState({
+    configured: true,
+    loading: true,
+    error: '',
+  });
   const [seasonId, setSeasonId] = useState(() => initialQueryValue('season'));
   const [teamId, setTeamId] = useState(() => initialQueryValue('team'));
   const [stage, setStage] = useState(() => initialQueryValue('stage') || 'regular');
@@ -780,6 +787,31 @@ export default function StatsWorkspace() {
   const [managerOpen, setManagerOpen] = useState(false);
   const workspaceRef = useRef(null);
   const t = themes[theme];
+  const developmentTournamentAdmin = import.meta.env.DEV
+    && initialQueryValue('qaTournamentAdmin') === '1';
+  const canManageTournaments = account.profile?.role === 'admin' || developmentTournamentAdmin;
+  const resolvedTournamentControlRoom = developmentTournamentAdmin
+    ? { ...tournamentControlRoom, configured: true }
+    : tournamentControlRoom;
+
+  const refreshTournamentArchive = useCallback(async () => {
+    setTournamentControlRoom((current) => ({ ...current, loading: true, error: '' }));
+    try {
+      const next = await loadTournamentArchive(TOURNAMENT_ARCHIVE, {
+        includeDrafts: canManageTournaments,
+      });
+      setTournamentArchive(next.tournaments);
+      setTournamentControlRoom({ configured: next.configured, loading: false, error: '' });
+      return next;
+    } catch (error) {
+      setTournamentControlRoom({
+        configured: true,
+        loading: false,
+        error: error?.message || 'Tournament archive could not be refreshed.',
+      });
+      return null;
+    }
+  }, [canManageTournaments]);
 
   const refresh = useCallback(async () => {
     const next = await loadStatisticsDataset();
@@ -823,6 +855,10 @@ export default function StatsWorkspace() {
       document.removeEventListener('visibilitychange', loadWhenVisible);
     };
   }, []);
+
+  useEffect(() => {
+    refreshTournamentArchive();
+  }, [refreshTournamentArchive]);
 
   useEffect(() => {
     const syncStatsDetailFromHistory = () => {
@@ -874,7 +910,7 @@ export default function StatsWorkspace() {
     ));
   }, [snapshot]);
   const tournamentMode = competition === TOURNAMENT_COMPETITION_ID;
-  const selectedTournament = tournamentById(TOURNAMENT_ARCHIVE, selectedTournamentId);
+  const selectedTournament = tournamentById(tournamentArchive, selectedTournamentId);
 
   const selectedGameContext = useMemo(() => {
     if (!dataset || !selectedGameId) return null;
@@ -1178,7 +1214,7 @@ export default function StatsWorkspace() {
         <button
           type="button"
           aria-pressed={tournamentMode}
-          onClick={() => selectTournament(selectedTournament?.id || TOURNAMENT_ARCHIVE[0]?.id || '')}
+          onClick={() => selectTournament(selectedTournament?.id || tournamentArchive[0]?.id || '')}
         >
           Tournaments
         </button>
@@ -1186,9 +1222,13 @@ export default function StatsWorkspace() {
 
       {tournamentMode ? (
         <TournamentWorkspace
-          tournaments={TOURNAMENT_ARCHIVE}
+          tournaments={tournamentArchive}
           selectedTournamentId={selectedTournament?.id}
           onSelectTournament={selectTournament}
+          canManage={canManageTournaments}
+          controlRoom={resolvedTournamentControlRoom}
+          userId={account.user?.id || ''}
+          onArchiveRefresh={refreshTournamentArchive}
         />
       ) : <>{snapshot.availableStages.length > 1 && <div className="stats-stage-switcher" role="group" aria-label="Season stage">
         {snapshot.availableStages.map((item) => <button key={item} type="button" aria-pressed={snapshot.stage === item} onClick={() => { setStage(item); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }}>{item === 'regular' ? 'Regular season' : item === 'playoffs' ? 'Playoffs' : 'All games'}</button>)}
@@ -1264,7 +1304,7 @@ export default function StatsWorkspace() {
       </>}
 
       <footer className="stats-data-note"><ShieldCheck aria-hidden="true" /><span>{tournamentMode
-        ? `${TOURNAMENT_ARCHIVE.length} tournament dossier · ${selectedTournament?.games?.length || 0} documented games.`
+        ? `${tournamentArchive.length} tournament dossier${tournamentArchive.length === 1 ? '' : 's'} · ${selectedTournament?.games?.length || 0} documented games.`
         : `${dataset.seasons.length} seasons · ${dataset.teams.length} league schedules · ${dataset.games.length} games. Verified ${dataset.capturedAt ? formatGameDate(dataset.capturedAt) : 'league archive'}.`}</span>{(tournamentMode ? selectedTournament?.sourceUrl : officialSourceUrl) && <a href={tournamentMode ? selectedTournament.sourceUrl : officialSourceUrl} target="_blank" rel="noreferrer">Official source <ExternalLink aria-hidden="true" /></a>}</footer>
       {!tournamentMode && managerOpen && <StatsManager dataset={dataset} snapshot={snapshot} onClose={() => setManagerOpen(false)} onUpdated={refresh} />}
     </main>

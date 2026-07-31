@@ -1,13 +1,32 @@
 import { describe, expect, it } from 'vitest';
 import {
   TOURNAMENT_ARCHIVE,
+  mergeTournamentRecords,
+  normalizeTournamentDisplay,
   parseTournamentVideo,
   sortedTournamentStandings,
   tournamentBracketRounds,
+  tournamentForPersistence,
+  tournamentTeams,
   tournamentSummary,
 } from './tournamentModel';
 
 describe('tournament archive model', () => {
+  it('derives an editable tournament field from legacy game opponents', () => {
+    expect(tournamentTeams({
+      teamName: 'Goonsquad',
+      games: [
+        { opponent: 'Brown Royal' },
+        { opponent: 'Brampton All Blacks' },
+        { opponent: 'Brown Royal' },
+      ],
+    })).toEqual([
+      expect.objectContaining({ name: 'Goonsquad', isGoonSquad: true }),
+      expect.objectContaining({ name: 'Brown Royal', isGoonSquad: false }),
+      expect.objectContaining({ name: 'Brampton All Blacks', isGoonSquad: false }),
+    ]);
+  });
+
   it('parses a tournament game video without confusing the opponent or camera angle', () => {
     expect(parseTournamentVideo({
       sourceTitle: 'Goonsquad vs Brown Royal (Away View) - Game 1 | 2026 Oshawa Provincials',
@@ -79,5 +98,64 @@ describe('tournament archive model', () => {
 
     expect(rounds.map((round) => round.id)).toEqual(['quarterfinal', 'semifinal']);
     expect(rounds[1].matches.map((match) => match.id)).toEqual(['sf-1', 'sf-2']);
+  });
+
+  it('normalizes event-specific display controls and hides disabled brackets', () => {
+    expect(normalizeTournamentDisplay({
+      layout: 'scoreboard',
+      accent: 'gold',
+      bracketMode: 'hidden',
+      showBracket: true,
+      gamesLabel: 'Matchups',
+    })).toMatchObject({
+      layout: 'scoreboard',
+      accent: 'gold',
+      bracketMode: 'hidden',
+      showBracket: false,
+      gamesLabel: 'Matchups',
+    });
+  });
+
+  it('merges published overrides, suppresses hidden seed dossiers, and includes drafts for admins', () => {
+    const seed = [{
+      id: 'seed-event',
+      name: 'Seed event',
+      games: [],
+      standings: [],
+      bracket: [],
+    }];
+    const published = mergeTournamentRecords(seed, [{
+      id: 'seed-event',
+      isPublished: true,
+      payload: { id: 'seed-event', name: 'Edited event', games: [], standings: [], bracket: [] },
+    }], { activities: [] });
+    const hidden = mergeTournamentRecords(seed, [{
+      id: 'seed-event',
+      isPublished: false,
+      payload: null,
+    }], { activities: [] });
+    const admin = mergeTournamentRecords(seed, [{
+      id: 'seed-event',
+      isPublished: false,
+      payload: { id: 'seed-event', name: 'Private draft', games: [], standings: [], bracket: [] },
+    }], { activities: [], includeDrafts: true });
+
+    expect(published[0].name).toBe('Edited event');
+    expect(hidden).toEqual([]);
+    expect(admin[0]).toMatchObject({ name: 'Private draft', _record: { isPublished: false } });
+  });
+
+  it('removes runtime video enrichment before persisting an admin edit', () => {
+    const payload = tournamentForPersistence({
+      id: 'event',
+      name: 'Event',
+      games: [{ id: 'game', media: [{ videoId: 'runtime-only' }] }],
+      standings: [],
+      bracket: [],
+      _record: { isSeed: true },
+    });
+
+    expect(payload).not.toHaveProperty('_record');
+    expect(payload.games[0]).not.toHaveProperty('media');
   });
 });

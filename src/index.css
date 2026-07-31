@@ -6997,6 +6997,12 @@ input:focus:not(:focus-visible) { outline: none; }
   .stats-team-switcher,
   .stats-stage-switcher {
     overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .stats-team-switcher::-webkit-scrollbar,
+  .stats-stage-switcher::-webkit-scrollbar {
+    display: none;
   }
 
   .stats-team-switcher button,

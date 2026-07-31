@@ -8,9 +8,11 @@ import {
   GitBranch,
   MapPin,
   Play,
+  Settings2,
   ShieldCheck,
   Table2,
   Trophy,
+  Users,
 } from 'lucide-react';
 import {
   sortedTournamentStandings,
@@ -18,13 +20,14 @@ import {
   tournamentById,
   tournamentSummary,
 } from './tournamentModel';
+import TournamentAdminPanel from './TournamentAdminPanel';
 import './tournamentWorkspace.css';
 
 const TOURNAMENT_TABS = Object.freeze([
-  { id: 'overview', label: 'Overview', icon: Trophy },
-  { id: 'standings', label: 'Standings', icon: Table2 },
-  { id: 'bracket', label: 'Bracket', icon: GitBranch },
-  { id: 'games', label: 'Games', icon: Film },
+  { id: 'overview', labelKey: 'overviewLabel', showKey: 'showOverview', icon: Trophy },
+  { id: 'standings', labelKey: 'standingsLabel', showKey: 'showStandings', icon: Table2 },
+  { id: 'bracket', labelKey: 'bracketLabel', showKey: 'showBracket', icon: GitBranch },
+  { id: 'games', labelKey: 'gamesLabel', showKey: 'showGames', icon: Film },
 ]);
 
 function formatTournamentDate(value, options = {}) {
@@ -93,6 +96,7 @@ function TournamentSelector({ tournaments, selectedTournamentId, onSelectTournam
             <strong>{tournament.shortName || tournament.name}</strong>
             <small>{tournamentDateRange(tournament, true)}</small>
           </span>
+          {tournament._record?.isPublished === false && <em>DRAFT</em>}
         </button>
       ))}
     </div>
@@ -134,6 +138,23 @@ function TournamentMetrics({ tournament, summary }) {
           <small>{metric.detail}</small>
         </div>
       ))}
+    </section>
+  );
+}
+
+function TournamentField({ tournament }) {
+  const teams = tournament.teams?.length
+    ? tournament.teams
+    : [
+      { id: 'goonsquad', name: tournament.teamName || 'Goonsquad', isGoonSquad: true },
+      ...tournament.games.map((game) => ({ id: game.opponent, name: game.opponent })),
+    ];
+  const uniqueTeams = [...new Map(teams.filter((team) => team.name).map((team) => [team.name, team])).values()];
+  if (uniqueTeams.length < 2) return null;
+  return (
+    <section className="tournament-field" aria-label="Tournament teams">
+      <header><Users aria-hidden="true" /><div><span>TOURNAMENT FIELD</span><h3>{uniqueTeams.length} teams documented</h3></div></header>
+      <div>{uniqueTeams.map((team) => <span className={team.isGoonSquad ? 'is-goonsquad' : ''} key={team.id || team.name}><strong>{team.name}</strong>{team.pool && <small>{team.pool}</small>}{team.seed && <small>Seed {team.seed}</small>}</span>)}</div>
     </section>
   );
 }
@@ -188,24 +209,25 @@ function TournamentOverview({ tournament, summary, onOpenGames }) {
   return (
     <div className="tournament-overview">
       <TournamentMetrics tournament={tournament} summary={summary} />
+      <TournamentField tournament={tournament} />
       <section className="tournament-journey">
         <header>
           <div>
             <span>TOURNAMENT RUN</span>
             <h3>Game by game</h3>
           </div>
-          <button type="button" onClick={onOpenGames}>
+          {onOpenGames && <button type="button" onClick={onOpenGames}>
             Full game archive
             <ChevronRight aria-hidden="true" />
-          </button>
+          </button>}
         </header>
         <div className="tournament-game-grid">
           {tournament.games.map((game) => <TournamentGameCard key={game.id} game={game} />)}
         </div>
       </section>
-      <ArchiveNotice title="What is verified today" sourceUrl={tournament.sourceUrl}>
+      {tournament.display.showVerification && <ArchiveNotice title="What is verified today" sourceUrl={tournament.sourceUrl}>
         {tournament.verificationNote || tournament.summary}
-      </ArchiveNotice>
+      </ArchiveNotice>}
     </div>
   );
 }
@@ -288,9 +310,15 @@ function BracketMatch({ match }) {
 }
 
 function TournamentBracket({ tournament }) {
+  const bracket = useMemo(() => {
+    if (tournament.display.bracketMode !== 'team-path') return tournament.bracket;
+    const teamName = String(tournament.teamName || 'Goonsquad').toLowerCase();
+    return tournament.bracket.filter((match) => [match.homeTeam?.name, match.awayTeam?.name]
+      .some((name) => String(name || '').toLowerCase().includes(teamName)));
+  }, [tournament.bracket, tournament.display.bracketMode, tournament.teamName]);
   const rounds = useMemo(
-    () => tournamentBracketRounds(tournament.bracket),
-    [tournament.bracket],
+    () => tournamentBracketRounds(bracket),
+    [bracket],
   );
 
   if (!rounds.length) {
@@ -315,11 +343,11 @@ function TournamentBracket({ tournament }) {
             ))}
           </div>
           <div className="tournament-bracket-round is-pending">
-            <header><span>02</span><strong>Elimination</strong><small>archive needed</small></header>
+            <header><span>02</span><strong>Elimination</strong><small>not published</small></header>
             <div className="tournament-bracket-empty">
               <GitBranch aria-hidden="true" />
-              <strong>Official bracket pending</strong>
-              <span>Quarterfinal, semifinal, and final placement will appear here once the event sheet is recovered.</span>
+              <strong>{tournament.display.bracketMode === 'team-path' ? 'Goonsquad path not entered' : 'Bracket not entered'}</strong>
+              <span>An admin can publish the elimination path when it adds useful context to this tournament.</span>
             </div>
           </div>
         </div>
@@ -389,12 +417,40 @@ export default function TournamentWorkspace({
   tournaments,
   selectedTournamentId,
   onSelectTournament,
+  canManage = false,
+  controlRoom = { configured: true, loading: false, error: '' },
+  userId = '',
+  onArchiveRefresh,
 }) {
   const tournament = tournamentById(tournaments, selectedTournamentId);
   const [activeTab, setActiveTab] = useState('overview');
+  const [adminOpen, setAdminOpen] = useState(false);
+  const visibleTabs = useMemo(() => {
+    const tabs = TOURNAMENT_TABS.filter((tab) => tournament?.display?.[tab.showKey]);
+    return tabs.length ? tabs : [TOURNAMENT_TABS[0]];
+  }, [tournament]);
+  const resolvedActiveTab = visibleTabs.some((tab) => tab.id === activeTab)
+    ? activeTab
+    : visibleTabs[0].id;
+
   const handleSelectTournament = (tournamentId) => {
     setActiveTab('overview');
+    setAdminOpen(false);
     onSelectTournament(tournamentId);
+  };
+
+  const refreshAndSelect = async (tournamentId) => {
+    await onArchiveRefresh?.();
+    onSelectTournament(tournamentId);
+  };
+
+  const handleDeleted = async (tournamentId, resetToSeed) => {
+    const next = await onArchiveRefresh?.();
+    const nextId = resetToSeed
+      ? tournamentId
+      : next?.tournaments?.find((item) => item.id !== tournamentId)?.id || '';
+    setAdminOpen(false);
+    if (nextId) onSelectTournament(nextId);
   };
 
   const summary = useMemo(() => tournamentSummary(tournament), [tournament]);
@@ -409,12 +465,23 @@ export default function TournamentWorkspace({
   }
 
   return (
-    <div className="tournament-workspace">
+    <div className={`tournament-workspace${adminOpen ? ' is-admin-open' : ''}`} data-layout={tournament.display.layout} data-accent={tournament.display.accent}>
       <TournamentSelector
         tournaments={tournaments}
         selectedTournamentId={tournament.id}
         onSelectTournament={handleSelectTournament}
       />
+
+      {adminOpen ? (
+        <TournamentAdminPanel
+          tournament={tournament}
+          configured={controlRoom.configured}
+          userId={userId}
+          onClose={() => setAdminOpen(false)}
+          onSaved={refreshAndSelect}
+          onDeleted={handleDeleted}
+        />
+      ) : <>
 
       <section className="tournament-hero">
         <div className="tournament-hero-copy">
@@ -431,35 +498,39 @@ export default function TournamentWorkspace({
           <span>{summary.documentedGames}</span>
           <small>documented games</small>
         </div>
+        {canManage && <button type="button" className="tournament-manage-button" onClick={() => setAdminOpen(true)}><Settings2 aria-hidden="true" /><span>Manage tournament<small>{tournament._record?.isPublished === false ? 'Admin draft' : 'Results, teams & layout'}</small></span></button>}
       </section>
 
+      {canManage && controlRoom.error && <p className="tournament-control-error" role="alert">{controlRoom.error}</p>}
+
       <nav className="tournament-tabs" role="tablist" aria-label="Tournament dossier">
-        {TOURNAMENT_TABS.map(({ id, label, icon }) => (
+        {visibleTabs.map(({ id, labelKey, icon }) => (
           <button
             key={id}
             type="button"
             role="tab"
-            aria-selected={activeTab === id}
+            aria-selected={resolvedActiveTab === id}
             onClick={() => setActiveTab(id)}
           >
             {createElement(icon, { 'aria-hidden': true })}
-            {label}
+            {tournament.display[labelKey]}
           </button>
         ))}
       </nav>
 
       <section className="tournament-panel" role="tabpanel">
-        {activeTab === 'overview' && (
+        {resolvedActiveTab === 'overview' && (
           <TournamentOverview
             tournament={tournament}
             summary={summary}
-            onOpenGames={() => setActiveTab('games')}
+            onOpenGames={tournament.display.showGames ? () => setActiveTab('games') : null}
           />
         )}
-        {activeTab === 'standings' && <TournamentStandings tournament={tournament} />}
-        {activeTab === 'bracket' && <TournamentBracket tournament={tournament} />}
-        {activeTab === 'games' && <TournamentGames tournament={tournament} />}
+        {resolvedActiveTab === 'standings' && <TournamentStandings tournament={tournament} />}
+        {resolvedActiveTab === 'bracket' && <TournamentBracket tournament={tournament} />}
+        {resolvedActiveTab === 'games' && <TournamentGames tournament={tournament} />}
       </section>
+      </>}
     </div>
   );
 }
