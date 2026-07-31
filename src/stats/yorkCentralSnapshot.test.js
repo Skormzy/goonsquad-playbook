@@ -54,8 +54,8 @@ describe('York Central Goonsquad statistics snapshot', () => {
       'summer-2026-sunday',
     ]);
     expect(combined.seasonSchedules.map((schedule) => schedule.label)).toEqual([
-      'Monday League',
-      'Sunday League',
+      'YCBHL · Monday League',
+      'YCBHL · Sunday League',
     ]);
     expect(combined.games).toHaveLength(24);
     expect(combined.summary).toMatchObject({ gamesPlayed: 24, wins: 4, losses: 18, ties: 2, points: 10 });

@@ -60,7 +60,7 @@ function Podium({ leaders, metric, goalie, onOpenPlayer }) {
   );
 }
 
-export default function AllTimeRecords({ records, onOpenPlayer }) {
+export default function AllTimeRecords({ leagueLabel, records, onOpenPlayer }) {
   const [mode, setMode] = useState('skaters');
   const [sort, setSort] = useState({ key: 'points', direction: 'desc' });
   const goalie = mode === 'goalies';
@@ -84,7 +84,7 @@ export default function AllTimeRecords({ records, onOpenPlayer }) {
         <div>
           <span><Trophy aria-hidden="true" /> GOONSQUAD RECORD BOOK</span>
           <h2 id="all-time-records-title">All-time leaders</h2>
-          <p>Every verified season in one sortable Goonsquad archive.</p>
+          <p>{leagueLabel} · Every verified season in one sortable Goonsquad archive.</p>
         </div>
         <div className="all-time-mode" role="tablist" aria-label="Record book group">
           <button

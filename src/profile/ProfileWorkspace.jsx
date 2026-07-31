@@ -29,7 +29,12 @@ import {
 import { useAccount } from '../account/AccountContext';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
-import { formatGameDate, formatPercentage, formatScheduleName } from '../stats/statsModel';
+import {
+  formatGameDate,
+  formatLeagueName,
+  formatLeagueScheduleName,
+  formatPercentage,
+} from '../stats/statsModel';
 import { loadStatisticsDataset } from '../stats/statsCloud';
 import { memberProfileSnapshot, playerRosterCandidates } from './profileModel';
 import OfficialSocialLinks from '../brand/OfficialSocialLinks';
@@ -256,7 +261,7 @@ export default function ProfileWorkspace() {
             <div className="profile-roster-facts">
               <strong>{profile.jerseyNumber ? `#${profile.jerseyNumber}` : 'NO #'}</strong>
               <strong>{positionLabel(profile.position)}</strong>
-              <span>{profile.currentTeams.map(formatScheduleName).join(' / ') || 'Goonsquad archive'}</span>
+              <span>{profile.currentTeams.map(formatLeagueScheduleName).join(' / ') || 'Goonsquad archive'}</span>
             </div>
             <div className="profile-badges"><span data-status="linked"><BadgeCheck aria-hidden="true" /> {linkState.label}</span><span><History aria-hidden="true" /> {profile.seasonsPlayed} season{profile.seasonsPlayed === 1 ? '' : 's'}</span></div>
           </div>
@@ -399,7 +404,7 @@ export default function ProfileWorkspace() {
             <div className="profile-game-rows">
               {profile.recentGames.slice(0, 8).map((row) => <button type="button" key={row.game.id} onClick={() => openLinkedGame(row.game.id)}>
                 <span className={`profile-game-result is-${row.result.toLowerCase()}`}>{row.result}</span>
-                <span><strong>{row.game.opponent}</strong><small>{formatGameDate(row.game.scheduledAt)} · {row.team ? formatScheduleName(row.team) : 'League game'}</small></span>
+                <span><strong>{row.game.opponent}</strong><small>{formatGameDate(row.game.scheduledAt)} · {row.team ? formatLeagueScheduleName(row.team) : 'League game'}</small></span>
                 <span>{row.field ? <><b>{row.points}</b><small>PTS</small></> : <><b>{formatPercentage(row.goalie?.savePercentage)}</b><small>SV%</small></>}</span>
                 <ChevronRight aria-hidden="true" />
               </button>)}
@@ -410,7 +415,7 @@ export default function ProfileWorkspace() {
 
         <section className="profile-band profile-linked-records">
           <header><UserRoundCheck aria-hidden="true" /><div><span>IDENTITY LINKS</span><h2>League records in this profile</h2></div></header>
-          {account.playerClaims.map((claim) => <article key={claim.playerId}><span className="profile-record-avatar" aria-hidden="true">{claim.player?.displayName?.slice(0, 1) || '?'}</span><div><strong>{claim.player?.displayName || 'League player'}</strong><small>{claim.primary ? 'Primary record' : 'Historical record'} · linked</small></div>{claim.player?.sourceUrl && <a href={claim.player.sourceUrl} target="_blank" rel="noreferrer" aria-label={`Open official profile for ${claim.player.displayName}`}><ExternalLink aria-hidden="true" /></a>}<button type="button" disabled={account.busy} onClick={() => { if (window.confirm('Remove this league record from your profile?')) account.releasePlayer(claim.playerId).catch(() => {}); }} aria-label={`Remove ${claim.player?.displayName || 'player'} from profile`}><Unlink aria-hidden="true" /></button></article>)}
+          {account.playerClaims.map((claim) => <article key={claim.playerId}><span className="profile-record-avatar" aria-hidden="true">{claim.player?.displayName?.slice(0, 1) || '?'}</span><div><strong>{claim.player?.displayName || 'League player'}</strong><small>{claim.primary ? 'Primary record' : 'Historical record'} · {formatLeagueName(claim.player)} · linked</small></div>{claim.player?.sourceUrl && <a href={claim.player.sourceUrl} target="_blank" rel="noreferrer" aria-label={`Open official profile for ${claim.player.displayName}`}><ExternalLink aria-hidden="true" /></a>}<button type="button" disabled={account.busy} onClick={() => { if (window.confirm('Remove this league record from your profile?')) account.releasePlayer(claim.playerId).catch(() => {}); }} aria-label={`Remove ${claim.player?.displayName || 'player'} from profile`}><Unlink aria-hidden="true" /></button></article>)}
         </section>
 
         {account.playerClaimRequests.map((request) => (

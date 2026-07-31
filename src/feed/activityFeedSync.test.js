@@ -12,6 +12,8 @@ import {
 const dataset = {
   teams: [{
     id: 'summer-2026-mon-thu',
+    leagueKey: 'york-central',
+    leagueName: 'York Central Ball Hockey League',
     scheduleLabel: 'MON/THU',
   }],
   players: [{
@@ -51,7 +53,7 @@ describe('automated Squad Live activity', () => {
     expect(item).toMatchObject({
       sourceKey: 'result:ycbhl-game-123',
       sourceType: 'result',
-      sourceLabel: 'Official result · Monday League',
+      sourceLabel: 'Official result · YCBHL · Monday League',
       sourceTitle: 'Goon Squad 4–2 VIPERZ',
       linkUrl: 'https://www.yorkcentralbhl.com/game/123-goonsquad-viperz',
       sourceMetadata: {
@@ -60,6 +62,7 @@ describe('automated Squad Live activity', () => {
         goalsAgainst: 2,
         shotsFor: 21,
         shotsAgainst: 14,
+        league: 'YCBHL · Monday League',
       },
     });
     expect(item.body).toContain('Shots: 21–14');

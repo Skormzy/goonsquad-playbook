@@ -41,6 +41,8 @@ import {
 import {
   ALL_SEASON_TEAMS_ID,
   formatGameDate,
+  formatLeagueName,
+  formatLeagueScheduleName,
   formatSeasonSelectorLabel,
   formatPercentage,
   formatScheduleName,
@@ -180,11 +182,11 @@ function LeagueStandings({
         <Trophy aria-hidden="true" />
         <div>
           <span>LEAGUE TABLE</span>
-          <h2>{formatScheduleName(schedule)} standings</h2>
+          <h2>{formatLeagueScheduleName(schedule)} standings</h2>
           <p>{schedule?.division || 'Regular-season table'}</p>
         </div>
       </header>
-      <div className="stats-standings-list" aria-label={`${formatScheduleName(schedule)} standings`}>
+      <div className="stats-standings-list" aria-label={`${formatLeagueScheduleName(schedule)} standings`}>
         <div className="stats-standings-head">
           <span>Rank</span>
           <span>Team</span>
@@ -359,7 +361,7 @@ function MatchdayCard({ game, kind, schedules, onOpenGame }) {
           <div className="stats-matchday-main">
             <div>
               <strong>{next ? `vs ${game.opponent}` : game.opponent}</strong>
-              <span>{formatScheduleName(schedule)} · {gameSiteLabel(game)}</span>
+              <span>{formatLeagueScheduleName(schedule)} · {gameSiteLabel(game)}</span>
             </div>
             <b>{next ? 'VS' : `${game.goalsFor}–${game.goalsAgainst}`}</b>
           </div>
@@ -406,10 +408,10 @@ function GamesTable({
                 <td className="stats-game-opponent-cell">
                   {onOpenOpponent ? <button type="button" className="stats-game-opponent" aria-label={`Open head-to-head against ${game.opponent}`} onClick={() => onOpenOpponent(opponentSlug(game.opponent), final ? '' : game.id)}><strong>{game.opponent}</strong></button> : <strong>{game.opponent}</strong>}
                   <span className="stats-game-mobile-meta">
-                    {formatGameDate(game.scheduledAt)} · {formatScheduleName(schedule)} · {gameSiteLabel(game)}
+                    {formatGameDate(game.scheduledAt)} · {formatLeagueScheduleName(schedule)} · {gameSiteLabel(game)}
                   </span>
                 </td>
-                {showSchedule && <td className="stats-game-schedule"><span className="stats-stage-label">{formatScheduleName(schedule)}</span></td>}
+                {showSchedule && <td className="stats-game-schedule"><span className="stats-stage-label">{formatLeagueScheduleName(schedule)}</span></td>}
                 {showStage && <td className="stats-game-stage"><span className="stats-stage-label">{game.stage === 'playoffs' ? 'Playoffs' : 'Regular'}</span></td>}
                 <td className="stats-game-site">{gameSiteLabel(game)}</td>
                 <td className="stats-game-result"><span className={`stats-result is-${resultState}`}>{result}{game.overtime && final ? ' OT' : ''}</span></td>
@@ -501,7 +503,7 @@ function GameDetails({
       <article className="stats-game-detail">
         <header className="stats-game-hero">
           <div>
-            <span>{details.schedule ? `${formatScheduleName(details.schedule).toUpperCase()} · ` : ''}{game.stage === 'playoffs' ? 'PLAYOFFS' : 'REGULAR SEASON'}</span>
+            <span>{details.schedule ? `${formatLeagueScheduleName(details.schedule).toUpperCase()} · ` : ''}{game.stage === 'playoffs' ? 'PLAYOFFS' : 'REGULAR SEASON'}</span>
             <h2>Goonsquad <b>vs</b> {game.opponent}</h2>
             <p>{formatGameDate(game.scheduledAt)} · {venue}{game.location ? ` · ${game.location}` : ''}</p>
             {game.adminCorrection && <div className="stats-game-correction-badge"><ShieldCheck aria-hidden="true" /><span>ADMIN VERIFIED</span><strong>Team correction applied</strong>{game.adminCorrection.updatedAt && <small>{formatGameDate(game.adminCorrection.updatedAt)}</small>}</div>}
@@ -703,7 +705,7 @@ function StatsManager({ dataset, onClose, onUpdated, snapshot }) {
     <div className="stats-manager-backdrop" role="presentation" onMouseDown={onClose}>
       <section className="stats-manager" role="dialog" aria-modal="true" aria-labelledby="stats-manager-title" onMouseDown={(event) => event.stopPropagation()}>
         <header className="stats-manager-header">
-          <div><span>AUTHORIZED ENTRY</span><h2 id="stats-manager-title">Manage {formatScheduleName(snapshot.team)}</h2></div>
+          <div><span>AUTHORIZED ENTRY</span><h2 id="stats-manager-title">Manage {formatLeagueScheduleName(snapshot.team)}</h2></div>
           <button type="button" onClick={onClose} aria-label="Close statistics manager" title="Close"><X aria-hidden="true" /></button>
         </header>
         <div className="stats-manager-tabs" role="tablist" aria-label="Statistics entry type">
@@ -771,6 +773,9 @@ export default function StatsWorkspace() {
   ));
   const [selectedTournamentId, setSelectedTournamentId] = useState(() => (
     initialQueryValue('tournament') || TOURNAMENT_ARCHIVE[0]?.id || ''
+  ));
+  const [selectedTournamentGameId, setSelectedTournamentGameId] = useState(() => (
+    initialQueryValue('tournamentGame') || ''
   ));
   const [tournamentArchive, setTournamentArchive] = useState(TOURNAMENT_ARCHIVE);
   const [tournamentControlRoom, setTournamentControlRoom] = useState({
@@ -877,12 +882,14 @@ export default function StatsWorkspace() {
         ? TOURNAMENT_COMPETITION_ID
         : 'league';
       const nextTournamentId = initialQueryValue('tournament') || TOURNAMENT_ARCHIVE[0]?.id || '';
+      const nextTournamentGameId = initialQueryValue('tournamentGame');
       const nextGameId = initialQueryValue('game');
       const nextOpponent = initialQueryValue('opponent');
       const nextFixtureId = initialQueryValue('fixture');
       const nextPlayerId = initialQueryValue('player');
       setCompetition(nextCompetition);
       setSelectedTournamentId(nextTournamentId);
+      setSelectedTournamentGameId(nextCompetition === TOURNAMENT_COMPETITION_ID ? nextTournamentGameId : '');
       setSelectedGameId(nextCompetition === TOURNAMENT_COMPETITION_ID ? '' : nextGameId);
       setSelectedOpponentSlug(nextCompetition === TOURNAMENT_COMPETITION_ID ? '' : nextOpponent);
       setSelectedFixtureId(nextCompetition === TOURNAMENT_COMPETITION_ID ? '' : nextFixtureId);
@@ -922,6 +929,20 @@ export default function StatsWorkspace() {
   }, [snapshot]);
   const tournamentMode = competition === TOURNAMENT_COMPETITION_ID;
   const selectedTournament = tournamentById(tournamentArchive, selectedTournamentId);
+  const archiveLeagueLabel = useMemo(() => {
+    if (!dataset) return 'Goonsquad league archive';
+    const labels = [...new Set((dataset.teams || [])
+      .map(formatLeagueName)
+      .filter((label) => label && label !== 'League archive'))];
+    return labels.join(' + ') || 'Goonsquad league archive';
+  }, [dataset]);
+  const selectedSeasonLeagueLabel = useMemo(() => {
+    if (!snapshot) return archiveLeagueLabel;
+    const labels = [...new Set((snapshot.seasonTeams || [])
+      .map(formatLeagueName)
+      .filter((label) => label && label !== 'League archive'))];
+    return labels.join(' + ') || archiveLeagueLabel;
+  }, [archiveLeagueLabel, snapshot]);
 
   const selectedGameContext = useMemo(() => {
     if (!dataset || !selectedGameId) return null;
@@ -937,8 +958,8 @@ export default function StatsWorkspace() {
   }, [dataset, selectedGameId]);
 
   const opponentScopeLabel = !snapshot || snapshot.isSeasonAggregate
-    ? 'All Goonsquad leagues'
-    : `${snapshot.season?.name || 'Selected season'} · ${formatScheduleName(snapshot.team)}`;
+    ? `${selectedSeasonLeagueLabel} · All Goonsquad teams`
+    : `${snapshot.season?.name || 'Selected season'} · ${formatLeagueScheduleName(snapshot.team)}`;
   const opponentMatchups = useMemo(
     () => !dataset || !snapshot ? [] : buildOpponentMatchups(dataset, new Date(), {
       seasonTeamIds: snapshot.isSeasonAggregate ? null : [snapshot.team.id],
@@ -994,6 +1015,8 @@ export default function StatsWorkspace() {
       url.searchParams.set('competition', TOURNAMENT_COMPETITION_ID);
       if (selectedTournament?.id) url.searchParams.set('tournament', selectedTournament.id);
       else url.searchParams.delete('tournament');
+      if (selectedTournamentGameId) url.searchParams.set('tournamentGame', selectedTournamentGameId);
+      else url.searchParams.delete('tournamentGame');
       url.searchParams.delete('season');
       url.searchParams.delete('team');
       url.searchParams.delete('stage');
@@ -1001,6 +1024,7 @@ export default function StatsWorkspace() {
     } else {
       url.searchParams.delete('competition');
       url.searchParams.delete('tournament');
+      url.searchParams.delete('tournamentGame');
       url.searchParams.set('season', seasonId);
       if (snapshot?.team?.id) url.searchParams.set('team', snapshot.team.id);
       else url.searchParams.delete('team');
@@ -1022,6 +1046,7 @@ export default function StatsWorkspace() {
     selectedOpponentContext?.matchup.slug,
     selectedPlayerId,
     selectedTournament?.id,
+    selectedTournamentGameId,
     snapshot,
     snapshot?.team?.id,
     snapshot?.stage,
@@ -1044,6 +1069,7 @@ export default function StatsWorkspace() {
     tab,
     teamId,
     selectedTournamentId,
+    selectedTournamentGameId,
   ]);
 
   if (!dataset || !snapshot) return <div className="stats-loading"><RefreshCw aria-hidden="true" /> Loading team statistics…</div>;
@@ -1172,6 +1198,7 @@ export default function StatsWorkspace() {
   const selectTournament = (tournamentId) => {
     setCompetition(TOURNAMENT_COMPETITION_ID);
     setSelectedTournamentId(tournamentId);
+    setSelectedTournamentGameId('');
     setTab('overview');
     setManagerOpen(false);
     clearStatsDetails();
@@ -1197,8 +1224,8 @@ export default function StatsWorkspace() {
           <p>{tournamentMode
             ? 'Standings, bracket paths, matchups, and team game film.'
             : snapshot.isSeasonAggregate
-              ? `${scheduleCount} league schedules, results, and player stats.`
-              : `${formatScheduleName(snapshot.team)} performance, fixtures, and player totals.`}</p>
+              ? `${selectedSeasonLeagueLabel} · ${scheduleCount} schedules, results, and player stats.`
+              : `${formatLeagueScheduleName(snapshot.team)} performance, fixtures, and player totals.`}</p>
         </div>
         {!tournamentMode && <div className="stats-season-controls">
           <label><span>Season and league</span><select value={snapshot.season?.id ?? ''} onChange={(event) => { setSeasonId(event.target.value); setTeamId(''); setStage('regular'); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }} disabled={!dataset.seasons.length}>{dataset.seasons.map((season) => <option key={season.id} value={season.id}>{formatSeasonSelectorLabel(season, dataset.teams)}</option>)}</select></label>
@@ -1242,7 +1269,7 @@ export default function StatsWorkspace() {
         />
       </section> : <><div className="stats-team-switcher" role="group" aria-label="Competition">
         {snapshot.seasonTeams.length > 1 && <button type="button" aria-pressed={!tournamentMode && snapshot.isSeasonAggregate} onClick={() => selectLeagueTeam(ALL_SEASON_TEAMS_ID)}>All teams</button>}
-        {competitionTeams.map((team) => <button key={team.id} type="button" aria-pressed={!tournamentMode && snapshot.team?.id === team.id} onClick={() => selectLeagueTeam(team.id)}>{formatScheduleName(team)}</button>)}
+        {competitionTeams.map((team) => <button className="is-league-team" key={team.id} type="button" aria-pressed={!tournamentMode && snapshot.team?.id === team.id} onClick={() => selectLeagueTeam(team.id)}><span className="stats-team-switcher-label"><strong>{formatScheduleName(team)}</strong><small>{formatLeagueName(team)}</small></span></button>)}
         <button
           type="button"
           aria-pressed={tournamentMode}
@@ -1256,7 +1283,9 @@ export default function StatsWorkspace() {
         <TournamentWorkspace
           tournaments={tournamentArchive}
           selectedTournamentId={selectedTournament?.id}
+          selectedGameId={selectedTournamentGameId}
           onSelectTournament={selectTournament}
+          onSelectGame={setSelectedTournamentGameId}
           canManage={canManageTournaments}
           controlRoom={resolvedTournamentControlRoom}
           userId={account.user?.id || ''}
@@ -1277,7 +1306,7 @@ export default function StatsWorkspace() {
         </section>
 
         <section className="stats-metric-strip" aria-label="Season summary">
-          <Metric label="Record" value={summary.gamesPlayed ? record : '—'} detail={snapshot.isSeasonAggregate ? `${summary.gamesPlayed} games · ${scheduleCount} leagues` : `${summary.gamesPlayed} games`} />
+          <Metric label="Record" value={summary.gamesPlayed ? record : '—'} detail={snapshot.isSeasonAggregate ? `${summary.gamesPlayed} games · ${selectedSeasonLeagueLabel}` : `${summary.gamesPlayed} games`} />
           <Metric label="Goals" value={summary.gamesPlayed ? `${summary.goalsFor}–${summary.goalsAgainst}` : '—'} detail="for · against" />
           <Metric label="Difference" value={summary.gamesPlayed ? `${summary.goalDifference > 0 ? '+' : ''}${summary.goalDifference}` : '—'} detail="goal margin" />
           <Metric label="Win rate" value={summary.gamesPlayed ? formatPercentage(summary.winPercentage) : '—'} detail="final games" />
@@ -1321,7 +1350,7 @@ export default function StatsWorkspace() {
             )) : <EmptyStats section="league standings" />}
           </div>
         )}
-        {tab === 'games' && <div className="stats-game-view"><section className="stats-band is-full"><header><CalendarDays aria-hidden="true" /><div><span>{snapshot.isSeasonAggregate ? 'ALL LEAGUES' : formatScheduleName(snapshot.team).toUpperCase()}</span><h2>Schedule and results</h2><p>Score, shots, and penalty minutes from each published game sheet.</p></div></header><GamesTable games={snapshot.games} detailsByGame={snapshot.gameDetails} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} onOpenOpponent={openOpponent} /></section></div>}
+        {tab === 'games' && <div className="stats-game-view"><section className="stats-band is-full"><header><CalendarDays aria-hidden="true" /><div><span>{snapshot.isSeasonAggregate ? selectedSeasonLeagueLabel.toUpperCase() : formatLeagueScheduleName(snapshot.team).toUpperCase()}</span><h2>Schedule and results</h2><p>Score, shots, and penalty minutes from each published game sheet.</p></div></header><GamesTable games={snapshot.games} detailsByGame={snapshot.gameDetails} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} onOpenOpponent={openOpponent} /></section></div>}
         {tab === 'players' && (
           <div className="stats-player-view">
             <PlayerTables fieldPlayers={snapshot.fieldPlayers} goalies={snapshot.goalies} onOpenPlayer={openPlayer} />
@@ -1329,7 +1358,7 @@ export default function StatsWorkspace() {
           </div>
         )}
         {tab === 'records' && (
-          <AllTimeRecords records={allTimeRecords} onOpenPlayer={openPlayer} />
+          <AllTimeRecords records={allTimeRecords} leagueLabel={archiveLeagueLabel} onOpenPlayer={openPlayer} />
         )}
       </section>
       </>}
@@ -1337,7 +1366,7 @@ export default function StatsWorkspace() {
 
       <footer className="stats-data-note"><ShieldCheck aria-hidden="true" /><span>{tournamentMode
         ? `${tournamentArchive.length} tournament dossier${tournamentArchive.length === 1 ? '' : 's'} · ${selectedTournament?.games?.length || 0} documented games.`
-        : `${dataset.seasons.length} seasons · ${dataset.teams.length} league schedules · ${dataset.games.length} games. Verified ${dataset.capturedAt ? formatGameDate(dataset.capturedAt) : 'league archive'}.`}</span>{(tournamentMode ? selectedTournament?.sourceUrl : officialSourceUrl) && <a href={tournamentMode ? selectedTournament.sourceUrl : officialSourceUrl} target="_blank" rel="noreferrer">Official source <ExternalLink aria-hidden="true" /></a>}</footer>
+        : `${archiveLeagueLabel} · ${dataset.seasons.length} seasons · ${dataset.teams.length} schedules · ${dataset.games.length} games. Verified ${dataset.capturedAt ? formatGameDate(dataset.capturedAt) : 'league archive'}.`}</span>{(tournamentMode ? selectedTournament?.sourceUrl : officialSourceUrl) && <a href={tournamentMode ? selectedTournament.sourceUrl : officialSourceUrl} target="_blank" rel="noreferrer">Official source <ExternalLink aria-hidden="true" /></a>}</footer>
       {!tournamentMode && managerOpen && <StatsManager dataset={dataset} snapshot={snapshot} onClose={() => setManagerOpen(false)} onUpdated={refresh} />}
     </main>
   );

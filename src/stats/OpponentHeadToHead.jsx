@@ -12,7 +12,7 @@ import {
   Target,
   TrendingUp,
 } from 'lucide-react';
-import { formatGameDate, formatPercentage, formatScheduleName } from './statsModel';
+import { formatGameDate, formatLeagueScheduleName, formatPercentage } from './statsModel';
 import { gameOutcome, opponentSlug } from './opponentModel';
 import { isAwaitingResult } from './scheduleFreshness';
 
@@ -210,7 +210,7 @@ export function OpponentHeadToHead({
             <span><small>{fixtureAwaitingResult ? 'PLAYED · RESULTS PENDING' : 'NEXT MEETING'}</small><strong>{formatGameDate(fixture.scheduledAt)}</strong></span>
           </div>
           <div><small>Start</small><strong>{gameTimeLabel(fixture.scheduledAt)}</strong></div>
-          <div><small>League</small><strong>{formatScheduleName(teamById.get(fixture.seasonTeamId))}</strong></div>
+          <div><small>League</small><strong>{formatLeagueScheduleName(teamById.get(fixture.seasonTeamId))}</strong></div>
           <div><small>Site</small><strong>{siteLabel(fixture)}</strong></div>
           {fixture.location && <div className="stats-next-meeting-location"><MapPin aria-hidden="true" /><span>{fixture.location}</span></div>}
         </section>}
@@ -234,7 +234,7 @@ export function OpponentHeadToHead({
                 return <tr key={game.id}>
                   <td>{formatGameDate(game.scheduledAt)}</td>
                   <td>
-                    <span className="stats-stage-label">{formatScheduleName(schedule)}</span>
+                    <span className="stats-stage-label">{formatLeagueScheduleName(schedule)}</span>
                     {game.opponent !== matchup.name && <small className="stats-opponent-official-name">Official: {game.opponent}</small>}
                   </td>
                   <td>{siteLabel(game)}</td>

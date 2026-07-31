@@ -6,7 +6,10 @@ import {
   parseTournamentVideo,
   sortedTournamentStandings,
   tournamentBracketRounds,
+  tournamentEventGames,
   tournamentForPersistence,
+  tournamentGameById,
+  tournamentPoolStandings,
   tournamentTeams,
   tournamentSummary,
 } from './tournamentModel';
@@ -49,7 +52,7 @@ describe('tournament archive model', () => {
 
     expect(tournament).toBeTruthy();
     expect(tournament.dataStatus).toBe('verified');
-    expect(tournament.finish).toBe('Championship finalist');
+    expect(tournament.finish).toBe('Semifinalist');
     expect(tournament.source).toMatchObject({ seasonId: '14928', teamId: '514449' });
     expect(tournament.games).toHaveLength(5);
     expect(tournament.games.map((game) => game.opponent)).toEqual([
@@ -69,7 +72,7 @@ describe('tournament archive model', () => {
     ]);
     expect(tournament.games.slice(0, 3).every((game) => game.media.length === 2)).toBe(true);
     expect(tournament.games.slice(3).every((game) => game.media.length === 0)).toBe(true);
-    expect(tournament.standings[0]).toMatchObject({ team: 'Goonsquad', rank: 1, points: 8 });
+    expect(tournament.standings[0]).toMatchObject({ team: 'Goonsquad', rank: 1, points: 6 });
     expect(tournament.playerStats[0]).toMatchObject({ number: 17, goals: 9, assists: 7, points: 16 });
     expect(summary).toMatchObject({
       documentedGames: 5,
@@ -81,10 +84,41 @@ describe('tournament archive model', () => {
       goalsAgainst: 12,
       goalDifferential: 11,
       poolFinish: 1,
-      poolRecord: '2-0-0',
+      poolRecord: '3-0-0',
     });
-    expect(tournamentBracketRounds(tournament.bracket).map((round) => round.id))
-      .toEqual(['quarterfinal', 'semifinal', 'final']);
+    const eventGames = tournamentEventGames(tournament);
+    expect(eventGames).toHaveLength(28);
+    expect(eventGames.filter((game) => game.stage === 'round-robin')).toHaveLength(21);
+    expect(eventGames.filter((game) => game.stage === 'quarterfinal')).toHaveLength(4);
+    expect(eventGames.filter((game) => game.stage === 'semifinal')).toHaveLength(2);
+    expect(eventGames.filter((game) => game.stage === 'final')).toHaveLength(1);
+    expect(tournamentGameById(tournament, '2026-oshawa-official-53')).toMatchObject({
+      stage: 'semifinal',
+      awayTeam: 'New Tecumseth Outlaws',
+      awayScore: 6,
+      homeTeam: 'Goonsquad',
+      homeScore: 1,
+    });
+    expect(tournamentGameById(tournament, '2026-oshawa-official-54')).toMatchObject({
+      stage: 'final',
+      awayTeam: 'New Tecumseth Outlaws',
+      awayScore: 6,
+      homeTeam: 'Canadian Brew Crew',
+      homeScore: 4,
+    });
+    expect(tournamentPoolStandings(tournament, 'pool-d')[0]).toMatchObject({
+      rank: 1,
+      team: 'Goonsquad',
+      gamesPlayed: 3,
+      wins: 3,
+      losses: 0,
+      points: 6,
+      goalsFor: 18,
+      goalsAgainst: 6,
+    });
+    const bracketRounds = tournamentBracketRounds(tournament.bracket);
+    expect(bracketRounds.map((round) => round.id)).toEqual(['quarterfinal', 'semifinal', 'final']);
+    expect(bracketRounds.map((round) => round.matches.length)).toEqual([4, 2, 1]);
   });
 
   it('preserves the official 2024 pool schedule and tournament-format bracket', () => {
@@ -99,6 +133,15 @@ describe('tournament archive model', () => {
     ]);
     expect(tournamentBracketRounds(tournament.bracket).map((round) => round.id))
       .toEqual(['semifinal', 'final']);
+    expect(tournamentEventGames(tournament)).toHaveLength(15);
+    expect(tournamentEventGames(tournament).filter((game) => game.stage === 'round-robin')).toHaveLength(12);
+    expect(tournamentGameById(tournament, '2024-mississauga-final')).toMatchObject({
+      stage: 'final',
+      awayTeam: 'Cambridge Thunder',
+      awayScore: 0,
+      homeTeam: 'Blades of Steel',
+      homeScore: 1,
+    });
     expect(tournamentSummary(tournament).documentedGames).toBe(3);
   });
 
@@ -169,11 +212,12 @@ describe('tournament archive model', () => {
   });
 
   it('refreshes a stale manual dossier to the current source-backed experience', () => {
+    const snapshot = { provider: 'GameSheet', capturedAt: '2026-07-31', seasonId: '1' };
     const merged = mergeTournamentRecords([{
       id: 'official-event',
       name: 'Official event',
       dataStatus: 'verified',
-      source: { provider: 'GameSheet', capturedAt: '2026-07-31', seasonId: '1' },
+      source: { ...snapshot, revision: 2 },
       games: [{ id: 'official-game', scoreFor: 7, scoreAgainst: 3 }],
       standings: [{ team: 'Goonsquad', points: 8 }],
       bracket: [],
@@ -184,6 +228,7 @@ describe('tournament archive model', () => {
       payload: {
         id: 'official-event',
         name: 'Old manual event',
+        source: snapshot,
         games: [{ id: 'manual-game', scoreFor: null, scoreAgainst: null }],
         standings: [],
         bracket: [],
@@ -235,6 +280,7 @@ describe('tournament archive model', () => {
       id: 'event',
       name: 'Event',
       games: [{ id: 'game', media: [{ videoId: 'runtime-only' }] }],
+      eventGames: [{ id: 'event-game', media: [{ videoId: 'runtime-only' }] }],
       standings: [],
       bracket: [],
       _record: { isSeed: true },
@@ -242,5 +288,6 @@ describe('tournament archive model', () => {
 
     expect(payload).not.toHaveProperty('_record');
     expect(payload.games[0]).not.toHaveProperty('media');
+    expect(payload.eventGames[0]).not.toHaveProperty('media');
   });
 });

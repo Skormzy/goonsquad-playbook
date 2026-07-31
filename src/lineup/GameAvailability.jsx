@@ -9,7 +9,7 @@ import {
   UsersRound,
   X,
 } from 'lucide-react';
-import { formatGameDate, formatScheduleName } from '../stats/statsModel';
+import { formatGameDate, formatLeagueScheduleName } from '../stats/statsModel';
 import {
   loadGameAvailability,
   saveGameAvailability,
@@ -106,7 +106,7 @@ export default function GameAvailability({
 
   const competitionLabel = fixture.kind === 'tournament'
     ? [fixture.tournamentName, fixture.stageLabel].filter(Boolean).join(' · ')
-    : formatScheduleName(schedule);
+    : formatLeagueScheduleName(schedule);
 
   const choose = async (response) => {
     if (busy || !configured || !actorId || !canRespond) return;

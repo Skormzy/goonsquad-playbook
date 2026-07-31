@@ -45,6 +45,7 @@ for (const viewport of viewports) {
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: viewport.id === 'mobile' ? 2 : 1,
     colorScheme: 'light',
+    serviceWorkers: 'block',
   });
   const page = await context.newPage();
   const browserErrors = [];
@@ -84,27 +85,69 @@ for (const viewport of viewports) {
     .map((value) => value.replace(/\s+/gu, ' ').trim());
   const tabs = (await page.locator('.tournament-tabs button').allTextContents()).map((value) => value.trim());
 
-  await page.getByRole('tab', { name: 'Pool D', exact: true }).click();
-  await page.locator('.tournament-standings').scrollIntoViewIfNeeded();
-  screenshots.push(await capture(page, viewport, 'standings'));
+  await page.getByRole('tab', { name: 'Round robin', exact: true }).click();
+  await page.locator('.tournament-round-robin').scrollIntoViewIfNeeded();
+  const poolTabs = await page.locator('.tournament-pool-switcher [role="tab"]').count();
+  await page.locator('.tournament-pool-switcher').getByRole('tab', { name: /Pool D/u }).click();
+  screenshots.push(await capture(page, viewport, 'round-robin'));
   const standingsRows = await page.locator('.tournament-standings-table [role="row"]').count();
-  const standingsText = (await page.locator('.tournament-standings').innerText()).replace(/\s+/gu, ' ').trim();
+  const standingsText = (await page.locator('.tournament-round-robin').innerText()).replace(/\s+/gu, ' ').trim();
 
-  await page.getByRole('tab', { name: 'Road to Final', exact: true }).click();
+  await page.getByRole('tab', { name: 'Full bracket', exact: true }).click();
   await page.locator('.tournament-bracket-shell').scrollIntoViewIfNeeded();
-  screenshots.push(await capture(page, viewport, 'road-to-final'));
+  screenshots.push(await capture(page, viewport, 'full-bracket'));
   const bracketRounds = await page.locator('.tournament-bracket-round').count();
+  const bracketMatches = await page.locator('.tournament-bracket-match').count();
   const bracketText = (await page.locator('.tournament-bracket-shell').innerText()).replace(/\s+/gu, ' ').trim();
 
-  await page.getByRole('tab', { name: 'Gamebook', exact: true }).click();
+  await page.getByRole('tab', { name: 'All games', exact: true }).click();
   await page.locator('.tournament-games').scrollIntoViewIfNeeded();
-  screenshots.push(await capture(page, viewport, 'gamebook'));
-  const gameRows = await page.locator('.tournament-game-row').count();
-  const officialGameLinks = await page.locator('.tournament-official-game').count();
-  const videoLinks = await page.locator('.tournament-video').count();
+  screenshots.push(await capture(page, viewport, 'all-games'));
+  const gameFilters = await page.locator('.tournament-game-filters button').count();
+  const gameRows = await page.locator('.tournament-all-games .tournament-event-game').count();
   const gamebookText = (await page.locator('.tournament-games').innerText()).replace(/\s+/gu, ' ').trim();
 
+  await page.locator('.tournament-event-game').filter({ hasText: '#54' }).click();
+  await page.locator('.tournament-game-page').waitFor({ state: 'visible' });
+  screenshots.push(await capture(page, viewport, 'championship-game'));
+  const gamePageText = (await page.locator('.tournament-game-page').innerText()).replace(/\s+/gu, ' ').trim();
+  const internalGameUrl = page.url();
+
   const horizontalOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+
+  const mississaugaUrl = new URL(baseUrl);
+  mississaugaUrl.search = '';
+  mississaugaUrl.searchParams.set('content', 'stats');
+  mississaugaUrl.searchParams.set('competition', 'tournaments');
+  mississaugaUrl.searchParams.set('tournament', '2024-mississauga-provincials');
+  mississaugaUrl.searchParams.set('qaTeamAccess', '1');
+  await page.goto(mississaugaUrl.href, { waitUntil: 'networkidle', timeout: 60_000 });
+  await page.locator('.tournament-workspace').waitFor({ state: 'visible', timeout: 30_000 });
+  screenshots.push(await capture(page, viewport, '2024-overview'));
+  const mississaugaOverviewText = (await page.locator('.tournament-workspace').innerText()).replace(/\s+/gu, ' ').trim();
+  const mississaugaTeamGames = await page.locator('.tournament-game-card').count();
+
+  await page.getByRole('tab', { name: 'Round robin', exact: true }).click();
+  const mississaugaPoolTabs = await page.locator('.tournament-pool-switcher [role="tab"]').count();
+  const mississaugaStandingsRows = await page.locator('.tournament-standings-table [role="row"]').count();
+  const mississaugaRoundRobinText = (await page.locator('.tournament-round-robin').innerText()).replace(/\s+/gu, ' ').trim();
+  screenshots.push(await capture(page, viewport, '2024-round-robin'));
+
+  await page.getByRole('tab', { name: 'Full bracket', exact: true }).click();
+  const mississaugaBracketMatches = await page.locator('.tournament-bracket-match').count();
+  const mississaugaBracketText = (await page.locator('.tournament-bracket-shell').innerText()).replace(/\s+/gu, ' ').trim();
+  screenshots.push(await capture(page, viewport, '2024-bracket'));
+
+  await page.getByRole('tab', { name: 'All games', exact: true }).click();
+  const mississaugaGameRows = await page.locator('.tournament-all-games .tournament-event-game').count();
+  await page.locator('.tournament-event-game').filter({ hasText: "Men's REC Championship" }).click();
+  await page.locator('.tournament-game-page').waitFor({ state: 'visible' });
+  const mississaugaGameText = (await page.locator('.tournament-game-page').innerText()).replace(/\s+/gu, ' ').trim();
+  const mississaugaGameUrl = page.url();
+  screenshots.push(await capture(page, viewport, '2024-championship-game'));
+  const mississaugaOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   const bottomNavigationVisible = viewport.id !== 'mobile'
@@ -119,18 +162,30 @@ for (const viewport of viewports) {
     scorerRows,
     goalieRows,
     metricLayout,
+    poolTabs,
     standingsRows,
     bracketRounds,
+    bracketMatches,
+    gameFilters,
     gameRows,
-    officialGameLinks,
-    videoLinks,
+    gamePageText,
+    internalGameUrl,
+    mississauga2024: {
+      teamGames: mississaugaTeamGames,
+      poolTabs: mississaugaPoolTabs,
+      standingsRows: mississaugaStandingsRows,
+      bracketMatches: mississaugaBracketMatches,
+      gameRows: mississaugaGameRows,
+      gameUrl: mississaugaGameUrl,
+      horizontalOverflow: mississaugaOverflow,
+    },
     horizontalOverflow,
     bottomNavigationVisible,
     browserErrors,
     screenshots,
   };
 
-  if (!overviewText.includes('Championship finalist') || !overviewText.includes('4-1-0')) {
+  if (!overviewText.includes('Semifinalist') || !overviewText.includes('4-1-0')) {
     throw new Error(`${viewport.id}: verified tournament finish and record are missing.`);
   }
   if (gameCards !== 5 || leaderCards !== 4 || scorerRows !== 5 || goalieRows !== 2) {
@@ -142,19 +197,37 @@ for (const viewport of viewports) {
   if (viewport.id === 'mobile' && metricLayout.columns !== 2) {
     throw new Error(`${viewport.id}: tournament snapshot metrics must use two readable columns.`);
   }
-  if (selectorLabels.length !== 2 || tabs.join('|') !== 'Weekend|Pool D|Road to Final|Gamebook') {
+  if (!selectorLabels.some((label) => label.includes('Oshawa 2026'))
+    || !selectorLabels.some((label) => label.includes('Mississauga 2024'))
+    || tabs.join('|') !== 'Weekend|Round robin|Full bracket|All games') {
     throw new Error(`${viewport.id}: tournament navigation is incomplete.`);
   }
-  if (standingsRows !== 4 || !standingsText.includes('Goonsquad') || !standingsText.includes('Brampton All Blacks')) {
+  if (poolTabs !== 4 || standingsRows !== 4 || !standingsText.includes('Goonsquad') || !standingsText.includes('Brampton All Blacks')) {
     throw new Error(`${viewport.id}: official standings are incomplete.`);
   }
-  if (bracketRounds !== 3 || !bracketText.includes('Quarterfinal') || !bracketText.includes('Championship')) {
+  if (bracketRounds !== 3 || bracketMatches !== 7 || !bracketText.includes('Quarterfinal') || !bracketText.includes('Championship')) {
     throw new Error(`${viewport.id}: tournament path is incomplete.`);
   }
-  if (gameRows !== 5 || officialGameLinks !== 5 || videoLinks !== 6 || !gamebookText.includes('New Tecumseth Outlaws')) {
+  if (gameFilters !== 4 || gameRows !== 28 || !gamebookText.includes('New Tecumseth Outlaws')) {
     throw new Error(`${viewport.id}: official gamebook is incomplete.`);
   }
+  if (!gamePageText.includes('New Tecumseth Outlaws') || !gamePageText.includes('Canadian Brew Crew') || !gamePageText.includes('6-4') || !internalGameUrl.includes('tournamentGame=2026-oshawa-official-54')) {
+    throw new Error(`${viewport.id}: tournament scores do not open a complete in-app game page.`);
+  }
+  if (!mississaugaOverviewText.includes('2024 OBHF Summer Provincials') || mississaugaTeamGames !== 3) {
+    throw new Error(`${viewport.id}: the 2024 tournament dossier is incomplete.`);
+  }
+  if (mississaugaPoolTabs !== 2 || mississaugaStandingsRows !== 5 || !mississaugaRoundRobinText.includes('Results not preserved') || !mississaugaRoundRobinText.includes('Blades of Steel')) {
+    throw new Error(`${viewport.id}: the 2024 round-robin archive is incomplete or invents results.`);
+  }
+  if (mississaugaBracketMatches !== 3 || !mississaugaBracketText.includes('Blades of Steel') || !mississaugaBracketText.includes('Cambridge Thunder')) {
+    throw new Error(`${viewport.id}: the 2024 elimination bracket is incomplete.`);
+  }
+  if (mississaugaGameRows !== 15 || !mississaugaGameText.includes('Blades of Steel') || !mississaugaGameText.includes('Cambridge Thunder') || !mississaugaGameText.includes('0-1') || mississaugaGameText.includes('GOONSQUAD GAME FILE') || !mississaugaGameUrl.includes('tournamentGame=2024-mississauga-final')) {
+    throw new Error(`${viewport.id}: the verified 2024 championship does not open as an in-app game.`);
+  }
   if (horizontalOverflow > 1) throw new Error(`${viewport.id}: tournament page has ${horizontalOverflow}px horizontal overflow.`);
+  if (mississaugaOverflow > 1) throw new Error(`${viewport.id}: 2024 tournament page has ${mississaugaOverflow}px horizontal overflow.`);
   if (!bottomNavigationVisible) throw new Error(`${viewport.id}: mobile navigation is not visible.`);
   if (browserErrors.length) throw new Error(`${viewport.id}: ${browserErrors.join('; ')}`);
 

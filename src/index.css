@@ -6647,6 +6647,39 @@ input:focus:not(:focus-visible) { outline: none; }
   font-weight: 800;
 }
 
+.stats-team-switcher .is-league-team {
+  min-height: 43px;
+  padding-block: 6px;
+  text-align: left;
+}
+
+.stats-team-switcher-label {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  line-height: 1;
+}
+
+.stats-team-switcher-label strong {
+  color: currentColor;
+  font: inherit;
+  line-height: 1;
+}
+
+.stats-team-switcher-label small {
+  max-width: 190px;
+  color: var(--stats-dim);
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.15;
+  white-space: normal;
+}
+
+.stats-team-switcher button[aria-pressed='true'] .stats-team-switcher-label small {
+  color: color-mix(in srgb, var(--stats-accent) 78%, var(--stats-text));
+}
+
 .stats-game-page-toolbar .stats-game-correct-button {
   border-color: color-mix(in srgb, var(--stats-brand) 60%, var(--stats-border));
   color: var(--stats-brand);

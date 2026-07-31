@@ -183,11 +183,11 @@ export const GUIDE_TOPICS = Object.freeze({
     label: 'Stats',
     eyebrow: 'TEAM PERFORMANCE',
     title: 'Follow each team one season at a time',
-    intro: 'Statistics are separated by season and team, so Monday and Sunday squads never blend into one record. Totals come from official league sync or authorized team entry.',
+    intro: 'Statistics are separated by organization, season, and team, so YCBHL and Greater Toronto Ball Hockey League records never blend together. Totals come from official league sync or authorized team entry.',
     sections: [
       {
         title: 'Choose the season and team',
-        body: 'Select a season first, then choose the available Goonsquad team for that season. A season may contain Monday, Sunday, or both teams.',
+        body: 'Select a season first, then choose the available Goonsquad team and governing league. A YCBHL season may contain Monday, Sunday, or both teams; Greater Toronto Ball Hockey League records remain separately identified.',
       },
       {
         title: 'Read the team result',

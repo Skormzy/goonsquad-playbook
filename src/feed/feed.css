@@ -1603,6 +1603,7 @@
 
 .team-pulse-leagues span {
   color: var(--feed-muted);
+  line-height: 1.2;
 }
 
 .team-pulse-leagues strong {

@@ -1,5 +1,8 @@
 import { nextUpcomingGame } from '../stats/scheduleFreshness';
-import { formatScheduleName } from '../stats/statsModel';
+import {
+  formatLeagueName,
+  formatLeagueScheduleName,
+} from '../stats/statsModel';
 
 function value(number) {
   const parsed = Number(number);
@@ -50,7 +53,7 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
       }).sort((a, b) => (seasonIndex.get(a.season?.id) ?? 999) - (seasonIndex.get(b.season?.id) ?? 999));
       const latest = membershipDetails[0] ?? null;
       const seasons = [...new Map(membershipDetails.filter((item) => item.season).map((item) => [item.season.id, item.season])).values()];
-      const schedules = [...new Set(membershipDetails.filter((item) => item.team).map((item) => formatScheduleName(item.team)))];
+      const schedules = [...new Set(membershipDetails.filter((item) => item.team).map((item) => formatLeagueScheduleName(item.team)))];
       const position = currentMemberships.find((membership) => membership.position)?.position
         || latest?.membership.position
         || player.primaryPosition
@@ -150,7 +153,7 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now()) {
     if (!season) return null;
     if (!history.has(season.id)) history.set(season.id, emptySeasonLine(season));
     const row = history.get(season.id);
-    if (team) row.schedules.add(formatScheduleName(team));
+    if (team) row.schedules.add(formatLeagueScheduleName(team));
     return row;
   };
 
@@ -231,6 +234,7 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now()) {
     linkStatus: 'linked',
     claims,
     seasonsPlayed: seasonHistory.length,
+    leagueNames: [...new Set(seasonHistory.map((row) => formatLeagueName(row.season)))],
     seasonHistory,
     currentSeason: seasonHistory.find((row) => row.season.id === currentSeason?.id) ?? seasonHistory[0] ?? null,
     bestFieldSeason,

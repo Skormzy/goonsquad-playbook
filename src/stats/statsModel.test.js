@@ -171,8 +171,8 @@ describe('statistics model', () => {
     const dataset = {
       seasons: [{ id: 's1', name: 'Summer 2026' }],
       teams: [
-        { id: 'monday', seasonId: 's1', name: 'Goonsquad', scheduleLabel: 'MON/THU', division: 'MON/THU TIER 5' },
-        { id: 'sunday', seasonId: 's1', name: 'Goonsquad', scheduleLabel: 'SUNDAY', division: 'SUNDAY TIER 5' },
+        { id: 'monday', seasonId: 's1', name: 'Goonsquad', scheduleLabel: 'MON/THU', division: 'MON/THU TIER 5', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League' },
+        { id: 'sunday', seasonId: 's1', name: 'Goonsquad', scheduleLabel: 'SUNDAY', division: 'SUNDAY TIER 5', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League' },
       ],
       players: [{ id: 'shared-player', displayName: 'Alex' }],
       memberships: [],
@@ -194,7 +194,7 @@ describe('statistics model', () => {
 
     const snapshot = statsSnapshot(dataset, 's1', ALL_SEASON_TEAMS_ID);
     expect(snapshot.isSeasonAggregate).toBe(true);
-    expect(snapshot.seasonSchedules.map((schedule) => schedule.label)).toEqual(['Monday League', 'Sunday League']);
+    expect(snapshot.seasonSchedules.map((schedule) => schedule.label)).toEqual(['YCBHL · Monday League', 'YCBHL · Sunday League']);
     expect(snapshot.games.map((game) => game.id)).toEqual(['m1', 's1']);
     expect(snapshot.summary).toMatchObject({ gamesPlayed: 2, wins: 1, losses: 1, points: 2, goalsFor: 5, goalsAgainst: 5 });
     expect(snapshot.fieldPlayers[0]).toMatchObject({ playerId: 'shared-player', gamesPlayed: 2, goals: 2, assists: 1, points: 3 });

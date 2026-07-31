@@ -59,9 +59,17 @@ export function formatScheduleName(team) {
 export function formatLeagueName(item) {
   const name = String(item?.leagueName || '').trim();
   const sourceUrl = String(item?.sourceUrl || '');
-  if (/York Central/i.test(name) || item?.leagueKey === 'york-central' || /yorkcentralbhl\.com/i.test(sourceUrl)) return 'York Central BHL';
-  if (/Greater Toronto/i.test(name) || item?.leagueKey === 'greater-toronto' || /greatertorontobhl\.com/i.test(sourceUrl)) return 'Greater Toronto BHL';
+  if (/York Central/i.test(name) || item?.leagueKey === 'york-central' || /yorkcentralbhl\.com/i.test(sourceUrl)) return 'YCBHL';
+  if (/Greater Toronto/i.test(name) || item?.leagueKey === 'greater-toronto' || /greatertorontobhl\.com/i.test(sourceUrl)) return 'Greater Toronto Ball Hockey League';
   return name || 'League archive';
+}
+
+export function formatLeagueScheduleName(item) {
+  const league = formatLeagueName(item);
+  const schedule = formatScheduleName(item);
+  if (league === 'League archive') return schedule;
+  if (schedule === 'League schedule') return league;
+  return `${league} · ${schedule}`;
 }
 
 export function formatSeasonSelectorLabel(season, teams = []) {
@@ -352,7 +360,7 @@ export function statsSnapshot(dataset, seasonId, teamId, stage = 'regular') {
       : null;
     return {
       team: seasonTeam,
-      label: formatScheduleName(seasonTeam),
+      label: formatLeagueScheduleName(seasonTeam),
       games: scheduleGames,
       summary: teamSummaryFromRecord({
         ...calculated,

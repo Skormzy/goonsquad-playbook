@@ -27,7 +27,8 @@ const ADMIN_SECTIONS = Object.freeze([
   { id: 'details', label: 'Details', icon: Trophy },
   { id: 'display', label: 'Display', icon: LayoutDashboard },
   { id: 'teams', label: 'Teams', icon: Users },
-  { id: 'games', label: 'Games', icon: Settings2 },
+  { id: 'event-games', label: 'Event games', icon: Settings2 },
+  { id: 'games', label: 'Goonsquad', icon: Trophy },
   { id: 'standings', label: 'Standings', icon: Table2 },
   { id: 'bracket', label: 'Bracket', icon: GitBranch },
 ]);
@@ -89,6 +90,8 @@ function blankTournament() {
     verificationNote: '',
     sourceUrl: '',
     teams: [{ id: 'goonsquad', name: 'Goonsquad', pool: '', seed: '', isGoonSquad: true }],
+    pools: [],
+    eventGames: [],
     standings: [],
     games: [],
     bracket: [],
@@ -213,7 +216,7 @@ function GamesEditor({ rows, setRows, tournamentLocation }) {
   const updateRow = (index, patch) => setRows(rows.map((row, rowIndex) => rowIndex === index ? { ...row, ...patch } : row));
   return (
     <section className="tournament-admin-section">
-      <ArrayHeader eyebrow="GOONSQUAD SCHEDULE" title="Games and results" detail="Record pool, classification, and elimination games in the order they were played." addLabel="Add game" onAdd={() => setRows([...rows, { id: uniqueId('game'), gameNumber: rows.length + 1, stage: 'round-robin', stageLabel: 'Round robin', opponent: '', status: 'scheduled', scoreFor: null, scoreAgainst: null, date: '', time: '', site: '', location: tournamentLocation || '' }])} />
+      <ArrayHeader eyebrow="GOONSQUAD SCHEDULE" title="Team game file" detail="Keep Goonsquad-only details here. The all-event ledger is authoritative for teams, stages, and final scores." addLabel="Add team game" onAdd={() => setRows([...rows, { id: uniqueId('game'), gameNumber: rows.length + 1, stage: 'round-robin', stageLabel: 'Round robin', opponent: '', status: 'scheduled', scoreFor: null, scoreAgainst: null, date: '', time: '', site: '', location: tournamentLocation || '' }])} />
       <div className="tournament-admin-rows">
         {rows.map((row, index) => <div className="tournament-admin-row is-game" key={row.id || index}>
           <Field label="#"><input type="number" min="1" value={row.gameNumber || index + 1} onChange={(event) => updateRow(index, { gameNumber: Number(event.target.value) })} /></Field>
@@ -229,6 +232,36 @@ function GamesEditor({ rows, setRows, tournamentLocation }) {
           <RemoveButton label={`Remove game ${row.gameNumber || index + 1}`} onClick={() => setRows(rows.filter((_, rowIndex) => rowIndex !== index))} />
         </div>)}
         {!rows.length && <p className="tournament-admin-empty-row">No games added yet.</p>}
+      </div>
+    </section>
+  );
+}
+
+function EventGamesEditor({ rows, setRows, tournamentLocation }) {
+  const updateRow = (index, patch) => setRows(rows.map((row, rowIndex) => rowIndex === index ? { ...row, ...patch } : row));
+  const score = (value) => value === '' ? null : Number(value);
+  return (
+    <section className="tournament-admin-section">
+      <ArrayHeader eyebrow="MASTER EVENT LEDGER" title="Every tournament game" detail="This is the source of truth for round-robin tables, score links, game pages, and bracket results." addLabel="Add event game" onAdd={() => setRows([...rows, { id: uniqueId('event-game'), officialGameNumber: null, stage: 'round-robin', stageLabel: 'Round robin', awayTeam: '', awayPool: '', awayScore: null, homeTeam: '', homePool: '', homeScore: null, date: '', time: '', location: tournamentLocation || '', status: 'scheduled', sourceUrl: '' }])} />
+      <div className="tournament-admin-rows">
+        {rows.map((row, index) => <div className="tournament-admin-row is-event-game" key={row.id || index}>
+          <Field label="Official #"><input type="number" min="1" value={row.officialGameNumber ?? ''} onChange={(event) => updateRow(index, { officialGameNumber: event.target.value === '' ? null : Number(event.target.value) })} /></Field>
+          <Field label="Stage"><select value={row.stage || 'round-robin'} onChange={(event) => updateRow(index, { stage: event.target.value, stageLabel: ({ 'round-robin': 'Round robin', quarterfinal: 'Quarterfinal', semifinal: 'Semifinal', final: 'Championship' })[event.target.value] })}><option value="round-robin">Round robin</option><option value="quarterfinal">Quarterfinal</option><option value="semifinal">Semifinal</option><option value="final">Championship</option></select></Field>
+          <Field label="Stage label"><input value={row.stageLabel || ''} onChange={(event) => updateRow(index, { stageLabel: event.target.value })} /></Field>
+          <Field label="Away team"><input value={row.awayTeam || ''} onChange={(event) => updateRow(index, { awayTeam: event.target.value })} /></Field>
+          <Field label="Away pool"><input value={row.awayPool || ''} onChange={(event) => updateRow(index, { awayPool: event.target.value })} /></Field>
+          <Field label="Away score"><input type="number" min="0" value={row.awayScore ?? ''} onChange={(event) => updateRow(index, { awayScore: score(event.target.value) })} /></Field>
+          <Field label="Home team"><input value={row.homeTeam || ''} onChange={(event) => updateRow(index, { homeTeam: event.target.value })} /></Field>
+          <Field label="Home pool"><input value={row.homePool || ''} onChange={(event) => updateRow(index, { homePool: event.target.value })} /></Field>
+          <Field label="Home score"><input type="number" min="0" value={row.homeScore ?? ''} onChange={(event) => updateRow(index, { homeScore: score(event.target.value) })} /></Field>
+          <Field label="Date"><input type="date" value={row.date || ''} onChange={(event) => updateRow(index, { date: event.target.value })} /></Field>
+          <Field label="Time"><input type="time" value={row.time || ''} onChange={(event) => updateRow(index, { time: event.target.value })} /></Field>
+          <Field label="Status"><select value={row.status || 'scheduled'} onChange={(event) => updateRow(index, { status: event.target.value })}><option value="scheduled">Scheduled</option><option value="documented">Documented, result unavailable</option><option value="played">Played, result pending</option><option value="final">Final</option></select></Field>
+          <Field label="Location"><input value={row.location || ''} onChange={(event) => updateRow(index, { location: event.target.value })} /></Field>
+          <Field label="Official URL"><input type="url" value={row.sourceUrl || ''} onChange={(event) => updateRow(index, { sourceUrl: event.target.value })} placeholder="https://" /></Field>
+          <RemoveButton label={`Remove ${row.awayTeam || 'away team'} at ${row.homeTeam || 'home team'}`} onClick={() => setRows(rows.filter((_, rowIndex) => rowIndex !== index))} />
+        </div>)}
+        {!rows.length && <p className="tournament-admin-empty-row">No event games yet. Add the schedule once and the rest of the tournament module will use it.</p>}
       </div>
     </section>
   );
@@ -265,6 +298,7 @@ function BracketEditor({ rows, setRows }) {
           <Field label="Round order"><input type="number" min="1" value={row.roundOrder ?? 1} onChange={(event) => updateRow(index, { roundOrder: Number(event.target.value) })} /></Field>
           <Field label="Match order"><input type="number" min="1" value={row.order ?? index + 1} onChange={(event) => updateRow(index, { order: Number(event.target.value) })} /></Field>
           <Field label="Match label"><input value={row.label || ''} onChange={(event) => updateRow(index, { label: event.target.value })} /></Field>
+          <Field label="Event game ID"><input value={row.eventGameId || ''} onChange={(event) => updateRow(index, { eventGameId: event.target.value })} placeholder="Links this score to its game page" /></Field>
           <Field label="Home team"><input value={row.homeTeam?.name || ''} onChange={(event) => updateRow(index, { homeTeam: { ...row.homeTeam, name: event.target.value } })} /></Field>
           <Field label="Away team"><input value={row.awayTeam?.name || ''} onChange={(event) => updateRow(index, { awayTeam: { ...row.awayTeam, name: event.target.value } })} /></Field>
           <Field label="Home score"><input type="number" min="0" value={row.homeScore ?? ''} onChange={(event) => updateRow(index, { homeScore: event.target.value === '' ? null : Number(event.target.value) })} /></Field>
@@ -320,6 +354,91 @@ export default function TournamentAdminPanel({
   }));
   const setRows = (key) => (rows) => update(key, rows);
 
+  const prepareForSave = () => {
+    const pools = new Map();
+    draft.teams.forEach((team) => {
+      const poolName = String(team.pool || '').trim();
+      if (!poolName) return;
+      const poolId = slugify(poolName);
+      if (!pools.has(poolId)) pools.set(poolId, { id: poolId, name: poolName, teams: [] });
+      pools.get(poolId).teams.push(team.name);
+    });
+    const teamName = String(draft.teamName || 'Goonsquad').trim();
+    const isTeam = (value) => String(value || '').trim().toLowerCase() === teamName.toLowerCase();
+    const eventsById = new Map(draft.eventGames.map((game) => [game.id, game]));
+    const eventForTeamGame = (game) => draft.eventGames.find((eventGame) => (
+      eventGame.teamGameId === game.id
+      || (
+        Number.isFinite(eventGame.officialGameNumber)
+        && eventGame.officialGameNumber === game.officialGameNumber
+      )
+      || (
+        eventGame.date === game.date
+        && [eventGame.awayTeam, eventGame.homeTeam].some(isTeam)
+        && [eventGame.awayTeam, eventGame.homeTeam].includes(game.opponent)
+      )
+    ));
+    const teamGameFromEvent = (eventGame, existingGame = {}) => {
+      const teamIsAway = isTeam(eventGame.awayTeam);
+      return {
+        ...existingGame,
+        id: existingGame.id || eventGame.teamGameId || `team-${eventGame.id}`,
+        eventGameId: eventGame.id,
+        gameNumber: existingGame.gameNumber || draft.games.length + 1,
+        officialGameNumber: eventGame.officialGameNumber ?? existingGame.officialGameNumber,
+        stage: eventGame.stage,
+        stageLabel: eventGame.stageLabel,
+        opponent: teamIsAway ? eventGame.homeTeam : eventGame.awayTeam,
+        site: teamIsAway ? 'Away' : 'Home',
+        scoreFor: teamIsAway ? eventGame.awayScore : eventGame.homeScore,
+        scoreAgainst: teamIsAway ? eventGame.homeScore : eventGame.awayScore,
+        date: eventGame.date,
+        time: eventGame.time,
+        location: eventGame.location,
+        status: eventGame.status,
+        sourceUrl: eventGame.sourceUrl || existingGame.sourceUrl || '',
+      };
+    };
+    const matchedEventIds = new Set();
+    const games = draft.games.map((game) => {
+      const eventGame = eventForTeamGame(game);
+      if (!eventGame) return game;
+      matchedEventIds.add(eventGame.id);
+      return teamGameFromEvent(eventGame, game);
+    });
+    draft.eventGames
+      .filter((eventGame) => (
+        !matchedEventIds.has(eventGame.id)
+        && [eventGame.awayTeam, eventGame.homeTeam].some(isTeam)
+      ))
+      .forEach((eventGame) => games.push(teamGameFromEvent(eventGame)));
+    const bracket = draft.bracket.map((match) => {
+      const eventGame = eventsById.get(match.eventGameId);
+      if (!eventGame) return match;
+      return {
+        ...match,
+        status: eventGame.status,
+        homeTeam: { ...match.homeTeam, name: eventGame.homeTeam },
+        awayTeam: { ...match.awayTeam, name: eventGame.awayTeam },
+        homeScore: eventGame.homeScore,
+        awayScore: eventGame.awayScore,
+        winner: Number.isFinite(eventGame.homeScore) && Number.isFinite(eventGame.awayScore)
+          ? eventGame.homeScore > eventGame.awayScore ? 'home' : eventGame.awayScore > eventGame.homeScore ? 'away' : null
+          : null,
+      };
+    });
+    return {
+      ...draft,
+      pools: [...pools.values()],
+      games: games.sort((a, b) => (
+        String(a.date || '').localeCompare(String(b.date || ''))
+        || String(a.time || '').localeCompare(String(b.time || ''))
+        || (a.officialGameNumber ?? 0) - (b.officialGameNumber ?? 0)
+      )),
+      bracket,
+    };
+  };
+
   const run = async (key, operation) => {
     setBusy(key);
     setStatus('');
@@ -338,9 +457,11 @@ export default function TournamentAdminPanel({
     if (originalId && draft.id !== originalId && hasOverride) {
       throw new Error('Duplicate the tournament before changing an existing archive ID.');
     }
-    await saveTournament(draft, { isPublished: published, userId });
+    const preparedDraft = prepareForSave();
+    await saveTournament(preparedDraft, { isPublished: published, userId });
+    setDraft(preparedDraft);
     setStatus(published ? 'Tournament saved and published.' : 'Tournament saved as an admin-only draft.');
-    await onSaved(draft.id);
+    await onSaved(preparedDraft.id);
   });
 
   const remove = () => run('delete', async () => {
@@ -401,13 +522,14 @@ export default function TournamentAdminPanel({
       {status && <p className="tournament-admin-notice is-success" role="status"><Check aria-hidden="true" /> {status}</p>}
 
       <nav className="tournament-admin-nav" aria-label="Tournament editor sections">
-        {ADMIN_SECTIONS.map(({ id, label, icon }) => <button key={id} type="button" aria-current={activeSection === id ? 'page' : undefined} onClick={() => setActiveSection(id)}>{createElement(icon, { 'aria-hidden': true })}{label}<small>{({ teams: draft.teams.length, games: draft.games.length, standings: draft.standings.length, bracket: draft.bracket.length })[id] ?? ''}</small></button>)}
+        {ADMIN_SECTIONS.map(({ id, label, icon }) => <button key={id} type="button" aria-current={activeSection === id ? 'page' : undefined} onClick={() => setActiveSection(id)}>{createElement(icon, { 'aria-hidden': true })}{label}<small>{({ teams: draft.teams.length, 'event-games': draft.eventGames.length, games: draft.games.length, standings: draft.standings.length, bracket: draft.bracket.length })[id] ?? ''}</small></button>)}
       </nav>
 
       <form onSubmit={(event) => { event.preventDefault(); save(); }}>
         {activeSection === 'details' && <DetailsEditor draft={draft} update={update} />}
         {activeSection === 'display' && <DisplayEditor draft={draft} update={update} updateDisplay={updateDisplay} />}
         {activeSection === 'teams' && <TeamsEditor rows={draft.teams} setRows={setRows('teams')} />}
+        {activeSection === 'event-games' && <EventGamesEditor rows={draft.eventGames} setRows={setRows('eventGames')} tournamentLocation={draft.location} />}
         {activeSection === 'games' && <GamesEditor rows={draft.games} setRows={setRows('games')} tournamentLocation={draft.location} />}
         {activeSection === 'standings' && <StandingsEditor rows={draft.standings} setRows={setRows('standings')} />}
         {activeSection === 'bracket' && <BracketEditor rows={draft.bracket} setRows={setRows('bracket')} />}

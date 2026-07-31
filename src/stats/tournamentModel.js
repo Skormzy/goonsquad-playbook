@@ -1,4 +1,5 @@
 import tournamentSeed from './tournaments.json';
+import tournamentEvents from './tournamentEvents.json';
 import officialYoutubeActivity from '../feed/officialYoutubeActivity.json';
 
 export const TOURNAMENT_COMPETITION_ID = 'tournaments';
@@ -33,14 +34,15 @@ function tournamentTeamId(name, index) {
 export function tournamentTeams(tournament = {}) {
   const teamName = String(tournament.teamName || 'Goonsquad').trim();
   const explicitTeams = Array.isArray(tournament.teams) ? tournament.teams : [];
-  const names = explicitTeams.length
-    ? explicitTeams.map((team) => team?.name)
-    : [
-      teamName,
-      ...(tournament.games || []).map((game) => game?.opponent),
-      ...(tournament.standings || []).map((row) => row?.team),
-      ...(tournament.bracket || []).flatMap((match) => [match?.homeTeam?.name, match?.awayTeam?.name]),
-    ];
+  const names = [
+    teamName,
+    ...explicitTeams.map((team) => team?.name),
+    ...(tournament.pools || []).flatMap((pool) => pool?.teams || []),
+    ...(tournament.games || []).map((game) => game?.opponent),
+    ...(tournament.eventGames || []).flatMap((game) => [game?.awayTeam, game?.homeTeam]),
+    ...(tournament.standings || []).map((row) => row?.team),
+    ...(tournament.bracket || []).flatMap((match) => [match?.homeTeam?.name, match?.awayTeam?.name]),
+  ];
   const seen = new Set();
 
   return names.reduce((teams, name, index) => {
@@ -83,13 +85,21 @@ export function normalizeTournamentDisplay(display = {}) {
 }
 
 export function normalizeTournament(tournament = {}) {
+  const eventSeed = tournamentEvents[tournament.id] || {};
+  const pools = Array.isArray(tournament.pools) ? tournament.pools : eventSeed.pools || [];
+  const eventGames = Array.isArray(tournament.eventGames)
+    ? tournament.eventGames
+    : eventSeed.eventGames || [];
+  const mergedTournament = { ...tournament, pools, eventGames };
   return {
     ...tournament,
     id: String(tournament.id || '').trim(),
     name: String(tournament.name || 'Untitled tournament').trim(),
     shortName: String(tournament.shortName || tournament.name || 'Tournament').trim(),
     teamName: String(tournament.teamName || 'Goonsquad').trim(),
-    teams: tournamentTeams(tournament),
+    pools,
+    eventGames,
+    teams: tournamentTeams(mergedTournament),
     standings: Array.isArray(tournament.standings) ? tournament.standings : [],
     games: Array.isArray(tournament.games) ? tournament.games : [],
     bracket: Array.isArray(tournament.bracket) ? tournament.bracket : [],
@@ -133,9 +143,21 @@ export function enrichTournament(tournament, activities = officialYoutubeActivit
       .sort((a, b) => (a.angle === 'home' ? -1 : b.angle === 'home' ? 1 : 0)),
   }));
 
+  const teamGamesById = new Map(games.map((game) => [game.id, game]));
+  const eventGames = normalizedTournament.eventGames.map((eventGame) => {
+    const teamGame = eventGame.teamGameId
+      ? teamGamesById.get(eventGame.teamGameId)
+      : games.find((game) => game.officialGameNumber === eventGame.officialGameNumber);
+    return {
+      ...eventGame,
+      media: teamGame?.media || [],
+    };
+  });
+
   return {
     ...normalizedTournament,
     games,
+    eventGames,
   };
 }
 
@@ -156,16 +178,30 @@ function sourceSnapshotKey(tournament = {}) {
     .join(':');
 }
 
-function mergeSeedTournament(seed, payload) {
-  if (!payload) return seed;
+function sourceRevision(tournament = {}) {
+  const revision = Number(tournament.source?.revision ?? 0);
+  return Number.isFinite(revision) ? revision : 0;
+}
+
+function seedSourceRefreshRequired(seed, payload) {
+  if (!payload) return false;
   const seedSnapshot = sourceSnapshotKey(seed);
   const payloadSnapshot = sourceSnapshotKey(payload);
-  const sourceRefreshRequired = Boolean(seedSnapshot && seedSnapshot !== payloadSnapshot);
+  return sourceRevision(seed) > sourceRevision(payload)
+    || Boolean(seedSnapshot && seedSnapshot !== payloadSnapshot);
+}
+
+function mergeSeedTournament(seed, payload) {
+  if (!payload) return seed;
+  const sourceRefreshRequired = seedSourceRefreshRequired(seed, payload);
 
   if (sourceRefreshRequired) {
+    const officialEventSeed = tournamentEvents[seed.id] || {};
     return {
       ...payload,
       ...seed,
+      pools: officialEventSeed.pools || seed.pools || [],
+      eventGames: officialEventSeed.eventGames || seed.eventGames || [],
       display: { ...seed.display },
     };
   }
@@ -196,11 +232,7 @@ export function mergeTournamentRecords(
         hasOverride: Boolean(record?.payload),
         isPublished: record ? Boolean(record.isPublished) : true,
         isSeed: true,
-        sourceRefreshRequired: Boolean(
-          record?.payload
-          && sourceSnapshotKey(seed)
-          && sourceSnapshotKey(seed) !== sourceSnapshotKey(record.payload)
-        ),
+        sourceRefreshRequired: seedSourceRefreshRequired(seed, record?.payload),
         updatedAt: record?.updatedAt || '',
       },
     });
@@ -234,11 +266,92 @@ export function tournamentForPersistence(tournament) {
       delete persistedGame.media;
       return persistedGame;
     }),
+    eventGames: payload.eventGames.map((game) => {
+      const persistedGame = { ...game };
+      delete persistedGame.media;
+      return persistedGame;
+    }),
   };
 }
 
 export function tournamentById(tournaments, tournamentId) {
   return tournaments.find((tournament) => tournament.id === tournamentId) || tournaments[0] || null;
+}
+
+export function tournamentEventGames(tournament = {}) {
+  if (Array.isArray(tournament.eventGames) && tournament.eventGames.length) {
+    return tournament.eventGames;
+  }
+  const teamName = tournament.teamName || 'Goonsquad';
+  return (tournament.games || []).map((game) => ({
+    ...game,
+    id: game.eventGameId || game.id,
+    awayTeam: game.site === 'Away' ? teamName : game.opponent,
+    awayScore: game.site === 'Away' ? game.scoreFor : game.scoreAgainst,
+    homeTeam: game.site === 'Away' ? game.opponent : teamName,
+    homeScore: game.site === 'Away' ? game.scoreAgainst : game.scoreFor,
+    teamGameId: game.id,
+  }));
+}
+
+export function tournamentGameById(tournament, gameId) {
+  return tournamentEventGames(tournament).find((game) => game.id === gameId) || null;
+}
+
+export function tournamentPools(tournament = {}) {
+  if (Array.isArray(tournament.pools) && tournament.pools.length) return tournament.pools;
+  const grouped = new Map();
+  (tournament.teams || []).forEach((team) => {
+    if (!team.pool) return;
+    const id = tournamentTeamId(team.pool, grouped.size);
+    if (!grouped.has(id)) grouped.set(id, { id, name: team.pool, teams: [] });
+    grouped.get(id).teams.push(team.name);
+  });
+  return [...grouped.values()];
+}
+
+export function tournamentPoolStandings(tournament, poolId) {
+  const pool = tournamentPools(tournament).find((item) => item.id === poolId);
+  if (!pool) return [];
+  const rows = new Map(pool.teams.map((team) => [normalized(team), {
+    team,
+    isGoonSquad: normalized(team) === normalized(tournament.teamName || 'Goonsquad'),
+    gamesPlayed: 0,
+    wins: 0,
+    losses: 0,
+    ties: 0,
+    goalsFor: 0,
+    goalsAgainst: 0,
+    points: 0,
+  }]));
+
+  tournamentEventGames(tournament)
+    .filter((game) => game.stage === 'round-robin')
+    .forEach((game) => {
+      if (!Number.isFinite(game.awayScore) || !Number.isFinite(game.homeScore)) return;
+      const away = rows.get(normalized(game.awayTeam));
+      const home = rows.get(normalized(game.homeTeam));
+      if (away) {
+        away.gamesPlayed += 1;
+        away.goalsFor += game.awayScore;
+        away.goalsAgainst += game.homeScore;
+        away.wins += game.awayScore > game.homeScore ? 1 : 0;
+        away.losses += game.awayScore < game.homeScore ? 1 : 0;
+        away.ties += game.awayScore === game.homeScore ? 1 : 0;
+        away.points += game.awayScore > game.homeScore ? 2 : game.awayScore === game.homeScore ? 1 : 0;
+      }
+      if (home) {
+        home.gamesPlayed += 1;
+        home.goalsFor += game.homeScore;
+        home.goalsAgainst += game.awayScore;
+        home.wins += game.homeScore > game.awayScore ? 1 : 0;
+        home.losses += game.homeScore < game.awayScore ? 1 : 0;
+        home.ties += game.homeScore === game.awayScore ? 1 : 0;
+        home.points += game.homeScore > game.awayScore ? 2 : game.homeScore === game.awayScore ? 1 : 0;
+      }
+    });
+
+  return sortedTournamentStandings([...rows.values()]);
 }
 
 export function tournamentSummary(tournament) {

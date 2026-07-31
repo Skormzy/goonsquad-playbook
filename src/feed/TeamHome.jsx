@@ -49,7 +49,8 @@ import { TOURNAMENT_ARCHIVE } from '../stats/tournamentModel';
 import {
   ALL_SEASON_TEAMS_ID,
   formatGameDate,
-  formatScheduleName,
+  formatLeagueName,
+  formatLeagueScheduleName,
   statsSnapshot,
 } from '../stats/statsModel';
 import {
@@ -204,7 +205,7 @@ const QA_POSTS = Object.freeze([
     mediaUrl: '',
     sourceType: 'result',
     sourceKey: 'result:ycbhl-game-53117',
-    sourceLabel: 'Official result · Sunday League',
+    sourceLabel: 'Official result · YCBHL · Sunday League',
     sourceTitle: 'Goonsquad 9–4 OG VIPERZ',
     sourceImageUrl: '',
     sourcePublishedAt: '2026-07-26T21:00:00Z',
@@ -213,7 +214,7 @@ const QA_POSTS = Object.freeze([
       goalsFor: 9,
       goalsAgainst: 4,
       opponent: 'OG VIPERZ',
-      league: 'Sunday League',
+      league: 'YCBHL · Sunday League',
     },
     pinnedAt: null,
     createdAt: '2026-07-26T21:00:00Z',
@@ -229,7 +230,7 @@ const QA_POSTS = Object.freeze([
     id: 'qa-youtube-1',
     authorId: null,
     author: null,
-    body: 'Full game replay from the Monday League.',
+    body: 'Full game replay from the YCBHL · Monday League.',
     linkUrl: 'https://www.youtube.com/watch?v=JEnVPcwJiFU',
     mediaPath: '',
     mediaKind: '',
@@ -992,11 +993,12 @@ function TeamPulse({ dataset, onOpenGame, onOpenStats, snapshot }) {
   const next = nextUpcomingGame(snapshot.games);
   const record = `${snapshot.summary.wins}–${snapshot.summary.losses}–${snapshot.summary.ties}`;
   const schedule = (game) => dataset.teams.find((team) => team.id === game?.seasonTeamId);
+  const leagueNames = [...new Set(snapshot.seasonTeams.map(formatLeagueName))].join(' + ');
 
   return (
     <aside className="team-pulse" aria-label="Team performance pulse">
       <header>
-        <div><span>GAME PULSE</span><h2>{snapshot.season?.name || 'Goonsquad'}</h2></div>
+        <div><span>GAME PULSE · {leagueNames}</span><h2>{snapshot.season?.name || 'Goonsquad'}</h2></div>
         <button type="button" onClick={onOpenStats}>Full stats <ChevronRight /></button>
       </header>
       <div className="team-pulse-record">
@@ -1010,7 +1012,7 @@ function TeamPulse({ dataset, onOpenGame, onOpenStats, snapshot }) {
           <span>
             <small>NEXT UP</small>
             <strong>{next ? `vs ${next.opponent}` : 'Schedule clear'}</strong>
-            <em>{next ? `${formatGameDate(next.scheduledAt)} · ${formatScheduleName(schedule(next))}` : 'No future game posted'}</em>
+            <em>{next ? `${formatGameDate(next.scheduledAt)} · ${formatLeagueScheduleName(schedule(next))}` : 'No future game posted'}</em>
           </span>
           {next && <ChevronRight />}
         </button>
@@ -1019,7 +1021,7 @@ function TeamPulse({ dataset, onOpenGame, onOpenStats, snapshot }) {
           <span>
             <small>LATEST RESULT</small>
             <strong>{latest ? `${latest.goalsFor}–${latest.goalsAgainst} vs ${latest.opponent}` : 'No result yet'}</strong>
-            <em>{latest ? `${formatGameDate(latest.scheduledAt)} · ${formatScheduleName(schedule(latest))}` : 'Results will appear here'}</em>
+            <em>{latest ? `${formatGameDate(latest.scheduledAt)} · ${formatLeagueScheduleName(schedule(latest))}` : 'Results will appear here'}</em>
           </span>
           {latest && <ChevronRight />}
         </button>
@@ -1027,7 +1029,7 @@ function TeamPulse({ dataset, onOpenGame, onOpenStats, snapshot }) {
       <div className="team-pulse-leagues">
         {snapshot.seasonSchedules.map(({ team, summary }) => (
           <div key={team.id}>
-            <span>{formatScheduleName(team)}</span>
+            <span>{formatLeagueScheduleName(team)}</span>
             <strong>{summary.wins}–{summary.losses}–{summary.ties}</strong>
           </div>
         ))}

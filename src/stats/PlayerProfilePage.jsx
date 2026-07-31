@@ -16,8 +16,9 @@ import {
 } from 'lucide-react';
 import {
   formatGameDate,
+  formatLeagueName,
+  formatLeagueScheduleName,
   formatPercentage,
-  formatScheduleName,
 } from './statsModel';
 import PlayerSpotlightErrorBoundary from './PlayerSpotlightErrorBoundary';
 import OfficialSocialLinks from '../brand/OfficialSocialLinks';
@@ -109,7 +110,8 @@ export default function PlayerProfilePage({
   const goalie = profile.position === 'G'
     || profile.careerGoalie.gamesPlayed > profile.careerField.gamesPlayed;
   const player = profile.primaryPlayer;
-  const currentSchedule = profile.currentTeams.map(formatScheduleName).join(' / ');
+  const currentSchedule = profile.currentTeams.map(formatLeagueScheduleName).join(' / ');
+  const leagueLabel = profile.leagueNames?.join(' + ') || 'Goonsquad league archive';
   const bestSeason = profile.bestFieldSeason;
   const latestGames = profile.recentGames.slice(0, 10);
   const recentField = latestGames.filter((row) => row.field).slice(0, 5);
@@ -186,6 +188,7 @@ export default function PlayerProfilePage({
           </p>
           <div className="public-player-badges">
             <span><ShieldCheck aria-hidden="true" /> Official team archive</span>
+            <span><Trophy aria-hidden="true" /> {leagueLabel}</span>
             <span><History aria-hidden="true" /> {profile.seasonsPlayed} season{profile.seasonsPlayed === 1 ? '' : 's'}</span>
           </div>
           <OfficialSocialLinks compact className="public-player-social-links" />
@@ -291,6 +294,7 @@ export default function PlayerProfilePage({
               <span>
                 <small>BEST SCORING SEASON</small>
                 <strong>{bestSeason.season.name}</strong>
+                <small>{formatLeagueName(bestSeason.season)}</small>
                 <b>{bestSeason.field.points} PTS · {bestSeason.field.goals} G</b>
               </span>
             </div>
@@ -313,7 +317,7 @@ export default function PlayerProfilePage({
                   <span className={`profile-game-result is-${row.result.toLowerCase()}`}>{row.result}</span>
                   <span>
                     <strong>{row.game.opponent}</strong>
-                    <small>{formatGameDate(row.game.scheduledAt)} · {row.team ? formatScheduleName(row.team) : 'League game'}</small>
+                    <small>{formatGameDate(row.game.scheduledAt)} · {row.team ? formatLeagueScheduleName(row.team) : 'League game'}</small>
                   </span>
                   <span>
                     <b>{value.primary}</b>

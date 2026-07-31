@@ -1,5 +1,5 @@
 import { isUpcomingGame } from '../stats/scheduleFreshness';
-import { formatScheduleName } from '../stats/statsModel';
+import { formatLeagueScheduleName } from '../stats/statsModel';
 
 const OPEN_TOURNAMENT_STATUSES = new Set(['upcoming', 'live']);
 const CLOSED_GAME_STATUSES = new Set(['final', 'played', 'cancelled', 'eliminated', 'not-qualified']);
@@ -44,7 +44,7 @@ export function memberScheduleLabels(dataset, member) {
   const teamIds = rosterTeamIdsForMember(dataset, member);
   return [...new Set((dataset?.teams || [])
     .filter((team) => teamIds.has(team.id))
-    .map(formatScheduleName))];
+    .map(formatLeagueScheduleName))];
 }
 
 export function attendanceGrantMatches(grant, fixture) {
@@ -192,7 +192,7 @@ export function leagueEpDirectory({
       const latestMembership = memberships[0] || null;
       const latestTeam = teamsById.get(latestMembership?.seasonTeamId) || null;
       const latestSeason = seasonsById.get(latestTeam?.seasonId) || null;
-      const rosterLabel = [latestSeason?.name, latestTeam ? formatScheduleName(latestTeam) : '']
+      const rosterLabel = [latestSeason?.name, latestTeam ? formatLeagueScheduleName(latestTeam) : '']
         .filter(Boolean)
         .join(' · ');
       return {

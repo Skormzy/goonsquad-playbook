@@ -19,7 +19,8 @@ describe('tournament admin product contract', () => {
     const panel = read('./TournamentAdminPanel.jsx');
 
     expect(panel).toContain("label: 'Teams'");
-    expect(panel).toContain("label: 'Games'");
+    expect(panel).toContain("label: 'Event games'");
+    expect(panel).toContain("label: 'Goonsquad'");
     expect(panel).toContain("label: 'Standings'");
     expect(panel).toContain("label: 'Bracket'");
     expect(panel).toContain('<option value="hidden">Do not show a bracket</option>');

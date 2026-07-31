@@ -134,7 +134,7 @@ for (const viewport of viewports) {
   const scheduleRows = await page.locator('.stats-schedule-row').allTextContents();
   const seasonOptions = await page.locator('.stats-season-controls select option').allTextContents();
   const leaderCount = await page.locator('.stats-leaders-table tbody tr').count();
-  const sourceHref = await page.getByRole('link', { name: /Open official source for Monday League/u }).getAttribute('href');
+  const sourceHref = await page.getByRole('link', { name: /Open official source for YCBHL · Monday League/u }).getAttribute('href');
   const documentOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
   await page.getByRole('tab', { name: 'Games', exact: true }).click();
@@ -176,7 +176,7 @@ for (const viewport of viewports) {
   }
 
   await page.locator('.stats-season-controls select').selectOption('spring-2026');
-  await page.getByRole('button', { name: 'Sunday League', exact: true }).click();
+  await page.getByRole('button', { name: /Sunday League\s+YCBHL/u }).click();
   const stageLabels = await page.locator('.stats-stage-switcher button').allTextContents();
 
   await page.getByRole('button', { name: 'Tournaments', exact: true }).click();
@@ -191,6 +191,7 @@ for (const viewport of viewports) {
   await page.screenshot({ path: tournamentOverviewPath, fullPage: false });
 
   await page.locator('.tournament-tabs button').nth(1).click();
+  await page.locator('.tournament-pool-switcher').getByRole('tab', { name: /Pool D/u }).click();
   const tournamentStandingsText = (await page.locator('.tournament-panel').innerText()).replace(/\s+/gu, ' ').trim();
   const tournamentStandingsPath = path.join(outputDir, `${viewport.id}-tournament-standings-${viewport.width}x${viewport.height}.png`);
   await page.screenshot({ path: tournamentStandingsPath, fullPage: false });
@@ -201,7 +202,7 @@ for (const viewport of viewports) {
   await page.screenshot({ path: tournamentBracketPath, fullPage: false });
 
   await page.locator('.tournament-tabs button').nth(3).click();
-  const tournamentVideoCount = await page.locator('.tournament-games .tournament-video').count();
+  const tournamentGameCount = await page.locator('.tournament-all-games > .tournament-event-game').count();
   const tournamentGamesPath = path.join(outputDir, `${viewport.id}-tournament-games-${viewport.width}x${viewport.height}.png`);
   await page.screenshot({ path: tournamentGamesPath, fullPage: false });
   const tournamentDocumentOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -260,7 +261,7 @@ for (const viewport of viewports) {
     tournamentTabs,
     tournamentStandingsText,
     tournamentBracketText,
-    tournamentVideoCount,
+    tournamentGameCount,
     tournamentUrl: tournamentUrl.href,
     tournamentDocumentOverflow,
     tournament2024Text,
@@ -330,10 +331,10 @@ for (const viewport of viewports) {
     throw new Error(`${viewport.id}: TikTok feed card is incomplete.`);
   }
   if (matchday.length !== 2 || !matchday[0].includes('NEXT GAME') || !matchday[1].includes('LATEST RESULT')) throw new Error(`${viewport.id}: matchday summary is incomplete.`);
-  if (!/\d+–\d+–\d+/u.test(summary) || !/\d+ games · 2 leagues/u.test(summary)) {
+  if (!/\d+–\d+–\d+/u.test(summary) || !/\d+ games · YCBHL/u.test(summary)) {
     throw new Error(`${viewport.id}: combined current-season record is missing.`);
   }
-  if (teamLabels.join('|') !== 'All teams|Monday League|Sunday League|Tournaments') throw new Error(`${viewport.id}: current competition navigation is incorrect.`);
+  if (teamLabels.map((label) => label.replace(/\s+/gu, '')).join('|') !== 'Allteams|MondayLeagueYCBHL|SundayLeagueYCBHL|Tournaments') throw new Error(`${viewport.id}: current competition navigation is incorrect.`);
   if (scheduleRows.length !== 2 || !scheduleRows.some((row) => row.includes('MON/THU TIER 5')) || !scheduleRows.some((row) => row.includes('SUNDAY TIER 5'))) throw new Error(`${viewport.id}: current league coverage is incomplete.`);
   if (seasonOptions.length < 16) throw new Error(`${viewport.id}: historical season archive is incomplete (${seasonOptions.length}).`);
   if (leaderCount < 1) throw new Error(`${viewport.id}: official player leaders are missing.`);
@@ -364,23 +365,22 @@ for (const viewport of viewports) {
   const normalizedTournamentText = tournamentText.toLowerCase();
   if (
     !tournamentText.includes('2026 Oshawa Provincials')
-    || !normalizedTournamentText.includes('championship finalist')
+    || !normalizedTournamentText.includes('semifinalist')
     || !normalizedTournamentText.includes('4-1-0')
     || !normalizedTournamentText.includes('game by game')
     || !normalizedTournamentText.includes('alex grezlovski')
   ) {
     throw new Error(`${viewport.id}: tournament overview is incomplete.`);
   }
-  if (tournamentTabs.join('|') !== 'Weekend|Pool D|Road to Final|Gamebook') throw new Error(`${viewport.id}: tournament dossier navigation is incomplete.`);
+  if (tournamentTabs.join('|') !== 'Weekend|Round robin|Full bracket|All games') throw new Error(`${viewport.id}: tournament dossier navigation is incomplete.`);
   if (
-    tournamentSelectorLabels.length !== 2
-    || !tournamentSelectorLabels[0].startsWith('Oshawa 2026')
-    || !tournamentSelectorLabels[1].startsWith('Mississauga 2024')
+    !tournamentSelectorLabels.some((label) => label.startsWith('Oshawa 2026'))
+    || !tournamentSelectorLabels.some((label) => label.startsWith('Mississauga 2024'))
   ) {
     throw new Error(`${viewport.id}: tournament archive selector is incomplete.`);
   }
   if (
-    !tournamentStandingsText.includes('OFFICIAL STANDINGS')
+    !tournamentStandingsText.toUpperCase().includes('OFFICIAL PRELIMINARY TABLE')
     || !tournamentStandingsText.includes('Goonsquad')
     || !tournamentStandingsText.includes('Brampton All Blacks')
     || !tournamentStandingsText.includes('Brown Royal')
@@ -391,7 +391,7 @@ for (const viewport of viewports) {
     || !tournamentBracketText.includes('Championship')
     || !tournamentBracketText.includes('New Tecumseth Outlaws')
   ) throw new Error(`${viewport.id}: tournament bracket path is incomplete.`);
-  if (tournamentVideoCount !== 6) throw new Error(`${viewport.id}: expected six tournament video angles, received ${tournamentVideoCount}.`);
+  if (tournamentGameCount !== 28) throw new Error(`${viewport.id}: expected the complete 28-game event archive, received ${tournamentGameCount}.`);
   if (tournamentDocumentOverflow > 1) throw new Error(`${viewport.id}: tournament workspace has ${tournamentDocumentOverflow}px horizontal overflow.`);
   if (
     tournament2024Url.searchParams.get('tournament') !== '2024-mississauga-provincials'
@@ -405,8 +405,8 @@ for (const viewport of viewports) {
   if (
     !tournament2024BracketText.includes('Semifinals')
     || !tournament2024BracketText.includes('Championship')
-    || !tournament2024BracketText.includes('1st pool winner')
-    || !tournament2024BracketText.includes('Semifinal 1 winner')
+    || !tournament2024BracketText.includes('Cambridge Thunder')
+    || !tournament2024BracketText.includes('Blades of Steel')
   ) {
     throw new Error(`${viewport.id}: 2024 tournament bracket is incomplete.`);
   }

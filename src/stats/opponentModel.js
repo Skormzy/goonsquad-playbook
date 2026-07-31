@@ -1,4 +1,4 @@
-import { formatScheduleName, teamSummary } from './statsModel';
+import { formatLeagueScheduleName, teamSummary } from './statsModel';
 import { isAwaitingResult } from './scheduleFreshness';
 
 const PLAYOFF_SEED_SUFFIX = /\s+\(\d+(?:st|nd|rd|th)\)$/i;
@@ -48,7 +48,7 @@ export function buildOpponentMatchups(
   now = new Date(),
   {
     seasonTeamIds = null,
-    scopeLabel = 'All Goonsquad leagues',
+    scopeLabel = 'YCBHL + Greater Toronto Ball Hockey League · All Goonsquad teams',
   } = {},
 ) {
   if (!dataset) return [];
@@ -96,7 +96,7 @@ export function buildOpponentMatchups(
           schedules: new Set(),
           games: [],
         };
-        if (schedule) entry.schedules.add(formatScheduleName(schedule));
+        if (schedule) entry.schedules.add(formatLeagueScheduleName(schedule));
         entry.games.push(game);
         seasonGroups.set(seasonId, entry);
       });

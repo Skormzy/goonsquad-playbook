@@ -133,6 +133,18 @@ function scheduleName(team) {
   return label || 'Goon Squad';
 }
 
+function leagueName(team) {
+  const label = clean(team?.leagueName);
+  const sourceUrl = clean(team?.sourceUrl);
+  if (/York Central/iu.test(label) || team?.leagueKey === 'york-central' || /yorkcentralbhl\.com/iu.test(sourceUrl)) return 'YCBHL';
+  if (/Greater Toronto/iu.test(label) || team?.leagueKey === 'greater-toronto' || /greatertorontobhl\.com/iu.test(sourceUrl)) return 'Greater Toronto Ball Hockey League';
+  return label || 'League archive';
+}
+
+function competitionName(team) {
+  return `${leagueName(team)} · ${scheduleName(team)}`;
+}
+
 function localDateTimeToUtc(value, timeZone = TORONTO_TIME_ZONE) {
   if (!value) return null;
   const localMatch = String(value).match(
@@ -245,7 +257,7 @@ export function buildResultFeedItems(
       return {
         sourceKey: `result:${game.id}`,
         sourceType: 'result',
-        sourceLabel: `Official result · ${scheduleName(team)}`,
+        sourceLabel: `Official result · ${competitionName(team)}`,
         sourceTitle: `Goon Squad ${game.goalsFor}–${game.goalsAgainst} ${game.opponent}`,
         body: details.join('\n'),
         linkUrl: game.sourceUrl,
@@ -255,7 +267,7 @@ export function buildResultFeedItems(
           gameId: game.id,
           externalId: game.externalId,
           seasonTeamId: game.seasonTeamId,
-          league: scheduleName(team),
+          league: competitionName(team),
           opponent: game.opponent,
           outcome,
           goalsFor: game.goalsFor,

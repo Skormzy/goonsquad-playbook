@@ -18,6 +18,7 @@ import {
   loadAttendanceAccess,
   loadGameEpRoster,
 } from './lineupCloud';
+import { formatLeagueScheduleName } from '../stats/statsModel';
 
 export default function AttendanceBoard({
   account,
@@ -192,7 +193,7 @@ export default function AttendanceBoard({
             key={item.id}
             onClick={() => chooseFixture(index)}
           >
-            <small>{item.kind === 'tournament' ? item.tournamentName : item.schedule?.scheduleLabel}</small>
+            <small>{item.kind === 'tournament' ? item.tournamentName : formatLeagueScheduleName(item.schedule)}</small>
             <strong>vs {item.opponent}</strong>
           </button>
         ))}
