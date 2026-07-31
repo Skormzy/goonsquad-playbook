@@ -170,7 +170,7 @@ function TournamentGameCard({ game, featured = false }) {
       </header>
       <div className="tournament-game-matchup">
         <div>
-          <small>GOON SQUAD</small>
+          <small>GOONSQUAD</small>
           <strong>vs {game.opponent}</strong>
         </div>
         <Trophy aria-hidden="true" />
@@ -364,7 +364,7 @@ function TournamentGames({ tournament }) {
             </div>
             <div className="tournament-game-copy">
               <span>{game.stageLabel || game.stage}</span>
-              <h4>Goon Squad <b>vs</b> {game.opponent}</h4>
+              <h4>Goonsquad <b>vs</b> {game.opponent}</h4>
               <p>{[
                 game.date ? formatTournamentDate(game.date) : tournamentDateRange(tournament),
                 formatTournamentTime(game.time),

@@ -15,7 +15,9 @@ import {
   UsersRound,
   X,
 } from 'lucide-react';
-import skullUpper from '../assets/skull_upper.png';
+import {
+  GOONSQUAD_LOGO_SRC,
+} from '../brand/teamBrand';
 import {
   activeViewForWorkspace,
   contentForActiveView,
@@ -138,7 +140,7 @@ export default function Header() {
 
           <div className="app-brand-lockup" aria-label="Goonsquad ball hockey playbook">
             <span className="app-brand-crest" aria-hidden="true">
-              <img src={skullUpper} alt="" />
+              <img src={GOONSQUAD_LOGO_SRC} alt="" />
             </span>
             <span className="app-brand-copy">
               <span className="app-brand-name"><b>GOON</b><em>SQUAD</em></span>

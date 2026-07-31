@@ -38,6 +38,9 @@ import {
 } from 'lucide-react';
 import { useAccount } from '../account/AccountContext';
 import { teamAccessPromptCopy } from '../account/teamAccess';
+import OfficialSocialLinks from '../brand/OfficialSocialLinks';
+import GameAvailability from '../lineup/GameAvailability';
+import { goonsquadDisplayText } from '../brand/teamBrand';
 import { useApp } from '../context/AppContext';
 import { loadStatisticsDataset } from '../stats/statsCloud';
 import {
@@ -191,7 +194,7 @@ const QA_POSTS = Object.freeze([
     sourceType: 'result',
     sourceKey: 'result:ycbhl-game-53117',
     sourceLabel: 'Official result · Sunday League',
-    sourceTitle: 'Goon Squad 9–4 OG VIPERZ',
+    sourceTitle: 'Goonsquad 9–4 OG VIPERZ',
     sourceImageUrl: '',
     sourcePublishedAt: '2026-07-26T21:00:00Z',
     sourceMetadata: {
@@ -222,7 +225,7 @@ const QA_POSTS = Object.freeze([
     mediaUrl: '',
     sourceType: 'youtube',
     sourceKey: 'youtube:JEnVPcwJiFU',
-    sourceLabel: 'Goon Squad YouTube',
+    sourceLabel: 'Goonsquad YouTube',
     sourceTitle: 'Goonsquad vs Dew Lang Ducks (Away View) - Game 6',
     sourceImageUrl: 'https://i.ytimg.com/vi/JEnVPcwJiFU/hqdefault.jpg',
     sourcePublishedAt: '2026-07-30T03:59:10Z',
@@ -242,7 +245,7 @@ const QA_POSTS = Object.freeze([
     id: 'qa-tiktok-1',
     authorId: null,
     author: null,
-    body: 'A quick look at the latest Goon Squad run.',
+    body: 'A quick look at the latest Goonsquad run.',
     linkUrl: 'https://www.tiktok.com/@goonsquad.bhc/video/7481234567890123456',
     mediaPath: '',
     mediaKind: '',
@@ -250,7 +253,7 @@ const QA_POSTS = Object.freeze([
     sourceType: 'tiktok',
     sourceKey: 'tiktok:7481234567890123456',
     sourceLabel: '@goonsquad.bhc',
-    sourceTitle: 'New from Goon Squad on TikTok',
+    sourceTitle: 'New from Goonsquad on TikTok',
     sourceImageUrl: '',
     sourcePublishedAt: '2026-07-29T19:30:00Z',
     sourceMetadata: {
@@ -278,35 +281,35 @@ function Avatar({ member, size = 'md' }) {
 function sourceIdentity(post) {
   if (post.sourceType === 'result') {
     return {
-      displayName: 'Goon Squad Scores',
+      displayName: 'Goonsquad Scores',
       username: 'official results',
       Icon: Trophy,
     };
   }
   if (post.sourceType === 'instagram') {
     return {
-      displayName: post.sourceLabel || 'Goon Squad Instagram',
+      displayName: goonsquadDisplayText(post.sourceLabel || 'Goonsquad Instagram'),
       username: 'instagram',
       Icon: Camera,
     };
   }
   if (post.sourceType === 'youtube') {
     return {
-      displayName: post.sourceLabel || 'Goon Squad YouTube',
+      displayName: goonsquadDisplayText(post.sourceLabel || 'Goonsquad YouTube'),
       username: 'youtube',
       Icon: PlaySquare,
     };
   }
   if (post.sourceType === 'tiktok') {
     return {
-      displayName: post.sourceLabel || 'Goon Squad TikTok',
+      displayName: goonsquadDisplayText(post.sourceLabel || 'Goonsquad TikTok'),
       username: 'tiktok',
       Icon: Music2,
     };
   }
   if (post.sourceType === 'system') {
     return {
-      displayName: post.sourceLabel || 'Goon Squad',
+      displayName: goonsquadDisplayText(post.sourceLabel || 'Goonsquad'),
       username: 'team update',
       Icon: Radio,
     };
@@ -340,13 +343,13 @@ function OfficialResultCard({ post }) {
       href={href}
       target={opensOfficialSource ? '_blank' : undefined}
       rel={opensOfficialSource ? 'noreferrer' : undefined}
-      aria-label={`${post.sourceTitle}. Open game details`}
+      aria-label={`${goonsquadDisplayText(post.sourceTitle)}. Open game details`}
     >
       <span className="feed-result-kicker">
         <BadgeCheck /> {post.sourceLabel || 'Official result'}
       </span>
       <div className="feed-result-matchup">
-        <strong>GOON SQUAD</strong>
+        <strong>GOONSQUAD</strong>
         <span>
           <b>{details.goalsFor}</b>
           <i>–</i>
@@ -396,7 +399,7 @@ function SocialVideoCard({ post }) {
         : (
           <span className="feed-video-placeholder" aria-hidden="true">
             <Icon />
-            <b>GOON SQUAD</b>
+            <b>GOONSQUAD</b>
           </span>
         )}
       <span className="feed-video-play">
@@ -791,7 +794,7 @@ function PostCard({
         <FeedPostAvatar post={post} />
         <div>
           <strong>
-            {source?.displayName || post.author?.displayName || 'Goon Squad member'}
+            {source?.displayName || post.author?.displayName || 'Goonsquad member'}
             {source && <BadgeCheck className="feed-official-check" aria-label="Official team activity" />}
           </strong>
           <span>
@@ -822,11 +825,11 @@ function PostCard({
       </header>
       {post.sourceType === 'result' && <OfficialResultCard post={post} />}
       {post.sourceType !== 'member' && post.sourceType !== 'result' && post.sourceTitle && (
-        <h3 className="feed-source-title">{post.sourceTitle}</h3>
+        <h3 className="feed-source-title">{goonsquadDisplayText(post.sourceTitle)}</h3>
       )}
       {post.body && (
         <RichFeedText members={members} onOpenMember={onOpenMember}>
-          {post.body}
+          {post.sourceType === 'member' ? post.body : goonsquadDisplayText(post.body)}
         </RichFeedText>
       )}
       {post.mediaUrl && (
@@ -870,7 +873,7 @@ function PostCard({
                 ? 'OPEN ON INSTAGRAM'
                 : `SHARED LINK · ${linkDomain(post.linkUrl)}`}
             </small>
-            <strong>{post.sourceTitle || post.linkUrl}</strong>
+            <strong>{goonsquadDisplayText(post.sourceTitle || post.linkUrl)}</strong>
           </div>
           <ExternalLink />
         </a>
@@ -982,7 +985,7 @@ function TeamPulse({ dataset, onOpenGame, onOpenStats, snapshot }) {
   return (
     <aside className="team-pulse" aria-label="Team performance pulse">
       <header>
-        <div><span>GAME PULSE</span><h2>{snapshot.season?.name || 'Goon Squad'}</h2></div>
+        <div><span>GAME PULSE</span><h2>{snapshot.season?.name || 'Goonsquad'}</h2></div>
         <button type="button" onClick={onOpenStats}>Full stats <ChevronRight /></button>
       </header>
       <div className="team-pulse-record">
@@ -1155,7 +1158,7 @@ export default function TeamHome() {
     if (!dataset) return null;
     const season = dataset.seasons.find((item) => item.current) || dataset.seasons[0];
     return season
-      ? statsSnapshot(dataset, season.id, ALL_SEASON_TEAMS_ID, 'regular')
+      ? statsSnapshot(dataset, season.id, ALL_SEASON_TEAMS_ID, 'all')
       : null;
   }, [dataset]);
 
@@ -1255,7 +1258,7 @@ export default function TeamHome() {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: post.sourceTitle || `${post.author?.displayName || 'Goon Squad'} on Squad Live`,
+          title: goonsquadDisplayText(post.sourceTitle || `${post.author?.displayName || 'Goonsquad'} on Squad Live`),
           text: (post.body || post.sourceTitle || '').slice(0, 140),
           url: shareUrl,
         });
@@ -1276,8 +1279,13 @@ export default function TeamHome() {
     }
   };
 
+  const nextGame = snapshot ? nextUpcomingGame(snapshot.games) : null;
+  const nextGameSchedule = dataset?.teams?.find(
+    (team) => team.id === nextGame?.seasonTeamId,
+  ) || null;
+
   return (
-    <main className="team-home" aria-label="Goon Squad home">
+    <main className="team-home" aria-label="Goonsquad home">
       <div className="team-home-inner">
         <header className="team-home-hero">
           <div>
@@ -1288,6 +1296,7 @@ export default function TeamHome() {
                 ? 'Team updates, game pulse, and the conversation in one place.'
                 : 'Public game information up front. The locker room stays with the team.'}
             </p>
+            <OfficialSocialLinks />
           </div>
           <button type="button" onClick={() => navigate('stats')}>
             <BarChart3 /> Open team stats
@@ -1423,12 +1432,21 @@ export default function TeamHome() {
               />
             )}
           </section>
-          <TeamPulse
-            dataset={dataset}
-            snapshot={snapshot}
-            onOpenStats={() => navigate('stats')}
-            onOpenGame={(game) => navigate('stats', { game: game.id })}
-          />
+          <aside className="team-home-side-column" aria-label="Game pulse and lineup">
+            <TeamPulse
+              dataset={dataset}
+              snapshot={snapshot}
+              onOpenStats={() => navigate('stats')}
+              onOpenGame={(game) => navigate('stats', { game: game.id })}
+            />
+            <GameAvailability
+              account={account}
+              fixture={nextGame}
+              members={feed.members}
+              qaMode={qaFeed}
+              schedule={nextGameSchedule}
+            />
+          </aside>
         </div>
       </div>
       {composerOpen && (

@@ -85,19 +85,38 @@ export async function loadFeedMembers() {
   ]);
   throwIfError(profilesError);
   throwIfError(claimsError);
+  const claimedPlayerIds = unique((claims || []).map((claim) => claim.player_id));
+  let players = [];
+  if (claimedPlayerIds.length) {
+    const { data: playerRows, error: playersError } = await cloud
+      .from('players')
+      .select('id, external_id, display_name, jersey_number, primary_position')
+      .in('id', claimedPlayerIds);
+    throwIfError(playersError);
+    players = playerRows || [];
+  }
   const primaryPlayerByUser = new Map(
     (claims || [])
       .filter((claim) => claim.is_primary)
       .map((claim) => [claim.user_id, claim.player_id]),
   );
-  return (profiles || []).map((profile) => ({
-    id: profile.id,
-    username: profile.username,
-    displayName: profile.display_name || profile.username,
-    avatarUrl: profile.avatar_url || '',
-    role: profile.role,
-    playerId: primaryPlayerByUser.get(profile.id) || '',
-  }));
+  const playerById = new Map(players.map((player) => [player.id, player]));
+  return (profiles || []).map((profile) => {
+    const playerId = primaryPlayerByUser.get(profile.id) || '';
+    const player = playerById.get(playerId);
+    return {
+      id: profile.id,
+      username: profile.username,
+      displayName: profile.display_name || profile.username,
+      avatarUrl: profile.avatar_url || '',
+      role: profile.role,
+      playerId,
+      playerExternalId: player?.external_id || '',
+      playerName: player?.display_name || '',
+      jerseyNumber: player?.jersey_number || '',
+      position: player?.primary_position || '',
+    };
+  });
 }
 
 export async function loadTeamFeed({ limit = 140, userId = '' } = {}) {

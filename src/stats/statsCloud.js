@@ -101,6 +101,41 @@ function mapPlayer(row) {
   };
 }
 
+async function enrichPublicPlayerAvatars(dataset, cloud) {
+  if (!cloud || typeof cloud.rpc !== 'function') return dataset;
+  try {
+    const { data, error } = await cloud.rpc('list_public_player_avatars');
+    if (error || !Array.isArray(data) || !data.length) return dataset;
+    const byPlayerId = new Map();
+    const byExternalId = new Map();
+    data.forEach((row) => {
+      const details = {
+        avatarUrl: row.avatar_url || null,
+        jerseyNumber: row.jersey_number || null,
+        primaryPosition: row.primary_position || null,
+      };
+      if (row.player_id) byPlayerId.set(String(row.player_id), details);
+      if (row.external_id) byExternalId.set(String(row.external_id), details);
+    });
+    return {
+      ...dataset,
+      players: dataset.players.map((player) => {
+        const details = byPlayerId.get(String(player.id))
+          || byExternalId.get(String(player.externalId))
+          || {};
+        return {
+          ...player,
+          avatarUrl: details.avatarUrl || player.avatarUrl || null,
+          jerseyNumber: details.jerseyNumber || player.jerseyNumber || null,
+          primaryPosition: details.primaryPosition || player.primaryPosition || null,
+        };
+      }),
+    };
+  } catch {
+    return dataset;
+  }
+}
+
 function mapMembership(row) {
   return {
     id: row.id,
@@ -371,7 +406,8 @@ export async function loadStatisticsDataset({
 } = {}) {
   const runtimeDataset = await loadRuntimeStatisticsDataset();
   const cloud = getPlaymakerCloudClient();
-  if (!useCloudProjection || !playmakerCloudConfigured || !cloud) return runtimeDataset;
+  if (!playmakerCloudConfigured || !cloud) return runtimeDataset;
+  if (!useCloudProjection) return enrichPublicPlayerAvatars(runtimeDataset, cloud);
   try {
     const queries = PUBLIC_STATISTICS_QUERIES;
     const [seasons, teams, players, memberships, games, teamGameStats, playerGameStats, goalieGameStats, gameEvents, teamSeasonSummaries, playerSeasonStats, goalieSeasonStats] = await Promise.all([
@@ -388,7 +424,7 @@ export async function loadStatisticsDataset({
       readAllPages(() => cloud.from(queries.playerSeasonStats.relation).select(queries.playerSeasonStats.columns).order('id', { ascending: true })),
       readAllPages(() => cloud.from(queries.goalieSeasonStats.relation).select(queries.goalieSeasonStats.columns).order('id', { ascending: true })),
     ]);
-    return mergeStatisticsDatasets(runtimeDataset, {
+    const merged = mergeStatisticsDatasets(runtimeDataset, {
       source: 'cloud',
       seasons: seasons.map(mapSeason),
       teams: teams.map(mapTeam),
@@ -403,8 +439,9 @@ export async function loadStatisticsDataset({
       playerSeasonStats: playerSeasonStats.map(mapPlayerSeasonLine),
       goalieSeasonStats: goalieSeasonStats.map(mapGoalieSeasonLine),
     });
+    return enrichPublicPlayerAvatars(merged, cloud);
   } catch {
-    return runtimeDataset;
+    return enrichPublicPlayerAvatars(runtimeDataset, cloud);
   }
 }
 

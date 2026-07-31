@@ -103,6 +103,14 @@
   gap: 22px;
 }
 
+.team-home-side-column {
+  position: sticky;
+  top: 20px;
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
 .team-feed-column {
   min-width: 0;
 }
@@ -1225,8 +1233,7 @@
 }
 
 .team-pulse {
-  position: sticky;
-  top: 20px;
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--feed-border);
   border-radius: 6px;
@@ -1835,6 +1842,14 @@
   .team-home-layout {
     display: flex;
     flex-direction: column-reverse;
+    gap: 0;
+  }
+
+  .team-home-side-column {
+    position: static;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
     gap: 0;
   }
 

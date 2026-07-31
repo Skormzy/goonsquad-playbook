@@ -15,8 +15,11 @@ import {
   loadAccountProfile,
   loadMemberPlayerClaims,
   releaseMemberPlayerClaim,
+  removeAccountAvatar,
   requestMemberPlayerClaim,
+  uploadAccountAvatar,
   updateAccountProfile,
+  updateLinkedPlayerDetails,
 } from './accountCloud';
 
 const fallbackAccount = Object.freeze({
@@ -45,6 +48,9 @@ const fallbackAccount = Object.freeze({
   updatePassword: async () => {},
   signOut: async () => {},
   saveProfile: async () => {},
+  savePlayerDetails: async () => {},
+  uploadAvatar: async () => {},
+  removeAvatar: async () => {},
   claimPlayer: async () => {},
   releasePlayer: async () => {},
   refreshProfile: async () => {},
@@ -98,6 +104,9 @@ export function accountMessageForError(error) {
   }
   if (/failed to fetch|network|fetch failed|connection/iu.test(message)) {
     return 'Could not reach the account service. Check your connection and try again.';
+  }
+  if (/picture|image|avatar|member-avatars|storage/iu.test(message)) {
+    return message || 'The player picture could not be updated.';
   }
   if (/not configured|not connected/iu.test(message)) {
     return 'Accounts are temporarily unavailable. Public team statistics remain available.';
@@ -287,6 +296,28 @@ export function AccountProvider({ children }) {
     return nextProfile;
   }, 'Profile updated.'), [run, session?.user?.id]);
 
+  const savePlayerDetails = useCallback((playerId, details) => run(async () => {
+    await updateLinkedPlayerDetails(playerId, details);
+    const claims = await loadMemberPlayerClaims(session?.user?.id);
+    const nextClaims = claims.filter((claim) => claim.status === 'approved');
+    const nextRequests = claims.filter((claim) => claim.status !== 'approved');
+    setPlayerClaims(nextClaims);
+    setPlayerClaimRequests(nextRequests);
+    return { claims: nextClaims, requests: nextRequests };
+  }, 'Player number and position updated.'), [run, session?.user?.id]);
+
+  const uploadAvatar = useCallback((file) => run(async () => {
+    const nextProfile = await uploadAccountAvatar(session?.user?.id, file);
+    setProfile(nextProfile);
+    return nextProfile;
+  }, 'Player picture updated.'), [run, session?.user?.id]);
+
+  const removeAvatar = useCallback(() => run(async () => {
+    const nextProfile = await removeAccountAvatar(session?.user?.id);
+    setProfile(nextProfile);
+    return nextProfile;
+  }, 'Player picture removed.'), [run, session?.user?.id]);
+
   const claimPlayer = useCallback((player) => run(async () => {
     await requestMemberPlayerClaim(player);
     const claims = await loadMemberPlayerClaims(session?.user?.id);
@@ -368,10 +399,13 @@ export function AccountProvider({ children }) {
     updatePassword,
     signOut,
     saveProfile,
+    savePlayerDetails,
+    uploadAvatar,
+    removeAvatar,
     claimPlayer,
     releasePlayer,
     refreshProfile,
-  }), [busy, checkUsername, claimPlayer, dialogOpen, displayName, hasTeamAccess, passwordRecovery, playerClaimRequests, playerClaims, profile, refreshProfile, releasePlayer, resetPassword, session, signIn, signOut, signUp, saveProfile, status, statusTone, teamAccessState, updatePassword, username]);
+  }), [busy, checkUsername, claimPlayer, dialogOpen, displayName, hasTeamAccess, passwordRecovery, playerClaimRequests, playerClaims, profile, refreshProfile, releasePlayer, removeAvatar, resetPassword, savePlayerDetails, session, signIn, signOut, signUp, saveProfile, status, statusTone, teamAccessState, updatePassword, uploadAvatar, username]);
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
 }

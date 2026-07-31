@@ -107,7 +107,7 @@ async function copyText(value) {
 }
 
 function teamLabel(team) {
-  return team === 'us' ? 'Goon Squad' : 'Opponent';
+  return team === 'us' ? 'Goonsquad' : 'Opponent';
 }
 
 function transitionTarget(currentOwnerId) {

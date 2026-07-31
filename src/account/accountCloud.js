@@ -3,6 +3,9 @@ import { normalizeUsername, usernameValidationMessage } from './username';
 
 const PROFILE_FIELDS = 'id, username, display_name, avatar_url, role, created_at, updated_at';
 const LEGACY_PROFILE_FIELDS = 'id, display_name, avatar_url, role, created_at, updated_at';
+const AVATAR_BUCKET = 'member-avatars';
+const MAX_AVATAR_SOURCE_BYTES = 20 * 1024 * 1024;
+const MAX_AVATAR_EDGE = 1600;
 
 function requireCloud() {
   const cloud = getPlaymakerCloudClient();
@@ -59,6 +62,139 @@ export async function updateAccountProfile(userId, updates) {
     p_username: username,
   });
   if (error) throw error;
+  return loadAccountProfile(userId);
+}
+
+export async function updateLinkedPlayerDetails(playerId, {
+  jerseyNumber = '',
+  position = '',
+} = {}) {
+  if (!playerId) throw new Error('Link a player profile before adding roster details.');
+  const normalizedNumber = String(jerseyNumber || '').trim();
+  const normalizedPosition = String(position || '').trim().toUpperCase();
+  if (normalizedNumber && !/^\d{1,3}$/u.test(normalizedNumber)) {
+    throw new Error('Use up to three digits for the player number.');
+  }
+  if (normalizedPosition && !['G', 'D', 'C', 'W'].includes(normalizedPosition)) {
+    throw new Error('Choose Goalie, Defence, Center, or Winger.');
+  }
+  const cloud = requireCloud();
+  const { error } = await cloud.rpc('update_linked_player_details', {
+    p_jersey_number: normalizedNumber || null,
+    p_player_id: playerId,
+    p_primary_position: normalizedPosition || null,
+  });
+  if (error) throw error;
+}
+
+function imageElementForFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('This picture format could not be read on this device.'));
+    };
+    image.src = url;
+  });
+}
+
+function canvasBlob(canvas, type, quality) {
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+async function prepareAccountAvatar(file) {
+  if (!(file instanceof Blob) || !String(file.type || '').startsWith('image/')) {
+    throw new Error('Choose a picture from your device.');
+  }
+  if (file.size > MAX_AVATAR_SOURCE_BYTES) {
+    throw new Error('Choose a picture smaller than 20 MB.');
+  }
+
+  const image = await imageElementForFile(file);
+  const scale = Math.min(1, MAX_AVATAR_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d', { alpha: false });
+  if (!context) throw new Error('This device could not prepare the picture.');
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+  const blob = await canvasBlob(canvas, 'image/webp', 0.86)
+    || await canvasBlob(canvas, 'image/jpeg', 0.9);
+  if (!blob) throw new Error('This device could not prepare the picture.');
+  return blob;
+}
+
+function avatarStoragePath(url, userId) {
+  if (!url || !userId) return '';
+  try {
+    const marker = `/storage/v1/object/public/${AVATAR_BUCKET}/`;
+    const path = decodeURIComponent(new URL(url).pathname);
+    const markerIndex = path.indexOf(marker);
+    const objectPath = markerIndex >= 0 ? path.slice(markerIndex + marker.length) : '';
+    return objectPath.startsWith(`${userId}/`) ? objectPath : '';
+  } catch {
+    return '';
+  }
+}
+
+export async function uploadAccountAvatar(userId, file) {
+  if (!userId) throw new Error('Sign in before adding a player picture.');
+  const cloud = requireCloud();
+  const current = await loadAccountProfile(userId);
+  const avatar = await prepareAccountAvatar(file);
+  const path = `${userId}/profile-${Date.now()}.webp`;
+  const { error: uploadError } = await cloud.storage
+    .from(AVATAR_BUCKET)
+    .upload(path, avatar, {
+      cacheControl: '3600',
+      contentType: avatar.type || 'image/webp',
+      upsert: false,
+    });
+  if (uploadError) throw uploadError;
+
+  const { data } = cloud.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+  const publicUrl = data?.publicUrl;
+  if (!publicUrl) {
+    await cloud.storage.from(AVATAR_BUCKET).remove([path]);
+    throw new Error('The player picture URL could not be created.');
+  }
+
+  const { error: profileError } = await cloud
+    .from('profiles')
+    .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+    .eq('id', userId);
+  if (profileError) {
+    await cloud.storage.from(AVATAR_BUCKET).remove([path]);
+    throw profileError;
+  }
+
+  const oldPath = avatarStoragePath(current?.avatar_url, userId);
+  if (oldPath && oldPath !== path) {
+    await cloud.storage.from(AVATAR_BUCKET).remove([oldPath]);
+  }
+  return loadAccountProfile(userId);
+}
+
+export async function removeAccountAvatar(userId) {
+  if (!userId) throw new Error('Sign in before removing a player picture.');
+  const cloud = requireCloud();
+  const current = await loadAccountProfile(userId);
+  const { error } = await cloud
+    .from('profiles')
+    .update({ avatar_url: null, updated_at: new Date().toISOString() })
+    .eq('id', userId);
+  if (error) throw error;
+  const oldPath = avatarStoragePath(current?.avatar_url, userId);
+  if (oldPath) await cloud.storage.from(AVATAR_BUCKET).remove([oldPath]);
   return loadAccountProfile(userId);
 }
 

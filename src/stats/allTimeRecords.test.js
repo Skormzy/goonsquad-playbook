@@ -1,0 +1,79 @@
+import { describe, expect, it } from 'vitest';
+import {
+  buildAllTimeRecords,
+  sortAllTimeRecords,
+} from './allTimeRecordsModel';
+import { OFFICIAL_STATS_DATASET } from './statsSeed';
+
+const dataset = {
+  capturedAt: '2026-07-31',
+  seasons: [{ id: 's1' }, { id: 's2' }],
+  teams: [
+    { id: 't1', seasonId: 's1' },
+    { id: 't2', seasonId: 's2' },
+  ],
+  players: [
+    { id: 'p1', displayName: 'Alpha', jerseyNumber: '7', primaryPosition: 'C' },
+    { id: 'p2', displayName: 'Bravo', jerseyNumber: '9', primaryPosition: 'W' },
+    { id: 'g1', displayName: 'Goalie', jerseyNumber: '30', primaryPosition: 'G' },
+  ],
+  memberships: [
+    { id: 'm1', playerId: 'p1', seasonTeamId: 't1', jerseyNumber: '7', position: 'C', active: true },
+    { id: 'm2', playerId: 'p1', seasonTeamId: 't2', jerseyNumber: '7', position: 'C', active: true },
+    { id: 'm3', playerId: 'p2', seasonTeamId: 't2', jerseyNumber: '9', position: 'W', active: true },
+    { id: 'm4', playerId: 'g1', seasonTeamId: 't2', jerseyNumber: '30', position: 'G', active: true },
+  ],
+  playerSeasonStats: [
+    { playerId: 'p1', seasonTeamId: 't1', gamesPlayed: 4, goals: 2, assists: 3, points: 5, penaltyMinutes: 6 },
+    { playerId: 'p1', seasonTeamId: 't2', gamesPlayed: 5, goals: 1, assists: 4, points: 5, penaltyMinutes: 2 },
+    { playerId: 'p2', seasonTeamId: 't2', gamesPlayed: 5, goals: 6, assists: 1, points: 7, penaltyMinutes: 10 },
+  ],
+  goalieSeasonStats: [
+    { playerId: 'g1', seasonTeamId: 't2', gamesPlayed: 5, wins: 3, losses: 2, ties: 0, shutouts: 1, shotsAgainst: 100, goalsAgainst: 15, minutesPlayed: 150 },
+  ],
+};
+
+describe('all-time records', () => {
+  it('aggregates seasons by official player id and preserves profile metadata', () => {
+    const records = buildAllTimeRecords(dataset);
+    expect(records.skaters.find((line) => line.playerId === 'p1')).toMatchObject({
+      gamesPlayed: 9,
+      goals: 3,
+      assists: 7,
+      points: 10,
+      penaltyMinutes: 8,
+      jerseyNumber: '7',
+      position: 'C',
+      seasonsPlayed: 2,
+    });
+    expect(records.goalies[0]).toMatchObject({
+      playerId: 'g1',
+      wins: 3,
+      saves: 85,
+      shutouts: 1,
+    });
+  });
+
+  it('sorts standard columns high-to-low and GAA low-to-high', () => {
+    const records = buildAllTimeRecords(dataset);
+    expect(sortAllTimeRecords(records.skaters, { key: 'goals', direction: 'desc' })[0].playerId).toBe('p2');
+    expect(sortAllTimeRecords([
+      { playerId: 'a', displayName: 'A', gamesPlayed: 1, goalsAgainstAverage: 3.2 },
+      { playerId: 'b', displayName: 'B', gamesPlayed: 1, goalsAgainstAverage: 2.1 },
+    ], { key: 'goalsAgainstAverage', direction: 'asc' })[0].playerId).toBe('b');
+  });
+
+  it('builds a unique record book from the complete verified archive', () => {
+    const records = buildAllTimeRecords(OFFICIAL_STATS_DATASET);
+    expect(records.skaters.length).toBeGreaterThan(100);
+    expect(records.goalies.length).toBeGreaterThan(5);
+    expect(new Set(records.skaters.map((line) => line.playerId)).size).toBe(records.skaters.length);
+    expect(new Set(records.goalies.map((line) => line.playerId)).size).toBe(records.goalies.length);
+    expect(records.skaters.every((line) => (
+      Number.isFinite(line.goals)
+      && Number.isFinite(line.assists)
+      && line.points === line.goals + line.assists
+      && line.seasonsPlayed > 0
+    ))).toBe(true);
+  });
+});

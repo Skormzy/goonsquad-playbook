@@ -208,7 +208,7 @@ export default function PlayerSpotlight3D({
     <div
       className="player-profile-3d"
       data-testid="player-profile-3d"
-      aria-label={`Interactive 3D Goon Squad athlete for ${displayName}`}
+      aria-label={`Interactive 3D Goonsquad athlete for ${displayName}`}
       aria-describedby={instructionsId}
       role="region"
       tabIndex={0}
@@ -260,7 +260,7 @@ export default function PlayerSpotlight3D({
         </button>
       </div>
       <div className="player-profile-3d-label">
-        <span>{jerseyNumber ? `#${jerseyNumber}` : 'GOON SQUAD'}</span>
+        <span>{jerseyNumber ? `#${jerseyNumber}` : 'GOONSQUAD'}</span>
         <small>INTERACTIVE PLAYER VIEW</small>
       </div>
     </div>

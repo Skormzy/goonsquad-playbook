@@ -651,7 +651,7 @@ function Crowd() {
           </mesh>
         </group>
       ))}
-      <ArenaRibbon z={-length / 2 - 2.1} color="#38bdf8" text="GOON SQUAD BALL HOCKEY" />
+      <ArenaRibbon z={-length / 2 - 2.1} color="#38bdf8" text="GOONSQUAD BALL HOCKEY" />
       <ArenaRibbon z={length / 2 + 2.1} color="#f87171" text="BOARDS RELEASE REPLAY" flip />
       <mesh position={[0, 3.3, -length / 2 - 3.5]}>
         <boxGeometry args={[width + 5.2, 3.1, 0.18]} />
@@ -809,7 +809,7 @@ function Boards() {
         );
       })}
 
-      <BoardAd text="GOON SQUAD" position={[0, 0.68, length / 2 + 0.02]} rotation={[0, Math.PI, 0]} size={0.66} />
+      <BoardAd text="GOONSQUAD" position={[0, 0.68, length / 2 + 0.02]} rotation={[0, Math.PI, 0]} size={0.66} />
       <BoardAd text="BALL HOCKEY" position={[0, 0.68, -length / 2 - 0.02]} size={0.52} />
       <BoardAd text="PRO STOCK" position={[-width / 2 - 0.02, 0.7, 0]} rotation={[0, Math.PI / 2, 0]} size={0.46} />
       <BoardAd text="FAST FLOOR" position={[width / 2 + 0.02, 0.7, 0]} rotation={[0, -Math.PI / 2, 0]} size={0.46} />
@@ -908,7 +908,7 @@ export default function ReplayCourt() {
         anchorY="middle"
         fillOpacity={0.08}
       >
-        GOON SQUAD
+        GOONSQUAD
       </Text>
 
       <GoalCrease y={7} direction={1} />

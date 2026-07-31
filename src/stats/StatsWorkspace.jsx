@@ -70,6 +70,8 @@ import {
 } from '../profile/profileModel';
 import PlayerProfilePage from './PlayerProfilePage';
 import TournamentWorkspace from './TournamentWorkspace';
+import AllTimeRecords from './AllTimeRecords';
+import { buildAllTimeRecords } from './allTimeRecordsModel';
 import {
   TOURNAMENT_ARCHIVE,
   TOURNAMENT_COMPETITION_ID,
@@ -81,6 +83,7 @@ const TABS = Object.freeze([
   { id: 'standings', label: 'Standings' },
   { id: 'games', label: 'Games' },
   { id: 'players', label: 'Players' },
+  { id: 'records', label: 'All-time' },
 ]);
 
 function initialQueryValue(key) {
@@ -141,7 +144,7 @@ function PlayerNotFound({ playerId, onBack }) {
       <h1 id="player-not-found-title">Player not found</h1>
       <p>
         The profile link for <code>{playerId}</code> does not match a published
-        Goon Squad roster record.
+        Goonsquad roster record.
       </p>
       <button type="button" onClick={onBack}>
         <ArrowLeft aria-hidden="true" />
@@ -191,7 +194,7 @@ function LeagueStandings({
           const content = <>
             <span className="stats-standing-rank">#{row.rank}</span>
             <span className="stats-standing-team">
-              <strong>{row.isGoonSquad ? 'GOON SQUAD' : row.teamName}</strong>
+              <strong>{row.isGoonSquad ? 'GOONSQUAD' : row.teamName}</strong>
               <small>{row.gamesPlayed} GP</small>
             </span>
             <span className="stats-standing-record">{row.wins}–{row.losses}–{row.ties}</span>
@@ -491,7 +494,7 @@ function GameDetails({
         <header className="stats-game-hero">
           <div>
             <span>{details.schedule ? `${formatScheduleName(details.schedule).toUpperCase()} · ` : ''}{game.stage === 'playoffs' ? 'PLAYOFFS' : 'REGULAR SEASON'}</span>
-            <h2>Goon Squad <b>vs</b> {game.opponent}</h2>
+            <h2>Goonsquad <b>vs</b> {game.opponent}</h2>
             <p>{formatGameDate(game.scheduledAt)} · {venue}{game.location ? ` · ${game.location}` : ''}</p>
           </div>
           <div className={`stats-game-score is-${result.toLowerCase()}`}>
@@ -510,11 +513,11 @@ function GameDetails({
             <header><span>GAME EVENTS</span><strong>Scoring and penalties</strong></header>
             {events.length ? <ol className="stats-event-list">{events.map((event) => <li key={event.id}>
               <span>P{event.period}<b>{formatClock(event.clockSeconds)}</b></span>
-              <div><small>{event.teamSide === 'us' ? 'GOON SQUAD' : 'OPPONENT'} · {event.eventType.toUpperCase()}</small><strong>{event.eventType === 'goal' ? event.detail.scorer : event.detail.player}</strong><p>{event.eventType === 'goal' ? [event.detail.strength, event.detail.assists?.length ? `from ${event.detail.assists.join(', ')}` : 'unassisted'].filter(Boolean).join(' · ') : `${event.detail.minutes} min · ${event.detail.penalty}`}</p></div>
+              <div><small>{event.teamSide === 'us' ? 'GOONSQUAD' : 'OPPONENT'} · {event.eventType.toUpperCase()}</small><strong>{event.eventType === 'goal' ? event.detail.scorer : event.detail.player}</strong><p>{event.eventType === 'goal' ? [event.detail.strength, event.detail.assists?.length ? `from ${event.detail.assists.join(', ')}` : 'unassisted'].filter(Boolean).join(' · ') : `${event.detail.minutes} min · ${event.detail.penalty}`}</p></div>
             </li>)}</ol> : <p className="stats-game-detail-empty">No scoring or penalty events were published for this game.</p>}
           </section>
           <section>
-            <header><span>PLAYER BOX SCORE</span><strong>Goon Squad game sheet</strong></header>
+            <header><span>PLAYER BOX SCORE</span><strong>Goonsquad game sheet</strong></header>
             {details.players.length ? <div className="stats-table-scroll"><table className="stats-table is-game-players"><thead><tr><th>Player</th><th>G</th><th>A</th><th>PTS</th><th>PIM</th><th>PPG</th><th>SHG</th><th>ENG</th></tr></thead><tbody>{details.players.map((line) => <tr key={line.id}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}>{line.displayName}</button></td><td>{line.goals}</td><td>{line.assists}</td><td><b>{line.points}</b></td><td>{line.penaltyMinutes}</td><td>{line.powerPlayGoals}</td><td>{line.shortHandedGoals}</td><td>{line.emptyNetGoals}</td></tr>)}</tbody></table></div> : <p className="stats-game-detail-empty">No field-player lines were published for this game.</p>}
             {details.goalies.length > 0 && <div className="stats-detail-goalies"><header><span>GOALTENDING</span><strong>Complete game line</strong></header><div className="stats-table-scroll"><table className="stats-table"><thead><tr><th>Goalie</th><th>Result</th><th>SA</th><th>SV</th><th>GA</th><th>SV%</th><th>MIN</th><th>SO</th></tr></thead><tbody>{details.goalies.map((line) => <tr key={line.id}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}>{line.displayName}</button></td><td>{goalieResult(line)}</td><td>{line.shotsAgainst}</td><td>{line.saves}</td><td>{line.goalsAgainst}</td><td>{formatPercentage(line.savePercentage)}</td><td>{line.minutesPlayed}</td><td>{line.shutouts}</td></tr>)}</tbody></table></div></div>}
           </section>
@@ -706,7 +709,7 @@ function StatsManager({ dataset, onClose, onUpdated, snapshot }) {
           <label><span>Date and time</span><input type="datetime-local" required value={game.scheduledAt} onChange={(event) => setGame({ ...game, scheduledAt: event.target.value })} /></label>
           <label><span>Opponent</span><input required value={game.opponent} maxLength="100" onChange={(event) => setGame({ ...game, opponent: event.target.value })} /></label>
           <label><span>Site</span><select value={game.venue} onChange={(event) => setGame({ ...game, venue: event.target.value })}><option value="home">Home</option><option value="away">Away</option><option value="neutral">Neutral</option></select></label>
-          <div className="stats-manager-grid"><NumberField label="Goon Squad" value={game.goalsFor} onChange={(value) => setGame({ ...game, goalsFor: value })} /><NumberField label="Opponent" value={game.goalsAgainst} onChange={(value) => setGame({ ...game, goalsAgainst: value })} /></div>
+          <div className="stats-manager-grid"><NumberField label="Goonsquad" value={game.goalsFor} onChange={(value) => setGame({ ...game, goalsFor: value })} /><NumberField label="Opponent" value={game.goalsAgainst} onChange={(value) => setGame({ ...game, goalsAgainst: value })} /></div>
           <label className="stats-checkbox"><input type="checkbox" checked={game.overtime} onChange={(event) => setGame({ ...game, overtime: event.target.checked })} /><span>Overtime result</span></label>
           <label><span>Game note</span><textarea value={game.notes} maxLength="500" onChange={(event) => setGame({ ...game, notes: event.target.value })} /></label>
           <button type="submit" disabled={busy || !game.scheduledAt || !game.opponent.trim()}><ClipboardPlus aria-hidden="true" /> Save final result</button>
@@ -887,7 +890,7 @@ export default function StatsWorkspace() {
   }, [dataset, selectedGameId]);
 
   const opponentScopeLabel = !snapshot || snapshot.isSeasonAggregate
-    ? 'All Goon Squad leagues'
+    ? 'All Goonsquad leagues'
     : `${snapshot.season?.name || 'Selected season'} · ${formatScheduleName(snapshot.team)}`;
   const opponentMatchups = useMemo(
     () => !dataset || !snapshot ? [] : buildOpponentMatchups(dataset, new Date(), {
@@ -921,6 +924,10 @@ export default function StatsWorkspace() {
     [dataset, selectedPlayerId],
   );
   const selectedPlayerProfile = selectedPlayerDetail.profile;
+  const allTimeRecords = useMemo(
+    () => dataset ? buildAllTimeRecords(dataset) : { skaters: [], goalies: [] },
+    [dataset],
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined' || !dataset || !snapshot || !seasonId) return;
@@ -1248,6 +1255,9 @@ export default function StatsWorkspace() {
             <PlayerTables fieldPlayers={snapshot.fieldPlayers} goalies={snapshot.goalies} onOpenPlayer={openPlayer} />
             <PlayerDirectory dataset={dataset} onOpenPlayer={openPlayer} />
           </div>
+        )}
+        {tab === 'records' && (
+          <AllTimeRecords records={allTimeRecords} onOpenPlayer={openPlayer} />
         )}
       </section>
       </>}

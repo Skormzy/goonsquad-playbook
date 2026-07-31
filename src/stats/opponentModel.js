@@ -48,7 +48,7 @@ export function buildOpponentMatchups(
   now = new Date(),
   {
     seasonTeamIds = null,
-    scopeLabel = 'All Goon Squad leagues',
+    scopeLabel = 'All Goonsquad leagues',
   } = {},
 ) {
   if (!dataset) return [];

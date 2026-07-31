@@ -2,7 +2,7 @@
   "id": "/",
   "name": "The Goonsquad Playbook",
   "short_name": "Goonsquad",
-  "description": "Goon with the squad. The Goon Squad ball hockey playbook, strategy room, and team hub.",
+  "description": "Goon with the squad. The Goonsquad ball hockey playbook, strategy room, and team hub.",
   "lang": "en-CA",
   "categories": ["sports", "education", "productivity"],
   "theme_color": "#f1f2f3",
@@ -14,25 +14,19 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/goonsquad-icon-v2-192.png",
+      "src": "/goonsquad-icon-v3-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/goonsquad-icon-v2-512.png",
+      "src": "/goonsquad-icon-v3-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/goonsquad-icon-v2-1024.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/goonsquad-icon-maskable-v2-512.png",
+      "src": "/goonsquad-icon-maskable-v3-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

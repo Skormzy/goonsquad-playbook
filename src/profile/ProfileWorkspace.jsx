@@ -1,18 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   BadgeCheck,
   CalendarClock,
+  Camera,
   ChevronRight,
   CircleUserRound,
   ExternalLink,
+  Hash,
   History,
   Link2,
   LoaderCircle,
   LogIn,
   Medal,
+  Trash2,
   RefreshCcw,
   Search,
+  Save,
   Settings2,
   ShieldCheck,
   Target,
@@ -28,13 +32,14 @@ import { useTheme } from '../context/ThemeContext';
 import { formatGameDate, formatPercentage, formatScheduleName } from '../stats/statsModel';
 import { loadStatisticsDataset } from '../stats/statsCloud';
 import { memberProfileSnapshot, playerRosterCandidates } from './profileModel';
+import OfficialSocialLinks from '../brand/OfficialSocialLinks';
 import './profile.css';
 
 function positionLabel(position) {
   if (position === 'G') return 'Goalie';
-  if (position === 'D') return 'Defense';
+  if (['D', 'LD', 'RD'].includes(position)) return 'Defence';
   if (position === 'C') return 'Center';
-  if (position === 'W') return 'Winger';
+  if (['W', 'LW', 'RW'].includes(position)) return 'Winger';
   return 'Team member';
 }
 
@@ -164,6 +169,11 @@ export default function ProfileWorkspace() {
   const { favorites, setActiveView } = useApp();
   const [dataset, setDataset] = useState(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [rosterEditorOpen, setRosterEditorOpen] = useState(false);
+  const [jerseyNumber, setJerseyNumber] = useState('');
+  const [primaryPosition, setPrimaryPosition] = useState('');
+  const [rosterStatus, setRosterStatus] = useState('');
+  const photoInputRef = useRef(null);
   const t = themes[theme];
 
   useEffect(() => {
@@ -177,6 +187,23 @@ export default function ProfileWorkspace() {
   const pendingRequest = account.playerClaimRequests.find((request) => request.status === 'pending');
   const rejectedRequests = account.playerClaimRequests.filter((request) => request.status === 'rejected');
   const goalieProfile = profile && profile.careerGoalie.gamesPlayed > profile.careerField.gamesPlayed;
+  const primaryClaim = account.playerClaims.find((claim) => claim.primary) || account.playerClaims[0] || null;
+
+  const saveRosterDetails = async (event) => {
+    event.preventDefault();
+    if (!primaryClaim?.playerId) return;
+    setRosterStatus('');
+    try {
+      await account.savePlayerDetails(primaryClaim.playerId, {
+        jerseyNumber,
+        position: primaryPosition,
+      });
+      setRosterEditorOpen(false);
+      setRosterStatus('Roster card updated.');
+    } catch (error) {
+      setRosterStatus(error instanceof Error ? error.message : 'Roster details could not be saved.');
+    }
+  };
 
   const openLinkedGame = (gameId) => {
     const url = new URL(window.location.href);
@@ -218,14 +245,51 @@ export default function ProfileWorkspace() {
         )}
       </div> : profile ? <>
         <header className="profile-hero">
-          <div className="profile-avatar" aria-hidden="true">{profile.primaryPlayer.displayName.slice(0, 1).toUpperCase()}</div>
+          <div className="profile-avatar">
+            {account.profile?.avatar_url
+              ? <img src={account.profile.avatar_url} alt={`${profile.primaryPlayer.displayName} player profile`} />
+              : <span aria-hidden="true">{profile.primaryPlayer.displayName.slice(0, 1).toUpperCase()}</span>}
+          </div>
           <div className="profile-identity">
             <span>PLAYER PROFILE</span>
             <h1>{profile.primaryPlayer.displayName}</h1>
-            <p>{[profile.jerseyNumber ? `#${profile.jerseyNumber}` : null, positionLabel(profile.position), profile.currentTeams.map(formatScheduleName).join(' / ')].filter(Boolean).join(' · ')}</p>
+            <div className="profile-roster-facts">
+              <strong>{profile.jerseyNumber ? `#${profile.jerseyNumber}` : 'NO #'}</strong>
+              <strong>{positionLabel(profile.position)}</strong>
+              <span>{profile.currentTeams.map(formatScheduleName).join(' / ') || 'Goonsquad archive'}</span>
+            </div>
             <div className="profile-badges"><span data-status="linked"><BadgeCheck aria-hidden="true" /> {linkState.label}</span><span><History aria-hidden="true" /> {profile.seasonsPlayed} season{profile.seasonsPlayed === 1 ? '' : 's'}</span></div>
           </div>
           <div className="profile-hero-actions">
+            <input
+              ref={photoInputRef}
+              className="profile-photo-input"
+              type="file"
+              accept="image/*"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) account.uploadAvatar(file).catch(() => {});
+                event.target.value = '';
+              }}
+            />
+            <button
+              type="button"
+              disabled={account.busy}
+              onClick={() => photoInputRef.current?.click()}
+            >
+              <Camera aria-hidden="true" />
+              {account.profile?.avatar_url ? 'Change picture' : 'Add player picture'}
+            </button>
+            {account.profile?.avatar_url && (
+              <button
+                type="button"
+                className="is-danger"
+                disabled={account.busy}
+                onClick={() => account.removeAvatar().catch(() => {})}
+              >
+                <Trash2 aria-hidden="true" /> Remove
+              </button>
+            )}
             <button
               type="button"
               disabled={Boolean(pendingRequest)}
@@ -235,9 +299,64 @@ export default function ProfileWorkspace() {
               {pendingRequest ? <CalendarClock aria-hidden="true" /> : <Link2 aria-hidden="true" />}
               {pendingRequest ? 'Request pending' : 'Request another record'}
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setRosterStatus('');
+                if (!rosterEditorOpen) {
+                  setJerseyNumber(profile.jerseyNumber || '');
+                  setPrimaryPosition(profile.position || '');
+                }
+                setRosterEditorOpen((open) => !open);
+              }}
+            >
+              <Hash aria-hidden="true" /> Edit roster card
+            </button>
             <button type="button" onClick={() => setActiveView('account')}><Settings2 aria-hidden="true" /> Account</button>
           </div>
         </header>
+
+        <div className="profile-photo-note">
+          <Camera aria-hidden="true" />
+          <span>Optional. Your picture appears on your linked public player page and in the private squad feed.</span>
+        </div>
+
+        {rosterEditorOpen && (
+          <form className="profile-roster-editor" onSubmit={saveRosterDetails}>
+            <div>
+              <span>ROSTER CARD</span>
+              <strong>Add your player number and primary position</strong>
+            </div>
+            <label>
+              <span>Number</span>
+              <input
+                value={jerseyNumber}
+                maxLength={3}
+                inputMode="numeric"
+                pattern="[0-9]{0,3}"
+                placeholder="e.g. 19"
+                onChange={(event) => setJerseyNumber(event.target.value.replace(/\D/gu, '').slice(0, 3))}
+              />
+            </label>
+            <label>
+              <span>Position</span>
+              <select value={primaryPosition} onChange={(event) => setPrimaryPosition(event.target.value)}>
+                <option value="">Not set</option>
+                <option value="W">Winger</option>
+                <option value="C">Center</option>
+                <option value="D">Defence</option>
+                <option value="G">Goalie</option>
+              </select>
+            </label>
+            <div className="profile-roster-editor-actions">
+              <button type="button" onClick={() => setRosterEditorOpen(false)}>Cancel</button>
+              <button type="submit" disabled={account.busy}>
+                <Save aria-hidden="true" /> Save card
+              </button>
+            </div>
+          </form>
+        )}
+        {rosterStatus && <p className="profile-roster-status" role="status">{rosterStatus}</p>}
 
         <div className="profile-verification-note" data-status="linked"><ShieldCheck aria-hidden="true" /><div><strong>{linkState.label}</strong><span>{linkState.detail}</span></div></div>
 
@@ -260,6 +379,8 @@ export default function ProfileWorkspace() {
           <button type="button" onClick={() => setActiveView('playmaker')}><TrendingUp aria-hidden="true" /><span><strong>Create and share</strong><small>Build your next team play</small></span><ArrowRight aria-hidden="true" /></button>
           {profile.nextGame && <button type="button" onClick={() => openLinkedGame(profile.nextGame.id)}><CalendarClock aria-hidden="true" /><span><strong>Next: {profile.nextGame.opponent}</strong><small>{formatGameDate(profile.nextGame.scheduledAt)}</small></span><ArrowRight aria-hidden="true" /></button>}
         </section>
+
+        <OfficialSocialLinks className="profile-social-links" />
 
         <div className="profile-content-grid">
           <section className="profile-band profile-season-history">

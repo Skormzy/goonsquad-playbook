@@ -211,21 +211,23 @@ a:focus-visible,
 }
 
 .app-brand-crest {
-  width: 32px;
-  height: 31px;
-  flex: 0 0 32px;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
   display: grid;
   place-items: center;
-  padding-left: 5px;
-  border-left: 2px solid var(--header-brand);
+  overflow: hidden;
 }
 
 .app-brand-crest img {
   display: block;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.42));
+  width: 45px;
+  height: 45px;
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% 7%;
+  transform: translateY(3px);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.26));
 }
 
 .app-brand-copy {
@@ -392,10 +394,14 @@ a:focus-visible,
   }
 
   .app-brand-crest {
-    width: 28px;
-    height: 28px;
-    flex-basis: 28px;
-    padding-left: 4px;
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .app-brand-crest img {
+    width: 43px;
+    height: 43px;
   }
 
   .app-brand-name {

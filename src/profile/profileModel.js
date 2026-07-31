@@ -64,6 +64,7 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
         cloudPlayerId: player.persisted === false ? null : player.id,
         externalId: player.externalId,
         displayName: player.displayName,
+        avatarUrl: player.avatarUrl || null,
         sourceUrl: player.sourceUrl,
         position,
         jerseyNumber,
@@ -238,8 +239,8 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now()) {
     recentGames,
     nextGame,
     currentTeams: currentMemberships.map((membership) => teamsById.get(membership.seasonTeamId)).filter(Boolean),
-    jerseyNumber: latestMembership?.jerseyNumber || primaryPlayer.jerseyNumber || null,
-    position: latestMembership?.position || primaryPlayer.primaryPosition || null,
+    jerseyNumber: primaryClaim?.player?.jerseyNumber || latestMembership?.jerseyNumber || primaryPlayer.jerseyNumber || null,
+    position: primaryClaim?.player?.primaryPosition || latestMembership?.position || primaryPlayer.primaryPosition || null,
   };
 }
 

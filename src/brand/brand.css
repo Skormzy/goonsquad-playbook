@@ -1,0 +1,147 @@
+.goonsquad-social-links,
+.goonsquad-social-links * {
+  box-sizing: border-box;
+  letter-spacing: 0;
+}
+
+.goonsquad-social-links {
+  display: grid;
+  gap: 8px;
+}
+
+.goonsquad-social-links > span {
+  color: var(--gs-cyan);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.goonsquad-social-links > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.goonsquad-social-links a {
+  min-width: 0;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid var(--gs-border);
+  border-radius: 6px;
+  color: var(--gs-white);
+  background: color-mix(in srgb, var(--gs-graphite) 88%, transparent);
+  text-decoration: none;
+  transition: border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.goonsquad-social-links a:hover {
+  border-color: var(--gs-cyan);
+  color: var(--gs-cyan);
+  transform: translateY(-1px);
+}
+
+.goonsquad-social-links a > svg:first-child {
+  width: 22px;
+  height: 22px;
+  padding: 4px;
+  border-radius: 5px;
+  color: #fff;
+  background: #111317;
+}
+
+.goonsquad-social-links a[data-platform='youtube'] > svg:first-child {
+  background: #e5202b;
+}
+
+.goonsquad-social-links a[data-platform='instagram'] > svg:first-child {
+  background: #c92f83;
+}
+
+.goonsquad-social-links a[data-platform='tiktok'] > svg:first-child {
+  background: #111317;
+  box-shadow: inset 2px 0 #25f4ee, inset -2px 0 #fe2c55;
+}
+
+.goonsquad-social-links a > span {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.goonsquad-social-links a strong,
+.goonsquad-social-links a small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.goonsquad-social-links a strong {
+  font-size: 13px;
+}
+
+.goonsquad-social-links a small {
+  color: var(--gs-muted);
+  font-size: 10px;
+}
+
+.goonsquad-social-links a > svg:last-child {
+  width: 13px;
+  height: 13px;
+}
+
+.goonsquad-social-links.is-compact {
+  display: block;
+}
+
+.goonsquad-social-links.is-compact > div {
+  flex-wrap: nowrap;
+}
+
+.goonsquad-social-links.is-compact a {
+  width: 34px;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  padding: 4px;
+}
+
+.goonsquad-social-links.is-compact a > svg:first-child {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 640px) {
+  .goonsquad-social-links:not(.is-compact) > div {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .goonsquad-social-links:not(.is-compact) a {
+    grid-template-columns: 21px minmax(0, 1fr);
+    gap: 4px;
+    min-height: 47px;
+    padding-inline: 4px;
+  }
+
+  .goonsquad-social-links:not(.is-compact) a > svg:first-child {
+    width: 21px;
+    height: 21px;
+  }
+
+  .goonsquad-social-links:not(.is-compact) a strong {
+    font-size: 12px;
+  }
+
+  .goonsquad-social-links:not(.is-compact) a > svg:last-child {
+    display: none;
+  }
+
+  .goonsquad-social-links:not(.is-compact) a small {
+    display: none;
+  }
+}

@@ -11,7 +11,7 @@ describe('public legal pages', () => {
     const page = projectFile(path);
     expect(page).toContain(`<h1>${title}</h1>`);
     expect(page).toContain('Effective July 31, 2026');
-    expect(page).toContain('Goon Squad team app');
+    expect(page).toContain('Goonsquad team app');
     expect(page).toContain('Return to app');
   });
 

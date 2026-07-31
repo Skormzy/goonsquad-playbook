@@ -20,6 +20,7 @@ import {
   formatScheduleName,
 } from './statsModel';
 import PlayerSpotlightErrorBoundary from './PlayerSpotlightErrorBoundary';
+import OfficialSocialLinks from '../brand/OfficialSocialLinks';
 import './playerProfilePage.css';
 
 const PlayerSpotlight3D = lazy(() => import('./PlayerSpotlight3D'));
@@ -165,9 +166,15 @@ export default function PlayerProfilePage({
           </PlayerSpotlightErrorBoundary>
         </div>
         <div className="public-player-identity">
+          {player.avatarUrl && (
+            <div className="public-player-photo">
+              <img src={player.avatarUrl} alt={`${player.displayName} player profile`} />
+              <span>PLAYER PHOTO</span>
+            </div>
+          )}
           <span className="public-player-kicker">
             <Sparkles aria-hidden="true" />
-            GOON SQUAD PLAYER
+            GOONSQUAD PLAYER
           </span>
           <h1>{player.displayName}</h1>
           <p>
@@ -181,6 +188,7 @@ export default function PlayerProfilePage({
             <span><ShieldCheck aria-hidden="true" /> Official team archive</span>
             <span><History aria-hidden="true" /> {profile.seasonsPlayed} season{profile.seasonsPlayed === 1 ? '' : 's'}</span>
           </div>
+          <OfficialSocialLinks compact className="public-player-social-links" />
           {profile.nextGame && (
             <button
               type="button"

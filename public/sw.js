@@ -4,14 +4,13 @@ const CACHE_NAME = `goonsquad-app-${BUILD_ID}`;
 const APP_SHELL = [
   '/',
   '/manifest.json',
-  '/favicon.ico',
-  '/goonsquad-favicon-v2-32.png',
-  '/goonsquad-favicon-v2-64.png',
-  '/goonsquad-icon-v2-192.png',
-  '/goonsquad-icon-v2-512.png',
-  '/goonsquad-icon-v2-1024.png',
-  '/goonsquad-icon-maskable-v2-512.png',
-  '/goonsquad-apple-touch-icon-v2.png',
+  '/goonsquad-logo-v3.png',
+  '/goonsquad-icon-v3-192.png',
+  '/goonsquad-icon-v3-512.png',
+  '/goonsquad-icon-maskable-v3-512.png',
+  '/goonsquad-apple-touch-icon-v3.png',
+  '/goonsquad-favicon-v3-64.png',
+  '/goonsquad-social-v3.jpeg',
 ];
 const PRECACHE_ASSETS = [...new Set([...APP_SHELL, ...BUILD_ASSETS])];
 

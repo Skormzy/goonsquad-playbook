@@ -500,7 +500,7 @@ export default function RinkSVG({
 
       {/* Team watermark */}
       <image
-        href="/goonsquad.png"
+        href="/goonsquad-logo-v3.png"
         x={W / 2 - 153}
         y={H * 0.32}
         width={306}

@@ -194,11 +194,11 @@ export function OpponentHeadToHead({
         <header className="stats-game-hero stats-matchup-hero">
           <div>
             <span>HEAD TO HEAD · {matchup.scopeLabel.toUpperCase()}</span>
-            <h2>Goon Squad <b>vs</b> {matchup.name}</h2>
+            <h2>Goonsquad <b>vs</b> {matchup.name}</h2>
             <p>{historySummary}</p>
           </div>
           <div className="stats-matchup-record">
-            <span>GOON SQUAD RECORD</span>
+            <span>GOONSQUAD RECORD</span>
             <strong>{matchup.summary.gamesPlayed ? recordLabel(matchup.summary) : 'FIRST'}</strong>
             <small>{matchup.summary.gamesPlayed ? formatPercentage(matchup.summary.winPercentage) : 'meeting'}</small>
           </div>
@@ -249,9 +249,9 @@ export function OpponentHeadToHead({
           <aside className="stats-matchup-read">
             <header><TrendingUp aria-hidden="true" /><div><span>QUICK READ</span><strong>Verified matchup context</strong></div></header>
             <div className="stats-matchup-goal-share">
-              <div><span>Goon Squad goals</span><strong>{matchup.summary.goalsFor}</strong></div>
+              <div><span>Goonsquad goals</span><strong>{matchup.summary.goalsFor}</strong></div>
               <div><span>Opponent goals</span><strong>{matchup.summary.goalsAgainst}</strong></div>
-              <div className="stats-matchup-goal-bar" aria-label={`Goon Squad has ${formatPercentage(goalShare)} of goals in completed meetings`}>
+              <div className="stats-matchup-goal-bar" aria-label={`Goonsquad has ${formatPercentage(goalShare)} of goals in completed meetings`}>
                 <span style={{ width: `${goalShare * 100}%` }} />
               </div>
             </div>
