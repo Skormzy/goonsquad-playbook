@@ -102,6 +102,7 @@
     "qa:team-system": "node scripts/capture-team-system-review.mjs",
     "qa:vnext:brand": "node scripts/capture-vnext-brand-review.mjs",
     "test": "vitest run",
+    "test:ci": "vitest run src",
     "test:watch": "vitest"
   },
   "dependencies": {
