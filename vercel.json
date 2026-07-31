@@ -7,6 +7,16 @@
       "permanent": true
     }
   ],
+  "rewrites": [
+    {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms.html"
+    }
+  ],
   "headers": [
     {
       "source": "/data/team-statistics.json",
