@@ -2,7 +2,7 @@
   "source": "league-snapshot",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-07-31T03:34:12.217Z",
+  "capturedAt": "2026-07-31T07:23:25.234Z",
   "seasons": [
     {
       "id": "summer-2026",
@@ -142983,21 +142983,6 @@
       "source": "league"
     },
     {
-      "id": "summer-2026-sunday-ycbhl-player-13781-field",
-      "seasonTeamId": "summer-2026-sunday",
-      "stage": "regular",
-      "playerId": "ycbhl-player-13781",
-      "gamesPlayed": 1,
-      "goals": 1,
-      "assists": 0,
-      "points": 1,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "summer-2026-sunday-ycbhl-player-6124-field",
       "seasonTeamId": "summer-2026-sunday",
       "stage": "regular",
@@ -143008,6 +142993,21 @@
       "points": 1,
       "penaltyMinutes": 4,
       "powerPlayGoals": 1,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "summer-2026-sunday-ycbhl-player-13781-field",
+      "seasonTeamId": "summer-2026-sunday",
+      "stage": "regular",
+      "playerId": "ycbhl-player-13781",
+      "gamesPlayed": 1,
+      "goals": 1,
+      "assists": 0,
+      "points": 1,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
       "shortHandedGoals": 0,
       "emptyNetGoals": 0,
       "source": "league"
