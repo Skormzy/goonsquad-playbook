@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +12,10 @@ const MAX_BODY_LENGTH = 3000;
 const MAX_SOURCE_TITLE_LENGTH = 240;
 const YOUTUBE_PUBLIC_RECENT_LIMIT = 12;
 const YOUTUBE_PUBLIC_MAX_REQUESTS = 12;
+const YOUTUBE_ACTIVITY_STATE_URL = new URL(
+  '../src/feed/officialYoutubeActivity.json',
+  import.meta.url,
+);
 
 async function loadLocalEnvironment() {
   try {
@@ -89,6 +93,32 @@ async function mapInBatches(items, batchSize, mapper) {
     mapped.push(...await Promise.all(items.slice(index, index + batchSize).map(mapper)));
   }
   return mapped;
+}
+
+function textFromYoutubeRuns(value) {
+  if (value?.simpleText) return clean(value.simpleText);
+  return clean(value?.runs?.map((run) => run.text).join(' '));
+}
+
+async function loadYoutubeActivityState() {
+  try {
+    const state = JSON.parse(await readFile(YOUTUBE_ACTIVITY_STATE_URL, 'utf8'));
+    return Array.isArray(state.items) ? state.items : [];
+  } catch (error) {
+    if (error?.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+async function saveYoutubeActivityState(items, { channelHandle, channelId }) {
+  const sortedItems = dedupeFeedItems(items).filter(
+    (item) => item.sourceType === 'youtube',
+  );
+  await writeFile(YOUTUBE_ACTIVITY_STATE_URL, `${JSON.stringify({
+    channelId,
+    channelHandle: normalizeYoutubeHandle(channelHandle),
+    items: sortedItems,
+  }, null, 2)}\n`, 'utf8');
 }
 
 function scheduleName(team) {
@@ -305,10 +335,46 @@ export function youtubeItemFromPlayerResponse(
   });
 }
 
+export function youtubeItemFromRenderer(
+  renderer,
+  { publishedAt = new Date().toISOString() } = {},
+) {
+  if (!renderer?.videoId) return null;
+  const title = textFromYoutubeRuns(renderer.title);
+  if (!title) return null;
+  const thumbnails = renderer.thumbnail?.thumbnails || [];
+  return youtubeFeedItem({
+    videoId: renderer.videoId,
+    title,
+    description: textFromYoutubeRuns(renderer.descriptionSnippet),
+    publishedAt,
+    thumbnailUrl: thumbnails.at(-1)?.url || '',
+  });
+}
+
+export function youtubeRendererFromLockup(lockup) {
+  const thumbnails = lockup?.contentImage?.thumbnailViewModel?.image?.sources || [];
+  const thumbnailVideoId = thumbnails
+    .map((thumbnail) => thumbnail.url?.match(/\/vi\/([A-Za-z0-9_-]{11})\//u)?.[1])
+    .find(Boolean);
+  const endpointVideoId = collectByKey(lockup, 'videoId')
+    .find((value) => /^[A-Za-z0-9_-]{11}$/u.test(value));
+  const videoId = thumbnailVideoId || endpointVideoId;
+  const title = clean(lockup?.metadata?.lockupMetadataViewModel?.title?.content);
+  if (!videoId || !title) return null;
+  return {
+    videoId,
+    title: { simpleText: title },
+    descriptionSnippet: { simpleText: '' },
+    thumbnail: { thumbnails },
+  };
+}
+
 async function youtubeItemsFromPublicChannel({
   channelHandle,
   channelId,
   fullScan,
+  persistState,
   recentLimit = YOUTUBE_PUBLIC_RECENT_LIMIT,
   since,
 }) {
@@ -318,24 +384,53 @@ async function youtubeItemsFromPublicChannel({
     'accept-language': 'en-CA,en;q=0.9',
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/138.0.0.0 Safari/537.36',
   };
-  const channelResponse = await fetch(
-    `https://www.youtube.com/${encodeURI(normalizedHandle)}/videos`,
-    { headers },
-  );
-  if (!channelResponse.ok) {
-    throw new Error(`YouTube channel page lookup failed (${channelResponse.status}).`);
+  const channelUrls = [
+    `https://www.youtube.com/${encodeURI(normalizedHandle)}/videos?hl=en&gl=CA`,
+    channelId
+      ? `https://www.youtube.com/channel/${encodeURIComponent(channelId)}/videos?hl=en&gl=CA`
+      : '',
+    `https://m.youtube.com/${encodeURI(normalizedHandle)}/videos?hl=en&gl=CA`,
+  ].filter(Boolean);
+  let channelHtml = '';
+  let initialData = null;
+  for (const channelUrl of channelUrls) {
+    let response;
+    try {
+      response = await fetch(channelUrl, { headers });
+    } catch {
+      continue;
+    }
+    if (!response.ok) continue;
+    const html = await response.text();
+    const data = (
+      extractAssignedJson(html, 'var ytInitialData =')
+      || extractAssignedJson(html, 'window["ytInitialData"] =')
+    );
+    if (!data) continue;
+    channelHtml = html;
+    initialData = data;
+    if (collectByKey(data, 'videoId').length) break;
   }
-  const channelHtml = await channelResponse.text();
-  const initialData = (
-    extractAssignedJson(channelHtml, 'var ytInitialData =')
-    || extractAssignedJson(channelHtml, 'window["ytInitialData"] =')
-  );
   if (!initialData) throw new Error('YouTube channel catalogue was not found.');
 
+  const rendererByVideoId = new Map();
+  const rememberRenderers = (payload) => {
+    collectByKey(payload, 'videoRenderer').forEach((renderer) => {
+      if (renderer?.videoId) rendererByVideoId.set(renderer.videoId, renderer);
+    });
+    collectByKey(payload, 'lockupViewModel')
+      .map(youtubeRendererFromLockup)
+      .filter(Boolean)
+      .forEach((renderer) => rendererByVideoId.set(renderer.videoId, renderer));
+  };
+  rememberRenderers(initialData);
   const videoIds = new Set(
-    collectByKey(initialData, 'videoId')
+    [...rendererByVideoId.keys(), ...collectByKey(initialData, 'videoId')]
       .filter((value) => /^[A-Za-z0-9_-]{11}$/u.test(value)),
   );
+  if (!videoIds.size) {
+    throw new Error('YouTube returned a channel page without any public uploads.');
+  }
 
   if (fullScan) {
     const apiKey = channelHtml.match(/"INNERTUBE_API_KEY":"([^"]+)"/u)?.[1];
@@ -381,6 +476,7 @@ async function youtubeItemsFromPublicChannel({
       requestCount += 1;
       if (!response.ok) continue;
       const payload = await response.json();
+      rememberRenderers(payload);
       collectByKey(payload, 'videoId')
         .filter((value) => /^[A-Za-z0-9_-]{11}$/u.test(value))
         .forEach((value) => videoIds.add(value));
@@ -394,22 +490,52 @@ async function youtubeItemsFromPublicChannel({
   const selectedIds = fullScan
     ? [...videoIds]
     : [...videoIds].slice(0, recentLimit);
+  const stateItems = await loadYoutubeActivityState();
+  const stateByVideoId = new Map(
+    stateItems.map((item) => [
+      item.sourceMetadata?.videoId || item.sourceKey?.replace(/^youtube:/u, ''),
+      item,
+    ]),
+  );
   const items = await mapInBatches(selectedIds, 6, async (videoId) => {
+    const savedItem = stateByVideoId.get(videoId);
+    if (!fullScan && savedItem) return savedItem;
     const response = await fetch(
       `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`,
       { headers },
     );
-    if (!response.ok) return null;
-    const html = await response.text();
-    const playerResponse = (
-      extractAssignedJson(html, 'var ytInitialPlayerResponse =')
-      || extractAssignedJson(html, 'ytInitialPlayerResponse =')
+    if (response.ok) {
+      const html = await response.text();
+      const playerResponse = (
+        extractAssignedJson(html, 'var ytInitialPlayerResponse =')
+        || extractAssignedJson(html, 'ytInitialPlayerResponse =')
+      );
+      const exactItem = youtubeItemFromPlayerResponse(playerResponse, {
+        expectedChannelId: channelId,
+      });
+      if (exactItem) return exactItem;
+    }
+    return savedItem || youtubeItemFromRenderer(
+      rendererByVideoId.get(videoId),
     );
-    return youtubeItemFromPlayerResponse(playerResponse, {
-      expectedChannelId: channelId,
-    });
   });
-  return items.filter(
+  const resolvedItems = items.filter(Boolean);
+  if (!resolvedItems.length) {
+    throw new Error(
+      `YouTube exposed ${selectedIds.length} uploads without usable metadata.`,
+    );
+  }
+  const nextStateItems = dedupeFeedItems([...stateItems, ...resolvedItems]);
+  const stateChanged = JSON.stringify(nextStateItems) !== JSON.stringify(
+    dedupeFeedItems(stateItems),
+  );
+  if (persistState && stateChanged) {
+    await saveYoutubeActivityState(nextStateItems, {
+      channelHandle,
+      channelId,
+    });
+  }
+  return resolvedItems.filter(
     (item) => item && new Date(item.sourcePublishedAt).getTime() >= since,
   );
 }
@@ -543,7 +669,10 @@ function dedupeFeedItems(items) {
 
 async function collectConfiguredSocialItems(
   since,
-  { fullYoutubeScan = false } = {},
+  {
+    fullYoutubeScan = false,
+    persistYoutubeState = false,
+  } = {},
 ) {
   const items = [];
   const warnings = [];
@@ -578,6 +707,7 @@ async function collectConfiguredSocialItems(
               channelHandle: youtubeChannelHandle,
               channelId: youtubeChannelId,
               fullScan: fullYoutubeScan,
+              persistState: persistYoutubeState,
               recentLimit: Number(process.env.TEAM_YOUTUBE_RECENT_LIMIT)
                 || YOUTUBE_PUBLIC_RECENT_LIMIT,
               since,
@@ -654,6 +784,7 @@ async function upsertFeedItems(items) {
 
 export async function main() {
   await loadLocalEnvironment();
+  const dryRun = process.argv.includes('--dry-run');
   const sinceText = process.env.TEAM_FEED_BACKFILL_SINCE || DEFAULT_BACKFILL_SINCE;
   const since = new Date(sinceText).getTime();
   if (!Number.isFinite(since)) throw new Error('TEAM_FEED_BACKFILL_SINCE is invalid.');
@@ -663,10 +794,11 @@ export async function main() {
       process.env.TEAM_YOUTUBE_PUBLIC_FULL_SCAN === '1'
       || process.argv.includes('--full-social-backfill')
     ),
+    persistYoutubeState: !dryRun,
   });
   const items = dedupeFeedItems([...resultItems, ...social.items]);
 
-  if (process.argv.includes('--dry-run')) {
+  if (dryRun) {
     process.stdout.write(JSON.stringify({
       results: resultItems.length,
       social: social.items.length,

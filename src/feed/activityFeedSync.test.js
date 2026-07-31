@@ -3,7 +3,9 @@ import {
   buildResultFeedItems,
   instagramItemsFromApiResponse,
   youtubeItemFromPlayerResponse,
+  youtubeItemFromRenderer,
   youtubeItemsFromApiResponse,
+  youtubeRendererFromLockup,
 } from '../../scripts/sync-team-feed-activity.mjs';
 
 const dataset = {
@@ -143,6 +145,59 @@ describe('automated Squad Live activity', () => {
     }, {
       expectedChannelId: 'UCtNyBYGsEMv_puzlZn_yntg',
     })).toBeNull();
+  });
+
+  it('uses public channel-card metadata when a runner cannot open watch metadata', () => {
+    const item = youtubeItemFromRenderer({
+      videoId: 'JEnVPcwJiFU',
+      title: {
+        runs: [{ text: 'Goon Squad game night' }],
+      },
+      descriptionSnippet: {
+        runs: [{ text: 'Full ' }, { text: 'game replay.' }],
+      },
+      thumbnail: {
+        thumbnails: [
+          { url: 'https://i.ytimg.com/vi/JEnVPcwJiFU/mqdefault.jpg' },
+        ],
+      },
+    }, {
+      publishedAt: '2026-07-30T03:59:10Z',
+    });
+
+    expect(item).toMatchObject({
+      sourceKey: 'youtube:JEnVPcwJiFU',
+      sourceTitle: 'Goon Squad game night',
+      body: 'Full game replay.',
+      sourceImageUrl: 'https://i.ytimg.com/vi/JEnVPcwJiFU/mqdefault.jpg',
+      sourcePublishedAt: '2026-07-30T03:59:10.000Z',
+    });
+  });
+
+  it('reads YouTube’s current lockup card format on headless runners', () => {
+    expect(youtubeRendererFromLockup({
+      contentImage: {
+        thumbnailViewModel: {
+          image: {
+            sources: [{
+              url: 'https://i.ytimg.com/vi/JEnVPcwJiFU/hqdefault.jpg',
+              width: 336,
+              height: 188,
+            }],
+          },
+        },
+      },
+      metadata: {
+        lockupMetadataViewModel: {
+          title: {
+            content: 'Goon Squad game night',
+          },
+        },
+      },
+    })).toMatchObject({
+      videoId: 'JEnVPcwJiFU',
+      title: { simpleText: 'Goon Squad game night' },
+    });
   });
 
   it('normalizes official Instagram media without inventing account data', () => {

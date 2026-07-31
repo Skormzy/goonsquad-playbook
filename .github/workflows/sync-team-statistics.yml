@@ -48,14 +48,14 @@ jobs:
       - name: Publish changed official data
         shell: bash
         run: |
-          if git diff --quiet -- src/stats/yorkCentralSnapshot.json; then
-            echo "No official statistics changes detected." | tee -a "$GITHUB_STEP_SUMMARY"
+          if git diff --quiet -- src/stats/yorkCentralSnapshot.json src/feed/officialYoutubeActivity.json; then
+            echo "No official team data changes detected." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           git config user.name "goonsquad-stats-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add src/stats/yorkCentralSnapshot.json
-          git commit -m "chore(stats): refresh official results"
+          git add src/stats/yorkCentralSnapshot.json src/feed/officialYoutubeActivity.json
+          git commit -m "chore(data): refresh official team activity"
           git pull --rebase origin main
           git push origin HEAD:main
-          echo "Published updated official statistics to the live app." | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "Published updated official team data to the live app." | tee -a "$GITHUB_STEP_SUMMARY"
