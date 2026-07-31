@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 import {
+  ArrowUp,
   AtSign,
   BarChart3,
   BadgeCheck,
@@ -1064,6 +1065,22 @@ function LockedFeed({ account, onOpenAccount }) {
   );
 }
 
+function ScrollToTopButton({ label, onClick, visible, variant = 'pane' }) {
+  return (
+    <button
+      type="button"
+      className={`team-home-scroll-top is-${variant}${visible ? ' is-visible' : ''}`}
+      aria-hidden={!visible}
+      aria-label={label}
+      tabIndex={visible ? 0 : -1}
+      title={label}
+      onClick={onClick}
+    >
+      <ArrowUp aria-hidden="true" />
+    </button>
+  );
+}
+
 export default function TeamHome() {
   const account = useAccount();
   const { setActiveView } = useApp();
@@ -1078,6 +1095,14 @@ export default function TeamHome() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [pendingAction, setPendingAction] = useState('');
   const [status, setStatus] = useState('');
+  const [scrolledRegions, setScrolledRegions] = useState({
+    feed: false,
+    page: false,
+    side: false,
+  });
+  const homeScrollRef = useRef(null);
+  const feedScrollRef = useRef(null);
+  const sideScrollRef = useRef(null);
   const refreshTimerRef = useRef(null);
   const qaFeed = import.meta.env.DEV
     && typeof window !== 'undefined'
@@ -1301,14 +1326,42 @@ export default function TeamHome() {
 
   const chooseFilter = async (nextFilter) => {
     setFilter(nextFilter);
+    feedScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
     if (nextFilter === 'mentions' && feed.unreadMentionCount && !qaFeed) {
       await markTeamFeedMentionsRead(currentUserId);
       setFeed((current) => ({ ...current, unreadMentionCount: 0 }));
     }
   };
 
+  const updateScrolledRegion = useCallback((region, scrollTop) => {
+    const visible = scrollTop > 120;
+    setScrolledRegions((current) => (
+      current[region] === visible ? current : { ...current, [region]: visible }
+    ));
+  }, []);
+
+  const scrollRegionToTop = useCallback((region) => {
+    const target = {
+      feed: feedScrollRef.current,
+      page: homeScrollRef.current,
+      side: sideScrollRef.current,
+    }[region];
+    if (!target) return;
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    target.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+  }, []);
+
   return (
-    <main className="team-home" aria-label="Goonsquad home">
+    <main
+      ref={homeScrollRef}
+      className="team-home"
+      aria-label="Goonsquad home"
+      onScroll={(event) => {
+        if (event.currentTarget === event.target) {
+          updateScrolledRegion('page', event.currentTarget.scrollTop);
+        }
+      }}
+    >
       <div className="team-home-inner">
         <header className="team-home-hero">
           <div>
@@ -1327,9 +1380,15 @@ export default function TeamHome() {
         </header>
 
         <div className="team-home-layout">
-          <section className="team-feed-column" aria-label="Squad Live feed">
-            {account.hasTeamAccess ? (
-              <>
+          <div className="team-home-scroll-region is-feed">
+            <section
+              ref={feedScrollRef}
+              className="team-feed-column"
+              aria-label="Squad Live feed"
+              onScroll={(event) => updateScrolledRegion('feed', event.currentTarget.scrollTop)}
+            >
+              {account.hasTeamAccess ? (
+                <>
                 <button type="button" className="feed-compose-launcher" onClick={() => setComposerOpen(true)}>
                   <Avatar member={currentMember} />
                   <span>Share with the squad…</span>
@@ -1447,33 +1506,57 @@ export default function TeamHome() {
                     {filter === 'latest' && <button type="button" onClick={() => setComposerOpen(true)}>Create first post</button>}
                   </div>
                 )}
-              </>
-            ) : (
-              <LockedFeed
-                account={account}
-                onOpenAccount={() => account.user ? navigate('profile') : account.openAccount()}
+                </>
+              ) : (
+                <LockedFeed
+                  account={account}
+                  onOpenAccount={() => account.user ? navigate('profile') : account.openAccount()}
+                />
+              )}
+            </section>
+            <ScrollToTopButton
+              label="Back to top of Squad Live"
+              visible={scrolledRegions.feed}
+              onClick={() => scrollRegionToTop('feed')}
+            />
+          </div>
+          <div className="team-home-scroll-region is-side">
+            <aside
+              ref={sideScrollRef}
+              className="team-home-side-column"
+              aria-label="Game pulse and lineup"
+              onScroll={(event) => updateScrolledRegion('side', event.currentTarget.scrollTop)}
+            >
+              <TeamPulse
+                dataset={dataset}
+                snapshot={snapshot}
+                onOpenStats={() => navigate('stats')}
+                onOpenGame={(game) => navigate('stats', { game: game.id })}
               />
-            )}
-          </section>
-          <aside className="team-home-side-column" aria-label="Game pulse and lineup">
-            <TeamPulse
-              dataset={dataset}
-              snapshot={snapshot}
-              onOpenStats={() => navigate('stats')}
-              onOpenGame={(game) => navigate('stats', { game: game.id })}
+              <AttendanceBoard
+                account={account}
+                currentMember={currentMember}
+                dataset={dataset}
+                isAdmin={isAdmin}
+                members={feed.members}
+                qaMode={qaFeed}
+                tournaments={tournaments}
+              />
+            </aside>
+            <ScrollToTopButton
+              label="Back to top of game pulse"
+              visible={scrolledRegions.side}
+              onClick={() => scrollRegionToTop('side')}
             />
-            <AttendanceBoard
-              account={account}
-              currentMember={currentMember}
-              dataset={dataset}
-              isAdmin={isAdmin}
-              members={feed.members}
-              qaMode={qaFeed}
-              tournaments={tournaments}
-            />
-          </aside>
+          </div>
         </div>
       </div>
+      <ScrollToTopButton
+        label="Back to top"
+        variant="page"
+        visible={scrolledRegions.page}
+        onClick={() => scrollRegionToTop('page')}
+      />
       {composerOpen && (
         <PostComposer
           currentMember={currentMember}

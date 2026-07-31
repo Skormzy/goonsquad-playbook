@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
 
 const home = read('src/feed/TeamHome.jsx');
+const styles = read('src/feed/feed.css');
 const cloud = read('src/feed/feedCloud.js');
 const migration = read('supabase/migrations/20260730_team_feed.sql');
 const activityMigration = read('supabase/migrations/20260730_team_feed_activity.sql');
@@ -81,5 +82,25 @@ describe('Squad Live product contract', () => {
     expect(desktopNav).toContain("onContentChange('stats')");
     expect(mobileNav).toContain("content: 'home'");
     expect(mobileNav).toContain("content: 'stats'");
+  });
+
+  it('keeps the desktop feed and game rail independently scrollable', () => {
+    expect(home).toContain('ref={feedScrollRef}');
+    expect(home).toContain('ref={sideScrollRef}');
+    expect(home).toContain('Back to top of Squad Live');
+    expect(home).toContain('Back to top of game pulse');
+    expect(styles).toContain('@media (min-width: 761px)');
+    expect(styles).toContain('.team-home-scroll-region > :is(.team-feed-column, .team-home-side-column)');
+    expect(styles).toContain('overflow-y: auto');
+    expect(styles).toContain('overscroll-behavior: contain');
+    expect(styles).toContain('scrollbar-gutter: stable');
+  });
+
+  it('preserves one natural page scroll and a return-to-top action on mobile', () => {
+    expect(home).toContain('ref={homeScrollRef}');
+    expect(home).toContain('variant="page"');
+    expect(styles).toContain('.team-home-scroll-top.is-page');
+    expect(styles).toContain('bottom: calc(var(--mobile-bottom-nav-height, 62px) + 12px)');
+    expect(styles).toContain('.team-home-scroll-top.is-pane');
   });
 });
