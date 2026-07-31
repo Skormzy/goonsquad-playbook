@@ -40,6 +40,7 @@ export default function GameAvailability({
   members = [],
   qaMode = false,
   schedule,
+  trackingResponses = [],
 }) {
   const [responses, setResponses] = useState([]);
   const [configured, setConfigured] = useState(true);
@@ -49,7 +50,7 @@ export default function GameAvailability({
 
   useEffect(() => {
     let active = true;
-    if (!fixture?.id || !account.hasTeamAccess) {
+    if (!fixture?.id || (!account.hasTeamAccess && !qaMode)) {
       setResponses([]);
       return undefined;
     }
@@ -78,24 +79,28 @@ export default function GameAvailability({
     () => new Map(members.map((member) => [member.id, member])),
     [members],
   );
+  const allResponses = useMemo(
+    () => [...responses, ...trackingResponses],
+    [responses, trackingResponses],
+  );
   const responseByUser = useMemo(
-    () => new Map(responses.map((response) => [response.userId, response])),
-    [responses],
+    () => new Map(allResponses.map((response) => [response.userId, response])),
+    [allResponses],
   );
   const actorId = account.user?.id || (qaMode ? 'qa-user' : '');
   const current = responseByUser.get(actorId) || null;
   const groups = useMemo(() => Object.fromEntries(
     RESPONSES.map(({ id }) => [
       id,
-      responses
+      allResponses
         .filter((response) => response.response === id)
         .map((response) => memberById.get(response.userId))
         .filter(Boolean),
     ]),
-  ), [memberById, responses]);
+  ), [allResponses, memberById]);
   const awaiting = members.filter((member) => !responseByUser.has(member.id));
 
-  if (!account.hasTeamAccess || !fixture) return null;
+  if ((!account.hasTeamAccess && !qaMode) || !fixture) return null;
 
   const competitionLabel = fixture.kind === 'tournament'
     ? [fixture.tournamentName, fixture.stageLabel].filter(Boolean).join(' · ')
@@ -200,7 +205,11 @@ export default function GameAvailability({
                       <span>
                         <strong>{member.displayName}</strong>
                         <small>
-                          {[member.jerseyNumber ? `#${member.jerseyNumber}` : null, member.position].filter(Boolean).join(' · ') || `@${member.username}`}
+                          {[
+                            member.attendanceRole === 'EP' ? 'EP' : null,
+                            member.jerseyNumber ? `#${member.jerseyNumber}` : null,
+                            member.position,
+                          ].filter(Boolean).join(' · ') || (member.username ? `@${member.username}` : 'Player')}
                         </small>
                       </span>
                     </div>
@@ -213,7 +222,10 @@ export default function GameAvailability({
                 {awaiting.map((member) => (
                   <div key={member.id}>
                     <Avatar member={member} />
-                    <span><strong>{member.displayName}</strong><small>Not answered</small></span>
+                    <span>
+                      <strong>{member.displayName}</strong>
+                      <small>{member.attendanceRole === 'EP' ? 'EP · Not answered' : 'Not answered'}</small>
+                    </span>
                   </div>
                 ))}
                 {!awaiting.length && <p>Everyone answered</p>}
@@ -224,7 +236,7 @@ export default function GameAvailability({
         </>
       )}
       {error && <p className="game-availability-error" role="alert">{error}</p>}
-      <footer><UsersRound aria-hidden="true" /> Game roster and invited call-ups</footer>
+      <footer><UsersRound aria-hidden="true" /> Game roster and EPs</footer>
     </section>
   );
 }

@@ -121,6 +121,14 @@ const QA_MEMBERS = Object.freeze([
     role: 'member',
     playerId: '',
   },
+  {
+    id: 'qa-ep-account',
+    username: 'sundayep',
+    displayName: 'Sunday EP Account',
+    role: 'member',
+    playerId: '',
+    qaAttendanceParticipant: false,
+  },
 ]);
 
 const QA_POSTS = Object.freeze([
@@ -1092,7 +1100,6 @@ export default function TeamHome() {
   }, [isAdmin]);
 
   const refreshFeed = useCallback(async () => {
-    if (!account.hasTeamAccess) return;
     if (qaFeed) {
       setFeed({
         posts: QA_POSTS.map((post) => ({ ...post })),
@@ -1102,6 +1109,7 @@ export default function TeamHome() {
       setFeedLoading(false);
       return;
     }
+    if (!account.hasTeamAccess) return;
     setFeedLoading(true);
     try {
       setFeed(await loadTeamFeed({ userId: currentUserId }));
@@ -1124,13 +1132,16 @@ export default function TeamHome() {
   }, [loadStats]);
 
   useEffect(() => {
+    if (qaFeed) {
+      refreshFeed();
+      return undefined;
+    }
     if (!account.hasTeamAccess) {
       setFeed({ posts: [], members: [], unreadMentionCount: 0 });
       setFeedLoading(false);
       return undefined;
     }
     refreshFeed();
-    if (qaFeed) return undefined;
     let unsubscribe = () => {};
     try {
       unsubscribe = subscribeTeamFeed(() => {

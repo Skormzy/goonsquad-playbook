@@ -20,6 +20,14 @@ function isMissingAttendanceAccessTable(error) {
     || /team_game_attendance_access.*(?:not found|does not exist)/iu.test(message);
 }
 
+function isMissingEpManagement(error) {
+  const message = String(error?.message || error || '');
+  return error?.code === '42P01'
+    || error?.code === 'PGRST202'
+    || error?.code === 'PGRST205'
+    || /(?:team_game_ep_roster|list_game_ep_roster|manage_game_ep).*(?:not found|does not exist)/iu.test(message);
+}
+
 function mapAvailability(row) {
   return {
     fixtureId: row.fixture_id,
@@ -37,6 +45,52 @@ function mapAttendanceAccess(row) {
     userId: row.user_id,
     assignedBy: row.assigned_by || '',
     createdAt: row.created_at || '',
+  };
+}
+
+function mapGameEp(row) {
+  return {
+    id: `ep:${row.player_id}`,
+    playerId: row.player_id,
+    playerExternalId: row.external_id || '',
+    displayName: row.display_name,
+    jerseyNumber: row.jersey_number || '',
+    position: row.primary_position || '',
+    sourceUrl: row.source_url || '',
+    response: row.response,
+    note: row.note || '',
+    entrySource: row.entry_source || 'league',
+    updatedAt: row.updated_at || '',
+    attendanceRole: 'EP',
+    trackingOnly: true,
+  };
+}
+
+function epPayload({
+  action,
+  fixtureId,
+  playerId = null,
+  playerExternalId = '',
+  displayName = '',
+  jerseyNumber = '',
+  position = '',
+  sourceUrl = '',
+  entrySource = 'league',
+  response = 'in',
+  note = '',
+}) {
+  return {
+    p_action: action,
+    p_fixture_id: fixtureId,
+    p_player_id: playerId,
+    p_player_external_id: playerExternalId || null,
+    p_display_name: displayName || null,
+    p_jersey_number: jerseyNumber || null,
+    p_primary_position: position || null,
+    p_source_url: sourceUrl || null,
+    p_entry_source: entrySource,
+    p_response: response,
+    p_note: note || null,
   };
 }
 
@@ -83,6 +137,53 @@ export async function revokeAttendanceAccess({ scopeType, scopeId, userId }) {
     .eq('scope_type', scopeType)
     .eq('scope_id', scopeId)
     .eq('user_id', userId);
+  if (error) throw error;
+}
+
+export async function loadGameEpRoster(fixtureId) {
+  if (!fixtureId) return { configured: true, players: [] };
+  const cloud = requireCloud();
+  const { data, error } = await cloud.rpc('list_game_ep_roster', {
+    p_fixture_id: fixtureId,
+  });
+  if (error && isMissingEpManagement(error)) {
+    return { configured: false, players: [] };
+  }
+  if (error) throw error;
+  return { configured: true, players: (data || []).map(mapGameEp) };
+}
+
+export async function addGameEp(details) {
+  const cloud = requireCloud();
+  const { error } = await cloud.rpc('manage_game_ep', epPayload({
+    ...details,
+    action: 'add',
+  }));
+  if (error && isMissingEpManagement(error)) {
+    throw new Error('EP management is finishing setup. Run the latest database migration, then refresh.');
+  }
+  if (error) throw error;
+}
+
+export async function updateGameEp({ fixtureId, playerId, response, note = '' }) {
+  const cloud = requireCloud();
+  const { error } = await cloud.rpc('manage_game_ep', epPayload({
+    action: 'update',
+    fixtureId,
+    playerId,
+    response,
+    note,
+  }));
+  if (error) throw error;
+}
+
+export async function removeGameEp({ fixtureId, playerId }) {
+  const cloud = requireCloud();
+  const { error } = await cloud.rpc('manage_game_ep', epPayload({
+    action: 'remove',
+    fixtureId,
+    playerId,
+  }));
   if (error) throw error;
 }
 

@@ -1,4 +1,5 @@
 import { isUpcomingGame } from '../stats/scheduleFreshness';
+import { formatScheduleName } from '../stats/statsModel';
 
 const OPEN_TOURNAMENT_STATUSES = new Set(['upcoming', 'live']);
 const CLOSED_GAME_STATUSES = new Set(['final', 'played', 'cancelled', 'eliminated', 'not-qualified']);
@@ -37,6 +38,13 @@ export function rosterTeamIdsForMember(dataset, member) {
   return new Set((dataset.memberships || [])
     .filter((membership) => membership.playerId === playerId && membership.active)
     .map((membership) => membership.seasonTeamId));
+}
+
+export function memberScheduleLabels(dataset, member) {
+  const teamIds = rosterTeamIdsForMember(dataset, member);
+  return [...new Set((dataset?.teams || [])
+    .filter((team) => teamIds.has(team.id))
+    .map(formatScheduleName))];
 }
 
 export function attendanceGrantMatches(grant, fixture) {
@@ -131,12 +139,76 @@ export function buildAttendanceFixtures({
 }
 
 export function attendanceParticipants({ dataset, fixture, grants = [], members = [] }) {
-  return members.filter((member) => memberIsAttendanceParticipant({
-    dataset,
-    fixture,
-    grants,
-    member,
-  }));
+  return members
+    .filter((member) => memberIsAttendanceParticipant({
+      dataset,
+      fixture,
+      grants,
+      member,
+    }))
+    .map((member) => ({
+      ...member,
+      attendanceRole: fixture?.seasonTeamId
+        && rosterTeamIdsForMember(dataset, member).has(fixture.seasonTeamId)
+        ? 'Roster'
+        : 'EP',
+    }));
+}
+
+export function leagueEpDirectory({
+  dataset,
+  members = [],
+  fixture = null,
+  excludedPlayerIds = [],
+}) {
+  if (!dataset) return [];
+  const excluded = new Set(excludedPlayerIds.filter(Boolean));
+  const linkedIds = new Set(members.map((member) => member.playerId).filter(Boolean));
+  const linkedExternalIds = new Set(members.map((member) => member.playerExternalId).filter(Boolean));
+  const teamsById = new Map((dataset.teams || []).map((team) => [team.id, team]));
+  const seasonsById = new Map((dataset.seasons || []).map((season) => [season.id, season]));
+  const membershipsByPlayer = new Map();
+  (dataset.memberships || []).forEach((membership) => {
+    const entries = membershipsByPlayer.get(membership.playerId) || [];
+    entries.push(membership);
+    membershipsByPlayer.set(membership.playerId, entries);
+  });
+
+  return (dataset.players || [])
+    .filter((player) => !excluded.has(player.id))
+    .filter((player) => !linkedIds.has(player.id))
+    .filter((player) => !player.externalId || !linkedExternalIds.has(player.externalId))
+    .map((player) => {
+      const memberships = [...(membershipsByPlayer.get(player.id) || [])]
+        .sort((left, right) => {
+          const leftTeam = teamsById.get(left.seasonTeamId);
+          const rightTeam = teamsById.get(right.seasonTeamId);
+          const leftSeason = seasonsById.get(leftTeam?.seasonId);
+          const rightSeason = seasonsById.get(rightTeam?.seasonId);
+          if (Boolean(leftSeason?.current) !== Boolean(rightSeason?.current)) return leftSeason?.current ? -1 : 1;
+          if (Boolean(left.active) !== Boolean(right.active)) return left.active ? -1 : 1;
+          return String(rightSeason?.name || '').localeCompare(String(leftSeason?.name || ''));
+        });
+      const latestMembership = memberships[0] || null;
+      const latestTeam = teamsById.get(latestMembership?.seasonTeamId) || null;
+      const latestSeason = seasonsById.get(latestTeam?.seasonId) || null;
+      const rosterLabel = [latestSeason?.name, latestTeam ? formatScheduleName(latestTeam) : '']
+        .filter(Boolean)
+        .join(' · ');
+      return {
+        id: player.id,
+        externalId: player.externalId || '',
+        displayName: player.displayName,
+        jerseyNumber: player.jerseyNumber || latestMembership?.jerseyNumber || '',
+        position: player.primaryPosition || latestMembership?.position || '',
+        sourceUrl: player.sourceUrl || '',
+        rosterLabel: rosterLabel || 'League player record',
+        fixtureRostered: Boolean(fixture?.seasonTeamId && memberships.some(
+          (membership) => membership.seasonTeamId === fixture.seasonTeamId && membership.active !== false,
+        )),
+      };
+    })
+    .sort((left, right) => left.displayName.localeCompare(right.displayName));
 }
 
 export function attendanceAccessLabel(fixture) {

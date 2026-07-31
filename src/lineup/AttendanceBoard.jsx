@@ -3,154 +3,21 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
-  LoaderCircle,
   ShieldCheck,
-  UserPlus,
-  X,
 } from 'lucide-react';
+import EpManager from './EpManager';
 import GameAvailability from './GameAvailability';
 import {
-  attendanceAccessLabel,
   attendanceGrantMatches,
   attendanceParticipants,
   buildAttendanceFixtures,
   memberIsAttendanceParticipant,
+  rosterTeamIdsForMember,
 } from './attendanceModel';
 import {
-  grantAttendanceAccess,
   loadAttendanceAccess,
-  revokeAttendanceAccess,
+  loadGameEpRoster,
 } from './lineupCloud';
-
-function AccessManager({
-  actorId,
-  configured,
-  fixture,
-  grants,
-  members,
-  participants,
-  onChanged,
-  qaMode,
-}) {
-  const [memberId, setMemberId] = useState('');
-  const [working, setWorking] = useState('');
-  const [message, setMessage] = useState('');
-  const participantIds = useMemo(
-    () => new Set(participants.map((member) => member.id)),
-    [participants],
-  );
-  const candidates = members.filter((member) => !participantIds.has(member.id));
-  const fixtureGrants = grants.filter((grant) => attendanceGrantMatches(grant, fixture));
-  const grantedMembers = fixtureGrants
-    .map((grant) => ({ grant, member: members.find((member) => member.id === grant.userId) }))
-    .filter((entry) => entry.member);
-  const scopeType = fixture.kind === 'tournament' ? 'tournament' : 'fixture';
-  const scopeId = fixture.kind === 'tournament' ? fixture.tournamentId : fixture.id;
-
-  const addMember = async () => {
-    if (!memberId || !actorId || working) return;
-    setWorking(`add:${memberId}`);
-    setMessage('');
-    try {
-      if (!qaMode) {
-        await grantAttendanceAccess({
-          scopeType,
-          scopeId,
-          userId: memberId,
-          assignedBy: actorId,
-        });
-      }
-      setMessage(`${members.find((member) => member.id === memberId)?.displayName || 'Member'} added.`);
-      setMemberId('');
-      await onChanged({
-        optimisticGrant: qaMode ? {
-          scopeType,
-          scopeId,
-          userId: memberId,
-          assignedBy: actorId,
-        } : null,
-      });
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'That member could not be added.');
-    } finally {
-      setWorking('');
-    }
-  };
-
-  const removeMember = async ({ grant, member }) => {
-    setWorking(`remove:${member.id}`);
-    setMessage('');
-    try {
-      if (!qaMode) {
-        await revokeAttendanceAccess({
-          scopeType: grant.scopeType,
-          scopeId: grant.scopeId,
-          userId: member.id,
-        });
-      }
-      setMessage(`${member.displayName} removed from this attendance list.`);
-      await onChanged({
-        optimisticRemoval: qaMode ? grant : null,
-      });
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'That member could not be removed.');
-    } finally {
-      setWorking('');
-    }
-  };
-
-  return (
-    <details className="attendance-access-manager">
-      <summary>
-        <UserPlus aria-hidden="true" />
-        <span><strong>Manage call-ups</strong><small>{attendanceAccessLabel(fixture)}</small></span>
-        <b>{grantedMembers.length}</b>
-      </summary>
-      <div className="attendance-access-manager-body">
-        {!configured && (
-          <p className="attendance-access-message is-warning">Scoped attendance is finishing setup. Run the latest database migration to add call-ups.</p>
-        )}
-        <div className="attendance-access-picker">
-          <label>
-            <span>Add a member</span>
-            <select value={memberId} onChange={(event) => setMemberId(event.target.value)} disabled={!configured && !qaMode}>
-              <option value="">Choose a member</option>
-              {candidates.map((member) => (
-                <option value={member.id} key={member.id}>{member.displayName} (@{member.username})</option>
-              ))}
-            </select>
-          </label>
-          <button type="button" onClick={addMember} disabled={!memberId || Boolean(working) || (!configured && !qaMode)}>
-            {working.startsWith('add:') ? <LoaderCircle className="is-spinning" aria-hidden="true" /> : <UserPlus aria-hidden="true" />}
-            {fixture.kind === 'tournament' ? 'Add to tournament' : 'Add to this game'}
-          </button>
-        </div>
-        {grantedMembers.length > 0 && (
-          <div className="attendance-access-grants" aria-label="Invited members">
-            {grantedMembers.map(({ grant, member }) => (
-              <span key={`${grant.scopeType}:${grant.scopeId}:${member.id}`}>
-                <strong>{member.displayName}</strong>
-                <small>{fixture.kind === 'tournament' ? 'All tournament games' : 'This game'}</small>
-                <button
-                  type="button"
-                  aria-label={`Remove ${member.displayName}`}
-                  title="Remove call-up"
-                  disabled={Boolean(working)}
-                  onClick={() => removeMember({ grant, member })}
-                >
-                  {working === `remove:${member.id}`
-                    ? <LoaderCircle className="is-spinning" aria-hidden="true" />
-                    : <X aria-hidden="true" />}
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
-        {message && <p className="attendance-access-message" role="status">{message}</p>}
-      </div>
-    </details>
-  );
-}
 
 export default function AttendanceBoard({
   account,
@@ -163,6 +30,8 @@ export default function AttendanceBoard({
 }) {
   const [grants, setGrants] = useState([]);
   const [configured, setConfigured] = useState(true);
+  const [epPlayers, setEpPlayers] = useState([]);
+  const [epConfigured, setEpConfigured] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [error, setError] = useState('');
   const actor = useMemo(() => ({
@@ -193,7 +62,7 @@ export default function AttendanceBoard({
 
   useEffect(() => {
     let active = true;
-    if (!account.hasTeamAccess) return undefined;
+    if (!account.hasTeamAccess && !qaMode) return undefined;
     if (qaMode) return undefined;
     loadAttendanceAccess()
       .then((result) => {
@@ -214,13 +83,71 @@ export default function AttendanceBoard({
     member: actor,
   }), [actor, dataset, grants, tournaments]);
 
-  if (!account.hasTeamAccess || !dataset || !fixtures.length) return null;
+  const safeIndex = fixtures.length ? Math.min(activeIndex, fixtures.length - 1) : 0;
+  const fixture = fixtures[safeIndex] || null;
 
-  const safeIndex = Math.min(activeIndex, fixtures.length - 1);
-  const fixture = fixtures[safeIndex];
-  const participants = qaMode
-    ? members
+  const refreshEpRoster = async ({
+    optimisticAdd = null,
+    optimisticUpdate = null,
+    optimisticRemoval = null,
+  } = {}) => {
+    if (qaMode) {
+      setEpPlayers((current) => {
+        if (optimisticAdd) return [...current, optimisticAdd];
+        if (optimisticUpdate) {
+          return current.map((player) => (
+            player.playerId === optimisticUpdate.playerId
+              ? { ...player, ...optimisticUpdate }
+              : player
+          ));
+        }
+        if (optimisticRemoval) {
+          return current.filter((player) => player.playerId !== optimisticRemoval);
+        }
+        return current;
+      });
+      return;
+    }
+    if (!fixture?.id) {
+      setEpPlayers([]);
+      return;
+    }
+    const result = await loadGameEpRoster(fixture.id);
+    setEpConfigured(result.configured);
+    setEpPlayers(result.players);
+  };
+
+  useEffect(() => {
+    let active = true;
+    if ((!account.hasTeamAccess && !qaMode) || qaMode || !fixture?.id) return undefined;
+    loadGameEpRoster(fixture.id)
+      .then((result) => {
+        if (!active) return;
+        setEpConfigured(result.configured);
+        setEpPlayers(result.players);
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError instanceof Error ? loadError.message : 'EP roster could not load.');
+      });
+    return () => { active = false; };
+  }, [account.hasTeamAccess, fixture?.id, qaMode]);
+
+  if ((!account.hasTeamAccess && !qaMode) || !dataset || !fixtures.length) return null;
+
+  const accountParticipantCandidates = qaMode
+    ? members.filter((member) => (
+      member.qaAttendanceParticipant !== false
+      || grants.some((grant) => grant.userId === member.id && attendanceGrantMatches(grant, fixture))
+    ))
     : attendanceParticipants({ dataset, fixture, grants, members });
+  const accountParticipants = accountParticipantCandidates.map((member) => ({
+    ...member,
+    attendanceRole: fixture?.seasonTeamId
+      && rosterTeamIdsForMember(dataset, member).has(fixture.seasonTeamId)
+      ? 'Roster'
+      : 'EP',
+  }));
+  const participants = [...accountParticipants, ...epPlayers];
   const canRespond = qaMode || memberIsAttendanceParticipant({
     dataset,
     fixture,
@@ -261,14 +188,18 @@ export default function AttendanceBoard({
       <GameAvailability
         account={account}
         accessManager={isAdmin ? (
-          <AccessManager
+          <EpManager
+            accessConfigured={qaMode || configured}
             actorId={actor.id}
-            configured={qaMode || configured}
+            dataset={dataset}
+            epConfigured={qaMode || epConfigured}
+            epPlayers={epPlayers}
             fixture={fixture}
             grants={grants}
             members={members}
             participants={participants}
-            onChanged={refreshAccess}
+            onAccessChanged={refreshAccess}
+            onEpChanged={refreshEpRoster}
             qaMode={qaMode}
           />
         ) : null}
@@ -277,8 +208,15 @@ export default function AttendanceBoard({
         members={participants}
         qaMode={qaMode}
         schedule={fixture.schedule}
+        trackingResponses={epPlayers.map((player) => ({
+          fixtureId: fixture.id,
+          userId: player.id,
+          response: player.response,
+          note: player.note,
+          updatedAt: player.updatedAt,
+        }))}
       />
-      <footer><ShieldCheck aria-hidden="true" /> Attendance is limited to each game&apos;s roster and invited call-ups.</footer>
+      <footer><ShieldCheck aria-hidden="true" /> Attendance is limited to each game&apos;s roster and EPs.</footer>
     </section>
   );
 }

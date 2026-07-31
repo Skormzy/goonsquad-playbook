@@ -2,22 +2,30 @@ import { describe, expect, it } from 'vitest';
 import {
   attendanceParticipants,
   buildAttendanceFixtures,
+  leagueEpDirectory,
   memberCanViewAttendance,
 } from './attendanceModel';
 
 const NOW = new Date('2026-07-31T12:00:00-04:00').getTime();
 const dataset = {
   players: [
-    { id: 'player-seymour', externalId: '101' },
-    { id: 'player-sunday', externalId: '202' },
+    { id: 'player-seymour', externalId: '101', displayName: 'Seymour Korman', jerseyNumber: '19', primaryPosition: 'W' },
+    { id: 'player-sunday', externalId: '202', displayName: 'Sunday Player', jerseyNumber: '22', primaryPosition: 'D' },
+    { id: 'player-league-ep', externalId: '303', displayName: 'League EP', jerseyNumber: '8', primaryPosition: 'C', sourceUrl: 'https://league.example/players/303' },
   ],
   memberships: [
     { playerId: 'player-seymour', seasonTeamId: 'monday', active: true },
     { playerId: 'player-sunday', seasonTeamId: 'sunday', active: true },
+    { playerId: 'player-league-ep', seasonTeamId: 'sunday-old', active: false },
   ],
   teams: [
-    { id: 'monday', scheduleLabel: 'MONDAY' },
-    { id: 'sunday', scheduleLabel: 'SUNDAY' },
+    { id: 'monday', seasonId: 'summer-2026', scheduleLabel: 'MONDAY' },
+    { id: 'sunday', seasonId: 'summer-2026', scheduleLabel: 'SUNDAY' },
+    { id: 'sunday-old', seasonId: 'winter-2026', scheduleLabel: 'SUNDAY' },
+  ],
+  seasons: [
+    { id: 'summer-2026', name: 'Summer 2026', current: true },
+    { id: 'winter-2026', name: 'Winter 2026', current: false },
   ],
   games: [
     { id: 'sun-1', seasonTeamId: 'sunday', opponent: 'Viperz', scheduledAt: '2026-08-02T18:00:00-04:00', status: 'scheduled', stage: 'regular' },
@@ -79,6 +87,24 @@ describe('fixture-scoped attendance', () => {
       members: [invited, sundayPlayer, { id: 'coach', role: 'admin' }],
     });
     expect(participants.map((member) => member.id)).toEqual([seymour.id, sundayPlayer.id]);
+    expect(participants.map((member) => member.attendanceRole)).toEqual(['EP', 'Roster']);
+  });
+
+  it('searches known league records without duplicating account-linked players', () => {
+    const fixture = { ...dataset.games[0], kind: 'league' };
+    const directory = leagueEpDirectory({
+      dataset,
+      fixture,
+      members: [seymour, sundayPlayer],
+    });
+    expect(directory.map((player) => player.id)).toEqual(['player-league-ep']);
+    expect(directory[0]).toMatchObject({
+      displayName: 'League EP',
+      jerseyNumber: '8',
+      position: 'C',
+      fixtureRostered: false,
+      rosterLabel: 'Winter 2026 · Sunday League',
+    });
   });
 
   it('lets an admin see the next two team games without making the coach a player', () => {
