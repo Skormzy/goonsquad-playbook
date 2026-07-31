@@ -25,6 +25,7 @@ import {
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout';
 import { useAccount } from '../account/AccountContext';
+import { teamAccessPromptCopy } from '../account/teamAccess';
 
 export default function Header() {
   const { theme, themes, toggleTheme } = useTheme();
@@ -90,6 +91,8 @@ export default function Header() {
     activateView(activeViewForWorkspace(contentMode, mode), { preservePlayback: true });
   };
   const visibleFavoriteCount = CORE_PLAYS.filter((play) => favorites.has(play.id)).length;
+  const accessPromptCopy = teamAccessPromptCopy(account.teamAccessState, 'This team area');
+  const privateAccessMessage = `${accessPromptCopy.title}. ${accessPromptCopy.detail}`;
   const openAccountOrProfile = () => {
     if (!account.user || activeView === 'profile') activateView('account');
     else if (activeView !== 'account') activateView('profile');
@@ -149,6 +152,8 @@ export default function Header() {
             mode={viewMode}
             onContentChange={switchContent}
             onModeChange={switchMode}
+            privateAccess={account.hasTeamAccess}
+            accessMessage={privateAccessMessage}
             colors={{
               accent: t.ac,
               accentBackground: t.ab,

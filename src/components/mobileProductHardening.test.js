@@ -161,8 +161,13 @@ describe('mobile product hardening contracts', () => {
     expect(css).toMatch(/\.mobile-bottom-nav\s*\{[^}]*position:\s*fixed;[^}]*bottom:\s*0;[^}]*height:\s*var\(--mobile-bottom-nav-height\);/s);
     expect(audit).toContain("profile: { content: 'profile', mode: '2d' }");
     expect(audit).toContain("'member-profile-route'");
+    expect(audit).toContain("'member-access-locked'");
+    expect(audit).toContain("'direct-private-route-locked'");
     expect(audit).toContain("'account-direct-route'");
-    expect(audit).toContain('member profile route: Plays navigation did not leave the profile workspace');
+    expect(audit).toContain('member access gate: locked Plays navigation changed the public profile route');
+    expect(audit).toContain('member access gate: private Play workspace mounted behind the lock');
+    expect(audit).toContain('direct access gate: private Plays URL did not return the visitor to Home');
+    expect(audit).toContain('direct access gate: private Play workspace mounted before authorization');
     expect(audit).toContain('account route: Home navigation did not leave the account workspace');
     expect(profileCss).toMatch(/@media \(max-height:\s*520px\) and \(orientation:\s*landscape\)\s*\{[^}]*\.profile-gate button\s*\{\s*min-height:\s*44px;/s);
   });

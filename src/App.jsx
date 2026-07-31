@@ -12,6 +12,11 @@ import StrategyModal from './components/StrategyModal';
 import TacticsLearn from './components/TacticsLearn';
 import KeyboardHelp from './components/KeyboardHelp';
 import AccountDialog from './account/AccountDialog';
+import {
+  PrivateWorkspaceGate,
+  TeamAccessPrompt,
+} from './account/TeamAccessGate';
+import { isPrivateTeamView } from './account/teamAccess';
 import { useWorkspaceLayout } from './hooks/useWorkspaceLayout';
 import {
   PLAYBACK_STATE_PUBLISH_INTERVAL_MS,
@@ -45,6 +50,8 @@ export default function App() {
     speed, setPreviousPositions, cancelPlaybackRestart,
     selectedTacticId, setSelectedTacticId,
     setKeyboardHelpOpen,
+    hasTeamAccess,
+    teamAccessState,
   } = useApp();
 
   const playbackTimeRef = useRef(playbackTime);
@@ -64,6 +71,7 @@ export default function App() {
   const tacticIdx = laneTactics.findIndex((tactic) => tactic.id === selectedTacticId);
   const appOwnsMainLandmark = activeView === 'playbook' || activeView === 'tactics';
   const mainLabel = activeView === 'tactics' ? 'Strategy workspace' : 'Playbook workspace';
+  const privateWorkspaceBlocked = isPrivateTeamView(activeView) && !hasTeamAccess;
 
   useEffect(() => {
     playbackTimeRef.current = playbackTime;
@@ -256,6 +264,7 @@ export default function App() {
       <StrategyModal />
       <KeyboardHelp />
       <AccountDialog />
+      <TeamAccessPrompt />
       <Header />
 
       <div
@@ -269,7 +278,19 @@ export default function App() {
         onTouchEnd={handleTouchEnd}
       >
         <AnimatePresence mode="wait">
-          {activeView === 'playbook' && (
+          {privateWorkspaceBlocked && (
+            <MotionDiv
+              key={`team-access-${activeView}-${teamAccessState}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
+              style={{ flex: 1, width: '100%', display: 'flex', minHeight: 0 }}
+            >
+              <PrivateWorkspaceGate requestedView={activeView} />
+            </MotionDiv>
+          )}
+          {!privateWorkspaceBlocked && activeView === 'playbook' && (
             <MotionDiv
               key="playbook"
               initial={{ opacity: 0 }}
@@ -284,7 +305,7 @@ export default function App() {
               <PlayViewer />
             </MotionDiv>
           )}
-          {activeView === 'tactics' && (
+          {!privateWorkspaceBlocked && activeView === 'tactics' && (
             <MotionDiv
               key="tactics"
               initial={{ opacity: 0 }}
@@ -296,7 +317,7 @@ export default function App() {
               <TacticsLearn />
             </MotionDiv>
           )}
-          {activeView === 'replay3d' && (
+          {!privateWorkspaceBlocked && activeView === 'replay3d' && (
             <MotionDiv
               key="replay3d"
               initial={{ opacity: 0 }}
@@ -314,7 +335,7 @@ export default function App() {
               </Suspense>
             </MotionDiv>
           )}
-          {activeView === 'strategy3d' && (
+          {!privateWorkspaceBlocked && activeView === 'strategy3d' && (
             <MotionDiv
               key="strategy3d"
               initial={{ opacity: 0 }}
@@ -332,7 +353,7 @@ export default function App() {
               </Suspense>
             </MotionDiv>
           )}
-          {activeView === 'playmaker' && (
+          {!privateWorkspaceBlocked && activeView === 'playmaker' && (
             <MotionDiv
               key="playmaker"
               initial={{ opacity: 0 }}

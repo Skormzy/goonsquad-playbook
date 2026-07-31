@@ -120,7 +120,7 @@ function PlayerLinkRequest({ account, request }) {
         </strong>
         <small>
           {pending
-            ? 'You can keep using the app. Your statistics will appear after an admin confirms this is you.'
+            ? 'Home remains available. Plays, Strategy, and Create unlock after an admin confirms this is you.'
             : 'Remove this request, then choose the correct player record or ask an admin to assign it directly.'}
         </small>
       </div>
@@ -151,8 +151,8 @@ function ProfileGate({ account, onAccount }) {
     <section className="profile-gate">
       <span className="profile-gate-icon"><CircleUserRound aria-hidden="true" /></span>
       <span>YOUR GOONSQUAD ID</span>
-      <h1>{account.configured ? 'Sign in to build your player profile' : 'Team accounts are temporarily unavailable'}</h1>
-      <p>{account.configured ? 'Save plays across devices, link your official squad statistics, and keep every created play under one identity.' : 'Your local plays remain safe. You can keep using the playbook and Create while account access is restored.'}</p>
+      <h1>{account.configured ? 'Sign in to request team access' : 'Team accounts are temporarily unavailable'}</h1>
+      <p>{account.configured ? 'Home and public statistics are open to everyone. Link your squad player profile to unlock Plays, Strategy, and Create after admin approval.' : 'Public schedules, results, standings, and player statistics remain available on Home.'}</p>
       <button type="button" onClick={onAccount}>{account.configured ? <><LogIn aria-hidden="true" /> Sign in or create account</> : <><Settings2 aria-hidden="true" /> View account status</>}</button>
     </section>
   );
@@ -203,7 +203,7 @@ export default function ProfileWorkspace() {
         <header>
           <span>{pendingRequest ? 'REQUEST RECEIVED' : 'PLAYER PROFILE'}</span>
           <h1>{pendingRequest ? `We sent it, ${account.displayName}` : `Find yourself, ${account.displayName}`}</h1>
-          <p>{pendingRequest ? 'An admin will confirm the player link. You can continue using every other part of the app while it is reviewed.' : 'Request your squad player record to put official season and game statistics on your profile.'}</p>
+          <p>{pendingRequest ? 'An admin will confirm the player link. Home stays available while Plays, Strategy, and Create wait for approval.' : 'Request your squad player record to unlock the team playbook after admin approval.'}</p>
         </header>
         {pendingRequest && <PlayerLinkRequest account={account} request={pendingRequest} />}
         {!pendingRequest && rejectedRequests.map((request) => <PlayerLinkRequest account={account} request={request} key={request.playerId} />)}

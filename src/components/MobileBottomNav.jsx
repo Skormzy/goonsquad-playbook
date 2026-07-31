@@ -3,6 +3,7 @@ import {
   BookOpenText,
   BrainCircuit,
   House,
+  LockKeyhole,
   PencilRuler,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -12,6 +13,7 @@ import {
   isWorkspaceModeAvailable,
   modeForActiveView,
 } from '../routing/workspaceModes';
+import { teamAccessPromptCopy } from '../account/teamAccess';
 
 const DESTINATIONS = [
   { content: 'stats', label: 'Home', icon: House },
@@ -27,6 +29,8 @@ export default function MobileBottomNav() {
     setIsPlaying,
     setSidebarOpen,
     cancelPlaybackRestart,
+    hasTeamAccess,
+    teamAccessState,
   } = useApp();
   const activeContent = contentForActiveView(activeView);
   const currentDestination = ['account', 'profile'].includes(activeContent)
@@ -42,16 +46,17 @@ export default function MobileBottomNav() {
   const navigate = (content) => {
     if (content === activeContent) return;
     const nextMode = isWorkspaceModeAvailable(content, activeMode) ? activeMode : '2d';
+    const nextView = activeViewForWorkspace(content, nextMode);
     cancelPlaybackRestart();
     setIsPlaying(false);
     setSidebarOpen(false);
+    if (setActiveView(nextView) === false) return;
     try {
       const nextUrl = new URL(window.location.href);
       nextUrl.searchParams.set('content', content);
       nextUrl.searchParams.set('mode', nextMode);
       window.history.pushState({ goonsquadDestination: content }, '', nextUrl);
     } catch { /* History is optional in embedded browsers. */ }
-    setActiveView(activeViewForWorkspace(content, nextMode));
     requestAnimationFrame(() => {
       document.getElementById('main-content')?.focus({ preventScroll: true });
     });
@@ -65,17 +70,25 @@ export default function MobileBottomNav() {
     >
       {DESTINATIONS.map(({ content, label, icon }) => {
         const active = currentDestination === content;
+        const locked = content !== 'stats' && !hasTeamAccess;
+        const lockedCopy = teamAccessPromptCopy(teamAccessState, label);
+        const lockMessage = `${lockedCopy.title}. ${lockedCopy.detail}`;
         return (
           <button
             type="button"
             key={content}
-            className={active ? 'is-active' : ''}
+            className={`${active ? 'is-active' : ''} ${locked ? 'is-locked' : ''}`.trim()}
+            data-locked={locked || undefined}
+            data-testid={`mobile-nav-${content}`}
             aria-current={active ? 'page' : undefined}
-            aria-label={label}
+            aria-haspopup={locked ? 'dialog' : undefined}
+            aria-label={locked ? `${label}, locked. ${lockMessage}` : label}
+            title={locked ? lockMessage : label}
             onClick={() => navigate(content)}
           >
             <span className="mobile-bottom-nav-icon" aria-hidden="true">
               {createElement(icon)}
+              {locked && <LockKeyhole className="mobile-bottom-nav-lock" />}
             </span>
             <span>{label}</span>
           </button>

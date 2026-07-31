@@ -2,24 +2,44 @@ import {
   BookOpenText,
   BrainCircuit,
   House,
+  LockKeyhole,
   PencilRuler,
 } from 'lucide-react';
 
-function SegmentButton({ active, disabled = false, icon: Icon, label, onClick, testId, title }) {
+function SegmentButton({
+  active,
+  disabled = false,
+  icon: Icon,
+  label,
+  locked = false,
+  lockMessage = '',
+  onClick,
+  testId,
+  title,
+}) {
   return (
     <button
       type="button"
       className="workspace-segment-button"
       data-state={active ? 'active' : 'idle'}
+      data-locked={locked || undefined}
       data-testid={testId}
       aria-pressed={active}
       aria-current={active ? 'page' : undefined}
+      aria-disabled={disabled || undefined}
+      aria-haspopup={locked ? 'dialog' : undefined}
       disabled={disabled}
       onClick={onClick}
-      title={title || label}
+      title={locked ? lockMessage : title || label}
     >
       {Icon && <Icon className="workspace-segment-icon" aria-hidden="true" />}
       <span>{label}</span>
+      {locked && (
+        <>
+          <LockKeyhole className="workspace-lock-mark" aria-hidden="true" />
+          <span className="workspace-lock-tooltip" role="tooltip">{lockMessage}</span>
+        </>
+      )}
     </button>
   );
 }
@@ -30,8 +50,16 @@ export default function WorkspaceSwitcher({
   onContentChange,
   onModeChange,
   allowStrategy3d = false,
+  privateAccess = true,
+  accessMessage = 'Create an account and request player access to unlock this area.',
   colors,
 }) {
+  const privateButton = (content) => ({
+    locked: !privateAccess,
+    lockMessage: accessMessage,
+    onClick: () => onContentChange(content),
+  });
+
   return (
     <div
       className="workspace-switcher"
@@ -59,21 +87,21 @@ export default function WorkspaceSwitcher({
           label="PLAYS"
           icon={BookOpenText}
           active={content === 'plays'}
-          onClick={() => onContentChange('plays')}
+          {...privateButton('plays')}
           testId="workspace-content-plays"
         />
         <SegmentButton
           label="STRATEGY"
           icon={BrainCircuit}
           active={content === 'strategy'}
-          onClick={() => onContentChange('strategy')}
+          {...privateButton('strategy')}
           testId="workspace-content-strategy"
         />
         <SegmentButton
           label="CREATE"
           icon={PencilRuler}
           active={content === 'playmaker'}
-          onClick={() => onContentChange('playmaker')}
+          {...privateButton('playmaker')}
           testId="workspace-content-playmaker"
         />
       </nav>

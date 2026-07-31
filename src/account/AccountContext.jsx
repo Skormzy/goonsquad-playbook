@@ -26,6 +26,8 @@ const fallbackAccount = Object.freeze({
   profile: null,
   playerClaims: [],
   playerClaimRequests: [],
+  hasTeamAccess: false,
+  teamAccessState: 'unavailable',
   displayName: 'Guest',
   username: '',
   busy: false,
@@ -49,6 +51,25 @@ const fallbackAccount = Object.freeze({
 });
 
 const AccountContext = createContext(fallbackAccount);
+
+export function resolveTeamAccessState({
+  busy = false,
+  configured = false,
+  user = null,
+  profile = null,
+  playerClaims = [],
+  playerClaimRequests = [],
+} = {}) {
+  const approvedPlayerLink = playerClaims.some((claim) => (
+    !claim.status || claim.status === 'approved'
+  ));
+  if (user && (profile?.role === 'admin' || approvedPlayerLink)) return 'granted';
+  if (!configured) return 'unavailable';
+  if (busy) return 'loading';
+  if (!user) return 'signed-out';
+  if (playerClaimRequests.some((claim) => claim.status === 'pending')) return 'pending';
+  return 'unrequested';
+}
 
 export function accountMessageForError(error) {
   const message = String(error instanceof Error ? error.message : error || '').trim();
@@ -79,7 +100,7 @@ export function accountMessageForError(error) {
     return 'Could not reach the account service. Check your connection and try again.';
   }
   if (/not configured|not connected/iu.test(message)) {
-    return 'Accounts are temporarily unavailable. Your local plays remain safe.';
+    return 'Accounts are temporarily unavailable. Public team statistics remain available.';
   }
   if (
     normalized === 'display name is required.'
@@ -293,6 +314,25 @@ export function AccountProvider({ children }) {
   const username = profile?.username
     || session?.user?.user_metadata?.username
     || '';
+  const developmentAccessValue = import.meta.env.DEV && typeof window !== 'undefined'
+    ? new URL(window.location.href).searchParams.get('qaTeamAccess')
+    : null;
+  const developmentAccessState = developmentAccessValue === '1'
+    ? 'granted'
+    : ['pending', 'unrequested', 'signed-out'].includes(developmentAccessValue)
+      ? developmentAccessValue
+      : null;
+  const teamAccessState = developmentAccessState
+    ? developmentAccessState
+    : resolveTeamAccessState({
+      busy,
+      configured: playmakerCloudConfigured,
+      user: session?.user ?? null,
+      profile,
+      playerClaims,
+      playerClaimRequests,
+    });
+  const hasTeamAccess = teamAccessState === 'granted';
 
   const checkUsername = useCallback(
     (value) => checkAccountUsernameAvailability(value),
@@ -306,6 +346,8 @@ export function AccountProvider({ children }) {
     profile,
     playerClaims,
     playerClaimRequests,
+    hasTeamAccess,
+    teamAccessState,
     displayName,
     username,
     busy,
@@ -329,7 +371,7 @@ export function AccountProvider({ children }) {
     claimPlayer,
     releasePlayer,
     refreshProfile,
-  }), [busy, checkUsername, claimPlayer, dialogOpen, displayName, passwordRecovery, playerClaimRequests, playerClaims, profile, refreshProfile, releasePlayer, resetPassword, session, signIn, signOut, signUp, saveProfile, status, statusTone, updatePassword, username]);
+  }), [busy, checkUsername, claimPlayer, dialogOpen, displayName, hasTeamAccess, passwordRecovery, playerClaimRequests, playerClaims, profile, refreshProfile, releasePlayer, resetPassword, session, signIn, signOut, signUp, saveProfile, status, statusTone, teamAccessState, updatePassword, username]);
 
   return <AccountContext.Provider value={value}>{children}</AccountContext.Provider>;
 }

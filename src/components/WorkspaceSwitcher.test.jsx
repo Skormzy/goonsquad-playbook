@@ -79,4 +79,24 @@ describe('WorkspaceSwitcher', () => {
 
     expect(markup).toMatch(/data-testid="workspace-view-3d"[^>]*disabled/);
   });
+
+  it('keeps private modules actionable but visibly locked for public visitors', () => {
+    const markup = renderToStaticMarkup(
+      <WorkspaceSwitcher
+        content="stats"
+        mode="2d"
+        onContentChange={vi.fn()}
+        onModeChange={vi.fn()}
+        privateAccess={false}
+        accessMessage="Create an account and request access."
+        colors={colors}
+      />,
+    );
+
+    expect(markup).toMatch(/data-locked="true"[^>]*data-testid="workspace-content-plays"/);
+    expect(markup).toMatch(/data-locked="true"[^>]*data-testid="workspace-content-strategy"/);
+    expect(markup).toMatch(/data-locked="true"[^>]*data-testid="workspace-content-playmaker"/);
+    expect(markup).not.toMatch(/data-testid="workspace-content-stats"[^>]*data-locked/);
+    expect(markup).toContain('Create an account and request access.');
+  });
 });

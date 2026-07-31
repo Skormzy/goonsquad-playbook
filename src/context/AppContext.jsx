@@ -29,6 +29,7 @@ import {
   setPendingFavoriteChange,
   writeFavoriteIds,
 } from '../account/favoritesStorage';
+import { isPrivateTeamView } from '../account/teamAccess';
 
 const AppContext = createContext();
 
@@ -99,7 +100,12 @@ function createInitialProviderState() {
 }
 
 export function AppProvider({ children }) {
-  const { configured: accountConfigured, user } = useAccount();
+  const {
+    configured: accountConfigured,
+    hasTeamAccess,
+    teamAccessState,
+    user,
+  } = useAccount();
   const accountUserId = user?.id;
   const [initial] = useState(createInitialProviderState);
   const [activeView, setActiveViewState] = useState(initial.activeView);
@@ -133,6 +139,10 @@ export function AppProvider({ children }) {
   const [playmakerTutorialOpen, setPlaymakerTutorialOpen] = useState(false);
   const [pendingTactic, setPendingTactic] = useState(null);
   const [replay3dCamera, setReplay3dCamera] = useState(initial.camera);
+  const [teamAccessPrompt, setTeamAccessPrompt] = useState({
+    open: false,
+    requestedView: null,
+  });
   const selectedTactic = CORE_TACTICS.find((tactic) => tactic.id === selectedTacticId) ?? CORE_TACTICS[0] ?? null;
   const currentReplayPlay = useMemo(
     () => resolveFaceoffPlayOutcome(currentPlay, faceoffOutcome),
@@ -168,8 +178,20 @@ export function AppProvider({ children }) {
     setPhaseTransitionTarget(null);
   }, []);
 
+  const openTeamAccessPrompt = useCallback((requestedView = null) => {
+    setTeamAccessPrompt({ open: true, requestedView });
+  }, []);
+
+  const closeTeamAccessPrompt = useCallback(() => {
+    setTeamAccessPrompt({ open: false, requestedView: null });
+  }, []);
+
   const setActiveView = useCallback((value) => {
     const next = typeof value === 'function' ? value(activeViewRef.current) : value;
+    if (isPrivateTeamView(next) && !hasTeamAccess) {
+      openTeamAccessPrompt(next);
+      return false;
+    }
     const contentChanged = isStrategyView(next) !== isStrategyView(activeViewRef.current);
     activeViewRef.current = next;
     setActiveViewState(next);
@@ -178,7 +200,31 @@ export function AppProvider({ children }) {
       dispatchPlayback({ type: 'reset' });
       setIsPlaying(false);
     }
-  }, [cancelPlaybackRestart]);
+    return true;
+  }, [cancelPlaybackRestart, hasTeamAccess, openTeamAccessPrompt]);
+
+  useEffect(() => {
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      if (hasTeamAccess) {
+        setTeamAccessPrompt({ open: false, requestedView: null });
+        return;
+      }
+      if (teamAccessState === 'loading' || !isPrivateTeamView(activeViewRef.current)) return;
+      const requestedView = activeViewRef.current;
+      cancelPlaybackRestart();
+      activeViewRef.current = 'stats';
+      setActiveViewState('stats');
+      dispatchPlayback({ type: 'reset' });
+      setIsPlaying(false);
+      setSidebarOpen(false);
+      setTeamAccessPrompt({ open: true, requestedView });
+    });
+    return () => {
+      active = false;
+    };
+  }, [cancelPlaybackRestart, hasTeamAccess, teamAccessState]);
 
   const setCurrentPlay = useCallback((value) => {
     const next = typeof value === 'function' ? value(currentPlayRef.current) : value;
@@ -487,6 +533,8 @@ export function AppProvider({ children }) {
       pendingTactic, setPendingTactic,
       replay3dCamera, setReplay3dCamera,
       favorites, toggleFavorite,
+      hasTeamAccess, teamAccessState,
+      teamAccessPrompt, openTeamAccessPrompt, closeTeamAccessPrompt,
     }}>
       {children}
     </AppContext.Provider>

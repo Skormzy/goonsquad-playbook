@@ -32,12 +32,13 @@ const routes = {
   home: {},
   profile: { content: 'profile', mode: '2d' },
   account: { content: 'account', mode: '2d' },
-  play2d: { content: 'plays', mode: '2d', playId: 'brk', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
-  faceoff2d: { content: 'plays', mode: '2d', playId: 'dzfl', faceoff: 'lost', phase: '3', time: '8', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
-  play3d: { content: 'plays', mode: '3d', playId: 'brk', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'overhead' },
-  strategy2d: { content: 'strategy', mode: '2d', tacticId: 'watch-your-man', scenario: 'correct', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
-  strategy3d: { content: 'strategy', mode: '3d', tacticId: 'instant-backcheck', scenario: 'mistake', phase: '3', time: '8', speed: '1', role: 'C', playing: 'false', camera: 'overhead' },
-  create: { content: 'playmaker', mode: '2d', phase: '0', time: '0', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
+  lockedPlay2d: { content: 'plays', mode: '2d', playId: 'brk' },
+  play2d: { qaTeamAccess: '1', content: 'plays', mode: '2d', playId: 'brk', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
+  faceoff2d: { qaTeamAccess: '1', content: 'plays', mode: '2d', playId: 'dzfl', faceoff: 'lost', phase: '3', time: '8', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
+  play3d: { qaTeamAccess: '1', content: 'plays', mode: '3d', playId: 'brk', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'overhead' },
+  strategy2d: { qaTeamAccess: '1', content: 'strategy', mode: '2d', tacticId: 'watch-your-man', scenario: 'correct', phase: '1', time: '4.6', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
+  strategy3d: { qaTeamAccess: '1', content: 'strategy', mode: '3d', tacticId: 'instant-backcheck', scenario: 'mistake', phase: '3', time: '8', speed: '1', role: 'C', playing: 'false', camera: 'overhead' },
+  create: { qaTeamAccess: '1', content: 'playmaker', mode: '2d', phase: '0', time: '0', speed: '1', role: 'C', playing: 'false', camera: 'broadcast' },
 };
 
 async function findChrome() {
@@ -665,11 +666,28 @@ for (const device of devices) {
   await page.goto(route(routes.profile), { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await waitForSurface(page, 'profile');
   states.push(await capture(page, device, 'member-profile-route'));
-  await page.getByTestId('mobile-bottom-nav').getByRole('button', { name: 'Plays', exact: true }).click();
-  await waitForSurface(page, 'play2d');
-  if (new URL(page.url()).searchParams.get('content') !== 'plays') {
-    browserProblems.push('member profile route: Plays navigation did not leave the profile workspace');
+  await page.getByTestId('mobile-nav-plays').click();
+  await page.getByRole('dialog', { name: /Create an account to request access/u }).waitFor({ state: 'visible' });
+  states.push(await capture(page, device, 'member-access-locked'));
+  if (new URL(page.url()).searchParams.get('content') !== 'profile') {
+    browserProblems.push('member access gate: locked Plays navigation changed the public profile route');
   }
+  if (await page.locator('.play-workspace').count()) {
+    browserProblems.push('member access gate: private Play workspace mounted behind the lock');
+  }
+  await page.getByRole('button', { name: 'Close access message' }).click();
+
+  await page.goto(route(routes.lockedPlay2d), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await waitForSurface(page, 'stats');
+  await page.locator('.team-access-dialog').waitFor({ state: 'visible' });
+  states.push(await capture(page, device, 'direct-private-route-locked'));
+  if (new URL(page.url()).searchParams.get('content') !== 'stats') {
+    browserProblems.push('direct access gate: private Plays URL did not return the visitor to Home');
+  }
+  if (await page.locator('.play-workspace').count()) {
+    browserProblems.push('direct access gate: private Play workspace mounted before authorization');
+  }
+  await page.getByRole('button', { name: 'Close access message' }).click();
 
   await page.goto(route(routes.account), { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await waitForSurface(page, 'account');
@@ -681,7 +699,9 @@ for (const device of devices) {
   }
 
   if (device.full) {
-    await page.getByTestId('mobile-bottom-nav').getByRole('button', { name: 'Plays', exact: true }).click();
+    await page.goto(route({ qaTeamAccess: '1' }), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await waitForSurface(page, 'stats');
+    await page.getByTestId('mobile-nav-plays').click();
     await waitForSurface(page, 'play2d');
     await page.goBack({ waitUntil: 'domcontentloaded' });
     await waitForSurface(page, 'stats');
