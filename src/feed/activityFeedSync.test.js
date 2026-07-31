@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildResultFeedItems,
   instagramItemsFromApiResponse,
+  tiktokItemsFromApiResponse,
   youtubeItemFromPlayerResponse,
   youtubeItemFromRenderer,
   youtubeItemsFromApiResponse,
@@ -215,6 +216,40 @@ describe('automated Squad Live activity', () => {
       sourceLabel: '@goonsquad',
       sourceTitle: 'Big team win',
       linkUrl: 'https://www.instagram.com/p/media-1/',
+    });
+  });
+
+  it('normalizes authorized TikTok videos into playable source posts', () => {
+    const [item] = tiktokItemsFromApiResponse([{
+      id: '7481234567890123456',
+      create_time: 1785502800,
+      title: 'Game night run',
+      video_description: 'A quick look at the latest Goon Squad run.',
+      cover_image_url: 'https://p16-sign.tiktokcdn-us.com/team-video.jpg',
+      share_url: 'https://www.tiktok.com/@goonsquad.bhc/video/7481234567890123456',
+      embed_link: 'https://www.tiktok.com/static/profile-video?id=7481234567890123456&hide_author=1',
+      duration: 24,
+      width: 1080,
+      height: 1920,
+    }], {
+      accountLabel: '@goonsquad.bhc',
+      profileUrl: 'https://www.tiktok.com/@goonsquad.bhc',
+    });
+    expect(item).toMatchObject({
+      sourceKey: 'tiktok:7481234567890123456',
+      sourceType: 'tiktok',
+      sourceLabel: '@goonsquad.bhc',
+      sourceTitle: 'Game night run',
+      body: 'A quick look at the latest Goon Squad run.',
+      linkUrl: 'https://www.tiktok.com/@goonsquad.bhc/video/7481234567890123456',
+      sourceImageUrl: 'https://p16-sign.tiktokcdn-us.com/team-video.jpg',
+      sourceMetadata: {
+        videoId: '7481234567890123456',
+        embedLink: 'https://www.tiktok.com/static/profile-video?id=7481234567890123456&hide_author=1',
+        duration: 24,
+        width: 1080,
+        height: 1920,
+      },
     });
   });
 });

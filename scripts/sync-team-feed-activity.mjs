@@ -12,6 +12,7 @@ const MAX_BODY_LENGTH = 3000;
 const MAX_SOURCE_TITLE_LENGTH = 240;
 const YOUTUBE_PUBLIC_RECENT_LIMIT = 12;
 const YOUTUBE_PUBLIC_MAX_REQUESTS = 12;
+const TIKTOK_MAX_REQUESTS = 20;
 const YOUTUBE_ACTIVITY_STATE_URL = new URL(
   '../src/feed/officialYoutubeActivity.json',
   import.meta.url,
@@ -628,6 +629,110 @@ export function instagramItemsFromApiResponse(
     .filter(Boolean);
 }
 
+export function tiktokItemsFromApiResponse(
+  items = [],
+  {
+    accountLabel = '@goonsquad.bhc',
+    profileUrl = 'https://www.tiktok.com/@goonsquad.bhc',
+  } = {},
+) {
+  return items
+    .map((item) => {
+      const videoId = clean(item.id);
+      const createTime = Number(item.create_time);
+      const publishedAt = new Date(createTime * 1000);
+      if (
+        !/^\d{10,30}$/u.test(videoId)
+        || !Number.isFinite(createTime)
+        || Number.isNaN(publishedAt.getTime())
+      ) {
+        return null;
+      }
+      const description = clean(item.video_description);
+      const title = clean(item.title);
+      return {
+        sourceKey: `tiktok:${videoId}`,
+        sourceType: 'tiktok',
+        sourceLabel: accountLabel,
+        sourceTitle: truncate(
+          title || description || 'New from Goon Squad on TikTok',
+          MAX_SOURCE_TITLE_LENGTH,
+        ),
+        body: truncate(description, MAX_BODY_LENGTH),
+        linkUrl: item.share_url || `${profileUrl.replace(/\/$/u, '')}/video/${videoId}`,
+        sourceImageUrl: item.cover_image_url || '',
+        sourcePublishedAt: publishedAt.toISOString(),
+        sourceMetadata: {
+          videoId,
+          embedLink: item.embed_link || '',
+          duration: Number(item.duration) || 0,
+          width: Number(item.width) || 0,
+          height: Number(item.height) || 0,
+        },
+      };
+    })
+    .filter(Boolean);
+}
+
+async function tiktokItemsFromDisplayApi({
+  accessToken,
+  accountLabel,
+  profileUrl,
+  since,
+}) {
+  const fields = [
+    'id',
+    'create_time',
+    'cover_image_url',
+    'share_url',
+    'video_description',
+    'duration',
+    'height',
+    'width',
+    'title',
+    'embed_link',
+  ].join(',');
+  const endpoint = new URL('https://open.tiktokapis.com/v2/video/list/');
+  endpoint.searchParams.set('fields', fields);
+  const collected = [];
+  let cursor = null;
+  let requests = 0;
+  let hasMore = true;
+  while (hasMore && requests < TIKTOK_MAX_REQUESTS) {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        max_count: 20,
+        ...(cursor ? { cursor } : {}),
+      }),
+    });
+    if (!response.ok) throw new Error(`TikTok video lookup failed (${response.status}).`);
+    const payload = await response.json();
+    if (payload.error?.code && payload.error.code !== 'ok') {
+      throw new Error(
+        `TikTok video lookup failed: ${payload.error.message || payload.error.code}.`,
+      );
+    }
+    const pageItems = tiktokItemsFromApiResponse(payload.data?.videos, {
+      accountLabel,
+      profileUrl,
+    });
+    collected.push(...pageItems.filter(
+      (item) => new Date(item.sourcePublishedAt).getTime() >= since,
+    ));
+    const oldest = pageItems.at(-1)?.sourcePublishedAt;
+    hasMore = Boolean(payload.data?.has_more);
+    cursor = payload.data?.cursor || null;
+    if (oldest && new Date(oldest).getTime() < since) hasMore = false;
+    requests += 1;
+  }
+  return collected;
+}
+
 async function instagramItemsFromGraph({
   accessToken,
   accountLabel,
@@ -727,6 +832,23 @@ async function collectConfiguredSocialItems(
         accessToken: instagramAccessToken,
         accountLabel: process.env.TEAM_INSTAGRAM_LABEL || 'Goon Squad Instagram',
         instagramUserId,
+        since,
+      }));
+    } catch (error) {
+      warnings.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  const tiktokAccessToken = process.env.TIKTOK_ACCESS_TOKEN;
+  if (tiktokAccessToken) {
+    try {
+      items.push(...await tiktokItemsFromDisplayApi({
+        accessToken: tiktokAccessToken,
+        accountLabel: process.env.TEAM_TIKTOK_LABEL || '@goonsquad.bhc',
+        profileUrl: (
+          process.env.TEAM_TIKTOK_PROFILE_URL
+          || 'https://www.tiktok.com/@goonsquad.bhc'
+        ),
         since,
       }));
     } catch (error) {

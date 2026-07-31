@@ -22,6 +22,7 @@ import {
   LockKeyhole,
   MessageCircle,
   MoreHorizontal,
+  Music2,
   Pin,
   PlaySquare,
   Plus,
@@ -72,6 +73,12 @@ import {
   summarizeFeedReactions,
   validateFeedMedia,
 } from './feedModel';
+import {
+  tiktokEmbedUrl,
+  youtubeEmbedUrl,
+  youtubeFallbackPosterUrl,
+  youtubePosterUrl,
+} from './socialMediaEmbed';
 import './feed.css';
 
 const FEED_FILTERS = Object.freeze([
@@ -229,6 +236,31 @@ const QA_POSTS = Object.freeze([
     comments: [],
     mentions: [],
   },
+  {
+    id: 'qa-tiktok-1',
+    authorId: null,
+    author: null,
+    body: 'A quick look at the latest Goon Squad run.',
+    linkUrl: 'https://www.tiktok.com/@goonsquad.bhc/video/7481234567890123456',
+    mediaPath: '',
+    mediaKind: '',
+    mediaUrl: '',
+    sourceType: 'tiktok',
+    sourceKey: 'tiktok:7481234567890123456',
+    sourceLabel: '@goonsquad.bhc',
+    sourceTitle: 'New from Goon Squad on TikTok',
+    sourceImageUrl: '',
+    sourcePublishedAt: '2026-07-29T19:30:00Z',
+    sourceMetadata: {
+      videoId: '7481234567890123456',
+      embedLink: 'https://www.tiktok.com/static/profile-video?id=7481234567890123456&hide_author=1',
+    },
+    pinnedAt: null,
+    createdAt: '2026-07-29T19:30:00Z',
+    reactions: [{ userId: 'qa-coach', reaction: 'fire' }],
+    comments: [],
+    mentions: [],
+  },
 ]);
 
 function Avatar({ member, size = 'md' }) {
@@ -261,6 +293,13 @@ function sourceIdentity(post) {
       displayName: post.sourceLabel || 'Goon Squad YouTube',
       username: 'youtube',
       Icon: PlaySquare,
+    };
+  }
+  if (post.sourceType === 'tiktok') {
+    return {
+      displayName: post.sourceLabel || 'Goon Squad TikTok',
+      username: 'tiktok',
+      Icon: Music2,
     };
   }
   if (post.sourceType === 'system') {
@@ -312,6 +351,98 @@ function OfficialResultCard({ post }) {
         <span>Full game sheet <ExternalLink /></span>
       </footer>
     </a>
+  );
+}
+
+function SocialVideoCard({ post }) {
+  const isYoutube = post.sourceType === 'youtube';
+  const embedUrl = isYoutube ? youtubeEmbedUrl(post) : tiktokEmbedUrl(post);
+  const fallbackPoster = isYoutube ? youtubeFallbackPosterUrl(post) : '';
+  const [playing, setPlaying] = useState(false);
+  const [posterUrl, setPosterUrl] = useState(
+    isYoutube ? youtubePosterUrl(post) : post.sourceImageUrl,
+  );
+  const [posterFailed, setPosterFailed] = useState(false);
+  const platform = isYoutube ? 'YouTube' : 'TikTok';
+  const Icon = isYoutube ? PlaySquare : Music2;
+
+  const handlePosterError = () => {
+    if (fallbackPoster && posterUrl !== fallbackPoster) {
+      setPosterUrl(fallbackPoster);
+      return;
+    }
+    setPosterFailed(true);
+  };
+
+  const poster = (
+    <>
+      {!posterFailed && posterUrl
+        ? (
+          <img
+            src={posterUrl}
+            alt={`${post.sourceTitle || platform} video thumbnail`}
+            loading="lazy"
+            onError={handlePosterError}
+          />
+        )
+        : (
+          <span className="feed-video-placeholder" aria-hidden="true">
+            <Icon />
+            <b>GOON SQUAD</b>
+          </span>
+        )}
+      <span className="feed-video-play">
+        <Icon />
+        <b>PLAY HERE</b>
+      </span>
+    </>
+  );
+
+  return (
+    <div className={`feed-social-video is-${post.sourceType}${playing ? ' is-playing' : ''}`}>
+      {playing && embedUrl
+        ? (
+          <iframe
+            src={embedUrl}
+            title={`${post.sourceTitle || platform} video player`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+        )
+        : embedUrl
+          ? (
+            <button
+              type="button"
+              className="feed-video-poster"
+              onClick={() => setPlaying(true)}
+              aria-label={`Play ${post.sourceTitle || platform} in the feed`}
+            >
+              {poster}
+            </button>
+          )
+          : (
+            <a
+              className="feed-video-poster"
+              href={post.linkUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Open ${post.sourceTitle || platform}`}
+            >
+              {poster}
+            </a>
+          )}
+      <a
+        className="feed-video-source-link"
+        href={post.linkUrl}
+        target="_blank"
+        rel="noreferrer"
+      >
+        <span><Icon /> {platform.toUpperCase()}</span>
+        Open in {platform}
+        <ExternalLink />
+      </a>
+    </div>
   );
 }
 
@@ -641,7 +772,14 @@ function PostCard({
             : <img src={post.mediaUrl} alt="Shared by a team member" loading="lazy" />}
         </div>
       )}
+      {!post.mediaUrl && (
+        post.sourceType === 'youtube' || post.sourceType === 'tiktok'
+      ) && (
+        <SocialVideoCard post={post} />
+      )}
       {!post.mediaUrl && post.sourceImageUrl && (
+        post.sourceType !== 'youtube' && post.sourceType !== 'tiktok'
+      ) && (
         <a
           className={`feed-source-media is-${post.sourceType}`}
           href={post.linkUrl}
@@ -649,25 +787,24 @@ function PostCard({
           rel="noreferrer"
         >
           <img src={post.sourceImageUrl} alt="" loading="lazy" />
-          {post.sourceType === 'youtube' && <span><PlaySquare /> WATCH</span>}
         </a>
       )}
-      {post.linkUrl && post.sourceType !== 'result' && (
+      {post.linkUrl && ![
+        'result',
+        'youtube',
+        'tiktok',
+      ].includes(post.sourceType) && (
         <a className="feed-link-card" href={post.linkUrl} target="_blank" rel="noreferrer">
           <span>
             {post.sourceType === 'instagram'
               ? <Camera />
-              : post.sourceType === 'youtube'
-                ? <PlaySquare />
-                : <Link2 />}
+              : <Link2 />}
           </span>
           <div>
             <small>
               {post.sourceType === 'instagram'
                 ? 'OPEN ON INSTAGRAM'
-                : post.sourceType === 'youtube'
-                  ? 'WATCH ON YOUTUBE'
-                  : `SHARED LINK · ${linkDomain(post.linkUrl)}`}
+                : `SHARED LINK · ${linkDomain(post.linkUrl)}`}
             </small>
             <strong>{post.sourceTitle || post.linkUrl}</strong>
           </div>
@@ -975,6 +1112,7 @@ export default function TeamHome() {
       return feed.posts.filter((post) => (
         post.sourceType === 'instagram'
         || post.sourceType === 'youtube'
+        || post.sourceType === 'tiktok'
         || post.sourceType === 'system'
       ));
     }

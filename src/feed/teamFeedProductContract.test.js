@@ -7,8 +7,10 @@ const home = read('src/feed/TeamHome.jsx');
 const cloud = read('src/feed/feedCloud.js');
 const migration = read('supabase/migrations/20260730_team_feed.sql');
 const activityMigration = read('supabase/migrations/20260730_team_feed_activity.sql');
+const tiktokMigration = read('supabase/migrations/20260731_team_feed_tiktok.sql');
 const desktopNav = read('src/components/WorkspaceSwitcher.jsx');
 const mobileNav = read('src/components/MobileBottomNav.jsx');
+const deployment = read('vercel.json');
 
 describe('Squad Live product contract', () => {
   it('keeps public performance visible while the team conversation stays private', () => {
@@ -39,7 +41,17 @@ describe('Squad Live product contract', () => {
     expect(activityMigration).toContain("'youtube',");
     expect(activityMigration).toContain('team_feed_reactions');
     expect(home).toContain('<OfficialResultCard post={post} />');
+    expect(home).toContain('<SocialVideoCard post={post} />');
     expect(home).toContain('FEED_REACTIONS.map');
+  });
+
+  it('supports direct social playback without widening trusted origins', () => {
+    expect(tiktokMigration).toContain("'tiktok',");
+    expect(tiktokMigration).toContain('public.goonsquad_feed_upsert');
+    expect(home).toContain("post.sourceType === 'tiktok'");
+    expect(deployment).toContain('https://i.ytimg.com');
+    expect(deployment).toContain('https://www.youtube-nocookie.com');
+    expect(deployment).toContain('https://www.tiktok.com');
   });
 
   it('enforces approved-member access in Postgres and private object storage', () => {

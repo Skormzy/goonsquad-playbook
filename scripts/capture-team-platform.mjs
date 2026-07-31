@@ -51,7 +51,9 @@ for (const viewport of viewports) {
   const page = await context.newPage();
   const browserErrors = [];
   page.on('console', (message) => {
-    if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`);
+    const text = message.text();
+    const isYoutubePermissionNoise = text.includes('Permissions policy violation: compute-pressure');
+    if (message.type() === 'error' && !isYoutubePermissionNoise) browserErrors.push(`console: ${text}`);
   });
   page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
 
@@ -106,6 +108,20 @@ for (const viewport of viewports) {
   const youtubePostText = (await youtubePost.innerText()).replace(/\s+/gu, ' ').trim();
   const youtubePath = path.join(outputDir, `${viewport.id}-youtube-feed-${viewport.width}x${viewport.height}.png`);
   await page.screenshot({ path: youtubePath, fullPage: false });
+  await youtubePost.getByRole('button', { name: /Play .* in the feed/u }).click();
+  const youtubePlayer = youtubePost.locator('iframe');
+  await youtubePlayer.waitFor({ state: 'visible', timeout: 30_000 });
+  const youtubePlayerSource = await youtubePlayer.getAttribute('src');
+  await page.waitForTimeout(3_000);
+  const youtubePlayerFrame = page.frames().find((frame) => frame.url().startsWith('https://www.youtube-nocookie.com/embed/'));
+  const youtubePlayerLoaded = Boolean(youtubePlayerFrame && (await youtubePlayerFrame.title()).trim());
+  const youtubePlayerPath = path.join(outputDir, `${viewport.id}-youtube-player-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: youtubePlayerPath, fullPage: false });
+  const tiktokPost = page.locator('.feed-post.is-source.is-tiktok').first();
+  await tiktokPost.scrollIntoViewIfNeeded();
+  const tiktokPostText = (await tiktokPost.innerText()).replace(/\s+/gu, ' ').trim();
+  const tiktokPath = path.join(outputDir, `${viewport.id}-tiktok-feed-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: tiktokPath, fullPage: false });
   await page.getByRole('tab', { name: 'All', exact: true }).click();
 
   await page.getByTestId(viewport.id === 'mobile' ? 'mobile-nav-stats' : 'workspace-content-stats').click();
@@ -192,6 +208,9 @@ for (const viewport of viewports) {
     memberDocumentOverflow,
     officialResultText,
     youtubePostText,
+    youtubePlayerSource,
+    youtubePlayerLoaded,
+    tiktokPostText,
     summary: summary.replace(/\s+/gu, ' ').trim(),
     matchday: matchday.map((value) => value.replace(/\s+/gu, ' ').trim()),
     teamLabels,
@@ -217,6 +236,8 @@ for (const viewport of viewports) {
       path.relative(root, memberHomePath).replaceAll('\\', '/'),
       path.relative(root, officialResultPath).replaceAll('\\', '/'),
       path.relative(root, youtubePath).replaceAll('\\', '/'),
+      path.relative(root, youtubePlayerPath).replaceAll('\\', '/'),
+      path.relative(root, tiktokPath).replaceAll('\\', '/'),
       path.relative(root, statsPath).replaceAll('\\', '/'),
       path.relative(root, gameDetailPath).replaceAll('\\', '/'),
       path.relative(root, gameBoxScorePath).replaceAll('\\', '/'),
@@ -239,9 +260,19 @@ for (const viewport of viewports) {
   }
   if (
     !youtubePostText.includes('Goonsquad vs Dew Lang Ducks')
-    || !youtubePostText.includes('WATCH ON YOUTUBE')
+    || !youtubePostText.includes('Open in YouTube')
   ) {
     throw new Error(`${viewport.id}: YouTube feed card is incomplete.`);
+  }
+  if (!youtubePlayerSource?.startsWith('https://www.youtube-nocookie.com/embed/JEnVPcwJiFU?')) {
+    throw new Error(`${viewport.id}: YouTube video did not open in the feed.`);
+  }
+  if (!youtubePlayerLoaded) throw new Error(`${viewport.id}: YouTube player document did not finish loading.`);
+  if (
+    !tiktokPostText.includes('New from Goon Squad on TikTok')
+    || !tiktokPostText.includes('Open in TikTok')
+  ) {
+    throw new Error(`${viewport.id}: TikTok feed card is incomplete.`);
   }
   if (matchday.length !== 2 || !matchday[0].includes('NEXT GAME') || !matchday[1].includes('LATEST RESULT')) throw new Error(`${viewport.id}: matchday summary is incomplete.`);
   if (!/\d+–\d+–\d+/u.test(summary) || !/\d+ games · 2 leagues/u.test(summary)) {

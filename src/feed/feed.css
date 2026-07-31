@@ -204,6 +204,17 @@
   color: #ff3030;
 }
 
+.feed-source-avatar.is-tiktok {
+  border-color: color-mix(in srgb, #25f4ee 70%, var(--feed-border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, #25f4ee 15%, var(--feed-surface)) 0 52%, color-mix(in srgb, #fe2c55 12%, var(--feed-surface)) 52%);
+  color: color-mix(in srgb, #111 74%, #25f4ee);
+}
+
+[data-theme='dark'] .feed-source-avatar.is-tiktok {
+  color: #25f4ee;
+}
+
 .feed-source-avatar svg {
   width: 20px;
   height: 20px;
@@ -289,6 +300,10 @@
 .feed-post.is-source.is-instagram,
 .feed-post.is-source.is-youtube {
   border-top-color: var(--gs-red);
+}
+
+.feed-post.is-source.is-tiktok {
+  border-top-color: #25d9d4;
 }
 
 .feed-post-pinned {
@@ -628,6 +643,150 @@
   width: 16px;
   height: 16px;
   fill: currentColor;
+}
+
+.feed-social-video {
+  overflow: hidden;
+  border-top: 1px solid var(--feed-border);
+  border-bottom: 1px solid var(--feed-border);
+  background: #050608;
+}
+
+.feed-video-poster {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #050608;
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.feed-video-poster::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 48%, rgb(0 0 0 / 56%));
+  content: '';
+  pointer-events: none;
+}
+
+.feed-video-poster img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.feed-video-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 9px;
+  background:
+    linear-gradient(125deg, rgb(37 244 238 / 12%), transparent 46%),
+    linear-gradient(305deg, rgb(254 44 85 / 20%), transparent 42%),
+    #090a0d;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 20px;
+}
+
+.feed-video-placeholder svg {
+  width: 48px;
+  height: 48px;
+}
+
+.feed-video-play {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  min-width: 116px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid rgb(255 255 255 / 72%);
+  border-radius: 5px;
+  background: rgb(5 6 8 / 84%);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 13px;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 42%);
+  transform: translate(-50%, -50%);
+}
+
+.feed-video-play svg {
+  width: 21px;
+  height: 21px;
+  fill: currentColor;
+}
+
+.feed-video-poster:hover .feed-video-play,
+.feed-video-poster:focus-visible .feed-video-play {
+  border-color: #fff;
+  background: var(--gs-red);
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.feed-social-video iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  border: 0;
+  background: #050608;
+}
+
+.feed-social-video.is-tiktok .feed-video-poster,
+.feed-social-video.is-tiktok iframe {
+  width: min(100%, 360px);
+  max-height: 640px;
+  margin-inline: auto;
+  aspect-ratio: 9 / 16;
+}
+
+.feed-video-source-link {
+  min-height: 41px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  padding: 0 14px;
+  border-top: 1px solid rgb(255 255 255 / 12%);
+  background: #0b0d11;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.feed-video-source-link > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: auto;
+  color: #9ba4b4;
+  font-family: var(--font-display);
+  font-size: 10px;
+}
+
+.feed-video-source-link svg {
+  width: 14px;
+  height: 14px;
+}
+
+.feed-video-source-link:hover,
+.feed-video-source-link:focus-visible {
+  color: #25d9f2;
 }
 
 .feed-link-card {
@@ -1726,6 +1885,18 @@
   .feed-source-media,
   .feed-source-media img {
     max-height: 430px;
+  }
+
+  .feed-video-play {
+    min-width: 106px;
+    min-height: 44px;
+    font-size: 12px;
+  }
+
+  .feed-social-video.is-tiktok .feed-video-poster,
+  .feed-social-video.is-tiktok iframe {
+    width: min(100%, 330px);
+    max-height: 586px;
   }
 
   .feed-link-card {
