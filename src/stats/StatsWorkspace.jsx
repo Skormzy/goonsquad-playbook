@@ -69,6 +69,12 @@ import {
   publicPlayerProfileSnapshot,
 } from '../profile/profileModel';
 import PlayerProfilePage from './PlayerProfilePage';
+import TournamentWorkspace from './TournamentWorkspace';
+import {
+  TOURNAMENT_ARCHIVE,
+  TOURNAMENT_COMPETITION_ID,
+  tournamentById,
+} from './tournamentModel';
 
 const TABS = Object.freeze([
   { id: 'overview', label: 'Overview' },
@@ -745,6 +751,14 @@ export default function StatsWorkspace() {
   const { theme, themes } = useTheme();
   const account = useAccount();
   const [dataset, setDataset] = useState(null);
+  const [competition, setCompetition] = useState(() => (
+    initialQueryValue('competition') === TOURNAMENT_COMPETITION_ID
+      ? TOURNAMENT_COMPETITION_ID
+      : 'league'
+  ));
+  const [selectedTournamentId, setSelectedTournamentId] = useState(() => (
+    initialQueryValue('tournament') || TOURNAMENT_ARCHIVE[0]?.id || ''
+  ));
   const [seasonId, setSeasonId] = useState(() => initialQueryValue('season'));
   const [teamId, setTeamId] = useState(() => initialQueryValue('team'));
   const [stage, setStage] = useState(() => initialQueryValue('stage') || 'regular');
@@ -809,15 +823,29 @@ export default function StatsWorkspace() {
 
   useEffect(() => {
     const syncStatsDetailFromHistory = () => {
+      const nextCompetition = initialQueryValue('competition') === TOURNAMENT_COMPETITION_ID
+        ? TOURNAMENT_COMPETITION_ID
+        : 'league';
+      const nextTournamentId = initialQueryValue('tournament') || TOURNAMENT_ARCHIVE[0]?.id || '';
       const nextGameId = initialQueryValue('game');
       const nextOpponent = initialQueryValue('opponent');
       const nextFixtureId = initialQueryValue('fixture');
       const nextPlayerId = initialQueryValue('player');
-      setSelectedGameId(nextGameId);
-      setSelectedOpponentSlug(nextOpponent);
-      setSelectedFixtureId(nextFixtureId);
-      setSelectedPlayerId(nextPlayerId);
-      setTab(nextPlayerId ? 'players' : nextGameId || nextOpponent ? 'games' : 'overview');
+      setCompetition(nextCompetition);
+      setSelectedTournamentId(nextTournamentId);
+      setSelectedGameId(nextCompetition === TOURNAMENT_COMPETITION_ID ? '' : nextGameId);
+      setSelectedOpponentSlug(nextCompetition === TOURNAMENT_COMPETITION_ID ? '' : nextOpponent);
+      setSelectedFixtureId(nextCompetition === TOURNAMENT_COMPETITION_ID ? '' : nextFixtureId);
+      setSelectedPlayerId(nextCompetition === TOURNAMENT_COMPETITION_ID ? '' : nextPlayerId);
+      setTab(
+        nextCompetition === TOURNAMENT_COMPETITION_ID
+          ? 'overview'
+          : nextPlayerId
+            ? 'players'
+            : nextGameId || nextOpponent
+              ? 'games'
+              : 'overview',
+      );
       setLinkCopied(false);
     };
     window.addEventListener('popstate', syncStatsDetailFromHistory);
@@ -829,6 +857,21 @@ export default function StatsWorkspace() {
     const requested = statsSnapshot(dataset, seasonId, teamId, stage);
     return requested.availableStages.includes(stage) ? requested : statsSnapshot(dataset, seasonId, teamId, 'regular');
   }, [dataset, seasonId, teamId, stage]);
+  const competitionTeams = useMemo(() => {
+    if (!snapshot) return [];
+    const scheduleRank = (team) => {
+      const label = formatScheduleName(team);
+      if (label === 'Monday League') return 0;
+      if (label === 'Sunday League') return 1;
+      return 2;
+    };
+    return [...snapshot.seasonTeams].sort((a, b) => (
+      scheduleRank(a) - scheduleRank(b)
+      || formatScheduleName(a).localeCompare(formatScheduleName(b))
+    ));
+  }, [snapshot]);
+  const tournamentMode = competition === TOURNAMENT_COMPETITION_ID;
+  const selectedTournament = tournamentById(TOURNAMENT_ARCHIVE, selectedTournamentId);
 
   const selectedGameContext = useMemo(() => {
     if (!dataset || !selectedGameId) return null;
@@ -882,17 +925,29 @@ export default function StatsWorkspace() {
   useEffect(() => {
     if (typeof window === 'undefined' || !dataset || !snapshot || !seasonId) return;
     const url = new URL(window.location.href);
-    url.searchParams.set('season', seasonId);
-    if (snapshot?.team?.id) url.searchParams.set('team', snapshot.team.id);
-    else url.searchParams.delete('team');
-    if (snapshot?.stage === 'regular') url.searchParams.delete('stage');
-    else url.searchParams.set('stage', snapshot?.stage || 'regular');
-    applyStatsDetailParams(url, {
-      playerId: selectedPlayerId,
-      finalGameId: selectedFinalGameContext?.game.id,
-      opponent: selectedOpponentContext?.matchup.slug,
-      fixtureId: selectedOpponentContext?.fixture?.id,
-    });
+    if (tournamentMode) {
+      url.searchParams.set('competition', TOURNAMENT_COMPETITION_ID);
+      if (selectedTournament?.id) url.searchParams.set('tournament', selectedTournament.id);
+      else url.searchParams.delete('tournament');
+      url.searchParams.delete('season');
+      url.searchParams.delete('team');
+      url.searchParams.delete('stage');
+      applyStatsDetailParams(url);
+    } else {
+      url.searchParams.delete('competition');
+      url.searchParams.delete('tournament');
+      url.searchParams.set('season', seasonId);
+      if (snapshot?.team?.id) url.searchParams.set('team', snapshot.team.id);
+      else url.searchParams.delete('team');
+      if (snapshot?.stage === 'regular') url.searchParams.delete('stage');
+      else url.searchParams.set('stage', snapshot?.stage || 'regular');
+      applyStatsDetailParams(url, {
+        playerId: selectedPlayerId,
+        finalGameId: selectedFinalGameContext?.game.id,
+        opponent: selectedOpponentContext?.matchup.slug,
+        fixtureId: selectedOpponentContext?.fixture?.id,
+      });
+    }
     window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`);
   }, [
     dataset,
@@ -901,9 +956,11 @@ export default function StatsWorkspace() {
     selectedOpponentContext?.fixture?.id,
     selectedOpponentContext?.matchup.slug,
     selectedPlayerId,
+    selectedTournament?.id,
     snapshot,
     snapshot?.team?.id,
     snapshot?.stage,
+    tournamentMode,
   ]);
 
   useEffect(() => {
@@ -912,6 +969,7 @@ export default function StatsWorkspace() {
     });
     return () => window.cancelAnimationFrame(frameId);
   }, [
+    competition,
     seasonId,
     selectedFixtureId,
     selectedGameId,
@@ -920,6 +978,7 @@ export default function StatsWorkspace() {
     stage,
     tab,
     teamId,
+    selectedTournamentId,
   ]);
 
   if (!dataset || !snapshot) return <div className="stats-loading"><RefreshCw aria-hidden="true" /> Loading team statistics…</div>;
@@ -1031,6 +1090,27 @@ export default function StatsWorkspace() {
       setLinkCopied(false);
     }
   };
+  const clearStatsDetails = () => {
+    setSelectedGameId('');
+    setSelectedOpponentSlug('');
+    setSelectedFixtureId('');
+    setSelectedPlayerId('');
+    setLinkCopied(false);
+  };
+  const selectLeagueTeam = (nextTeamId) => {
+    setCompetition('league');
+    setTeamId(nextTeamId);
+    setStage('regular');
+    setTab('overview');
+    clearStatsDetails();
+  };
+  const selectTournament = (tournamentId) => {
+    setCompetition(TOURNAMENT_COMPETITION_ID);
+    setSelectedTournamentId(tournamentId);
+    setTab('overview');
+    setManagerOpen(false);
+    clearStatsDetails();
+  };
 
   return (
     <main ref={workspaceRef} className="stats-workspace" style={{
@@ -1047,14 +1127,18 @@ export default function StatsWorkspace() {
     }}>
       {!selectedFinalGameContext && !selectedOpponentContext && !selectedPlayerId && <header className="stats-workspace-header stats-home-hero">
         <div className="stats-title">
-          <span>TEAM STATISTICS</span>
-          <h1>{snapshot.season?.name || 'Goonsquad'}</h1>
-          <p>{snapshot.isSeasonAggregate ? `${scheduleCount} league schedules, results, and player stats.` : `${formatScheduleName(snapshot.team)} performance, fixtures, and player totals.`}</p>
+          <span>{tournamentMode ? 'TOURNAMENT HQ' : 'TEAM STATISTICS'}</span>
+          <h1>{tournamentMode ? 'Tournament archive' : snapshot.season?.name || 'Goonsquad'}</h1>
+          <p>{tournamentMode
+            ? 'Standings, bracket paths, matchups, and team game film.'
+            : snapshot.isSeasonAggregate
+              ? `${scheduleCount} league schedules, results, and player stats.`
+              : `${formatScheduleName(snapshot.team)} performance, fixtures, and player totals.`}</p>
         </div>
-        <div className="stats-season-controls">
+        {!tournamentMode && <div className="stats-season-controls">
           <label><span>Season</span><select value={snapshot.season?.id ?? ''} onChange={(event) => { setSeasonId(event.target.value); setTeamId(''); setStage('regular'); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }} disabled={!dataset.seasons.length}>{dataset.seasons.map((season) => <option key={season.id} value={season.id}>{season.name}</option>)}</select></label>
           {canManage && <button type="button" className="stats-manage-button" onClick={() => setManagerOpen(true)}><Settings2 aria-hidden="true" /> Manage data</button>}
-        </div>
+        </div>}
       </header>}
 
       {selectedPlayerProfile ? <section className="stats-content is-player-page">
@@ -1081,12 +1165,25 @@ export default function StatsWorkspace() {
           copied={linkCopied}
           onOpenGame={openGame}
         />
-      </section> : <><div className="stats-team-switcher" role="group" aria-label="League schedule">
-        {snapshot.seasonTeams.length > 1 && <button type="button" aria-pressed={snapshot.isSeasonAggregate} onClick={() => { setTeamId(ALL_SEASON_TEAMS_ID); setStage('regular'); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }}>All teams</button>}
-        {snapshot.seasonTeams.map((team) => <button key={team.id} type="button" aria-pressed={snapshot.team?.id === team.id} onClick={() => { setTeamId(team.id); setStage('regular'); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }}>{formatScheduleName(team)}</button>)}
+      </section> : <><div className="stats-team-switcher" role="group" aria-label="Competition">
+        {snapshot.seasonTeams.length > 1 && <button type="button" aria-pressed={!tournamentMode && snapshot.isSeasonAggregate} onClick={() => selectLeagueTeam(ALL_SEASON_TEAMS_ID)}>All teams</button>}
+        {competitionTeams.map((team) => <button key={team.id} type="button" aria-pressed={!tournamentMode && snapshot.team?.id === team.id} onClick={() => selectLeagueTeam(team.id)}>{formatScheduleName(team)}</button>)}
+        <button
+          type="button"
+          aria-pressed={tournamentMode}
+          onClick={() => selectTournament(selectedTournament?.id || TOURNAMENT_ARCHIVE[0]?.id || '')}
+        >
+          Tournaments
+        </button>
       </div>
 
-      {snapshot.availableStages.length > 1 && <div className="stats-stage-switcher" role="group" aria-label="Season stage">
+      {tournamentMode ? (
+        <TournamentWorkspace
+          tournaments={TOURNAMENT_ARCHIVE}
+          selectedTournamentId={selectedTournament?.id}
+          onSelectTournament={selectTournament}
+        />
+      ) : <>{snapshot.availableStages.length > 1 && <div className="stats-stage-switcher" role="group" aria-label="Season stage">
         {snapshot.availableStages.map((item) => <button key={item} type="button" aria-pressed={snapshot.stage === item} onClick={() => { setStage(item); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }}>{item === 'regular' ? 'Regular season' : item === 'playoffs' ? 'Playoffs' : 'All games'}</button>)}
       </div>}
 
@@ -1154,9 +1251,12 @@ export default function StatsWorkspace() {
         )}
       </section>
       </>}
+      </>}
 
-      <footer className="stats-data-note"><ShieldCheck aria-hidden="true" /><span>{dataset.seasons.length} seasons · {dataset.teams.length} league schedules · {dataset.games.length} games. Verified {dataset.capturedAt ? formatGameDate(dataset.capturedAt) : 'league archive'}.</span>{officialSourceUrl && <a href={officialSourceUrl} target="_blank" rel="noreferrer">Official source <ExternalLink aria-hidden="true" /></a>}</footer>
-      {managerOpen && <StatsManager dataset={dataset} snapshot={snapshot} onClose={() => setManagerOpen(false)} onUpdated={refresh} />}
+      <footer className="stats-data-note"><ShieldCheck aria-hidden="true" /><span>{tournamentMode
+        ? `${TOURNAMENT_ARCHIVE.length} tournament dossier · ${selectedTournament?.games?.length || 0} documented games.`
+        : `${dataset.seasons.length} seasons · ${dataset.teams.length} league schedules · ${dataset.games.length} games. Verified ${dataset.capturedAt ? formatGameDate(dataset.capturedAt) : 'league archive'}.`}</span>{(tournamentMode ? selectedTournament?.sourceUrl : officialSourceUrl) && <a href={tournamentMode ? selectedTournament.sourceUrl : officialSourceUrl} target="_blank" rel="noreferrer">Official source <ExternalLink aria-hidden="true" /></a>}</footer>
+      {!tournamentMode && managerOpen && <StatsManager dataset={dataset} snapshot={snapshot} onClose={() => setManagerOpen(false)} onUpdated={refresh} />}
     </main>
   );
 }

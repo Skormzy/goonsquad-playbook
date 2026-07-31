@@ -179,6 +179,44 @@ for (const viewport of viewports) {
   await page.getByRole('button', { name: 'Sunday League', exact: true }).click();
   const stageLabels = await page.locator('.stats-stage-switcher button').allTextContents();
 
+  await page.getByRole('button', { name: 'Tournaments', exact: true }).click();
+  const tournamentWorkspace = page.locator('.tournament-workspace');
+  await tournamentWorkspace.waitFor({ state: 'visible' });
+  const tournamentUrl = new URL(page.url());
+  const tournamentText = (await tournamentWorkspace.innerText()).replace(/\s+/gu, ' ').trim();
+  const tournamentSelectorLabels = (await page.locator('.stats-tournament-selector button').allTextContents())
+    .map((value) => value.replace(/\s+/gu, ' ').trim());
+  const tournamentTabs = await page.locator('.tournament-tabs button').allTextContents();
+  const tournamentOverviewPath = path.join(outputDir, `${viewport.id}-tournament-overview-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: tournamentOverviewPath, fullPage: false });
+
+  await page.locator('.tournament-tabs button').nth(1).click();
+  const tournamentStandingsText = (await page.locator('.tournament-panel').innerText()).replace(/\s+/gu, ' ').trim();
+  const tournamentStandingsPath = path.join(outputDir, `${viewport.id}-tournament-standings-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: tournamentStandingsPath, fullPage: false });
+
+  await page.locator('.tournament-tabs button').nth(2).click();
+  const tournamentBracketText = (await page.locator('.tournament-panel').innerText()).replace(/\s+/gu, ' ').trim();
+  const tournamentBracketPath = path.join(outputDir, `${viewport.id}-tournament-bracket-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: tournamentBracketPath, fullPage: false });
+
+  await page.locator('.tournament-tabs button').nth(3).click();
+  const tournamentVideoCount = await page.locator('.tournament-games .tournament-video').count();
+  const tournamentGamesPath = path.join(outputDir, `${viewport.id}-tournament-games-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: tournamentGamesPath, fullPage: false });
+  const tournamentDocumentOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+
+  await page.locator('.stats-tournament-selector button').filter({ hasText: 'Mississauga 2024' }).click();
+  await page.locator('.tournament-hero h2').filter({ hasText: '2024 OBHF Summer Provincials' }).waitFor({ state: 'visible' });
+  const tournament2024Url = new URL(page.url());
+  const tournament2024Text = (await tournamentWorkspace.innerText()).replace(/\s+/gu, ' ').trim();
+  const tournament2024Path = path.join(outputDir, `${viewport.id}-tournament-2024-overview-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: tournament2024Path, fullPage: false });
+  await page.locator('.tournament-tabs button').nth(2).click();
+  const tournament2024BracketText = (await page.locator('.tournament-panel').innerText()).replace(/\s+/gu, ' ').trim();
+  const tournament2024BracketPath = path.join(outputDir, `${viewport.id}-tournament-2024-bracket-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: tournament2024BracketPath, fullPage: false });
+
   await page.getByRole('button', { name: 'Open team account' }).click();
   const accountDialog = page.getByRole('dialog', { name: /Join the squad workspace|Your team account/u });
   const accountWorkspace = page.locator('.account-workspace');
@@ -217,6 +255,17 @@ for (const viewport of viewports) {
     scheduleRows: scheduleRows.map((value) => value.replace(/\s+/gu, ' ').trim()),
     seasonOptions,
     stageLabels,
+    tournamentText,
+    tournamentSelectorLabels,
+    tournamentTabs,
+    tournamentStandingsText,
+    tournamentBracketText,
+    tournamentVideoCount,
+    tournamentUrl: tournamentUrl.href,
+    tournamentDocumentOverflow,
+    tournament2024Text,
+    tournament2024BracketText,
+    tournament2024Url: tournament2024Url.href,
     leaderCount,
     sourceHref,
     gameDetailText,
@@ -239,6 +288,12 @@ for (const viewport of viewports) {
       path.relative(root, youtubePlayerPath).replaceAll('\\', '/'),
       path.relative(root, tiktokPath).replaceAll('\\', '/'),
       path.relative(root, statsPath).replaceAll('\\', '/'),
+      path.relative(root, tournamentOverviewPath).replaceAll('\\', '/'),
+      path.relative(root, tournamentStandingsPath).replaceAll('\\', '/'),
+      path.relative(root, tournamentBracketPath).replaceAll('\\', '/'),
+      path.relative(root, tournamentGamesPath).replaceAll('\\', '/'),
+      path.relative(root, tournament2024Path).replaceAll('\\', '/'),
+      path.relative(root, tournament2024BracketPath).replaceAll('\\', '/'),
       path.relative(root, gameDetailPath).replaceAll('\\', '/'),
       path.relative(root, gameBoxScorePath).replaceAll('\\', '/'),
       path.relative(root, accountPath).replaceAll('\\', '/'),
@@ -278,7 +333,7 @@ for (const viewport of viewports) {
   if (!/\d+–\d+–\d+/u.test(summary) || !/\d+ games · 2 leagues/u.test(summary)) {
     throw new Error(`${viewport.id}: combined current-season record is missing.`);
   }
-  if (teamLabels.join('|') !== 'All teams|Monday League|Sunday League') throw new Error(`${viewport.id}: current league schedules are incorrect.`);
+  if (teamLabels.join('|') !== 'All teams|Monday League|Sunday League|Tournaments') throw new Error(`${viewport.id}: current competition navigation is incorrect.`);
   if (scheduleRows.length !== 2 || !scheduleRows.some((row) => row.includes('MON/THU TIER 5')) || !scheduleRows.some((row) => row.includes('SUNDAY TIER 5'))) throw new Error(`${viewport.id}: current league coverage is incomplete.`);
   if (seasonOptions.length !== 16) throw new Error(`${viewport.id}: expected 16 official seasons, received ${seasonOptions.length}.`);
   if (leaderCount < 1) throw new Error(`${viewport.id}: official player leaders are missing.`);
@@ -300,6 +355,50 @@ for (const viewport of viewports) {
   }
   if (!gameDetailSource?.startsWith('https://www.yorkcentralbhl.com/game/')) throw new Error(`${viewport.id}: game-sheet provenance is missing.`);
   if (stageLabels.join('|') !== 'Regular season|Playoffs|All games') throw new Error(`${viewport.id}: stage filtering is incomplete.`);
+  if (
+    tournamentUrl.searchParams.get('competition') !== 'tournaments'
+    || tournamentUrl.searchParams.get('tournament') !== '2026-oshawa-provincials'
+  ) {
+    throw new Error(`${viewport.id}: tournament deep link is incomplete.`);
+  }
+  const normalizedTournamentText = tournamentText.toLowerCase();
+  if (
+    !tournamentText.includes('2026 Oshawa Provincials')
+    || !normalizedTournamentText.includes('3 documented games')
+    || !normalizedTournamentText.includes('6')
+    || !normalizedTournamentText.includes('camera angles')
+  ) {
+    throw new Error(`${viewport.id}: tournament overview is incomplete.`);
+  }
+  if (tournamentTabs.join('|') !== 'Overview|Standings|Bracket|Games') throw new Error(`${viewport.id}: tournament dossier navigation is incomplete.`);
+  if (
+    tournamentSelectorLabels.length !== 2
+    || !tournamentSelectorLabels[0].startsWith('Oshawa 2026')
+    || !tournamentSelectorLabels[1].startsWith('Mississauga 2024')
+  ) {
+    throw new Error(`${viewport.id}: tournament archive selector is incomplete.`);
+  }
+  if (!tournamentStandingsText.includes('Official standings needed')) throw new Error(`${viewport.id}: tournament standings archive state is unclear.`);
+  if (!tournamentBracketText.includes('Round robin') || !tournamentBracketText.includes('Elimination')) throw new Error(`${viewport.id}: tournament bracket path is incomplete.`);
+  if (tournamentVideoCount !== 6) throw new Error(`${viewport.id}: expected six tournament video angles, received ${tournamentVideoCount}.`);
+  if (tournamentDocumentOverflow > 1) throw new Error(`${viewport.id}: tournament workspace has ${tournamentDocumentOverflow}px horizontal overflow.`);
+  if (
+    tournament2024Url.searchParams.get('tournament') !== '2024-mississauga-provincials'
+    || !tournament2024Text.includes('2024 OBHF Summer Provincials')
+    || !tournament2024Text.includes('Blades of Steel')
+    || !tournament2024Text.includes('Spartans')
+    || !tournament2024Text.includes('Cambridge Thunder')
+  ) {
+    throw new Error(`${viewport.id}: 2024 tournament dossier is incomplete.`);
+  }
+  if (
+    !tournament2024BracketText.includes('Semifinals')
+    || !tournament2024BracketText.includes('Championship')
+    || !tournament2024BracketText.includes('1st pool winner')
+    || !tournament2024BracketText.includes('Semifinal 1 winner')
+  ) {
+    throw new Error(`${viewport.id}: 2024 tournament bracket is incomplete.`);
+  }
   if (
     !accountText.includes('Display name')
     || !accountText.includes('Username')
