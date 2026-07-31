@@ -84,13 +84,15 @@ describe('Squad Live product contract', () => {
     expect(mobileNav).toContain("content: 'stats'");
   });
 
-  it('keeps the desktop feed and game rail independently scrollable', () => {
+  it('keeps Game Pulse fixed while feed and attendance scroll independently', () => {
     expect(home).toContain('ref={feedScrollRef}');
     expect(home).toContain('ref={sideScrollRef}');
     expect(home).toContain('Back to top of Squad Live');
-    expect(home).toContain('Back to top of game pulse');
+    expect(home).toContain('Back to top of attendance');
     expect(styles).toContain('@media (min-width: 761px)');
-    expect(styles).toContain('.team-home-scroll-region > :is(.team-feed-column, .team-home-side-column)');
+    expect(styles).toContain('.team-home-scroll-region > .team-feed-column');
+    expect(styles).toContain('.team-home-attendance-scroll');
+    expect(styles).toContain('grid-template-rows: auto minmax(0, 1fr)');
     expect(styles).toContain('overflow-y: auto');
     expect(styles).toContain('overscroll-behavior: contain');
     expect(styles).toContain('scrollbar-gutter: stable');

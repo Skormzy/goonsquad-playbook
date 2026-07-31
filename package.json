@@ -89,6 +89,7 @@
     "qa:playmaker:parity": "node scripts/capture-playmaker-receiver-parity.mjs",
     "qa:guidance": "node scripts/capture-app-guidance.mjs",
     "qa:team-platform": "node scripts/capture-team-platform.mjs",
+    "qa:home-side-rail": "node scripts/check-home-side-rail.mjs",
     "qa:tournaments": "node scripts/capture-tournament-workspace.mjs",
     "qa:attendance": "node scripts/capture-attendance-review.mjs",
     "qa:member-profile": "node scripts/capture-member-profile.mjs",

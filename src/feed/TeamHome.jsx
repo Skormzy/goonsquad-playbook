@@ -1522,10 +1522,8 @@ export default function TeamHome() {
           </div>
           <div className="team-home-scroll-region is-side">
             <aside
-              ref={sideScrollRef}
               className="team-home-side-column"
               aria-label="Game pulse and lineup"
-              onScroll={(event) => updateScrolledRegion('side', event.currentTarget.scrollTop)}
             >
               <TeamPulse
                 dataset={dataset}
@@ -1533,18 +1531,27 @@ export default function TeamHome() {
                 onOpenStats={() => navigate('stats')}
                 onOpenGame={(game) => navigate('stats', { game: game.id })}
               />
-              <AttendanceBoard
-                account={account}
-                currentMember={currentMember}
-                dataset={dataset}
-                isAdmin={isAdmin}
-                members={feed.members}
-                qaMode={qaFeed}
-                tournaments={tournaments}
-              />
+              <div
+                ref={sideScrollRef}
+                className="team-home-attendance-scroll"
+                role="region"
+                aria-label="Lineups and attendance"
+                tabIndex={0}
+                onScroll={(event) => updateScrolledRegion('side', event.currentTarget.scrollTop)}
+              >
+                <AttendanceBoard
+                  account={account}
+                  currentMember={currentMember}
+                  dataset={dataset}
+                  isAdmin={isAdmin}
+                  members={feed.members}
+                  qaMode={qaFeed}
+                  tournaments={tournaments}
+                />
+              </div>
             </aside>
             <ScrollToTopButton
-              label="Back to top of game pulse"
+              label="Back to top of attendance"
               visible={scrolledRegions.side}
               onClick={() => scrollRegionToTop('side')}
             />
