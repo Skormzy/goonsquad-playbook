@@ -1,4 +1,4 @@
-export const PUBLIC_VIEW_IDS = Object.freeze(['playbook', 'tactics', 'replay3d', 'strategy3d', 'playmaker', 'stats', 'profile', 'account']);
+export const PUBLIC_VIEW_IDS = Object.freeze(['home', 'playbook', 'tactics', 'replay3d', 'strategy3d', 'playmaker', 'stats', 'profile', 'account']);
 export const INTERNAL_VIEW_IDS = Object.freeze(['rigreview']);
 
 export function createViewRegistry({ includeInternal = false } = {}) {
@@ -20,6 +20,7 @@ export function resolveInitialView(href, { includeInternal = false } = {}) {
 
     const content = url.searchParams.get('content');
     const mode = url.searchParams.get('mode');
+    if (content === 'home') return 'home';
     if (content === 'playmaker') return 'playmaker';
     if (content === 'stats') return 'stats';
     if (content === 'profile') return 'profile';
@@ -28,5 +29,5 @@ export function resolveInitialView(href, { includeInternal = false } = {}) {
     if (content === 'plays') return mode === '3d' ? 'replay3d' : 'playbook';
   } catch { /* URL unavailable */ }
 
-  return 'stats';
+  return 'home';
 }

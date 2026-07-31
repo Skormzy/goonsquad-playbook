@@ -27,13 +27,24 @@ describe('WorkspaceSwitcher', () => {
     expect(markup).toContain('aria-label="View"');
     expect(markup).toContain('data-testid="workspace-content-plays"');
     expect(markup).toContain('data-testid="workspace-content-playmaker"');
+    expect(markup).toContain('data-testid="workspace-content-home"');
     expect(markup).toContain('data-testid="workspace-content-stats"');
     expect(markup).toContain('data-testid="workspace-view-3d"');
     expect(markup).toContain('>HOME</span>');
+    expect(markup.indexOf('workspace-content-home')).toBeLessThan(markup.indexOf('workspace-content-stats'));
     expect(markup.indexOf('workspace-content-stats')).toBeLessThan(markup.indexOf('workspace-content-plays'));
   });
 
-  it('shows Team Home as the first-class statistics surface without a view switch', () => {
+  it('shows Squad Live and Stats as separate first-class surfaces without view switches', () => {
+    const homeMarkup = renderToStaticMarkup(
+      <WorkspaceSwitcher
+        content="home"
+        mode="2d"
+        onContentChange={vi.fn()}
+        onModeChange={vi.fn()}
+        colors={colors}
+      />,
+    );
     const markup = renderToStaticMarkup(
       <WorkspaceSwitcher
         content="stats"
@@ -44,6 +55,10 @@ describe('WorkspaceSwitcher', () => {
       />,
     );
 
+    expect(homeMarkup).toContain('data-content="home"');
+    expect(homeMarkup).toContain('data-testid="workspace-content-home"');
+    expect(homeMarkup).toContain('aria-current="page"');
+    expect(homeMarkup).not.toContain('aria-label="View"');
     expect(markup).toContain('data-content="stats"');
     expect(markup).toContain('data-testid="workspace-content-stats"');
     expect(markup).toContain('aria-current="page"');
@@ -97,6 +112,7 @@ describe('WorkspaceSwitcher', () => {
     expect(markup).toMatch(/data-locked="true"[^>]*data-testid="workspace-content-strategy"/);
     expect(markup).toMatch(/data-locked="true"[^>]*data-testid="workspace-content-playmaker"/);
     expect(markup).not.toMatch(/data-testid="workspace-content-stats"[^>]*data-locked/);
+    expect(markup).not.toMatch(/data-testid="workspace-content-home"[^>]*data-locked/);
     expect(markup).toContain('Create an account and request access.');
   });
 });

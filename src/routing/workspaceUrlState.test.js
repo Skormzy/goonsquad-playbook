@@ -203,6 +203,26 @@ describe('workspace URL state', () => {
     }
   });
 
+  it('keeps a shared feed post on Home and removes it when leaving the feed', () => {
+    const postHref = 'https://goonsquad.app/?content=home&post=post-42';
+    const homeUrl = new URL(createWorkspaceUrl(postHref, {
+      activeView: 'home',
+    }), 'https://goonsquad.app');
+    expect(homeUrl.searchParams.get('post')).toBe('post-42');
+
+    for (const activeView of ['stats', 'app', 'tactics', 'playmaker', 'profile', 'account']) {
+      const url = new URL(createWorkspaceUrl(postHref, {
+        activeView,
+        phase: 0,
+        time: 0,
+        speed: 1,
+        role: 'C',
+        playing: false,
+      }), 'https://goonsquad.app');
+      expect(url.searchParams.has('post'), `${activeView} should not retain a feed post`).toBe(false);
+    }
+  });
+
   it('restores a clean standalone member profile surface', () => {
     const state = readWorkspaceUrl('https://goonsquad.app/?content=profile&phase=4&camera=bench');
     expect(state).toMatchObject({ activeView: 'profile', content: 'profile', mode: '2d' });

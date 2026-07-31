@@ -111,9 +111,9 @@ describe('opponent matchup model', () => {
     expect(findOpponentMatchup(matchups, 'RED WOLVES (3rd)')?.games.some((game) => game.opponent === 'RED WOLVES')).toBe(true);
   });
 
-  it('keeps the verified July 26 Sunday win in the consolidated Viperz history', () => {
+  it('keeps the verified July 26 Sunday win and July 30 Monday result in the consolidated Viperz history', () => {
     const matchup = findOpponentMatchup(
-      buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-29T12:00:00-04:00')),
+      buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-30T22:00:00-04:00')),
       'VIPERZ',
     );
     const sundayWin = matchup.finalGames.find((game) => game.id === 'ycbhl-game-53117');
@@ -125,27 +125,27 @@ describe('opponent matchup model', () => {
       goalsFor: 9,
       goalsAgainst: 4,
     });
-    expect(matchup.nextGame?.id).toBe('ycbhl-game-53057');
+    expect(matchup.nextGame).toBeNull();
     expect(matchup.summary).toMatchObject({
-      gamesPlayed: 35,
+      gamesPlayed: 36,
       wins: 4,
-      losses: 31,
+      losses: 32,
       ties: 0,
-      goalsFor: 97,
-      goalsAgainst: 259,
+      goalsFor: 98,
+      goalsAgainst: 266,
     });
   });
 
   it('separates the current Sunday and Monday League Viperz records', () => {
     const sunday = findOpponentMatchup(
-      buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-29T12:00:00-04:00'), {
+      buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-30T22:00:00-04:00'), {
         seasonTeamIds: ['summer-2026-sunday'],
         scopeLabel: 'Summer 2026 · Sunday League',
       }),
       'VIPERZ',
     );
     const weekday = findOpponentMatchup(
-      buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-29T12:00:00-04:00'), {
+      buildOpponentMatchups(OFFICIAL_STATS_DATASET, new Date('2026-07-30T22:00:00-04:00'), {
         seasonTeamIds: ['summer-2026-mon-thu'],
         scopeLabel: 'Summer 2026 · Monday League',
       }),
@@ -160,12 +160,12 @@ describe('opponent matchup model', () => {
       goalsAgainst: 19,
     });
     expect(weekday.summary).toMatchObject({
-      gamesPlayed: 1,
+      gamesPlayed: 2,
       wins: 0,
-      losses: 1,
-      goalsFor: 0,
-      goalsAgainst: 5,
+      losses: 2,
+      goalsFor: 1,
+      goalsAgainst: 12,
     });
-    expect(weekday.nextGame?.id).toBe('ycbhl-game-53057');
+    expect(weekday.nextGame).toBeNull();
   });
 });

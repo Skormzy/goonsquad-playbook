@@ -1,5 +1,6 @@
 export const GUIDE_TOPIC_ORDER = Object.freeze([
   'start',
+  'home',
   'plays',
   'strategy',
   'three-d',
@@ -15,6 +16,7 @@ export const GUIDE_TOPIC_ORDER = Object.freeze([
 ]);
 
 export const DEFAULT_GUIDE_TOPIC_BY_VIEW = Object.freeze({
+  home: 'home',
   playbook: 'plays',
   replay3d: 'three-d',
   tactics: 'strategy',
@@ -46,6 +48,27 @@ export const GUIDE_TOPICS = Object.freeze({
       },
     ],
     note: 'The rink always shows 5v5 plus both goalies. Our net is at the bottom in 2D.',
+  },
+  home: {
+    label: 'Squad Live',
+    eyebrow: 'TEAM HOME',
+    title: 'Stay current without losing the game pulse',
+    intro: 'Home combines the private team conversation with a compact view of what just happened and what comes next.',
+    sections: [
+      {
+        title: 'Share what helps',
+        body: 'Approved members can post an update, link, photo, or video. Tag a teammate with their username when the update needs their attention.',
+      },
+      {
+        title: 'Keep the signal high',
+        body: 'Like useful posts, add context in comments, and use Pinned or Mentions when you need the most important information quickly.',
+      },
+      {
+        title: 'Open the full numbers',
+        body: 'The game pulse shows the latest result, next game, and current record. Stats opens the complete schedules, standings, results, and player records.',
+      },
+    ],
+    note: 'Feed posts and media are visible only to approved team members; the public performance archive remains separate.',
   },
   plays: {
     label: 'Plays',

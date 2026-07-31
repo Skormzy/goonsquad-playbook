@@ -134,7 +134,7 @@ export function TeamAccessPrompt() {
             className="team-access-secondary"
             onClick={() => {
               closeTeamAccessPrompt();
-              setActiveView('stats');
+              setActiveView('home');
             }}
           >
             Back to Home
@@ -142,7 +142,7 @@ export function TeamAccessPrompt() {
         </div>
         <footer>
           <ShieldCheck aria-hidden="true" />
-          <span>Home, schedules, results, standings, and public player statistics stay open.</span>
+          <span>Home game updates and the complete public Stats section stay open.</span>
         </footer>
       </section>
     </div>

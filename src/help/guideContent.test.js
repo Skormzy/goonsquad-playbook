@@ -10,6 +10,7 @@ describe('in-product guide content', () => {
   it('covers every primary workspace and shared control surface', () => {
     expect(GUIDE_TOPIC_ORDER).toEqual([
       'start',
+      'home',
       'plays',
       'strategy',
       'three-d',
@@ -25,6 +26,7 @@ describe('in-product guide content', () => {
     ]);
     expect(Object.keys(GUIDE_TOPICS)).toEqual(GUIDE_TOPIC_ORDER);
     expect(DEFAULT_GUIDE_TOPIC_BY_VIEW).toMatchObject({
+      home: 'home',
       playbook: 'plays',
       replay3d: 'three-d',
       tactics: 'strategy',
@@ -61,6 +63,7 @@ describe('in-product guide content', () => {
 
   it('selects a guide for every primary and detailed route', () => {
     expect(guideTopicForView('playbook')).toBe('plays');
+    expect(guideTopicForView('home')).toBe('home');
     expect(guideTopicForView('account')).toBe('account');
     expect(guideTopicForView('stats', '?content=stats&game=game-1')).toBe('game');
     expect(guideTopicForView('stats', '?content=stats&opponent=red-wolves')).toBe('matchup');

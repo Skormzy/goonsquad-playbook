@@ -27,6 +27,7 @@ import {
 } from './play-engine/guidedReplayClock';
 const ThreeDReplayView = lazy(() => import('./components/vnext3d/VNextThreeDView'));
 const PlaymakerWorkspace = lazy(() => import('./playmaker/PlaymakerWorkspace'));
+const TeamHome = lazy(() => import('./feed/TeamHome'));
 const StatsWorkspace = lazy(() => import('./stats/StatsWorkspace'));
 const ProfileWorkspace = lazy(() => import('./profile/ProfileWorkspace'));
 const AccountWorkspace = lazy(() => import('./account/AccountWorkspace'));
@@ -272,7 +273,7 @@ export default function App() {
         tabIndex={-1}
         role={appOwnsMainLandmark ? 'main' : undefined}
         aria-label={appOwnsMainLandmark ? mainLabel : undefined}
-        className={`app-content ${activeView === 'replay3d' || activeView === 'strategy3d' || (import.meta.env.DEV && activeView === 'rigreview') ? 'app-content-replay3d' : ''} ${activeView === 'playmaker' ? 'app-content-playmaker' : ''} ${activeView === 'stats' ? 'app-content-stats' : ''} ${activeView === 'profile' ? 'app-content-profile' : ''} ${activeView === 'account' ? 'app-content-account' : ''}`}
+        className={`app-content ${activeView === 'replay3d' || activeView === 'strategy3d' || (import.meta.env.DEV && activeView === 'rigreview') ? 'app-content-replay3d' : ''} ${activeView === 'playmaker' ? 'app-content-playmaker' : ''} ${activeView === 'home' ? 'app-content-home' : ''} ${activeView === 'stats' ? 'app-content-stats' : ''} ${activeView === 'profile' ? 'app-content-profile' : ''} ${activeView === 'account' ? 'app-content-account' : ''}`}
         style={{ flex: 1, display: 'flex', position: 'relative', minHeight: 0, overflow: 'hidden' }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -368,6 +369,20 @@ export default function App() {
                 </div>
               }>
                 <PlaymakerWorkspace />
+              </Suspense>
+            </MotionDiv>
+          )}
+          {activeView === 'home' && (
+            <MotionDiv
+              key="home"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              style={{ flex: 1, width: '100%', display: 'flex', minHeight: 0 }}
+            >
+              <Suspense fallback={<div className="stats-loading">LOADING SQUAD LIVE...</div>}>
+                <TeamHome />
               </Suspense>
             </MotionDiv>
           )}

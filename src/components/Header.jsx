@@ -47,7 +47,7 @@ export default function Header() {
     if (view === activeView) return;
     cancelPlaybackRestart();
     if (!preservePlayback) setIsPlaying(false);
-    if (view === 'tactics' || view === 'replay3d' || view === 'strategy3d' || view === 'playmaker' || view === 'stats' || view === 'profile' || view === 'account') setSidebarOpen(false);
+    if (view === 'home' || view === 'tactics' || view === 'replay3d' || view === 'strategy3d' || view === 'playmaker' || view === 'stats' || view === 'profile' || view === 'account') setSidebarOpen(false);
     setActiveView(view);
   };
 
@@ -60,10 +60,12 @@ export default function Header() {
     && expandedMobileReplayView !== activeView;
   const enteredThreeDRef = useRef(viewMode === '3d');
   const mobileMoreRef = useRef(null);
-  const brandMeta = contentMode === 'playmaker'
+  const brandMeta = contentMode === 'home'
+    ? 'SQUAD LIVE / TEAM FEED'
+    : contentMode === 'playmaker'
     ? 'PLAYMAKER / AUTHORING'
     : contentMode === 'stats'
-      ? 'TEAM HOME / PERFORMANCE'
+      ? 'TEAM STATS / PERFORMANCE'
     : contentMode === 'profile'
       ? 'PLAYER PROFILE / MY TEAM'
     : contentMode === 'account'

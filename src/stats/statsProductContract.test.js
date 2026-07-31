@@ -18,9 +18,9 @@ describe('team account and statistics product contract', () => {
     expect(OFFICIAL_STATS_DATASET.teams).toHaveLength(23);
     expect(OFFICIAL_STATS_DATASET.games).toHaveLength(282);
     expect(OFFICIAL_STATS_DATASET.players).toHaveLength(216);
-    expect(OFFICIAL_STATS_DATASET.playerGameStats).toHaveLength(3396);
-    expect(OFFICIAL_STATS_DATASET.goalieGameStats).toHaveLength(279);
-    expect(OFFICIAL_STATS_DATASET.gameEvents).toHaveLength(2759);
+    expect(OFFICIAL_STATS_DATASET.playerGameStats).toHaveLength(3405);
+    expect(OFFICIAL_STATS_DATASET.goalieGameStats).toHaveLength(280);
+    expect(OFFICIAL_STATS_DATASET.gameEvents).toHaveLength(2768);
     expect(OFFICIAL_STATS_DATASET.standings).toHaveLength(154);
     expect(new Set(OFFICIAL_STATS_DATASET.standings.map((row) => row.seasonTeamId)).size).toBe(23);
     expect(OFFICIAL_STATS_DATASET.teams.filter((team) => team.seasonId === 'summer-2026').map((team) => team.name)).toEqual(['Mon/Thu Team', 'Sunday Team']);
@@ -52,7 +52,7 @@ describe('team account and statistics product contract', () => {
     expect(workspaceSource).toContain("{ id: 'games', label: 'Games' }");
     expect(workspaceSource).toContain("{ id: 'players', label: 'Players' }");
     expect(workspaceSource).toContain('Every Goonsquad schedule');
-    expect(workspaceSource).toContain('TEAM HOME');
+    expect(workspaceSource).toContain('TEAM STATISTICS');
     expect(workspaceSource).toContain('MatchdayCard');
     expect(workspaceSource).toContain('NEXT GAME');
     expect(workspaceSource).toContain('LATEST RESULT');

@@ -152,7 +152,7 @@ describe('mobile product hardening contracts', () => {
     expect(playViewer).toContain('<MobileViewModeSwitch />');
     expect(tactical3d).toContain('<MobileViewModeSwitch className="is-three-d-stage" />');
     expect(appContext).toContain("window.addEventListener('popstate'");
-    expect(mobileBottomNav.match(/content: '(stats|plays|strategy|playmaker)'/g)).toHaveLength(4);
+    expect(mobileBottomNav.match(/content: '(home|stats|plays|strategy|playmaker)'/g)).toHaveLength(5);
     expect(header).toContain('className="app-header-more"');
     expect(css).toContain('env(safe-area-inset-bottom)');
     expect(css).toContain('height: 100dvh');

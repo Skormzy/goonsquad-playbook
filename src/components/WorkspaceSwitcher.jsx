@@ -1,7 +1,8 @@
 import {
+  Activity,
+  BarChart3,
   BookOpenText,
   BrainCircuit,
-  House,
   LockKeyhole,
   PencilRuler,
 } from 'lucide-react';
@@ -77,8 +78,16 @@ export default function WorkspaceSwitcher({
       <nav className="workspace-segment-group workspace-primary-nav" aria-label="Primary navigation">
         <SegmentButton
           label="HOME"
-          icon={House}
-          title="Team home"
+          icon={Activity}
+          title="Squad Live"
+          active={content === 'home'}
+          onClick={() => onContentChange('home')}
+          testId="workspace-content-home"
+        />
+        <SegmentButton
+          label="STATS"
+          icon={BarChart3}
+          title="Team statistics"
           active={content === 'stats'}
           onClick={() => onContentChange('stats')}
           testId="workspace-content-stats"
@@ -106,7 +115,7 @@ export default function WorkspaceSwitcher({
         />
       </nav>
 
-      {!['playmaker', 'stats', 'profile', 'account'].includes(content) && (
+      {!['home', 'playmaker', 'stats', 'profile', 'account'].includes(content) && (
         <>
           <span className="workspace-switcher-divider" aria-hidden="true" />
 

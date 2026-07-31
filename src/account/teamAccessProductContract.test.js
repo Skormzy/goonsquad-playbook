@@ -22,7 +22,7 @@ describe('approved member access product contract', () => {
 
   it('blocks private view changes and direct URLs before private modules mount', () => {
     expect(appContext).toContain('isPrivateTeamView(next) && !hasTeamAccess');
-    expect(appContext).toContain("activeViewRef.current = 'stats'");
+    expect(appContext).toContain("activeViewRef.current = 'home'");
     expect(app).toContain('privateWorkspaceBlocked');
     expect(app).toContain('<PrivateWorkspaceGate requestedView={activeView} />');
     expect(app).toContain('<TeamAccessPrompt />');
@@ -41,8 +41,8 @@ describe('approved member access product contract', () => {
     expect(gate).toContain('Create account or sign in');
     expect(gate).toContain('Request player access');
     expect(gate).toContain('View request');
-    expect(gate).toContain('Home, schedules, results, standings, and public player statistics stay open.');
-    expect(profile).toContain('unlock Plays, Strategy, and Create after admin approval');
+    expect(gate).toContain('Home game updates and the complete public Stats section stay open.');
+    expect(profile).toContain('unlock Squad Live, Plays, Strategy, and Create after admin approval');
     expect(css).toContain('.team-access-dialog');
     expect(css).toContain('@media (max-width: 600px)');
   });

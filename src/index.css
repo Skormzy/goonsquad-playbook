@@ -467,15 +467,18 @@ input:focus:not(:focus-visible) { outline: none; }
 }
 
 .workspace-switcher > .workspace-segment-group:first-child {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .workspace-view-group {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.workspace-switcher[data-content='home'],
 .workspace-switcher[data-content='playmaker'],
-.workspace-switcher[data-content='stats'] {
+.workspace-switcher[data-content='stats'],
+.workspace-switcher[data-content='profile'],
+.workspace-switcher[data-content='account'] {
   width: 100%;
   grid-template-columns: minmax(0, 1fr);
 }
@@ -4469,7 +4472,8 @@ input:focus:not(:focus-visible) { outline: none; }
   }
 }
 
-/* Season statistics */
+/* Squad home and season statistics */
+.app-content-home,
 .app-content-stats {
   overflow: hidden !important;
 }
@@ -10814,7 +10818,7 @@ input:focus:not(:focus-visible) { outline: none; }
     height: var(--mobile-bottom-nav-height);
     min-height: 0;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     padding:
       3px
       max(5px, env(safe-area-inset-right))
@@ -12678,7 +12682,7 @@ input:focus:not(:focus-visible) { outline: none; }
 
   .mobile-bottom-nav,
   .mobile-bottom-nav[data-has-mode-switch='true'] {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .app-header.is-mobile-replay.is-mobile-collapsed .app-header-actions {

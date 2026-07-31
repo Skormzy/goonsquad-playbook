@@ -59,21 +59,44 @@ for (const viewport of viewports) {
   url.search = '';
   await page.goto(url.href, { waitUntil: 'networkidle', timeout: 60_000 });
   try {
-    await page.locator('.stats-workspace').waitFor({ state: 'visible', timeout: 30_000 });
+    await page.locator('.team-home').waitFor({ state: 'visible', timeout: 30_000 });
   } catch (error) {
     const bodyText = (await page.locator('body').innerText()).replace(/\s+/gu, ' ').slice(0, 500);
-    throw new Error(`${viewport.id}: statistics workspace did not mount. ${browserErrors.join('; ') || bodyText || error.message}`);
+    throw new Error(`${viewport.id}: Squad Live home did not mount. ${browserErrors.join('; ') || bodyText || error.message}`);
   }
   await page.evaluate(() => document.fonts.ready);
-  const homeFromBareUrl = new URL(page.url()).searchParams.get('content') === 'stats';
-
-  const statsPath = path.join(outputDir, `${viewport.id}-statistics-${viewport.width}x${viewport.height}.png`);
-  await page.screenshot({ path: statsPath, fullPage: false });
+  const homeFromBareUrl = new URL(page.url()).searchParams.get('content') === 'home';
   const navigationSurface = viewport.id === 'mobile'
     ? page.getByTestId('mobile-bottom-nav')
     : page.locator('.workspace-primary-nav');
-  const navigation = (await navigationSurface.getByRole('button').allTextContents())
+  const navigationLabels = viewport.id === 'mobile'
+    ? navigationSurface.locator(':scope > button > span:last-child')
+    : navigationSurface.locator(':scope > button > span:not(.workspace-lock-tooltip)');
+  const navigation = (await navigationLabels.allTextContents())
     .map((label) => label.trim().toUpperCase());
+  const publicFeedLocked = await page.locator('.feed-locked').isVisible();
+  const publicPulseText = (await page.locator('.team-pulse').innerText()).replace(/\s+/gu, ' ').trim();
+  const homePath = path.join(outputDir, `${viewport.id}-squad-live-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: homePath, fullPage: false });
+
+  const memberUrl = new URL(baseUrl);
+  memberUrl.searchParams.set('content', 'home');
+  memberUrl.searchParams.set('qaTeamAccess', '1');
+  memberUrl.searchParams.set('qaFeed', '1');
+  await page.goto(memberUrl.href, { waitUntil: 'networkidle', timeout: 60_000 });
+  await page.locator('.feed-post').first().waitFor({ state: 'visible', timeout: 30_000 });
+  const memberPostCount = await page.locator('.feed-post').count();
+  const composerVisible = await page.locator('.feed-compose-launcher').isVisible();
+  const memberDocumentOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  const memberHomePath = path.join(outputDir, `${viewport.id}-member-feed-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: memberHomePath, fullPage: false });
+
+  await page.getByTestId(viewport.id === 'mobile' ? 'mobile-nav-stats' : 'workspace-content-stats').click();
+  await page.locator('.stats-workspace').waitFor({ state: 'visible', timeout: 30_000 });
+  const statsPath = path.join(outputDir, `${viewport.id}-statistics-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: statsPath, fullPage: false });
   const summary = await page.locator('.stats-metric-strip').innerText();
   const matchday = await page.locator('.stats-matchday-card').allTextContents();
   const teamLabels = await page.locator('.stats-team-switcher button').allTextContents();
@@ -113,9 +136,13 @@ for (const viewport of viewports) {
   const gameListHref = page.url();
 
   const scheduledGameRow = page.locator('.stats-table tbody tr').filter({ has: page.locator('.stats-result.is-scheduled') }).first();
-  await scheduledGameRow.locator('.stats-game-detail-button').click();
-  const scheduledPageText = (await page.locator('.stats-game-page').innerText()).replace(/\s+/gu, ' ').trim();
-  await page.getByRole('button', { name: 'All games', exact: true }).click();
+  const scheduledGameCount = await scheduledGameRow.count();
+  let scheduledPageText = '';
+  if (scheduledGameCount > 0) {
+    await scheduledGameRow.locator('.stats-game-detail-button').click();
+    scheduledPageText = (await page.locator('.stats-game-page').innerText()).replace(/\s+/gu, ' ').trim();
+    await page.getByRole('button', { name: 'All games', exact: true }).click();
+  }
 
   await page.locator('.stats-season-controls select').selectOption('spring-2026');
   await page.getByRole('button', { name: 'Sunday League', exact: true }).click();
@@ -143,6 +170,11 @@ for (const viewport of viewports) {
     viewport,
     navigation,
     homeFromBareUrl,
+    publicFeedLocked,
+    publicPulseText,
+    memberPostCount,
+    composerVisible,
+    memberDocumentOverflow,
     summary: summary.replace(/\s+/gu, ' ').trim(),
     matchday: matchday.map((value) => value.replace(/\s+/gu, ' ').trim()),
     teamLabels,
@@ -156,6 +188,7 @@ for (const viewport of viewports) {
     gamePageHref,
     gameListHref,
     deepLinkRestored,
+    scheduledGameCount,
     scheduledPageText,
     gameToolbarInsideViewport: insideViewport(gameToolbarRect, viewport),
     accountText: accountText.replace(/\s+/gu, ' ').trim(),
@@ -163,6 +196,8 @@ for (const viewport of viewports) {
     documentOverflow,
     browserErrors,
     screenshots: [
+      path.relative(root, homePath).replaceAll('\\', '/'),
+      path.relative(root, memberHomePath).replaceAll('\\', '/'),
       path.relative(root, statsPath).replaceAll('\\', '/'),
       path.relative(root, gameDetailPath).replaceAll('\\', '/'),
       path.relative(root, gameBoxScorePath).replaceAll('\\', '/'),
@@ -170,8 +205,12 @@ for (const viewport of viewports) {
     ],
   };
 
-  if (navigation.join('|') !== 'HOME|PLAYS|STRATEGY|CREATE') throw new Error(`${viewport.id}: workspace navigation is incomplete.`);
+  if (navigation.join('|') !== 'HOME|STATS|PLAYS|STRATEGY|CREATE') throw new Error(`${viewport.id}: workspace navigation is incomplete.`);
   if (!report[viewport.id].homeFromBareUrl) throw new Error(`${viewport.id}: bare product URL did not resolve to Team Home.`);
+  if (!publicFeedLocked) throw new Error(`${viewport.id}: public visitors can see the private feed.`);
+  if (!publicPulseText.includes('SEASON RECORD') || !publicPulseText.includes('LATEST RESULT')) throw new Error(`${viewport.id}: public game pulse is incomplete.`);
+  if (memberPostCount < 2 || !composerVisible) throw new Error(`${viewport.id}: approved-member feed is incomplete.`);
+  if (memberDocumentOverflow > 1) throw new Error(`${viewport.id}: member feed has ${memberDocumentOverflow}px horizontal overflow.`);
   if (matchday.length !== 2 || !matchday[0].includes('NEXT GAME') || !matchday[1].includes('LATEST RESULT')) throw new Error(`${viewport.id}: matchday summary is incomplete.`);
   if (!/\d+–\d+–\d+/u.test(summary) || !/\d+ games · 2 leagues/u.test(summary)) {
     throw new Error(`${viewport.id}: combined current-season record is missing.`);
@@ -186,7 +225,14 @@ for (const viewport of viewports) {
   if (!deepLinkRestored) throw new Error(`${viewport.id}: game deep link did not survive reload.`);
   if (!insideViewport(gameToolbarRect, viewport)) throw new Error(`${viewport.id}: game-page navigation leaves the viewport.`);
   if (!gameDetailText.includes('GAME EVENTS') || !gameDetailText.includes('PLAYER BOX SCORE') || !gameDetailText.includes('GOALTENDING') || !gameDetailText.includes('PPG') || !gameDetailText.includes('SV%')) throw new Error(`${viewport.id}: verified game page is incomplete.`);
-  if (!scheduledPageText.includes('HEAD TO HEAD') || !scheduledPageText.includes('NEXT MEETING') || !scheduledPageText.includes('Verified matchup context')) {
+  if (
+    scheduledGameCount > 0
+    && (
+      !scheduledPageText.includes('HEAD TO HEAD')
+      || !scheduledPageText.includes('NEXT MEETING')
+      || !scheduledPageText.includes('Verified matchup context')
+    )
+  ) {
     throw new Error(`${viewport.id}: scheduled game did not open a complete head-to-head page.`);
   }
   if (!gameDetailSource?.startsWith('https://www.yorkcentralbhl.com/game/')) throw new Error(`${viewport.id}: game-sheet provenance is missing.`);

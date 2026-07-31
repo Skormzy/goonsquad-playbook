@@ -1047,7 +1047,7 @@ export default function StatsWorkspace() {
     }}>
       {!selectedFinalGameContext && !selectedOpponentContext && !selectedPlayerId && <header className="stats-workspace-header stats-home-hero">
         <div className="stats-title">
-          <span>TEAM HOME</span>
+          <span>TEAM STATISTICS</span>
           <h1>{snapshot.season?.name || 'Goonsquad'}</h1>
           <p>{snapshot.isSeasonAggregate ? `${scheduleCount} league schedules, results, and player stats.` : `${formatScheduleName(snapshot.team)} performance, fixtures, and player totals.`}</p>
         </div>

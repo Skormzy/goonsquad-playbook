@@ -10,6 +10,7 @@ import {
 const ROLES = new Set(['LW', 'C', 'RW', 'LD', 'RD', 'G']);
 const CAMERAS = new Set(['broadcast', 'bench', 'overhead', 'player']);
 const STATS_DETAIL_PARAMS = Object.freeze(['game', 'player', 'opponent', 'fixture']);
+const HOME_DETAIL_PARAMS = Object.freeze(['post']);
 
 function removeStatsDetailParams(url) {
   STATS_DETAIL_PARAMS.forEach((key) => url.searchParams.delete(key));
@@ -87,6 +88,7 @@ export function createWorkspaceUrl(href, state) {
   const requestedMode = modeForActiveView(activeView);
   const mode = isWorkspaceModeAvailable(content, requestedMode) ? requestedMode : '2d';
   if (content !== 'stats') removeStatsDetailParams(url);
+  if (content !== 'home') HOME_DETAIL_PARAMS.forEach((key) => url.searchParams.delete(key));
 
   url.searchParams.delete('view');
   url.searchParams.delete('play');
@@ -100,7 +102,7 @@ export function createWorkspaceUrl(href, state) {
   else url.searchParams.delete('scenario');
   if (content === 'plays' && state.faceoffOutcome === 'lost') url.searchParams.set('faceoff', 'lost');
   else url.searchParams.delete('faceoff');
-  if (content === 'stats' || content === 'profile' || content === 'account') {
+  if (content === 'home' || content === 'stats' || content === 'profile' || content === 'account') {
     ['phase', 'time', 'speed', 'role', 'playing', 'camera'].forEach((key) => url.searchParams.delete(key));
     if (content === 'profile' || content === 'account') ['season', 'team', 'stage'].forEach((key) => url.searchParams.delete(key));
     return `${url.pathname}${url.search}${url.hash}`;

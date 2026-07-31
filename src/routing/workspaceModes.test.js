@@ -8,6 +8,7 @@ import {
 
 describe('workspace modes', () => {
   it('separates content choice from viewing mode', () => {
+    expect(contentForActiveView('home')).toBe('home');
     expect(contentForActiveView('playbook')).toBe('plays');
     expect(contentForActiveView('replay3d')).toBe('plays');
     expect(contentForActiveView('tactics')).toBe('strategy');
@@ -22,6 +23,7 @@ describe('workspace modes', () => {
   });
 
   it('maps supported workspace combinations to existing surfaces', () => {
+    expect(activeViewForWorkspace('home', '2d')).toBe('home');
     expect(activeViewForWorkspace('plays', '2d')).toBe('playbook');
     expect(activeViewForWorkspace('plays', '3d')).toBe('replay3d');
     expect(activeViewForWorkspace('strategy', '2d')).toBe('tactics');
@@ -33,6 +35,8 @@ describe('workspace modes', () => {
   });
 
   it('makes both views available for plays and strategy', () => {
+    expect(isWorkspaceModeAvailable('home', '2d')).toBe(true);
+    expect(isWorkspaceModeAvailable('home', '3d')).toBe(false);
     expect(isWorkspaceModeAvailable('strategy', '2d')).toBe(true);
     expect(isWorkspaceModeAvailable('strategy', '3d')).toBe(true);
     expect(isWorkspaceModeAvailable('plays', '3d')).toBe(true);

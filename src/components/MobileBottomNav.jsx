@@ -1,8 +1,9 @@
 import { createElement, useEffect } from 'react';
 import {
+  Activity,
+  BarChart3,
   BookOpenText,
   BrainCircuit,
-  House,
   LockKeyhole,
   PencilRuler,
 } from 'lucide-react';
@@ -16,7 +17,8 @@ import {
 import { teamAccessPromptCopy } from '../account/teamAccess';
 
 const DESTINATIONS = [
-  { content: 'stats', label: 'Home', icon: House },
+  { content: 'home', label: 'Home', icon: Activity },
+  { content: 'stats', label: 'Stats', icon: BarChart3 },
   { content: 'plays', label: 'Plays', icon: BookOpenText },
   { content: 'strategy', label: 'Strategy', icon: BrainCircuit },
   { content: 'playmaker', label: 'Create', icon: PencilRuler },
@@ -34,7 +36,7 @@ export default function MobileBottomNav() {
   } = useApp();
   const activeContent = contentForActiveView(activeView);
   const currentDestination = ['account', 'profile'].includes(activeContent)
-    ? 'stats'
+    ? 'home'
     : activeContent;
   const activeMode = modeForActiveView(activeView);
   const currentLabel = DESTINATIONS.find(({ content }) => content === currentDestination)?.label;
@@ -55,6 +57,28 @@ export default function MobileBottomNav() {
       const nextUrl = new URL(window.location.href);
       nextUrl.searchParams.set('content', content);
       nextUrl.searchParams.set('mode', nextMode);
+      if (content !== 'home') nextUrl.searchParams.delete('post');
+      if (content !== 'stats') {
+        ['game', 'player', 'opponent', 'fixture'].forEach((key) => {
+          nextUrl.searchParams.delete(key);
+        });
+      }
+      if (content === 'home' || content === 'stats') {
+        [
+          'playId',
+          'tacticId',
+          'scenario',
+          'faceoff',
+          'phase',
+          'time',
+          'speed',
+          'role',
+          'playing',
+          'camera',
+        ].forEach((key) => {
+          nextUrl.searchParams.delete(key);
+        });
+      }
       window.history.pushState({ goonsquadDestination: content }, '', nextUrl);
     } catch { /* History is optional in embedded browsers. */ }
     requestAnimationFrame(() => {
@@ -70,7 +94,7 @@ export default function MobileBottomNav() {
     >
       {DESTINATIONS.map(({ content, label, icon }) => {
         const active = currentDestination === content;
-        const locked = content !== 'stats' && !hasTeamAccess;
+        const locked = ['plays', 'strategy', 'playmaker'].includes(content) && !hasTeamAccess;
         const lockedCopy = teamAccessPromptCopy(teamAccessState, label);
         const lockMessage = `${lockedCopy.title}. ${lockedCopy.detail}`;
         return (

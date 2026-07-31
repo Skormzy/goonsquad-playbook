@@ -1,7 +1,8 @@
-export const WORKSPACE_CONTENT = Object.freeze(['plays', 'strategy', 'playmaker', 'stats', 'profile', 'account']);
+export const WORKSPACE_CONTENT = Object.freeze(['home', 'plays', 'strategy', 'playmaker', 'stats', 'profile', 'account']);
 export const WORKSPACE_VIEWS = Object.freeze(['2d', '3d']);
 
 export function contentForActiveView(activeView) {
+  if (activeView === 'home') return 'home';
   if (activeView === 'playmaker') return 'playmaker';
   if (activeView === 'stats') return 'stats';
   if (activeView === 'profile') return 'profile';
@@ -15,10 +16,11 @@ export function modeForActiveView(activeView) {
 
 export function isWorkspaceModeAvailable(content, mode) {
   if (!WORKSPACE_CONTENT.includes(content) || !WORKSPACE_VIEWS.includes(mode)) return false;
-  return !['playmaker', 'stats', 'profile', 'account'].includes(content) || mode === '2d';
+  return !['home', 'playmaker', 'stats', 'profile', 'account'].includes(content) || mode === '2d';
 }
 
 export function activeViewForWorkspace(content, mode) {
+  if (content === 'home') return 'home';
   if (content === 'playmaker') return 'playmaker';
   if (content === 'stats') return 'stats';
   if (content === 'profile') return 'profile';

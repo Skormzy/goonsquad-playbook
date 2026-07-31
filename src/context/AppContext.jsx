@@ -214,8 +214,8 @@ export function AppProvider({ children }) {
       if (teamAccessState === 'loading' || !isPrivateTeamView(activeViewRef.current)) return;
       const requestedView = activeViewRef.current;
       cancelPlaybackRestart();
-      activeViewRef.current = 'stats';
-      setActiveViewState('stats');
+      activeViewRef.current = 'home';
+      setActiveViewState('home');
       dispatchPlayback({ type: 'reset' });
       setIsPlaying(false);
       setSidebarOpen(false);
