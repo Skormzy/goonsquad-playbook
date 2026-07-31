@@ -78,3 +78,54 @@ self.addEventListener('fetch', (event) => {
     }),
   );
 });
+
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    payload = event.data?.json() || {};
+  } catch {
+    payload = { body: event.data?.text() || 'Coach sent an attendance reminder.' };
+  }
+
+  const options = {
+    body: payload.body || 'Coach is checking the lineup. Tap to answer.',
+    icon: '/goonsquad-icon-v3-192.png',
+    badge: '/goonsquad-favicon-v3-64.png',
+    tag: payload.tag || 'goonsquad-attendance',
+    renotify: true,
+    requireInteraction: true,
+    actions: Array.isArray(payload.actions) ? payload.actions.slice(0, 2) : [],
+    data: {
+      actionUrls: payload.actionUrls || {},
+      url: payload.url || '/?content=home',
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(
+    payload.title || 'Goonsquad attendance',
+    options,
+  ));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const data = event.notification.data || {};
+  const requestedUrl = data.actionUrls?.[event.action] || data.url || '/?content=home';
+  const destination = new URL(requestedUrl, self.location.origin).toString();
+
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const sameOriginWindow = windows.find((client) => {
+      try {
+        return new URL(client.url).origin === self.location.origin;
+      } catch {
+        return false;
+      }
+    });
+    if (sameOriginWindow) {
+      await sameOriginWindow.navigate(destination);
+      return sameOriginWindow.focus();
+    }
+    return self.clients.openWindow(destination);
+  })());
+});

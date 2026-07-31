@@ -14,6 +14,8 @@ import {
   loadGameAvailability,
   saveGameAvailability,
 } from './lineupCloud';
+import AttendanceNotificationControl from './AttendanceNotificationControl';
+import AttendanceReminderManager from './AttendanceReminderManager';
 import './gameAvailability.css';
 
 const RESPONSES = Object.freeze([
@@ -37,6 +39,7 @@ export default function GameAvailability({
   account,
   canRespond = true,
   fixture,
+  isAdmin = false,
   members = [],
   qaMode = false,
   schedule,
@@ -59,7 +62,6 @@ export default function GameAvailability({
       setResponses([
         { fixtureId: fixture.id, userId: 'qa-user', response: 'in', note: '', updatedAt: new Date().toISOString() },
         { fixtureId: fixture.id, userId: 'qa-coach', response: 'in', note: '', updatedAt: new Date().toISOString() },
-        { fixtureId: fixture.id, userId: 'qa-winger', response: 'maybe', note: '', updatedAt: new Date().toISOString() },
       ]);
       return undefined;
     }
@@ -231,6 +233,15 @@ export default function GameAvailability({
                 {!awaiting.length && <p>Everyone answered</p>}
               </section>
             </div>
+          )}
+          {canRespond && <AttendanceNotificationControl qaMode={qaMode} />}
+          {isAdmin && (
+            <AttendanceReminderManager
+              awaiting={awaiting}
+              competitionLabel={competitionLabel}
+              fixture={fixture}
+              qaMode={qaMode}
+            />
           )}
           {accessManager}
         </>

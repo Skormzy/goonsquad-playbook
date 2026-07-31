@@ -34,6 +34,9 @@ export default function AttendanceBoard({
   const [epConfigured, setEpConfigured] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [error, setError] = useState('');
+  const [requestedFixtureId, setRequestedFixtureId] = useState(() => (typeof window === 'undefined'
+    ? ''
+    : new URL(window.location.href).searchParams.get('attendanceFixture') || ''));
   const actor = useMemo(() => ({
     ...currentMember,
     id: currentMember?.id || account.user?.id || (qaMode ? 'qa-user' : ''),
@@ -83,7 +86,12 @@ export default function AttendanceBoard({
     member: actor,
   }), [actor, dataset, grants, tournaments]);
 
-  const safeIndex = fixtures.length ? Math.min(activeIndex, fixtures.length - 1) : 0;
+  const requestedIndex = requestedFixtureId
+    ? fixtures.findIndex((item) => item.id === requestedFixtureId)
+    : -1;
+  const safeIndex = fixtures.length
+    ? Math.min(requestedIndex >= 0 ? requestedIndex : activeIndex, fixtures.length - 1)
+    : 0;
   const fixture = fixtures[safeIndex] || null;
 
   const refreshEpRoster = async ({
@@ -155,7 +163,12 @@ export default function AttendanceBoard({
     member: actor,
   });
   const move = (direction) => {
+    setRequestedFixtureId('');
     setActiveIndex((safeIndex + direction + fixtures.length) % fixtures.length);
+  };
+  const chooseFixture = (index) => {
+    setRequestedFixtureId('');
+    setActiveIndex(index);
   };
 
   return (
@@ -177,7 +190,7 @@ export default function AttendanceBoard({
             role="tab"
             aria-selected={index === safeIndex}
             key={item.id}
-            onClick={() => setActiveIndex(index)}
+            onClick={() => chooseFixture(index)}
           >
             <small>{item.kind === 'tournament' ? item.tournamentName : item.schedule?.scheduleLabel}</small>
             <strong>vs {item.opponent}</strong>
@@ -205,6 +218,7 @@ export default function AttendanceBoard({
         ) : null}
         canRespond={canRespond}
         fixture={fixture}
+        isAdmin={isAdmin}
         members={participants}
         qaMode={qaMode}
         schedule={fixture.schedule}

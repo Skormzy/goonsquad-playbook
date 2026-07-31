@@ -67,7 +67,8 @@ describe('member profile product contract', () => {
     expect(panel).toContain('Confirm delete');
     expect(api).toContain('requireAccountAdmin');
     expect(api).toContain('Only the account owner can promote another admin.');
-    expect(server).toContain("profile?.role !== 'admin'");
+    expect(server).toContain('requireAccountUser(request)');
+    expect(server).toContain("actor.role !== 'admin'");
     expect(server).toContain('SUPABASE_SERVICE_ROLE_KEY');
     expect(server).not.toContain('VITE_SUPABASE_SERVICE_ROLE_KEY');
     expect(bootstrapOwner).toContain('configuredAccountOwnerEmail');

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
+import { useEffect, useRef, useCallback, useMemo, useState, lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from './context/ThemeContext';
 import { useApp } from './context/AppContext';
@@ -12,6 +12,7 @@ import StrategyModal from './components/StrategyModal';
 import TacticsLearn from './components/TacticsLearn';
 import KeyboardHelp from './components/KeyboardHelp';
 import AccountDialog from './account/AccountDialog';
+import AttendanceResponseDialog from './lineup/AttendanceResponseDialog';
 import {
   PrivateWorkspaceGate,
   TeamAccessPrompt,
@@ -73,6 +74,26 @@ export default function App() {
   const appOwnsMainLandmark = activeView === 'playbook' || activeView === 'tactics';
   const mainLabel = activeView === 'tactics' ? 'Strategy workspace' : 'Playbook workspace';
   const privateWorkspaceBlocked = isPrivateTeamView(activeView) && !hasTeamAccess;
+  const [attendanceToken, setAttendanceToken] = useState(() => (
+    typeof window === 'undefined'
+      ? ''
+      : new URL(window.location.href).searchParams.get('attendanceToken') || ''
+  ));
+
+  const removeAttendanceTokenFromUrl = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('attendanceToken');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  }, []);
+
+  useEffect(() => {
+    if (attendanceToken) removeAttendanceTokenFromUrl();
+  }, [attendanceToken, removeAttendanceTokenFromUrl]);
+
+  const closeAttendanceResponse = useCallback(() => {
+    removeAttendanceTokenFromUrl();
+    setAttendanceToken('');
+  }, [removeAttendanceTokenFromUrl]);
 
   useEffect(() => {
     playbackTimeRef.current = playbackTime;
@@ -265,6 +286,9 @@ export default function App() {
       <StrategyModal />
       <KeyboardHelp />
       <AccountDialog />
+      {attendanceToken && (
+        <AttendanceResponseDialog token={attendanceToken} onClose={closeAttendanceResponse} />
+      )}
       <TeamAccessPrompt />
       <Header />
 

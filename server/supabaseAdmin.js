@@ -61,6 +61,54 @@ export function publicAppUrl(request) {
 }
 
 export async function requireAccountAdmin(request) {
+  const context = await requireAccountUser(request);
+  const { actor } = context;
+  if (actor.role !== 'admin') {
+    const error = new Error('Admin access is required.');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const { admin } = context;
+  const ownerEmail = configuredAccountOwnerEmail();
+  const actorEmail = String(actor.email || '').trim().toLowerCase();
+  const isConfiguredOwner = Boolean(ownerEmail && actorEmail === ownerEmail);
+  let ownerId = null;
+
+  if (ownerEmail) {
+    if (isConfiguredOwner) {
+      ownerId = actor.id;
+    } else {
+      const { data: authUsers } = await admin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+      });
+      ownerId = authUsers?.users?.find(
+        (user) => String(user.email || '').trim().toLowerCase() === ownerEmail,
+      )?.id || null;
+    }
+  } else {
+    const { data: firstAdmin } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('role', 'admin')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    ownerId = firstAdmin?.id || null;
+  }
+
+  return {
+    ...context,
+    actor: {
+      ...actor,
+      isOwner: ownerId === actor.id,
+      ownerId,
+    },
+  };
+}
+
+export async function requireAccountUser(request) {
   const token = bearerToken(request);
   if (!token) {
     const error = new Error('Sign in to continue.');
@@ -81,38 +129,10 @@ export async function requireAccountAdmin(request) {
     .select('id, username, display_name, role, created_at')
     .eq('id', userData.user.id)
     .single();
-  if (profileError || profile?.role !== 'admin') {
-    const error = new Error('Admin access is required.');
+  if (profileError || !profile) {
+    const error = new Error('Your member profile is unavailable.');
     error.statusCode = 403;
     throw error;
-  }
-
-  const ownerEmail = configuredAccountOwnerEmail();
-  const actorEmail = String(userData.user.email || '').trim().toLowerCase();
-  const isConfiguredOwner = Boolean(ownerEmail && actorEmail === ownerEmail);
-  let ownerId = null;
-
-  if (ownerEmail) {
-    if (isConfiguredOwner) {
-      ownerId = profile.id;
-    } else {
-      const { data: authUsers } = await clients.admin.auth.admin.listUsers({
-        page: 1,
-        perPage: 1000,
-      });
-      ownerId = authUsers?.users?.find(
-        (user) => String(user.email || '').trim().toLowerCase() === ownerEmail,
-      )?.id || null;
-    }
-  } else {
-    const { data: firstAdmin } = await clients.admin
-      .from('profiles')
-      .select('id')
-      .eq('role', 'admin')
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    ownerId = firstAdmin?.id || null;
   }
 
   return {
@@ -120,8 +140,7 @@ export async function requireAccountAdmin(request) {
     actor: {
       ...profile,
       email: userData.user.email,
-      isOwner: ownerId === profile.id,
-      ownerId,
+      userMetadata: userData.user.user_metadata || {},
     },
   };
 }
