@@ -3,6 +3,7 @@ import {
   canPublishFeedPost,
   extractFirstUrl,
   extractMentionUsernames,
+  feedGameDetailsHref,
   feedMediaContentType,
   feedTextParts,
   formatFeedTime,
@@ -31,6 +32,13 @@ describe('team feed model', () => {
     expect(validateFeedMedia({ name: 'iphone-clip.MOV', type: '', size: 100 }).kind).toBe('video');
     expect(validateFeedMedia({ type: 'video/mp4', size: 60 * 1024 * 1024 }).valid).toBe(false);
     expect(validateFeedMedia({ type: 'application/pdf', size: 100 }).valid).toBe(false);
+  });
+
+  it('builds an internal game-details link for official result cards', () => {
+    expect(feedGameDetailsHref('ycbhl-game-53057')).toBe(
+      '/?content=stats&game=ycbhl-game-53057',
+    );
+    expect(feedGameDetailsHref('')).toBe('');
   });
 
   it('requires at least one useful post payload', () => {

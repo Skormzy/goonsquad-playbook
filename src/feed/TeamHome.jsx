@@ -66,6 +66,7 @@ import {
   FEED_COMMENT_MAX_LENGTH,
   FEED_POST_MAX_LENGTH,
   FEED_REACTIONS,
+  feedGameDetailsHref,
   feedMediaContentType,
   feedTextParts,
   formatFeedTime,
@@ -327,13 +328,19 @@ function FeedPostAvatar({ post }) {
 function OfficialResultCard({ post }) {
   const details = post.sourceMetadata || {};
   const outcome = details.outcome || 'final';
+  const sourceGameId = String(post.sourceKey || '').startsWith('result:')
+    ? String(post.sourceKey).slice('result:'.length)
+    : '';
+  const gameHref = feedGameDetailsHref(details.gameId || sourceGameId);
+  const href = gameHref || post.linkUrl;
+  const opensOfficialSource = !gameHref;
   return (
     <a
       className={`feed-result-card is-${outcome}`}
-      href={post.linkUrl}
-      target="_blank"
-      rel="noreferrer"
-      aria-label={`${post.sourceTitle}. Open official game results`}
+      href={href}
+      target={opensOfficialSource ? '_blank' : undefined}
+      rel={opensOfficialSource ? 'noreferrer' : undefined}
+      aria-label={`${post.sourceTitle}. Open game details`}
     >
       <span className="feed-result-kicker">
         <BadgeCheck /> {post.sourceLabel || 'Official result'}
@@ -349,7 +356,7 @@ function OfficialResultCard({ post }) {
       </div>
       <footer>
         <em>{outcome === 'win' ? 'WIN' : outcome === 'loss' ? 'FINAL' : 'TIE'}</em>
-        <span>Full game sheet <ExternalLink /></span>
+        <span>Full game sheet {opensOfficialSource ? <ExternalLink /> : <ChevronRight />}</span>
       </footer>
     </a>
   );

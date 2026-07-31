@@ -51,6 +51,8 @@ describe('Squad Live product contract', () => {
     expect(activityMigration).toContain("'youtube',");
     expect(activityMigration).toContain('team_feed_reactions');
     expect(home).toContain('<OfficialResultCard post={post} />');
+    expect(home).toContain('feedGameDetailsHref(details.gameId || sourceGameId)');
+    expect(home).toContain('Open game details');
     expect(home).toContain('<SocialVideoCard post={post} />');
     expect(home).toContain('FEED_REACTIONS.map');
   });

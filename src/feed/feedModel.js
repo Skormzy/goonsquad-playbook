@@ -84,6 +84,16 @@ export function linkDomain(value) {
   }
 }
 
+export function feedGameDetailsHref(gameId) {
+  const normalizedGameId = String(gameId || '').trim();
+  if (!normalizedGameId) return '';
+  const params = new URLSearchParams({
+    content: 'stats',
+    game: normalizedGameId,
+  });
+  return `/?${params.toString()}`;
+}
+
 export function validateFeedMedia(file) {
   if (!file) return { valid: true, kind: null, message: '' };
   const kind = FEED_MEDIA_TYPES[feedMediaContentType(file)];
