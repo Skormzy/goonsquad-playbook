@@ -28,6 +28,7 @@ import {
   tournamentPools,
   tournamentSummary,
 } from './tournamentModel';
+import { GOONSQUAD_LOGO_SRC, goonsquadDisplayText } from '../brand/teamBrand';
 import TournamentAdminPanel from './TournamentAdminPanel';
 import './tournamentWorkspace.css';
 
@@ -78,7 +79,50 @@ function scoreAvailable(game) {
 }
 
 function displayTeamName(value) {
-  return String(value || '').replace(/goon\s*squad/giu, 'Goonsquad');
+  return goonsquadDisplayText(value);
+}
+
+function isGoonsquadTeam(value) {
+  return /goon\s*squad/iu.test(String(value || ''));
+}
+
+function teamInitials(value) {
+  const words = displayTeamName(value).match(/[a-z0-9]+/giu) || [];
+  if (!words.length) return 'TM';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return words.slice(0, 3).map((word) => word[0]).join('').toUpperCase();
+}
+
+function createTeamIdentity(name, side, hasGoonsquad) {
+  const goonsquad = isGoonsquadTeam(name);
+  const kind = goonsquad ? 'goonsquad' : hasGoonsquad ? 'opponent' : side;
+  const colors = {
+    goonsquad: '#df173d',
+    opponent: '#166fa8',
+    away: '#c65a2b',
+    home: '#087f8f',
+    unknown: '#586575',
+  };
+  return {
+    name: displayTeamName(name),
+    side,
+    kind,
+    color: colors[kind] || colors.unknown,
+    initials: teamInitials(name),
+    goonsquad,
+  };
+}
+
+function teamIdentityStyle(identity) {
+  return { '--team-color': identity.color };
+}
+
+function TeamMark({ identity, compact = false }) {
+  return (
+    <span className={`tournament-team-mark is-${identity.kind}${compact ? ' is-compact' : ''}`} style={teamIdentityStyle(identity)} aria-hidden="true">
+      {identity.goonsquad ? <img src={GOONSQUAD_LOGO_SRC} alt="" /> : <b>{identity.initials}</b>}
+    </span>
+  );
 }
 
 function periodLabel(value) {
@@ -342,12 +386,13 @@ function PlayerLabel({ player }) {
   return <strong>{player.number ? <small>#{player.number}</small> : null}{player.name}</strong>;
 }
 
-function ScoringTimeline({ goals }) {
+function ScoringTimeline({ goals, resolveTeam }) {
   const events = chronologicalEvents(goals);
   return (
     <article className="tournament-official-events">
       <header><span>SCORING</span><strong>{events.length} goals</strong></header>
       {events.length ? <div>{events.map((goal) => {
+        const identity = resolveTeam(goal.team);
         const assists = [goal.assist1, goal.assist2].filter((assist) => assist?.name);
         const tags = [
           goal.powerPlay && 'PP',
@@ -356,11 +401,11 @@ function ScoringTimeline({ goals }) {
           goal.emptyNet && 'EN',
         ].filter(Boolean);
         return (
-          <div className="tournament-official-event is-goal" key={`${goal.id}-${goal.period}-${goal.clockTime}`}>
+          <div className={`tournament-official-event is-goal is-${identity.kind}`} style={teamIdentityStyle(identity)} data-team-kind={identity.kind} key={`${goal.id}-${goal.period}-${goal.clockTime}`}>
             <time><b>{periodLabel(goal.period)}</b><span>{goal.clockTime || '—'}</span></time>
-            <i aria-hidden="true" />
+            <TeamMark identity={identity} compact />
             <div>
-              <small>{displayTeamName(goal.team)}</small>
+              <small className="tournament-event-team-name">{identity.name}</small>
               <PlayerLabel player={goal.scorer} />
               <p>{assists.length ? `Assists: ${assists.map((assist) => `${assist.name}${assist.number ? ` #${assist.number}` : ''}`).join(', ')}` : 'Unassisted'}</p>
             </div>
@@ -372,33 +417,36 @@ function ScoringTimeline({ goals }) {
   );
 }
 
-function PenaltyTimeline({ penalties }) {
+function PenaltyTimeline({ penalties, resolveTeam }) {
   const events = chronologicalEvents(penalties);
   return (
     <article className="tournament-official-events is-penalties">
       <header><span>PENALTIES</span><strong>{events.length} calls</strong></header>
-      {events.length ? <div>{events.map((penalty) => (
-        <div className="tournament-official-event is-penalty" key={penalty.id}>
-          <time><b>{periodLabel(penalty.period)}</b><span>{penalty.clockTime || '—'}</span></time>
-          <ShieldAlert aria-hidden="true" />
-          <div>
-            <small>{displayTeamName(penalty.team)}</small>
-            <PlayerLabel player={penalty.player} />
-            <p>{penalty.label}</p>
+      {events.length ? <div>{events.map((penalty) => {
+        const identity = resolveTeam(penalty.team);
+        return (
+          <div className={`tournament-official-event is-penalty is-${identity.kind}`} style={teamIdentityStyle(identity)} data-team-kind={identity.kind} key={penalty.id}>
+            <time><b>{periodLabel(penalty.period)}</b><span>{penalty.clockTime || '—'}</span></time>
+            <TeamMark identity={identity} compact />
+            <div>
+              <small className="tournament-event-team-name">{identity.name}</small>
+              <PlayerLabel player={penalty.player} />
+              <p className="tournament-penalty-label"><ShieldAlert aria-hidden="true" />{penalty.label}</p>
+            </div>
+            <em>{penalty.minutes || '—'} MIN</em>
           </div>
-          <em>{penalty.minutes || '—'} MIN</em>
-        </div>
-      ))}</div> : <p className="tournament-event-empty">No penalties were recorded.</p>}
+        );
+      })}</div> : <p className="tournament-event-empty">No penalties were recorded.</p>}
     </article>
   );
 }
 
-function TeamBoxScore({ roster }) {
+function TeamBoxScore({ roster, identity }) {
   const skaters = roster?.players || [];
   const goalies = roster?.goalies || [];
   return (
-    <article className="tournament-team-boxscore">
-      <header><span>TEAM GAME SHEET</span><h4>{displayTeamName(roster?.team)}</h4></header>
+    <article className={`tournament-team-boxscore is-${identity.kind}`} style={teamIdentityStyle(identity)}>
+      <header><div><TeamMark identity={identity} compact /><span>TEAM GAME SHEET</span></div><h4>{identity.name}</h4></header>
       <div className="tournament-boxscore-table" role="table" aria-label={`${displayTeamName(roster?.team)} player box score`}>
         <div className="is-header" role="row"><span>#</span><span>Player</span><span>G</span><span>A</span><span>PTS</span><span>PIM</span></div>
         {skaters.map((player) => <div role="row" key={player.id}><b>{player.number || '—'}</b><strong>{player.name}</strong><span>{player.stats.g ?? 0}</span><span>{player.stats.a ?? 0}</span><b>{player.stats.pts ?? 0}</b><span>{player.stats.pim ?? 0}</span></div>)}
@@ -410,6 +458,14 @@ function TeamBoxScore({ roster }) {
 
 function OfficialGameDetails({ details }) {
   if (!details) return null;
+  const hasGoonsquad = [details.teams.away, details.teams.home].some(isGoonsquadTeam);
+  const identities = [
+    createTeamIdentity(details.teams.away, 'away', hasGoonsquad),
+    createTeamIdentity(details.teams.home, 'home', hasGoonsquad),
+  ];
+  const identityByName = new Map(identities.map((identity) => [normalized(identity.name), identity]));
+  const resolveTeam = (name) => identityByName.get(normalized(displayTeamName(name)))
+    || createTeamIdentity(name, 'unknown', hasGoonsquad);
   const periods = [...new Set([
     ...Object.keys(details.score?.away?.periods || {}),
     ...Object.keys(details.score?.home?.periods || {}),
@@ -420,9 +476,10 @@ function OfficialGameDetails({ details }) {
         <div><span>OFFICIAL GAME DETAIL</span><h3>Scoring, penalties and player lines</h3></div>
         <div><Clock3 aria-hidden="true" /><strong>{details.goals.length} goals</strong><strong>{details.penalties.length} penalties</strong></div>
       </header>
-      {periods.length > 0 && <div className="tournament-period-score" style={{ '--period-count': periods.length }} aria-label="Period scoring"><div><span>Team</span>{periods.map((period) => <span key={period}>{periodLabel(period)}</span>)}<strong>Final</strong></div><div><b>{displayTeamName(details.teams.away)}</b>{periods.map((period) => <span key={period}>{details.score.away.periods?.[period] ?? 0}</span>)}<strong>{details.score.away.final}</strong></div><div><b>{displayTeamName(details.teams.home)}</b>{periods.map((period) => <span key={period}>{details.score.home.periods?.[period] ?? 0}</span>)}<strong>{details.score.home.final}</strong></div></div>}
-      <div className="tournament-official-event-grid"><ScoringTimeline goals={details.goals} /><PenaltyTimeline penalties={details.penalties} /></div>
-      <div className="tournament-boxscore-grid"><TeamBoxScore roster={details.roster.away} /><TeamBoxScore roster={details.roster.home} /></div>
+      <div className="tournament-match-identities" role="list" aria-label="Match team colours">{identities.map((identity) => <div role="listitem" className={`is-${identity.kind}`} style={teamIdentityStyle(identity)} data-side={identity.side} key={identity.side}><TeamMark identity={identity} /><span><small>{identity.side} team</small><strong>{identity.name}</strong></span></div>)}</div>
+      {periods.length > 0 && <div className="tournament-period-score" style={{ '--period-count': periods.length }} aria-label="Period scoring"><div><span>Team</span>{periods.map((period) => <span key={period}>{periodLabel(period)}</span>)}<strong>Final</strong></div>{identities.map((identity) => { const score = details.score[identity.side]; return <div className={`is-${identity.kind}`} style={teamIdentityStyle(identity)} data-team-kind={identity.kind} key={identity.side}><span className="tournament-period-team"><TeamMark identity={identity} compact /><b>{identity.name}</b></span>{periods.map((period) => <span key={period}>{score.periods?.[period] ?? 0}</span>)}<strong>{score.final}</strong></div>; })}</div>}
+      <div className="tournament-official-event-grid"><ScoringTimeline goals={details.goals} resolveTeam={resolveTeam} /><PenaltyTimeline penalties={details.penalties} resolveTeam={resolveTeam} /></div>
+      <div className="tournament-boxscore-grid"><TeamBoxScore roster={details.roster.away} identity={identities[0]} /><TeamBoxScore roster={details.roster.home} identity={identities[1]} /></div>
     </section>
   );
 }

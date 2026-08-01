@@ -113,6 +113,17 @@ for (const viewport of viewports) {
   screenshots.push(await capture(page, viewport, 'championship-game'));
   const gamePageText = (await page.locator('.tournament-game-page').innerText()).replace(/\s+/gu, ' ').trim();
   const internalGameUrl = page.url();
+  const championshipTeamKeys = await page.locator('.tournament-match-identities > div').count();
+  const championshipIdentityKinds = await page.locator('.tournament-official-event').evaluateAll((rows) => [...new Set(rows.map((row) => row.dataset.teamKind).filter(Boolean))]);
+  const championshipIdentityRails = await page.locator('.tournament-official-event').evaluateAll((rows) => [...new Set(rows.map((row) => getComputedStyle(row).borderInlineStartColor).filter(Boolean))]);
+  await page.getByRole('button', { name: 'Back to tournament' }).click();
+  await page.getByRole('tab', { name: 'All games', exact: true }).click();
+  await page.locator('.tournament-event-game').filter({ hasText: '#53' }).click();
+  await page.locator('.tournament-official-detail').waitFor({ state: 'visible' });
+  const goonsquadFinalGoalKinds = await page.locator('.tournament-official-event.is-goal').evaluateAll((rows) => [...new Set(rows.map((row) => row.dataset.teamKind).filter(Boolean))]);
+  const goonsquadFinalPenaltyKinds = await page.locator('.tournament-official-event.is-penalty').evaluateAll((rows) => [...new Set(rows.map((row) => row.dataset.teamKind).filter(Boolean))]);
+  const goonsquadFinalIdentityRails = await page.locator('.tournament-official-event').evaluateAll((rows) => [...new Set(rows.map((row) => getComputedStyle(row).borderInlineStartColor).filter(Boolean))]);
+  screenshots.push(await capture(page, viewport, 'goonsquad-final-53-detail'));
   await page.getByRole('button', { name: 'Back to tournament' }).click();
   await page.getByRole('tab', { name: 'All games', exact: true }).click();
   await page.locator('.tournament-event-game').filter({ hasText: '#49' }).click();
@@ -121,6 +132,11 @@ for (const viewport of viewports) {
   const quarterfinalGoals = await page.locator('.tournament-official-event.is-goal').count();
   const quarterfinalPenalties = await page.locator('.tournament-official-event.is-penalty').count();
   const quarterfinalBoxScores = await page.locator('.tournament-team-boxscore').count();
+  const quarterfinalTeamKeys = await page.locator('.tournament-match-identities > div').count();
+  const quarterfinalGoonsquadMarks = await page.locator('.tournament-team-mark.is-goonsquad img').count();
+  const quarterfinalOpponentMarks = await page.locator('.tournament-team-mark.is-opponent b').count();
+  const quarterfinalIdentityKinds = await page.locator('.tournament-official-event').evaluateAll((rows) => [...new Set(rows.map((row) => row.dataset.teamKind).filter(Boolean))]);
+  const quarterfinalIdentityRails = await page.locator('.tournament-official-event').evaluateAll((rows) => [...new Set(rows.map((row) => getComputedStyle(row).borderInlineStartColor).filter(Boolean))]);
   const quarterfinalGameUrl = page.url();
   await page.locator('.tournament-official-detail').scrollIntoViewIfNeeded();
   screenshots.push(await capture(page, viewport, 'quarterfinal-49-detail'));
@@ -189,10 +205,21 @@ for (const viewport of viewports) {
     gameRows,
     gamePageText,
     internalGameUrl,
+    championshipTeamKeys,
+    championshipIdentityKinds,
+    championshipIdentityRails,
+    goonsquadFinalGoalKinds,
+    goonsquadFinalPenaltyKinds,
+    goonsquadFinalIdentityRails,
     quarterfinalDetailText,
     quarterfinalGoals,
     quarterfinalPenalties,
     quarterfinalBoxScores,
+    quarterfinalTeamKeys,
+    quarterfinalGoonsquadMarks,
+    quarterfinalOpponentMarks,
+    quarterfinalIdentityKinds,
+    quarterfinalIdentityRails,
     quarterfinalGameUrl,
     mississauga2024: {
       teamGames: mississaugaTeamGames,
@@ -239,7 +266,26 @@ for (const viewport of viewports) {
   if (!gamePageText.includes('New Tecumseth Outlaws') || !gamePageText.includes('Canadian Brew Crew') || !gamePageText.includes('6-4') || !internalGameUrl.includes('tournamentGame=2026-oshawa-official-54')) {
     throw new Error(`${viewport.id}: tournament scores do not open a complete in-app game page.`);
   }
+  if (championshipTeamKeys !== 2
+    || !championshipIdentityKinds.includes('away')
+    || !championshipIdentityKinds.includes('home')
+    || championshipIdentityRails.length < 2) {
+    throw new Error(`${viewport.id}: neutral tournament games do not preserve distinct home and away identities.`);
+  }
+  if (!goonsquadFinalGoalKinds.includes('goonsquad')
+    || !goonsquadFinalGoalKinds.includes('opponent')
+    || !goonsquadFinalPenaltyKinds.includes('goonsquad')
+    || !goonsquadFinalPenaltyKinds.includes('opponent')
+    || goonsquadFinalIdentityRails.length < 2) {
+    throw new Error(`${viewport.id}: Goonsquad scoring and penalties do not preserve distinct team identities.`);
+  }
   if (quarterfinalGoals !== 4 || quarterfinalPenalties !== 2 || quarterfinalBoxScores !== 2
+    || quarterfinalTeamKeys !== 2
+    || quarterfinalGoonsquadMarks < 1
+    || quarterfinalOpponentMarks < 1
+    || !quarterfinalIdentityKinds.includes('goonsquad')
+    || !quarterfinalIdentityKinds.includes('opponent')
+    || quarterfinalIdentityRails.length < 2
     || !quarterfinalDetailText.includes('Alex Grezlovski')
     || !quarterfinalDetailText.includes('Cross Checking - 4 Minute')
     || !quarterfinalDetailText.includes('Body Contact')
