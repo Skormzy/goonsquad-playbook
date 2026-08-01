@@ -5,6 +5,7 @@ import {
   BarChart3,
   CalendarDays,
   ChevronRight,
+  Clock3,
   ExternalLink,
   Film,
   GitBranch,
@@ -12,13 +13,14 @@ import {
   Medal,
   Play,
   Settings2,
+  ShieldAlert,
   ShieldCheck,
   Table2,
   Trophy,
   Users,
 } from 'lucide-react';
 import {
-  tournamentBracketRounds,
+  tournamentBracketTree,
   tournamentById,
   tournamentEventGames,
   tournamentGameById,
@@ -73,6 +75,31 @@ function formatTournamentTime(value) {
 
 function scoreAvailable(game) {
   return Number.isFinite(game?.awayScore) && Number.isFinite(game?.homeScore);
+}
+
+function displayTeamName(value) {
+  return String(value || '').replace(/goon\s*squad/giu, 'Goonsquad');
+}
+
+function periodLabel(value) {
+  const period = String(value || '');
+  if (period === '1') return '1st';
+  if (period === '2') return '2nd';
+  if (period === '3') return '3rd';
+  if (period.startsWith('ot')) return 'OT';
+  return period ? `P${period}` : '—';
+}
+
+function clockValue(value) {
+  const [minutes = 0, seconds = 0] = String(value || '').split(':').map(Number);
+  return (Number.isFinite(minutes) ? minutes : 0) * 60 + (Number.isFinite(seconds) ? seconds : 0);
+}
+
+function chronologicalEvents(events = []) {
+  return [...events].sort((a, b) => (
+    Number(a.period || 0) - Number(b.period || 0)
+    || clockValue(b.clockTime) - clockValue(a.clockTime)
+  ));
 }
 
 function teamGameResult(game) {
@@ -239,11 +266,50 @@ function BracketTeam({ team, score, winner }) {
 }
 
 function TournamentBracket({ tournament, onSelectGame }) {
-  const rounds = tournamentBracketRounds(tournament.bracket);
+  const rounds = tournamentBracketTree(tournament.bracket);
+  const cardWidth = 280;
+  const cardHeight = 112;
+  const columnGap = 104;
+  const firstRoundGap = 28;
+  const labelHeight = 62;
+  const stride = cardHeight + firstRoundGap;
+  const firstRoundMatches = Math.max(rounds[0]?.matches.length || 1, 1);
+  const treeHeight = firstRoundMatches * stride - firstRoundGap;
+  const boardWidth = rounds.length * cardWidth + Math.max(rounds.length - 1, 0) * columnGap;
+  const boardHeight = labelHeight + treeHeight;
+  const positions = rounds.map((round, roundIndex) => round.matches.map((match, matchIndex) => ({
+    match,
+    x: roundIndex * (cardWidth + columnGap),
+    y: labelHeight + ((2 ** roundIndex - 1) * stride) / 2 + matchIndex * (2 ** roundIndex) * stride,
+  })));
+  const connectorPaths = positions.slice(0, -1).flatMap((roundPositions, roundIndex) => {
+    const nextPositions = positions[roundIndex + 1] || [];
+    return nextPositions.flatMap((target, targetIndex) => {
+      const sources = roundPositions.slice(targetIndex * 2, targetIndex * 2 + 2);
+      if (!sources.length) return [];
+      const sourceX = sources[0].x + cardWidth;
+      const targetX = target.x;
+      const joinX = sourceX + (targetX - sourceX) / 2;
+      const targetY = target.y + cardHeight / 2;
+      const firstY = sources[0].y + cardHeight / 2;
+      const lastY = sources[sources.length - 1].y + cardHeight / 2;
+      return [
+        `M ${sourceX} ${firstY} H ${joinX} V ${lastY}`,
+        ...sources.slice(1).map((source) => `M ${sourceX} ${source.y + cardHeight / 2} H ${joinX}`),
+        `M ${joinX} ${targetY} H ${targetX}`,
+      ];
+    });
+  });
   return (
     <section className="tournament-bracket-shell">
-      <header><div><span>FULL ELIMINATION BRACKET</span><h3>{tournament.finish ? `Tournament finish: ${tournament.finish}` : 'Road to the championship'}</h3></div><small>Swipe rounds on mobile</small></header>
-      <div className="tournament-bracket-board">{rounds.map((round, index) => <div key={round.id} className="tournament-bracket-round"><header><span>{String(index + 1).padStart(2, '0')}</span><strong>{round.name}</strong><small>{round.matches.length} matches</small></header>{round.matches.map((match) => <button type="button" key={match.id} className={`tournament-bracket-match ${match.status === 'final' ? 'is-final' : ''}`} onClick={() => match.eventGameId && onSelectGame(match.eventGameId)} disabled={!match.eventGameId}><header><span>{match.label || 'Match'}</span>{match.status === 'final' && <em>FINAL</em>}</header><BracketTeam team={match.awayTeam} score={match.awayScore} winner={match.winner === 'away'} /><BracketTeam team={match.homeTeam} score={match.homeScore} winner={match.winner === 'home'} /></button>)}</div>)}</div>
+      <header><div><span>FULL ELIMINATION BRACKET</span><h3>{tournament.finish ? `Tournament finish: ${tournament.finish}` : 'Road to the championship'}</h3></div><small>Swipe the bracket on mobile</small></header>
+      <div className="tournament-bracket-scroll">
+        <div className="tournament-bracket-board" style={{ width: boardWidth, height: boardHeight }}>
+          <svg className="tournament-bracket-connectors" width={boardWidth} height={boardHeight} viewBox={`0 0 ${boardWidth} ${boardHeight}`} aria-hidden="true">{connectorPaths.map((path, index) => <path key={`${path}-${index}`} d={path} />)}</svg>
+          {rounds.map((round, roundIndex) => <header className="tournament-bracket-round-label" key={round.id} style={{ left: roundIndex * (cardWidth + columnGap), width: cardWidth }}><span>{String(roundIndex + 1).padStart(2, '0')}</span><strong>{round.name}</strong><small>{round.matches.length} matches</small></header>)}
+          {positions.flat().map(({ match, x, y }, matchIndex) => <button type="button" key={match.id} className={`tournament-bracket-match ${match.status === 'final' ? 'is-final' : ''}`} style={{ left: x, top: y, width: cardWidth, height: cardHeight }} data-bracket-index={matchIndex} onClick={() => match.eventGameId && onSelectGame(match.eventGameId)} disabled={!match.eventGameId}><header><span>{match.label || 'Match'}</span>{match.status === 'final' && <em>FINAL</em>}</header><BracketTeam team={match.awayTeam} score={match.awayScore} winner={match.winner === 'away'} /><BracketTeam team={match.homeTeam} score={match.homeScore} winner={match.winner === 'home'} /></button>)}
+        </div>
+      </div>
       <p className="tournament-path-note"><ShieldCheck aria-hidden="true" /> Every recovered elimination result is shown. Select any matchup to open its tournament game page.</p>
     </section>
   );
@@ -267,6 +333,96 @@ function TournamentGames({ tournament, onSelectGame }) {
       <header><div><span>OFFICIAL EVENT GAMEBOOK</span><h3>Every documented matchup</h3></div><small>{eventGames.length} total games</small></header>
       <div className="tournament-game-filters" role="group" aria-label="Filter tournament games">{filters.map(([id, label]) => <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}<small>{id === 'all' ? eventGames.length : id === 'goonsquad' ? eventGames.filter((game) => gameIncludesTeam(game, tournament.teamName)).length : id === 'round-robin' ? eventGames.filter((game) => game.stage === 'round-robin').length : eventGames.filter((game) => game.stage !== 'round-robin').length}</small></button>)}</div>
       <div className="tournament-all-games">{games.map((game) => <EventGameButton key={game.id} game={game} tournament={tournament} onSelectGame={onSelectGame} />)}</div>
+    </section>
+  );
+}
+
+function PlayerLabel({ player }) {
+  if (!player?.name) return <strong>Uncredited</strong>;
+  return <strong>{player.number ? <small>#{player.number}</small> : null}{player.name}</strong>;
+}
+
+function ScoringTimeline({ goals }) {
+  const events = chronologicalEvents(goals);
+  return (
+    <article className="tournament-official-events">
+      <header><span>SCORING</span><strong>{events.length} goals</strong></header>
+      {events.length ? <div>{events.map((goal) => {
+        const assists = [goal.assist1, goal.assist2].filter((assist) => assist?.name);
+        const tags = [
+          goal.powerPlay && 'PP',
+          goal.shortHanded && 'SH',
+          goal.gameWinner && 'GWG',
+          goal.emptyNet && 'EN',
+        ].filter(Boolean);
+        return (
+          <div className="tournament-official-event is-goal" key={`${goal.id}-${goal.period}-${goal.clockTime}`}>
+            <time><b>{periodLabel(goal.period)}</b><span>{goal.clockTime || '—'}</span></time>
+            <i aria-hidden="true" />
+            <div>
+              <small>{displayTeamName(goal.team)}</small>
+              <PlayerLabel player={goal.scorer} />
+              <p>{assists.length ? `Assists: ${assists.map((assist) => `${assist.name}${assist.number ? ` #${assist.number}` : ''}`).join(', ')}` : 'Unassisted'}</p>
+            </div>
+            {tags.length > 0 && <em>{tags.join(' · ')}</em>}
+          </div>
+        );
+      })}</div> : <p className="tournament-event-empty">No goals were recorded.</p>}
+    </article>
+  );
+}
+
+function PenaltyTimeline({ penalties }) {
+  const events = chronologicalEvents(penalties);
+  return (
+    <article className="tournament-official-events is-penalties">
+      <header><span>PENALTIES</span><strong>{events.length} calls</strong></header>
+      {events.length ? <div>{events.map((penalty) => (
+        <div className="tournament-official-event is-penalty" key={penalty.id}>
+          <time><b>{periodLabel(penalty.period)}</b><span>{penalty.clockTime || '—'}</span></time>
+          <ShieldAlert aria-hidden="true" />
+          <div>
+            <small>{displayTeamName(penalty.team)}</small>
+            <PlayerLabel player={penalty.player} />
+            <p>{penalty.label}</p>
+          </div>
+          <em>{penalty.minutes || '—'} MIN</em>
+        </div>
+      ))}</div> : <p className="tournament-event-empty">No penalties were recorded.</p>}
+    </article>
+  );
+}
+
+function TeamBoxScore({ roster }) {
+  const skaters = roster?.players || [];
+  const goalies = roster?.goalies || [];
+  return (
+    <article className="tournament-team-boxscore">
+      <header><span>TEAM GAME SHEET</span><h4>{displayTeamName(roster?.team)}</h4></header>
+      <div className="tournament-boxscore-table" role="table" aria-label={`${displayTeamName(roster?.team)} player box score`}>
+        <div className="is-header" role="row"><span>#</span><span>Player</span><span>G</span><span>A</span><span>PTS</span><span>PIM</span></div>
+        {skaters.map((player) => <div role="row" key={player.id}><b>{player.number || '—'}</b><strong>{player.name}</strong><span>{player.stats.g ?? 0}</span><span>{player.stats.a ?? 0}</span><b>{player.stats.pts ?? 0}</b><span>{player.stats.pim ?? 0}</span></div>)}
+      </div>
+      {goalies.length > 0 && <div className="tournament-goalie-lines"><header><span>GOALIES</span><span>RESULT</span><span>GA</span><span>GAA</span><span>SO</span></header>{goalies.map((goalie) => <div key={goalie.id}><span><b>#{goalie.number}</b>{goalie.name}</span><strong>{goalie.stats.win ? 'W' : goalie.stats.loss ? 'L' : goalie.stats.started ? 'START' : 'DNP'}</strong><span>{goalie.stats.ga ?? 0}</span><span>{Number(goalie.stats.gaa || 0).toFixed(2)}</span><span>{goalie.stats.shutout ?? 0}</span></div>)}</div>}
+    </article>
+  );
+}
+
+function OfficialGameDetails({ details }) {
+  if (!details) return null;
+  const periods = [...new Set([
+    ...Object.keys(details.score?.away?.periods || {}),
+    ...Object.keys(details.score?.home?.periods || {}),
+  ])].sort((a, b) => Number(a) - Number(b));
+  return (
+    <section className="tournament-official-detail">
+      <header>
+        <div><span>OFFICIAL GAME DETAIL</span><h3>Scoring, penalties and player lines</h3></div>
+        <div><Clock3 aria-hidden="true" /><strong>{details.goals.length} goals</strong><strong>{details.penalties.length} penalties</strong></div>
+      </header>
+      {periods.length > 0 && <div className="tournament-period-score" style={{ '--period-count': periods.length }} aria-label="Period scoring"><div><span>Team</span>{periods.map((period) => <span key={period}>{periodLabel(period)}</span>)}<strong>Final</strong></div><div><b>{displayTeamName(details.teams.away)}</b>{periods.map((period) => <span key={period}>{details.score.away.periods?.[period] ?? 0}</span>)}<strong>{details.score.away.final}</strong></div><div><b>{displayTeamName(details.teams.home)}</b>{periods.map((period) => <span key={period}>{details.score.home.periods?.[period] ?? 0}</span>)}<strong>{details.score.home.final}</strong></div></div>}
+      <div className="tournament-official-event-grid"><ScoringTimeline goals={details.goals} /><PenaltyTimeline penalties={details.penalties} /></div>
+      <div className="tournament-boxscore-grid"><TeamBoxScore roster={details.roster.away} /><TeamBoxScore roster={details.roster.home} /></div>
     </section>
   );
 }
@@ -295,7 +451,8 @@ function TournamentGamePage({ tournament, game, onBack }) {
         <article className={winner === game.homeTeam ? 'is-winner' : ''}><span>HOME</span><strong>{game.homeTeam}</strong><b>{hasScore ? game.homeScore : '—'}</b></article>
       </div>
       {!hasScore && <section className="tournament-game-page-note"><ShieldCheck aria-hidden="true" /><div><span>HONEST ARCHIVE</span><h3>The fixture is official; the result was not preserved publicly.</h3><p>The app keeps the verified teams, stage, time, and venue without fabricating a score. An admin can add a recovered result later.</p></div></section>}
-      {teamGame && <section className="tournament-game-page-details"><header><div><span>GOONSQUAD GAME FILE</span><h3>Team details and film</h3></div><strong className={`is-${teamGameResult(teamGame)}`}>{teamGame.scoreFor}-{teamGame.scoreAgainst}</strong></header><div className="tournament-game-facts">{Array.isArray(teamGame.periodScoreFor) && <span><small>PERIODS</small>{teamGame.periodScoreFor.map((score, index) => <b key={index}>{score}-{teamGame.periodScoreAgainst?.[index] ?? '—'}</b>)}</span>}{Number.isFinite(teamGame.shotsFor) && <span><small>SHOTS</small><b>{teamGame.shotsFor}-{teamGame.shotsAgainst}</b></span>}{teamGame.shotsStatus && <span><small>SHOTS</small><b>{teamGame.shotsStatus === 'not-recorded' ? 'Not recorded' : 'Incomplete'}</b></span>}</div>{teamGame.media?.length > 0 && <div className="tournament-game-page-media">{teamGame.media.map((media) => <GameVideo key={media.videoId || media.url} media={media} />)}</div>}</section>}
+      {teamGame && (!game.details || teamGame.media?.length > 0) && <section className="tournament-game-page-details"><header><div><span>GOONSQUAD GAME FILE</span><h3>{teamGame.media?.length > 0 ? 'Game film' : 'Team details'}</h3></div><strong className={`is-${teamGameResult(teamGame)}`}>{teamGame.scoreFor}-{teamGame.scoreAgainst}</strong></header>{!game.details && <div className="tournament-game-facts">{Array.isArray(teamGame.periodScoreFor) && <span><small>PERIODS</small>{teamGame.periodScoreFor.map((score, index) => <b key={index}>{score}-{teamGame.periodScoreAgainst?.[index] ?? '—'}</b>)}</span>}{Number.isFinite(teamGame.shotsFor) && <span><small>SHOTS</small><b>{teamGame.shotsFor}-{teamGame.shotsAgainst}</b></span>}{teamGame.shotsStatus && <span><small>SHOTS</small><b>{teamGame.shotsStatus === 'not-recorded' ? 'Not recorded' : 'Incomplete'}</b></span>}</div>}{teamGame.media?.length > 0 && <div className="tournament-game-page-media">{teamGame.media.map((media) => <GameVideo key={media.videoId || media.url} media={media} />)}</div>}</section>}
+      <OfficialGameDetails details={game.details} />
       <section className="tournament-game-page-context"><div><span>EVENT</span><strong>{tournament.name}</strong><small>{tournament.division}</small></div><div><span>STAGE</span><strong>{game.stageLabel || game.stage}</strong><small>{game.officialGameNumber ? `Official Game ${game.officialGameNumber}` : 'Documented fixture'}</small></div><div><span>VENUE</span><strong>{game.location || tournament.location}</strong><small>{tournamentDateRange(tournament)}</small></div></section>
     </section>
   );

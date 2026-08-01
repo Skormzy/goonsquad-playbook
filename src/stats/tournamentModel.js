@@ -1,5 +1,6 @@
 import tournamentSeed from './tournaments.json';
 import tournamentEvents from './tournamentEvents.json';
+import tournamentGameDetails from './tournamentGameDetails.json';
 import officialYoutubeActivity from '../feed/officialYoutubeActivity.json';
 
 export const TOURNAMENT_COMPETITION_ID = 'tournaments';
@@ -86,10 +87,15 @@ export function normalizeTournamentDisplay(display = {}) {
 
 export function normalizeTournament(tournament = {}) {
   const eventSeed = tournamentEvents[tournament.id] || {};
+  const gameDetails = tournamentGameDetails[tournament.id]?.games || {};
   const pools = Array.isArray(tournament.pools) ? tournament.pools : eventSeed.pools || [];
-  const eventGames = Array.isArray(tournament.eventGames)
+  const sourceEventGames = Array.isArray(tournament.eventGames)
     ? tournament.eventGames
     : eventSeed.eventGames || [];
+  const eventGames = sourceEventGames.map((game) => ({
+    ...game,
+    details: gameDetails[game.id] || null,
+  }));
   const mergedTournament = { ...tournament, pools, eventGames };
   return {
     ...tournament,
@@ -422,6 +428,43 @@ export function tournamentBracketRounds(bracket = []) {
       ...round,
       matches: round.matches.sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
     }));
+}
+
+function bracketWinnerName(match = {}) {
+  if (match.winner === 'away') return match.awayTeam?.name || '';
+  if (match.winner === 'home') return match.homeTeam?.name || '';
+  if (Number.isFinite(match.awayScore) && Number.isFinite(match.homeScore)) {
+    if (match.awayScore > match.homeScore) return match.awayTeam?.name || '';
+    if (match.homeScore > match.awayScore) return match.homeTeam?.name || '';
+  }
+  return '';
+}
+
+export function tournamentBracketTree(bracket = []) {
+  const rounds = tournamentBracketRounds(bracket).map((round) => ({
+    ...round,
+    matches: [...round.matches],
+  }));
+
+  for (let roundIndex = rounds.length - 2; roundIndex >= 0; roundIndex -= 1) {
+    const current = rounds[roundIndex];
+    const next = rounds[roundIndex + 1];
+    const remaining = [...current.matches];
+    const ordered = [];
+
+    next.matches.forEach((nextMatch) => {
+      [nextMatch.awayTeam?.name, nextMatch.homeTeam?.name].forEach((teamName) => {
+        const feederIndex = remaining.findIndex((match) => (
+          normalized(bracketWinnerName(match)) === normalized(teamName)
+        ));
+        if (feederIndex >= 0) ordered.push(remaining.splice(feederIndex, 1)[0]);
+      });
+    });
+
+    current.matches = [...ordered, ...remaining];
+  }
+
+  return rounds;
 }
 
 export const TOURNAMENT_ARCHIVE = buildTournamentArchive();

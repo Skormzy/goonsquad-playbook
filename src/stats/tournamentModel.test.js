@@ -6,6 +6,7 @@ import {
   parseTournamentVideo,
   sortedTournamentStandings,
   tournamentBracketRounds,
+  tournamentBracketTree,
   tournamentEventGames,
   tournamentForPersistence,
   tournamentGameById,
@@ -98,6 +99,10 @@ describe('tournament archive model', () => {
       awayScore: 6,
       homeTeam: 'Goonsquad',
       homeScore: 1,
+      details: {
+        gameId: '2883393',
+        officialGameNumber: 53,
+      },
     });
     expect(tournamentGameById(tournament, '2026-oshawa-official-54')).toMatchObject({
       stage: 'final',
@@ -119,6 +124,14 @@ describe('tournament archive model', () => {
     const bracketRounds = tournamentBracketRounds(tournament.bracket);
     expect(bracketRounds.map((round) => round.id)).toEqual(['quarterfinal', 'semifinal', 'final']);
     expect(bracketRounds.map((round) => round.matches.length)).toEqual([4, 2, 1]);
+    expect(eventGames.every((game) => game.details)).toBe(true);
+    expect(eventGames.reduce((total, game) => total + game.details.goals.length, 0)).toBe(209);
+    expect(eventGames.reduce((total, game) => total + game.details.penalties.length, 0)).toBe(134);
+    eventGames.forEach((game) => {
+      expect(game.details.goals).toHaveLength(game.awayScore + game.homeScore);
+      expect(game.details.score.away.final).toBe(game.awayScore);
+      expect(game.details.score.home.final).toBe(game.homeScore);
+    });
   });
 
   it('preserves every official 2024 score, pool table, and elimination result', () => {
@@ -184,6 +197,23 @@ describe('tournament archive model', () => {
 
     expect(rounds.map((round) => round.id)).toEqual(['quarterfinal', 'semifinal']);
     expect(rounds[1].matches.map((match) => match.id)).toEqual(['sf-1', 'sf-2']);
+  });
+
+  it('orders every elimination round by the winners that feed the next matchup', () => {
+    const tournament = TOURNAMENT_ARCHIVE.find((item) => item.id === '2026-oshawa-provincials');
+    const rounds = tournamentBracketTree(tournament.bracket);
+
+    expect(rounds[0].matches.map((match) => match.id)).toEqual([
+      '2026-oshawa-qf-3',
+      '2026-oshawa-qf-2',
+      '2026-oshawa-qf-4',
+      '2026-oshawa-qf-1',
+    ]);
+    expect(rounds[1].matches.map((match) => match.id)).toEqual([
+      '2026-oshawa-sf-2',
+      '2026-oshawa-sf-1',
+    ]);
+    expect(rounds[2].matches.map((match) => match.id)).toEqual(['2026-oshawa-final']);
   });
 
   it('normalizes event-specific display controls and hides disabled brackets', () => {

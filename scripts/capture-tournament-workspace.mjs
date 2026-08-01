@@ -96,8 +96,9 @@ for (const viewport of viewports) {
   await page.getByRole('tab', { name: 'Full bracket', exact: true }).click();
   await page.locator('.tournament-bracket-shell').scrollIntoViewIfNeeded();
   screenshots.push(await capture(page, viewport, 'full-bracket'));
-  const bracketRounds = await page.locator('.tournament-bracket-round').count();
+  const bracketRounds = await page.locator('.tournament-bracket-round-label').count();
   const bracketMatches = await page.locator('.tournament-bracket-match').count();
+  const bracketConnectors = await page.locator('.tournament-bracket-connectors path').count();
   const bracketText = (await page.locator('.tournament-bracket-shell').innerText()).replace(/\s+/gu, ' ').trim();
 
   await page.getByRole('tab', { name: 'All games', exact: true }).click();
@@ -112,6 +113,17 @@ for (const viewport of viewports) {
   screenshots.push(await capture(page, viewport, 'championship-game'));
   const gamePageText = (await page.locator('.tournament-game-page').innerText()).replace(/\s+/gu, ' ').trim();
   const internalGameUrl = page.url();
+  await page.getByRole('button', { name: 'Back to tournament' }).click();
+  await page.getByRole('tab', { name: 'All games', exact: true }).click();
+  await page.locator('.tournament-event-game').filter({ hasText: '#49' }).click();
+  await page.locator('.tournament-official-detail').waitFor({ state: 'visible' });
+  const quarterfinalDetailText = (await page.locator('.tournament-official-detail').innerText()).replace(/\s+/gu, ' ').trim();
+  const quarterfinalGoals = await page.locator('.tournament-official-event.is-goal').count();
+  const quarterfinalPenalties = await page.locator('.tournament-official-event.is-penalty').count();
+  const quarterfinalBoxScores = await page.locator('.tournament-team-boxscore').count();
+  const quarterfinalGameUrl = page.url();
+  await page.locator('.tournament-official-detail').scrollIntoViewIfNeeded();
+  screenshots.push(await capture(page, viewport, 'quarterfinal-49-detail'));
 
   const horizontalOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -172,10 +184,16 @@ for (const viewport of viewports) {
     standingsRows,
     bracketRounds,
     bracketMatches,
+    bracketConnectors,
     gameFilters,
     gameRows,
     gamePageText,
     internalGameUrl,
+    quarterfinalDetailText,
+    quarterfinalGoals,
+    quarterfinalPenalties,
+    quarterfinalBoxScores,
+    quarterfinalGameUrl,
     mississauga2024: {
       teamGames: mississaugaTeamGames,
       poolTabs: mississaugaPoolTabs,
@@ -212,7 +230,7 @@ for (const viewport of viewports) {
   if (poolTabs !== 4 || standingsRows !== 4 || !standingsText.includes('Goonsquad') || !standingsText.includes('Brampton All Blacks')) {
     throw new Error(`${viewport.id}: official standings are incomplete.`);
   }
-  if (bracketRounds !== 3 || bracketMatches !== 7 || !bracketText.includes('Quarterfinal') || !bracketText.includes('Championship')) {
+  if (bracketRounds !== 3 || bracketMatches !== 7 || bracketConnectors !== 9 || !bracketText.includes('Quarterfinal') || !bracketText.includes('Championship')) {
     throw new Error(`${viewport.id}: tournament path is incomplete.`);
   }
   if (gameFilters !== 4 || gameRows !== 28 || !gamebookText.includes('New Tecumseth Outlaws')) {
@@ -220,6 +238,13 @@ for (const viewport of viewports) {
   }
   if (!gamePageText.includes('New Tecumseth Outlaws') || !gamePageText.includes('Canadian Brew Crew') || !gamePageText.includes('6-4') || !internalGameUrl.includes('tournamentGame=2026-oshawa-official-54')) {
     throw new Error(`${viewport.id}: tournament scores do not open a complete in-app game page.`);
+  }
+  if (quarterfinalGoals !== 4 || quarterfinalPenalties !== 2 || quarterfinalBoxScores !== 2
+    || !quarterfinalDetailText.includes('Alex Grezlovski')
+    || !quarterfinalDetailText.includes('Cross Checking - 4 Minute')
+    || !quarterfinalDetailText.includes('Body Contact')
+    || !quarterfinalGameUrl.includes('tournamentGame=2026-oshawa-official-49')) {
+    throw new Error(`${viewport.id}: official scoring, penalties, or player box scores are incomplete.`);
   }
   if (!mississaugaOverviewText.includes('2024 OBHF Summer Provincials') || mississaugaTeamGames !== 3) {
     throw new Error(`${viewport.id}: the 2024 tournament dossier is incomplete.`);
