@@ -76,4 +76,19 @@ describe('all-time records', () => {
       && line.seasonsPlayed > 0
     ))).toBe(true);
   });
+
+  it('publishes one combined all-time record for Mathew Grenier', () => {
+    const records = buildAllTimeRecords(OFFICIAL_STATS_DATASET);
+    const matches = records.skaters.filter((line) => line.displayName === 'Mathew Grenier');
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toMatchObject({
+      playerId: 'ycbhl-player-25650',
+      gamesPlayed: 49,
+      goals: 54,
+      assists: 39,
+      points: 93,
+      seasonsPlayed: 6,
+    });
+  });
 });

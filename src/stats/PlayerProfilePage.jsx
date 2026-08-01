@@ -110,8 +110,15 @@ export default function PlayerProfilePage({
   const goalie = profile.position === 'G'
     || profile.careerGoalie.gamesPlayed > profile.careerField.gamesPlayed;
   const player = profile.primaryPlayer;
+  const officialProfiles = profile.officialProfiles?.length
+    ? profile.officialProfiles
+    : player.sourceUrl
+      ? [{ playerId: player.id, label: 'Official league', url: player.sourceUrl }]
+      : [];
   const currentSchedule = profile.currentTeams.map(formatLeagueScheduleName).join(' / ');
-  const leagueLabel = profile.leagueNames?.join(' + ') || 'Goonsquad league archive';
+  const leagueNames = profile.leagueNames?.length
+    ? profile.leagueNames
+    : ['Goonsquad league archive'];
   const bestSeason = profile.bestFieldSeason;
   const latestGames = profile.recentGames.slice(0, 10);
   const recentField = latestGames.filter((row) => row.field).slice(0, 5);
@@ -137,12 +144,19 @@ export default function PlayerProfilePage({
             <Copy aria-hidden="true" />
             {copied ? 'Link copied' : 'Copy profile link'}
           </button>
-          {player.sourceUrl && (
-            <a href={player.sourceUrl} target="_blank" rel="noreferrer">
-              Official profile
+          {officialProfiles.map((officialProfile) => (
+            <a
+              key={officialProfile.playerId}
+              href={officialProfile.url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {officialProfiles.length > 1
+                ? `${officialProfile.label} profile`
+                : 'Official profile'}
               <ExternalLink aria-hidden="true" />
             </a>
-          )}
+          ))}
         </div>
       </div>
 
@@ -188,7 +202,9 @@ export default function PlayerProfilePage({
           </p>
           <div className="public-player-badges">
             <span><ShieldCheck aria-hidden="true" /> Official team archive</span>
-            <span><Trophy aria-hidden="true" /> {leagueLabel}</span>
+            {leagueNames.map((leagueName) => (
+              <span key={leagueName}><Trophy aria-hidden="true" /> {leagueName}</span>
+            ))}
             <span><History aria-hidden="true" /> {profile.seasonsPlayed} season{profile.seasonsPlayed === 1 ? '' : 's'}</span>
           </div>
           <OfficialSocialLinks compact className="public-player-social-links" />

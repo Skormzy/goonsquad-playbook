@@ -3,6 +3,12 @@ import {
   formatLeagueName,
   formatLeagueScheduleName,
 } from '../stats/statsModel';
+import {
+  buildPlayerIdentityIndex,
+  canonicalPlayerIdentityId,
+  expandPlayerIdentityIds,
+  playerIdentitySourceLabel,
+} from '../stats/playerIdentity';
 
 function value(number) {
   const parsed = Number(number);
@@ -17,9 +23,10 @@ function seasonSortValue(season, fallbackIndex = 0) {
 function playerIdsForClaims(dataset, claims) {
   const directIds = new Set(claims.map((claim) => claim.playerId).filter(Boolean));
   const externalIds = new Set(claims.map((claim) => claim.player?.externalId).filter(Boolean));
-  return new Set(dataset.players
+  const matchedIds = new Set(dataset.players
     .filter((player) => directIds.has(player.id) || externalIds.has(player.externalId))
     .map((player) => player.id));
+  return expandPlayerIdentityIds(buildPlayerIdentityIndex(dataset.players), matchedIds);
 }
 
 function resolvedPlayers(dataset, claims) {
@@ -39,7 +46,8 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
   const seasonIndex = new Map(dataset.seasons.map((season, index) => [season.id, index]));
   const normalizedQuery = String(query || '').trim().toLowerCase();
 
-  return dataset.players
+  const identityIndex = buildPlayerIdentityIndex(dataset.players);
+  const candidates = dataset.players
     .map((player) => {
       const memberships = membershipByPlayer.get(player.id) ?? [];
       const currentMemberships = memberships.filter((membership) => currentTeamIds.has(membership.seasonTeamId) && membership.active !== false);
@@ -79,7 +87,36 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
         searchText: [player.displayName, position, jerseyNumber, ...schedules, ...seasons.map((season) => season.name)].filter(Boolean).join(' ').toLowerCase(),
       };
     })
-    .filter((candidate) => candidate && (!normalizedQuery || candidate.searchText.includes(normalizedQuery)))
+    .filter((candidate) => candidate && (!normalizedQuery || candidate.searchText.includes(normalizedQuery)));
+
+  const combinedCandidates = new Map();
+  candidates.forEach((candidate) => {
+    const canonicalId = canonicalPlayerIdentityId(identityIndex, candidate.id);
+    const existing = combinedCandidates.get(canonicalId);
+    if (!existing) {
+      combinedCandidates.set(canonicalId, {
+        ...candidate,
+        id: canonicalId,
+        identityPlayerIds: [...(identityIndex.playerIdsByCanonicalId.get(canonicalId) ?? [candidate.id])],
+      });
+      return;
+    }
+
+    const preferred = candidate.current && !existing.current ? candidate : existing;
+    combinedCandidates.set(canonicalId, {
+      ...preferred,
+      id: canonicalId,
+      cloudPlayerId: existing.cloudPlayerId || candidate.cloudPlayerId || null,
+      current: existing.current || candidate.current,
+      active: existing.active || candidate.active,
+      schedules: [...new Set([...existing.schedules, ...candidate.schedules])],
+      seasonCount: existing.seasonCount + candidate.seasonCount,
+      searchText: `${existing.searchText} ${candidate.searchText}`,
+      identityPlayerIds: [...(identityIndex.playerIdsByCanonicalId.get(canonicalId) ?? [candidate.id])],
+    });
+  });
+
+  return [...combinedCandidates.values()]
     .sort((a, b) => Number(b.current) - Number(a.current) || a.displayName.localeCompare(b.displayName) || String(a.externalId).localeCompare(String(b.externalId)));
 }
 
@@ -231,6 +268,13 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now()) {
   return {
     players,
     primaryPlayer,
+    officialProfiles: players
+      .filter((player) => player.sourceUrl)
+      .map((player) => ({
+        playerId: player.id,
+        label: playerIdentitySourceLabel(player),
+        url: player.sourceUrl,
+      })),
     linkStatus: 'linked',
     claims,
     seasonsPlayed: seasonHistory.length,

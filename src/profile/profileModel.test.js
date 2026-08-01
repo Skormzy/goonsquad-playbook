@@ -100,6 +100,44 @@ describe('member profile model', () => {
     expect(publicPlayerProfileSnapshot(dataset, 'missing')).toBeNull();
   });
 
+  it('combines Mathew Grenier across both verified Goonsquad league archives', () => {
+    const profile = publicPlayerProfileSnapshot(
+      OFFICIAL_STATS_DATASET,
+      'ycbhl-player-25650',
+      '2026-07-29T12:00:00Z',
+    );
+
+    expect(profile.players.map((player) => player.id)).toEqual(expect.arrayContaining([
+      'ycbhl-player-25650',
+      'gtbhl-player-88577',
+    ]));
+    expect(profile.leagueNames).toEqual(expect.arrayContaining([
+      'YCBHL',
+      'Greater Toronto Ball Hockey League',
+    ]));
+    expect(profile.seasonsPlayed).toBe(6);
+    expect(profile.careerField).toMatchObject({
+      gamesPlayed: 49,
+      goals: 54,
+      assists: 39,
+      points: 93,
+    });
+    expect(profile.officialProfiles).toHaveLength(2);
+
+    const rosterMatches = playerRosterCandidates(OFFICIAL_STATS_DATASET, {
+      includeHistory: true,
+      query: 'Mathew Grenier',
+    });
+    expect(rosterMatches).toHaveLength(1);
+    expect(rosterMatches[0]).toMatchObject({
+      id: 'ycbhl-player-25650',
+      identityPlayerIds: expect.arrayContaining([
+        'ycbhl-player-25650',
+        'gtbhl-player-88577',
+      ]),
+    });
+  });
+
   it('builds a durable public profile for every published roster identity', () => {
     const profiles = OFFICIAL_STATS_DATASET.players.map((player) => (
       publicPlayerProfileSnapshot(OFFICIAL_STATS_DATASET, player.id, '2026-07-29T12:00:00Z')
@@ -113,7 +151,7 @@ describe('member profile model', () => {
         id: sourcePlayer.id,
         displayName: sourcePlayer.displayName,
       });
-      expect(profile.players.map((player) => player.id)).toEqual([sourcePlayer.id]);
+      expect(profile.players.map((player) => player.id)).toContain(sourcePlayer.id);
       expect(profile.careerField.points).toBe(
         profile.careerField.goals + profile.careerField.assists,
       );

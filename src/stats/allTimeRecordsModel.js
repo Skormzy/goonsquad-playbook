@@ -3,6 +3,10 @@ import {
   aggregateGoalieSeasonStats,
   aggregatePlayerSeasonStats,
 } from './statsModel';
+import {
+  buildPlayerIdentityIndex,
+  canonicalPlayerIdentityId,
+} from './playerIdentity';
 
 function number(value, fallback = 0) {
   return Number.isFinite(value) ? value : fallback;
@@ -23,11 +27,16 @@ function seasonsByPlayer(dataset, lines) {
   return seasons;
 }
 
-function profileMetadata(dataset) {
-  return new Map(
-    playerRosterCandidates(dataset, { includeHistory: true })
-      .map((player) => [player.id, player]),
-  );
+function profileMetadata(dataset, identityIndex) {
+  const metadata = new Map();
+  playerRosterCandidates(dataset, { includeHistory: true }).forEach((player) => {
+    const canonicalId = canonicalPlayerIdentityId(identityIndex, player.id);
+    const existing = metadata.get(canonicalId);
+    if (!existing || (player.current && !existing.current)) {
+      metadata.set(canonicalId, player);
+    }
+  });
+  return metadata;
 }
 
 function decorate(lines, metadata, seasons) {
@@ -44,20 +53,28 @@ function decorate(lines, metadata, seasons) {
 }
 
 export function buildAllTimeRecords(dataset) {
-  const metadata = profileMetadata(dataset);
-  const skaterLines = dataset.playerSeasonStats ?? [];
-  const goalieLines = dataset.goalieSeasonStats ?? [];
+  const identityIndex = buildPlayerIdentityIndex(dataset.players);
+  const metadata = profileMetadata(dataset, identityIndex);
+  const remapPlayerId = (line) => ({
+    ...line,
+    playerId: canonicalPlayerIdentityId(identityIndex, line.playerId),
+  });
+  const skaterLines = (dataset.playerSeasonStats ?? []).map(remapPlayerId);
+  const goalieLines = (dataset.goalieSeasonStats ?? []).map(remapPlayerId);
   const skaterSeasons = seasonsByPlayer(dataset, skaterLines);
   const goalieSeasons = seasonsByPlayer(dataset, goalieLines);
+  const canonicalPlayers = dataset.players.filter((player) => (
+    canonicalPlayerIdentityId(identityIndex, player.id) === player.id
+  ));
 
   const skaters = decorate(
-    aggregatePlayerSeasonStats(skaterLines, dataset.players),
+    aggregatePlayerSeasonStats(skaterLines, canonicalPlayers),
     metadata,
     skaterSeasons,
   ).filter((line) => number(line.gamesPlayed) > 0);
 
   const goalies = decorate(
-    aggregateGoalieSeasonStats(goalieLines, dataset.players),
+    aggregateGoalieSeasonStats(goalieLines, canonicalPlayers),
     metadata,
     goalieSeasons,
   ).filter((line) => number(line.gamesPlayed) > 0);
