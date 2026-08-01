@@ -25,6 +25,7 @@ import {
 } from 'three';
 import PlaybackControls from '../components/PlaybackControls';
 import FaceoffOutcomeControl from '../components/FaceoffOutcomeControl';
+import MobileTeamPlan from '../components/MobileTeamPlan';
 import MobileViewModeSwitch from '../components/MobileViewModeSwitch';
 import ReplayTeachingCue from '../components/ReplayTeachingCue';
 import CameraGestureControl from '../components/vnext3d/CameraGestureControl';
@@ -126,6 +127,12 @@ export default function TacticalReplayPreview() {
     }),
     [currentPhase, currentReplayPhases, isMirrored, replay],
   );
+  const activeTeachingPhase = currentReplayPhases?.[currentPhase];
+  const mobileTeamFallback = activeTeachingPhase?.desc
+    ?? activeTeachingPhase?.caption
+    ?? activeTeachingPhase?.title
+    ?? replay?.presentation?.purpose
+    ?? replay?.title;
   const stageRef = useRef(null);
   const [cameraFollowing, setCameraFollowing] = useState(true);
   const [cameraCommand, setCameraCommand] = useState({ revision: 0, type: 'reframe' });
@@ -136,6 +143,7 @@ export default function TacticalReplayPreview() {
   const [stageFullscreen, setStageFullscreen] = useState(false);
   const [mobileCameraPresetOpen, setMobileCameraPresetOpen] = useState(false);
   const [mobileCameraToolsOpen, setMobileCameraToolsOpen] = useState(false);
+  const [mobileCoachingOpen, setMobileCoachingOpen] = useState(false);
   const [tacticalLayers, setTacticalLayers] = useState(
     () => ({ ...TACTICAL_LAYER_DEFAULTS }),
   );
@@ -164,6 +172,12 @@ export default function TacticalReplayPreview() {
     setRoleFocusMode,
     setSelectedPosition,
   ]);
+
+  const handleCoachingRoleSelect = useCallback(() => {
+    if (replay3dCamera !== 'player') return;
+    setCameraFollowing(true);
+    issueCameraCommand('reframe');
+  }, [issueCameraCommand, replay3dCamera]);
 
   const handleManualCameraControl = useCallback(() => {
     setCameraFollowing(false);
@@ -646,24 +660,24 @@ export default function TacticalReplayPreview() {
           </div>
         )}
         {mobileLayout ? (
-          <details className="vnext3d-mobile-coaching" data-testid="vnext3d-mobile-coaching">
-            <summary>
-              <span>TEAM PLAN</span>
-              <strong>Role responsibilities</strong>
-              <small>Open the position-by-position reads</small>
-              <ChevronDown aria-hidden="true" />
-            </summary>
-            <div>
-              <TeamJobsPanel
-                compact
-                wide
-                eyebrow={replay.kind === 'strategy' ? 'STRATEGY PURPOSE' : 'PLAY PURPOSE'}
-                jobs={teamJobs}
-                meta={replay.title}
-                summary={replay.presentation?.purpose ?? replay.title}
-              />
-            </div>
-          </details>
+          <MobileTeamPlan
+            className="vnext3d-mobile-coaching"
+            data-testid="vnext3d-mobile-coaching"
+            fallbackText={mobileTeamFallback}
+            jobs={teamJobs}
+            onPositionSelect={handleCoachingRoleSelect}
+            onToggle={() => setMobileCoachingOpen((open) => !open)}
+            open={mobileCoachingOpen}
+          >
+            <TeamJobsPanel
+              compact
+              wide
+              eyebrow={replay.kind === 'strategy' ? 'STRATEGY PURPOSE' : 'PLAY PURPOSE'}
+              jobs={teamJobs}
+              meta={replay.title}
+              summary={replay.presentation?.purpose ?? replay.title}
+            />
+          </MobileTeamPlan>
         ) : (
           <div className="vnext3d-preview-identity">
             <TeamJobsPanel

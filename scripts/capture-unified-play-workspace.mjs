@@ -32,6 +32,7 @@ async function findChrome() {
 function reviewUrl(mode) {
   const url = new URL(baseUrl);
   for (const [key, value] of Object.entries({
+    qaTeamAccess: '1',
     content: 'plays',
     mode,
     playId: 'brk',
@@ -41,6 +42,24 @@ function reviewUrl(mode) {
     role: 'C',
     playing: 'false',
     camera: 'broadcast',
+  })) url.searchParams.set(key, value);
+  return url.href;
+}
+
+function strategyReviewUrl(mode) {
+  const url = new URL(baseUrl);
+  for (const [key, value] of Object.entries({
+    qaTeamAccess: '1',
+    content: 'strategy',
+    mode,
+    tacticId: 'watch-your-man',
+    scenario: 'correct',
+    phase: '1',
+    time: '4.6',
+    speed: '1',
+    role: 'C',
+    playing: 'false',
+    camera: 'overhead',
   })) url.searchParams.set(key, value);
   return url.href;
 }
@@ -73,26 +92,48 @@ for (const viewport of viewports) {
 
   await page.goto(reviewUrl('2d'), { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await page.getByTestId(`play-workspace-${viewport.id}`).waitFor({ state: 'visible' });
-  if (viewport.id === 'mobile') {
-    await page.locator('.play-bottom-sheet-toggle').click();
-  }
   const teamPanel = page.getByTestId('team-jobs-panel');
-  await teamPanel.waitFor({ state: 'visible' });
+  if (viewport.id !== 'mobile') await teamPanel.waitFor({ state: 'visible' });
   const teamScreenshot = await screenshot(page, viewport, '2d-team-plan');
-  await page.getByTestId('role-lens-wingers').click();
-  await page.waitForFunction(() => (
-    document.querySelector('[data-testid="team-jobs-panel"]')
-      ?.getAttribute('data-active-lens') === 'wingers'
-  ));
+  if (viewport.id === 'mobile') {
+    await page.getByTestId('role-position-rw').click();
+    await page.waitForFunction(() => (
+      document.querySelector('.play-bottom-sheet[data-active-role="RW"]')
+    ));
+  } else {
+    await page.getByTestId('role-lens-wingers').click();
+    await page.waitForFunction(() => (
+      document.querySelector('[data-testid="team-jobs-panel"]')
+        ?.getAttribute('data-active-lens') === 'wingers'
+    ));
+  }
   const focused2dRoles = await page.locator('[data-team="us"][data-focused="true"]')
     .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-role')).sort());
-  const wingerScreenshot = await screenshot(page, viewport, '2d-winger-lens');
+  const wingerScreenshot = await screenshot(
+    page,
+    viewport,
+    viewport.id === 'mobile' ? '2d-rw-plan' : '2d-winger-lens',
+  );
+  if (viewport.id === 'mobile') {
+    await page.locator('.play-bottom-sheet .mobile-team-plan-toggle').click();
+    await page.locator('.play-bottom-sheet').getByTestId('team-jobs-panel')
+      .waitFor({ state: 'visible' });
+    await page.waitForFunction(() => (
+      document.querySelector('.play-bottom-sheet [data-testid="team-jobs-panel"]')
+        ?.getAttribute('data-active-lens') === 'wingers'
+    ));
+    await page.locator('.play-bottom-sheet .mobile-team-plan-toggle').click();
+  }
   const twoDimensionalState = await page.evaluate(() => ({
     headerRoleControls: document.querySelectorAll('[data-testid^="workspace-role-"]').length,
     homePlayers: document.querySelectorAll('[data-team="us"]').length,
     opponentPlayers: document.querySelectorAll('[data-team="opponent"]').length,
     bodyWidth: document.body.scrollWidth,
     viewportWidth: window.innerWidth,
+    mobilePlanRole: document.querySelector('.play-bottom-sheet')
+      ?.getAttribute('data-active-role') ?? null,
+    mobilePlanRead: document.querySelector('.play-bottom-sheet .mobile-team-plan-read')
+      ?.textContent?.trim() ?? null,
   }));
 
   await page.goto(reviewUrl('3d'), { waitUntil: 'domcontentloaded', timeout: 60_000 });
@@ -107,16 +148,25 @@ for (const viewport of viewports) {
       ?.getAttribute('data-frame-sample-count') ?? 0,
   ) >= 60, undefined, { timeout: 120_000 });
   if (viewport.id === 'mobile') {
-    await page.locator('.vnext3d-mobile-coaching > summary').click();
+    const exactRole = page.locator('.vnext3d-mobile-coaching').getByTestId('role-position-rw');
+    await exactRole.waitFor({ state: 'visible' });
+    await exactRole.click();
+  } else {
+    const threeDimensionalWingerLens = page.getByTestId('role-lens-wingers');
+    await threeDimensionalWingerLens.waitFor({ state: 'visible' });
+    await threeDimensionalWingerLens.click();
   }
-  const threeDimensionalWingerLens = page.getByTestId('role-lens-wingers');
-  await threeDimensionalWingerLens.waitFor({ state: 'visible' });
-  await threeDimensionalWingerLens.click();
   await page.waitForFunction(() => (
     document.querySelector('[data-testid="vnext-3d-production-preview"]')
       ?.getAttribute('data-role-lens') === 'wingers'
   ));
   const threeDimensionalScreenshot = await screenshot(page, viewport, '3d-winger-lens');
+  if (viewport.id === 'mobile') {
+    await page.locator('.vnext3d-mobile-coaching .mobile-team-plan-toggle').click();
+    await page.locator('.vnext3d-mobile-coaching').getByTestId('team-jobs-panel')
+      .waitFor({ state: 'visible' });
+    await page.locator('.vnext3d-mobile-coaching .mobile-team-plan-toggle').click();
+  }
   const threeDimensionalState = await page.evaluate(() => ({
     bodyWidth: document.body.scrollWidth,
     viewportWidth: window.innerWidth,
@@ -128,6 +178,73 @@ for (const viewport of viewports) {
       ?.getAttribute('data-focused-roles'),
     roleLens: document.querySelector('[data-testid="vnext-3d-production-preview"]')
       ?.getAttribute('data-role-lens'),
+    mobilePlanRole: document.querySelector('.vnext3d-mobile-coaching')
+      ?.getAttribute('data-active-role') ?? null,
+    mobilePlanRead: document.querySelector('.vnext3d-mobile-coaching .mobile-team-plan-read')
+      ?.textContent?.trim() ?? null,
+  }));
+
+  await page.goto(strategyReviewUrl('2d'), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.locator('.tactics-learn').waitFor({ state: 'visible', timeout: 60_000 });
+  if (viewport.id === 'mobile') {
+    await page.locator('.tactics-mobile-role-plan').getByTestId('role-position-rw').click();
+    await page.waitForFunction(() => (
+      document.querySelector('.tactics-mobile-role-plan')
+        ?.getAttribute('data-active-role') === 'RW'
+    ));
+  } else {
+    await page.locator('[data-testid="role-lens-wingers"]:visible').click();
+  }
+  const strategyTwoDimensionalScreenshot = await screenshot(
+    page,
+    viewport,
+    viewport.id === 'mobile' ? 'strategy-2d-rw-plan' : 'strategy-2d-winger-lens',
+  );
+  const strategyTwoDimensionalState = await page.evaluate(() => ({
+    bodyWidth: document.body.scrollWidth,
+    viewportWidth: window.innerWidth,
+    mobilePlanRole: document.querySelector('.tactics-mobile-role-plan')
+      ?.getAttribute('data-active-role') ?? null,
+    mobilePlanRead: document.querySelector('.tactics-mobile-role-plan .mobile-team-plan-read')
+      ?.textContent?.trim() ?? null,
+  }));
+
+  await page.goto(strategyReviewUrl('3d'), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  const strategyPreview = page.getByTestId('vnext-3d-production-preview');
+  await strategyPreview.waitFor({ state: 'visible', timeout: 60_000 });
+  await page.waitForFunction(() => (
+    document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-player-count') === '12'
+  ), undefined, { timeout: 120_000 });
+  await page.waitForFunction(() => Number(
+    document.querySelector('[data-testid="vnext-3d-production-preview"]')
+      ?.getAttribute('data-frame-sample-count') ?? 0,
+  ) >= 60, undefined, { timeout: 120_000 });
+  if (viewport.id === 'mobile') {
+    await page.locator('.vnext3d-mobile-coaching').getByTestId('role-position-rw').click();
+    await page.waitForFunction(() => (
+      document.querySelector('.vnext3d-mobile-coaching')
+        ?.getAttribute('data-active-role') === 'RW'
+    ));
+  } else {
+    await page.locator('[data-testid="role-lens-wingers"]:visible').click();
+  }
+  const strategyThreeDimensionalScreenshot = await screenshot(
+    page,
+    viewport,
+    viewport.id === 'mobile' ? 'strategy-3d-rw-plan' : 'strategy-3d-winger-lens',
+  );
+  const strategyThreeDimensionalState = await page.evaluate(() => ({
+    bodyWidth: document.body.scrollWidth,
+    viewportWidth: window.innerWidth,
+    playerCount: Number(
+      document.querySelector('[data-testid="vnext-3d-production-preview"]')
+        ?.getAttribute('data-player-count') ?? 0,
+    ),
+    mobilePlanRole: document.querySelector('.vnext3d-mobile-coaching')
+      ?.getAttribute('data-active-role') ?? null,
+    mobilePlanRead: document.querySelector('.vnext3d-mobile-coaching .mobile-team-plan-read')
+      ?.textContent?.trim() ?? null,
   }));
 
   const passed = problems.length === 0
@@ -136,10 +253,21 @@ for (const viewport of viewports) {
     && twoDimensionalState.homePlayers === 6
     && twoDimensionalState.opponentPlayers === 6
     && twoDimensionalState.bodyWidth <= twoDimensionalState.viewportWidth
+    && (viewport.id !== 'mobile' || twoDimensionalState.mobilePlanRole === 'RW')
+    && (viewport.id !== 'mobile' || !twoDimensionalState.mobilePlanRead?.startsWith('C'))
     && threeDimensionalState.playerCount === 12
     && threeDimensionalState.focusedRoles === 'LW,RW'
     && threeDimensionalState.roleLens === 'wingers'
-    && threeDimensionalState.bodyWidth <= threeDimensionalState.viewportWidth;
+    && (viewport.id !== 'mobile' || threeDimensionalState.mobilePlanRole === 'RW')
+    && (viewport.id !== 'mobile' || !threeDimensionalState.mobilePlanRead?.startsWith('C'))
+    && threeDimensionalState.bodyWidth <= threeDimensionalState.viewportWidth
+    && strategyTwoDimensionalState.bodyWidth <= strategyTwoDimensionalState.viewportWidth
+    && (viewport.id !== 'mobile' || strategyTwoDimensionalState.mobilePlanRole === 'RW')
+    && (viewport.id !== 'mobile' || !strategyTwoDimensionalState.mobilePlanRead?.startsWith('C'))
+    && strategyThreeDimensionalState.playerCount === 12
+    && strategyThreeDimensionalState.bodyWidth <= strategyThreeDimensionalState.viewportWidth
+    && (viewport.id !== 'mobile' || strategyThreeDimensionalState.mobilePlanRole === 'RW')
+    && (viewport.id !== 'mobile' || !strategyThreeDimensionalState.mobilePlanRead?.startsWith('C'));
 
   results[viewport.id] = {
     viewport: [viewport.width, viewport.height],
@@ -147,10 +275,14 @@ for (const viewport of viewports) {
       team2d: teamScreenshot,
       wingers2d: wingerScreenshot,
       wingers3d: threeDimensionalScreenshot,
+      strategy2d: strategyTwoDimensionalScreenshot,
+      strategy3d: strategyThreeDimensionalScreenshot,
     },
     focused2dRoles,
     twoDimensionalState,
     threeDimensionalState,
+    strategyTwoDimensionalState,
+    strategyThreeDimensionalState,
     problems,
     passed,
   };

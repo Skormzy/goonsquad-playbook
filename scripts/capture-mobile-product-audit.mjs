@@ -735,7 +735,7 @@ for (const device of devices) {
   const rinkRect = await page.locator('.play-mobile-rink, .play-region-rink').boundingBox();
   states.push(await capture(page, device, 'plays-2d', { rinkRect }));
   if (!device.landscape) {
-    const sheetToggle = page.locator('.play-bottom-sheet-toggle');
+    const sheetToggle = page.locator('.play-bottom-sheet .mobile-team-plan-toggle');
     if (await sheetToggle.count()) {
       await sheetToggle.click();
       await page.locator('.play-bottom-sheet.is-open').waitFor({ state: 'visible' });

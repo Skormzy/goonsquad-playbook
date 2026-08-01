@@ -17,10 +17,13 @@ import {
 } from '../play-engine/coverageAssignments';
 import CoverageVisibilityControl from './CoverageVisibilityControl';
 import CurriculumLaneSwitch from './CurriculumLaneSwitch';
+import MobileTeamPlan from './MobileTeamPlan';
 import MobileViewModeSwitch from './MobileViewModeSwitch';
 import PlaybackControls from './PlaybackControls';
 import ReplayTeachingCue from './ReplayTeachingCue';
 import SceneRink2D from './SceneRink2D';
+import TeamJobsPanel from './TeamJobsPanel';
+import { teamJobsForActivePhase } from '../play-engine/teamJobs';
 
 const TC = TACTICAL_COLORS;
 
@@ -62,8 +65,12 @@ export default function TacticsLearn() {
     setStrategyVariant,
     currentPhase,
     setCurrentPhase,
+    currentReplayPhases,
     currentReplayScene,
+    isMirrored,
     playbackTime,
+    roleFocusMode,
+    selectedPosition,
     setIsPlaying,
     setCurrentPlay,
     setActiveView,
@@ -89,6 +96,14 @@ export default function TacticsLearn() {
   });
   const coverageAvailable = lane === 'defence' && hasCoverageAssignments(availableCoverage);
   const tabAccent = activeTab === 'mistake' ? TC.mistake : TC.defense;
+  const [rolePlanOpen, setRolePlanOpen] = useState(false);
+  const teamJobs = useMemo(
+    () => teamJobsForActivePhase(currentReplayPhases, currentPhase, {
+      isMirrored,
+      fallbackResponsibilities: currentReplayScene?.presentation?.responsibilities ?? [],
+    }),
+    [currentPhase, currentReplayPhases, currentReplayScene, isMirrored],
+  );
 
   const selectPrinciple = useCallback((i) => {
     cancelPlaybackRestart();
@@ -200,6 +215,8 @@ export default function TacticsLearn() {
           scene={currentReplayScene}
           time={playbackTime}
           tactical
+          roleFocusMode={roleFocusMode}
+          selectedPosition={selectedPosition}
           coverageEnabled={showCoverage}
           coverageLane={lane}
           arrows={phase.arrows}
@@ -349,6 +366,15 @@ export default function TacticsLearn() {
               {titleBlock}
               {principleTextBlock}
             </div>
+            <div className="tactics-role-plan">
+              <TeamJobsPanel
+                compact
+                eyebrow={`PHASE ${currentPhase + 1} ROLE PLAN`}
+                jobs={teamJobs}
+                meta={phase?.caption ?? null}
+                summary={phase?.title ?? principle.title}
+              />
+            </div>
             <div className="tactics-coaching-detail">
               {whyBlock}
               {keyPointsBlock}
@@ -367,6 +393,21 @@ export default function TacticsLearn() {
           <div className="tactics-mobile-rink" data-mobile-strategy-rink>
             {rinkBlock}
           </div>
+          <MobileTeamPlan
+            className="tactics-mobile-role-plan"
+            fallbackText={phase?.caption}
+            jobs={teamJobs}
+            onToggle={() => setRolePlanOpen((open) => !open)}
+            open={rolePlanOpen}
+          >
+            <TeamJobsPanel
+              compact
+              eyebrow={`PHASE ${currentPhase + 1} ROLE PLAN`}
+              jobs={teamJobs}
+              meta={phase?.caption ?? null}
+              summary={phase?.title ?? principle.title}
+            />
+          </MobileTeamPlan>
           <div className="tactics-mobile-transport">
             {controlsBlock}
           </div>

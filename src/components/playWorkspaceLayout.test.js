@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const viewer = readFileSync(new URL('./PlayViewer.jsx', import.meta.url), 'utf8');
+const mobileTeamPlan = readFileSync(new URL('./MobileTeamPlan.jsx', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8');
 
 describe('responsive play workspace structure', () => {
@@ -21,9 +22,12 @@ describe('responsive play workspace structure', () => {
     expect(viewer).not.toContain('<div className="play-region-label"');
   });
 
-  it('uses a separate mobile bottom sheet and rink-first bounded height', () => {
-    expect(viewer).toContain('data-testid="play-bottom-sheet"');
-    expect(viewer).toContain('aria-controls="mobile-coaching-detail"');
+  it('uses a shared exact-role coaching dock and rink-first bounded height', () => {
+    expect(viewer).toContain('className="play-bottom-sheet"');
+    expect(viewer).toContain('fallbackText={phase?.desc}');
+    expect(mobileTeamPlan).toContain('data-testid="mobile-team-plan"');
+    expect(mobileTeamPlan).toContain('aria-controls={contentId}');
+    expect(mobileTeamPlan).toContain('<RolePositionSelector');
     expect(viewer).toContain('className="play-mobile-library-trigger"');
     expect(viewer).toContain('const syncSheet = () => setSheetOpen(query.matches)');
     expect(css).toContain('.play-bottom-sheet');

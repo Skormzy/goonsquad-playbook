@@ -35,7 +35,7 @@ export function roleMatchesLens(role, lensId) {
 function uniqueActions(entries) {
   const seen = new Set();
   return entries.filter((entry) => {
-    const key = entry.text.trim().toLowerCase();
+    const key = `${entry.role ?? ''}:${entry.text.trim().toLowerCase()}`;
     if (!key || seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -70,6 +70,7 @@ export function teamJobsFromPhase(phase, isMirrored = false) {
 
     return {
       id: lens.id,
+      generic: false,
       label: lens.label,
       roles: lens.roles,
       primaryRole: entries.find((entry) => entry.hasBall)?.role ?? entries[0].role,
@@ -96,6 +97,7 @@ export function teamJobsFromPresentation(responsibilities = []) {
     const lens = ROLE_LENS_BY_ID.get(id);
     const job = jobs.get(id) ?? {
       id,
+      generic: true,
       label: lens.label,
       roles: lens.roles,
       primaryRole: lens.roles[0],
@@ -117,6 +119,60 @@ export function teamJobsFromPresentation(responsibilities = []) {
     .slice(1)
     .map((lens) => jobs.get(lens.id))
     .filter(Boolean);
+}
+
+export function positionsForTeamJobs(jobs = []) {
+  const available = new Set();
+
+  for (const job of jobs) {
+    const positions = job.generic
+      ? job.roles
+      : job.actions.map((action) => action.role);
+    for (const position of positions) {
+      if (position) available.add(position);
+    }
+  }
+
+  return ['LW', 'C', 'RW', 'LD', 'RD', 'G']
+    .filter((position) => available.has(position));
+}
+
+export function teamPlanPreview(
+  jobs = [],
+  roleFocusMode = 'team',
+  selectedPosition = 'C',
+  fallbackText = 'Review the full team shape for this phase.',
+) {
+  const activeLens = normalizeRoleLens(roleFocusMode);
+
+  if (activeLens === 'team') {
+    return {
+      label: 'Team',
+      role: null,
+      text: fallbackText,
+    };
+  }
+
+  const job = jobs.find((candidate) => candidate.id === activeLens);
+  if (!job) {
+    return {
+      label: roleLensLabel(activeLens),
+      role: null,
+      text: fallbackText,
+    };
+  }
+
+  const exactAction = job.actions.find((action) => action.role === selectedPosition);
+  const action = exactAction ?? job.actions[0];
+  const role = (exactAction || (job.generic && job.roles.includes(selectedPosition)))
+    ? selectedPosition
+    : action?.role ?? job.primaryRole ?? job.roles[0] ?? null;
+
+  return {
+    label: job.label,
+    role,
+    text: action?.text ?? fallbackText,
+  };
 }
 
 export function teamJobsForActivePhase(

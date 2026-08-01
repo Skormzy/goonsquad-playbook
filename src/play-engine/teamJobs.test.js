@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { PLAYS } from '../data/plays';
 import {
+  positionsForTeamJobs,
   roleLensForPosition,
   roleMatchesLens,
   rolesForRoleLens,
+  teamPlanPreview,
   teamJobsForActivePhase,
   teamJobsFromPhase,
   teamJobsFromPresentation,
@@ -75,5 +77,54 @@ describe('team jobs', () => {
     expect(roleLensForPosition('RW')).toBe('wingers');
     expect(roleLensForPosition('LD')).toBe('defense');
     expect(roleLensForPosition('G')).toBe('goalie');
+  });
+
+  it('never presents one selected position as the full team plan', () => {
+    const phase = PLAYS.find((play) => play.id === 'trap').phases[0];
+    const jobs = teamJobsFromPhase(phase);
+    const centerRead = jobs.find((job) => job.id === 'center').actions[0].text;
+    const preview = teamPlanPreview(jobs, 'team', 'C', phase.desc);
+
+    expect(preview.label).toBe('Team');
+    expect(preview.role).toBeNull();
+    expect(preview.text).not.toBe(centerRead);
+    expect(preview.text).toBe(phase.desc);
+  });
+
+  it('returns the exact position read and only exposes active special-teams roles', () => {
+    const trapPhase = PLAYS.find((play) => play.id === 'trap').phases[0];
+    const trapJobs = teamJobsFromPhase(trapPhase);
+    const rightWinger = trapJobs.find((job) => job.id === 'wingers')
+      .actions.find((action) => action.role === 'RW');
+    const rightWingerPreview = teamPlanPreview(trapJobs, 'wingers', 'RW');
+    const penaltyKillPhase = PLAYS.find((play) => play.id === 'pkb').phases[0];
+
+    expect(rightWingerPreview.role).toBe('RW');
+    expect(rightWingerPreview.text).toBe(rightWinger.text);
+    expect(positionsForTeamJobs(teamJobsFromPhase(penaltyKillPhase))).not.toContain('RW');
+  });
+
+  it('keeps both exact positions selectable when their authored reads match', () => {
+    const jobs = teamJobsFromPhase({
+      pos: {
+        LW: { x: 25, y: 50, role: 'Seal the middle lane.' },
+        RW: { x: 75, y: 50, role: 'Seal the middle lane.' },
+      },
+    });
+    const wingerJob = jobs.find((job) => job.id === 'wingers');
+
+    expect(wingerJob.actions.map((action) => action.role)).toEqual(['LW', 'RW']);
+    expect(positionsForTeamJobs(jobs)).toEqual(['LW', 'RW']);
+  });
+
+  it('never labels an active role read as a position that left the phase', () => {
+    const penaltyKillPhase = PLAYS.find((play) => play.id === 'pkb').phases[0];
+    const jobs = teamJobsFromPhase(penaltyKillPhase);
+    const staleRightWingerPreview = teamPlanPreview(jobs, 'wingers', 'RW');
+
+    expect(staleRightWingerPreview.role).toBe('LW');
+    expect(staleRightWingerPreview.text).toBe(
+      jobs.find((job) => job.id === 'wingers').actions[0].text,
+    );
   });
 });

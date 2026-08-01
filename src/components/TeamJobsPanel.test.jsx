@@ -48,6 +48,9 @@ describe('TeamJobsPanel', () => {
     expect(markup).toContain('data-testid="role-lens-wingers"');
     expect(markup).toContain('Wingers');
     expect(markup).toContain('Defense');
+    expect(markup).toContain('>LW<');
+    expect(markup).toContain('>C<');
+    expect(markup).toContain('>LD<');
     expect(markup).not.toContain('Left Wing');
     expect(markup).not.toContain('Right Wing');
   });

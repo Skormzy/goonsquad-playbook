@@ -18,6 +18,12 @@ function selectPrimaryRole(job, selectedPosition) {
   return job.primaryRole ?? job.roles[0] ?? 'C';
 }
 
+function actionRoleLabel(job, action) {
+  return job.generic && job.roles.length > 1
+    ? job.roles.join('/')
+    : action.role;
+}
+
 export default function TeamJobsPanel({
   compact = false,
   eyebrow = 'TEAM JOBS',
@@ -111,7 +117,10 @@ export default function TeamJobsPanel({
           <div className="team-job-detail-actions">
             {activeJob.actions.map((action, index) => (
               <div key={[activeJob.id, action.role, index].join('-')}>
-                {action.urgency !== 'hold' && <span>{action.urgency.toUpperCase()}</span>}
+                <div className="team-job-action-meta">
+                  <b className="team-job-action-role">{actionRoleLabel(activeJob, action)}</b>
+                  {action.urgency !== 'hold' && <span>{action.urgency.toUpperCase()}</span>}
+                </div>
                 <p>{action.text}</p>
                 {action.key && <strong>KEY READ: {action.key}</strong>}
                 {action.callout && <strong className="is-callout">&quot;{action.callout}&quot;</strong>}
@@ -138,7 +147,10 @@ export default function TeamJobsPanel({
               <span>{job.label}</span>
               <div>
                 {job.actions.map((action, index) => (
-                  <p key={[job.id, action.role, index].join('-')}>{action.text}</p>
+                  <p key={[job.id, action.role, index].join('-')}>
+                    <b>{actionRoleLabel(job, action)}</b>
+                    <span>{action.text}</span>
+                  </p>
                 ))}
               </div>
             </button>

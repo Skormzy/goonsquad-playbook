@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, FlipHorizontal2, UsersRound } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useApp } from '../context/AppContext';
 import { CAT_COLORS } from '../context/ThemeContext';
 import { CORE_PLAYS, itemsForCurriculumLane } from '../data/coreCatalog';
 import { useWorkspaceLayout } from '../hooks/useWorkspaceLayout';
-import { roleLensLabel } from '../play-engine/teamJobs';
+import { teamJobsFromPhase } from '../play-engine/teamJobs';
 import {
   coverageAssignmentsForReplay,
   hasCoverageAssignments,
@@ -13,6 +13,7 @@ import {
 import CoverageVisibilityControl from './CoverageVisibilityControl';
 import PhaseControls from './PhaseControls';
 import FaceoffOutcomeControl from './FaceoffOutcomeControl';
+import MobileTeamPlan from './MobileTeamPlan';
 import MobileViewModeSwitch from './MobileViewModeSwitch';
 import ReplayTeachingCue from './ReplayTeachingCue';
 import ResponsibilityPanel from './ResponsibilityPanel';
@@ -110,7 +111,10 @@ export default function PlayViewer() {
   const phase = currentReplayPhases[currentPhase];
   const currentPhaseColor = phaseColor(phase?.t, t.ac);
   const categoryColor = CAT_COLORS[currentPlay?.cat] || t.ac;
-  const selectedRoleRead = phase?.pos?.[selectedPosition]?.role ?? phase?.desc ?? '';
+  const teamJobs = useMemo(
+    () => teamJobsFromPhase(phase, isMirrored),
+    [isMirrored, phase],
+  );
   const coverageAvailable = currentReplayPlay?.lane === 'defence'
     && hasCoverageAssignments(coverageAssignmentsForReplay(currentReplayScene, playbackTime));
 
@@ -243,74 +247,49 @@ export default function PlayViewer() {
         <PhaseControls compact />
       </section>
 
-      <section
-        className={`play-bottom-sheet ${sheetOpen ? 'is-open' : ''}`}
-        data-region="detail"
-        data-testid="play-bottom-sheet"
-        style={{ background: t.sf, borderColor: t.bd }}
+      <MobileTeamPlan
+        aria-label="team plan and view tools"
+        className="play-bottom-sheet"
+        contentClassName="play-bottom-sheet-content"
+        fallbackText={phase?.desc}
+        jobs={teamJobs}
+        onToggle={() => setSheetOpen((open) => !open)}
+        open={sheetOpen}
       >
-        <button
-          type="button"
-          className="play-bottom-sheet-toggle"
-          onClick={() => setSheetOpen((open) => !open)}
-          aria-expanded={sheetOpen}
-          aria-controls="mobile-coaching-detail"
-          aria-label={`${sheetOpen ? 'Close' : 'Open'} team plan and view tools`}
-          style={{ color: t.tx }}
+        <ResponsibilityPanel embedded jobs={teamJobs} />
+        <div
+          className="play-mobile-view-tools"
+          role="group"
+          aria-label="2D rink view tools"
+          style={{ '--play-tool-count': coverageAvailable ? 3 : 2 }}
         >
-          <span className="play-bottom-sheet-handle" style={{ background: t.bd }} />
-          <span className="play-bottom-sheet-title">
-            <span>
-              <span style={{ color: t.td }}>TEAM PLAN</span>
-              <strong style={{ color: roleFocusMode === 'team' ? t.ac : t.pc[selectedPosition] }}>
-                {roleLensLabel(roleFocusMode)}
-              </strong>
-            </span>
-            <small style={{ color: t.tm }}>
-              {selectedPosition}: {selectedRoleRead}
-            </small>
-          </span>
-          <span aria-hidden="true" style={{ color: t.tm }}>{sheetOpen ? '⌄' : '⌃'}</span>
-        </button>
-
-        {sheetOpen && (
-          <div id="mobile-coaching-detail" className="play-bottom-sheet-content">
-            <ResponsibilityPanel embedded />
-            <div
-              className="play-mobile-view-tools"
-              role="group"
-              aria-label="2D rink view tools"
-              style={{ '--play-tool-count': coverageAvailable ? 3 : 2 }}
-            >
-              <button
-                type="button"
-                aria-pressed={showOpponents}
-                onClick={() => setShowOpponents(!showOpponents)}
-              >
-                <UsersRound aria-hidden="true" />
-                <span>{showOpponents ? 'Opponents on' : 'Opponents off'}</span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={isMirrored}
-                onClick={() => setIsMirrored(!isMirrored)}
-              >
-                <FlipHorizontal2 aria-hidden="true" />
-                <span>{isMirrored ? 'Mirrored' : 'Mirror rink'}</span>
-              </button>
-              {coverageAvailable ? (
-                <CoverageVisibilityControl
-                  compact
-                  enabled={showCoverage}
-                  onChange={setShowCoverage}
-                />
-              ) : null}
-            </div>
-            <StrategyButton color={categoryColor} onClick={() => setStrategyOpen(true)} />
-            <PlayNavigation plays={lanePlays} playIdx={playIdx} goPlay={goPlay} muted={t.tm} border={t.bd} />
-          </div>
-        )}
-      </section>
+          <button
+            type="button"
+            aria-pressed={showOpponents}
+            onClick={() => setShowOpponents(!showOpponents)}
+          >
+            <UsersRound aria-hidden="true" />
+            <span>{showOpponents ? 'Opponents on' : 'Opponents off'}</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={isMirrored}
+            onClick={() => setIsMirrored(!isMirrored)}
+          >
+            <FlipHorizontal2 aria-hidden="true" />
+            <span>{isMirrored ? 'Mirrored' : 'Mirror rink'}</span>
+          </button>
+          {coverageAvailable ? (
+            <CoverageVisibilityControl
+              compact
+              enabled={showCoverage}
+              onChange={setShowCoverage}
+            />
+          ) : null}
+        </div>
+        <StrategyButton color={categoryColor} onClick={() => setStrategyOpen(true)} />
+        <PlayNavigation plays={lanePlays} playIdx={playIdx} goPlay={goPlay} muted={t.tm} border={t.bd} />
+      </MobileTeamPlan>
     </div>
   );
 }

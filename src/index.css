@@ -11384,7 +11384,7 @@ input:focus:not(:focus-visible) { outline: none; }
     -webkit-line-clamp: 2;
   }
 
-  .vnext3d-mobile-coaching:not([open]) > :not(summary) {
+  details.vnext3d-mobile-coaching:not([open]) > :not(summary) {
     display: none;
   }
 
@@ -15397,5 +15397,286 @@ input:focus:not(:focus-visible) { outline: none; }
 
   .tactics-legend .coverage-visibility-control.is-compact {
     min-height: 40px;
+  }
+}
+
+/* Exact-role coaching rail. This is the final shared contract for Plays,
+   Strategy, and 3D so a Team label can never expose one hidden position. */
+.mobile-team-plan {
+  min-width: 0;
+  display: grid;
+  gap: 0;
+  color: var(--play-text, var(--gs-white));
+  background: color-mix(in srgb, var(--gs-overlay-solid) 94%, transparent);
+  --play-accent: var(--gs-cyan);
+  --play-border: var(--gs-border);
+  --play-dim: var(--gs-muted);
+  --play-muted: var(--gs-muted);
+  --play-panel: var(--gs-panel);
+  --play-text: var(--gs-white);
+}
+
+.mobile-team-plan-command-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px 4px 9px;
+  border-left: 3px solid var(--gs-cyan);
+}
+
+.mobile-team-plan-eyebrow {
+  color: var(--gs-cyan);
+  font: 900 9px/1 var(--font-display);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.role-position-selector {
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 3px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+}
+
+.role-position-selector::-webkit-scrollbar {
+  display: none;
+}
+
+.role-position-selector button,
+.mobile-team-plan-toggle {
+  min-width: 30px;
+  min-height: 30px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  padding: 0 5px;
+  border: 1px solid var(--gs-border);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--gs-panel) 88%, transparent);
+  color: var(--gs-muted);
+  font: 900 10px/1 var(--font-display);
+  letter-spacing: 0;
+}
+
+.role-position-selector button:hover,
+.role-position-selector button:focus-visible,
+.mobile-team-plan-toggle:hover,
+.mobile-team-plan-toggle:focus-visible {
+  border-color: var(--gs-cyan);
+  color: var(--gs-white);
+}
+
+.role-position-selector button[aria-pressed='true'] {
+  border-color: var(--gs-cyan);
+  background: color-mix(in srgb, var(--gs-cyan) 19%, var(--gs-panel));
+  color: var(--gs-cyan);
+  box-shadow: inset 0 -2px 0 var(--gs-cyan);
+}
+
+.mobile-team-plan-toggle {
+  padding: 0;
+}
+
+.mobile-team-plan-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 160ms ease;
+}
+
+.mobile-team-plan.is-open .mobile-team-plan-toggle svg {
+  transform: rotate(180deg);
+}
+
+.mobile-team-plan-read {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: start;
+  gap: 7px;
+  padding: 5px 9px 7px 12px;
+  border-top: 1px solid color-mix(in srgb, var(--gs-border) 66%, transparent);
+}
+
+.mobile-team-plan-read strong {
+  color: var(--gs-cyan);
+  font: 900 12px/1.25 var(--font-display);
+  text-transform: uppercase;
+}
+
+.mobile-team-plan-read span {
+  min-width: 0;
+  overflow: visible;
+  color: var(--gs-white);
+  font: 750 12px/1.32 var(--font-body);
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.mobile-team-plan-content {
+  --play-accent: var(--gs-cyan);
+  --play-border: var(--gs-border);
+  --play-dim: var(--gs-muted);
+  --play-muted: var(--gs-muted);
+  --play-panel: var(--gs-panel);
+  --play-text: var(--gs-white);
+}
+
+.vnext3d-mobile-coaching.mobile-team-plan > .mobile-team-plan-command-row,
+.vnext3d-mobile-coaching.mobile-team-plan > .mobile-team-plan-read {
+  display: grid;
+  max-height: none;
+  overflow: visible;
+}
+
+.vnext3d-mobile-coaching.mobile-team-plan > .mobile-team-plan-command-row {
+  border-top: 0;
+  padding: 5px 7px 4px 9px;
+}
+
+.vnext3d-mobile-coaching.mobile-team-plan > .mobile-team-plan-read {
+  padding: 5px 9px 7px 12px;
+}
+
+.team-job-card p {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: start;
+  gap: 6px;
+}
+
+.team-job-card p > b,
+.team-job-action-role {
+  color: var(--job-accent, var(--gs-cyan));
+  font: 900 10px/1.35 var(--font-display);
+  text-transform: uppercase;
+}
+
+.team-job-card p > span {
+  min-width: 0;
+}
+
+.team-job-detail-actions > div {
+  grid-template-columns: 54px minmax(0, 1fr);
+  align-items: start;
+}
+
+.team-job-action-meta {
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+  gap: 3px;
+}
+
+.team-job-action-meta > span {
+  padding: 2px 4px;
+  border: 1px solid color-mix(in srgb, var(--job-accent) 36%, transparent);
+  border-radius: 3px;
+  color: var(--job-accent);
+  font: 900 9px/1 var(--font-display);
+}
+
+.team-job-detail-actions > div > p,
+.team-job-detail-actions > div > strong {
+  grid-column: 2;
+}
+
+@media (max-width: 699px), (max-height: 520px) and (orientation: landscape) {
+  .mobile-team-plan {
+    overflow: visible !important;
+    border: 1px solid color-mix(in srgb, var(--gs-border) 86%, var(--gs-muted));
+    border-radius: 7px 7px 0 0;
+    background: color-mix(in srgb, var(--gs-overlay-solid) 94%, transparent) !important;
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--gs-shadow) 66%, transparent);
+    backdrop-filter: blur(16px) saturate(1.12);
+  }
+
+  .mobile-team-plan-content {
+    position: absolute;
+    z-index: 5;
+    right: -1px;
+    bottom: calc(100% + 6px);
+    left: -1px;
+    max-height: min(58dvh, 430px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 8px;
+    border: 1px solid var(--gs-border);
+    border-radius: 7px;
+    background: var(--gs-overlay-solid);
+    box-shadow: 0 14px 34px var(--gs-shadow);
+  }
+
+  .play-bottom-sheet,
+  .play-bottom-sheet.is-open,
+  .play-workspace-mobile.is-coaching-open .play-bottom-sheet,
+  .play-workspace-mobile.is-coaching-open .play-bottom-sheet.is-open {
+    display: grid;
+    grid-template-rows: auto auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .play-bottom-sheet .play-bottom-sheet-content {
+    max-height: min(58dvh, 430px);
+    padding: 8px;
+  }
+
+  .tactics-mobile-role-plan {
+    position: absolute;
+    z-index: 24;
+    right: max(5px, env(safe-area-inset-right));
+    bottom: 78px;
+    left: max(5px, env(safe-area-inset-left));
+    width: auto;
+  }
+
+  .tactics-mobile-coaching {
+    bottom: 164px;
+  }
+
+  .vnext3d-mobile-coaching {
+    position: absolute;
+    z-index: 4;
+    right: 0;
+    bottom: calc(100% + 5px);
+    left: 0;
+    width: auto;
+    min-width: 0;
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .vnext3d-preview-console.has-strategy-outcome .vnext3d-mobile-coaching {
+    right: 0;
+    bottom: calc(100% + 5px);
+    left: 0;
+    width: auto;
+  }
+
+  .vnext3d-preview-console.has-strategy-outcome .vnext3d-strategy-outcome {
+    right: 0;
+    bottom: calc(100% + 88px);
+    left: 0;
+    width: auto;
+    height: auto;
+  }
+}
+
+@media (max-width: 360px) and (orientation: portrait) {
+  .mobile-team-plan-eyebrow {
+    display: none;
+  }
+
+  .mobile-team-plan-command-row {
+    grid-template-columns: minmax(0, 1fr) 32px;
+  }
+
+  .role-position-selector {
+    justify-content: flex-start;
   }
 }

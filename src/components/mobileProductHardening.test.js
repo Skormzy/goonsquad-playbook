@@ -7,6 +7,8 @@ const appContext = readFileSync(new URL('../context/AppContext.jsx', import.meta
 const header = readFileSync(new URL('./Header.jsx', import.meta.url), 'utf8');
 const mobileBottomNav = readFileSync(new URL('./MobileBottomNav.jsx', import.meta.url), 'utf8');
 const mobileViewModeSwitch = readFileSync(new URL('./MobileViewModeSwitch.jsx', import.meta.url), 'utf8');
+const mobileTeamPlan = readFileSync(new URL('./MobileTeamPlan.jsx', import.meta.url), 'utf8');
+const rolePositionSelector = readFileSync(new URL('./RolePositionSelector.jsx', import.meta.url), 'utf8');
 const profileCss = readFileSync(new URL('../profile/profile.css', import.meta.url), 'utf8');
 const playViewer = readFileSync(new URL('./PlayViewer.jsx', import.meta.url), 'utf8');
 const phaseControls = readFileSync(new URL('./PhaseControls.jsx', import.meta.url), 'utf8');
@@ -53,6 +55,19 @@ describe('mobile product hardening contracts', () => {
     expect(css).toContain('.tactics-mobile-browser > summary');
     expect(css).toContain('.tactics-mobile-browser:not([open]) > :not(summary)');
     expect(css).toContain('.tactics-phase-dot');
+  });
+
+  it('uses one exact-position coaching rail across 2D plays, 2D strategy, and 3D', () => {
+    expect(playViewer).toContain('<MobileTeamPlan');
+    expect(strategy).toContain('<MobileTeamPlan');
+    expect(tactical3d).toContain('<MobileTeamPlan');
+    expect(mobileTeamPlan).toContain('<RolePositionSelector');
+    expect(rolePositionSelector).toContain('ALL');
+    for (const position of ['LW', 'C', 'RW', 'LD', 'RD', 'G']) {
+      expect(rolePositionSelector).toContain(`${position}:`);
+    }
+    expect(playViewer).not.toContain('selectedRoleRead');
+    expect(css).toContain('Exact-role coaching rail');
   });
 
   it('keeps strategy teaching on the coaching rail at desktop and on-rink at compact sizes', () => {
@@ -136,7 +151,8 @@ describe('mobile product hardening contracts', () => {
     expect(css).toContain('Mobile replay final containment overrides');
     expect(css).toContain('bottom: calc(140px + env(safe-area-inset-bottom));');
     expect(css).toMatch(/\.play-workspace-mobile\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s);
-    expect(css).toContain('.vnext3d-mobile-coaching:not([open]) > :not(summary)');
+    expect(css).toContain('details.vnext3d-mobile-coaching:not([open]) > :not(summary)');
+    expect(css).toContain('.vnext3d-mobile-coaching.mobile-team-plan > .mobile-team-plan-command-row');
   });
 
   it('provides an installed-app shell with safe-area navigation and compact mobile utilities', () => {
