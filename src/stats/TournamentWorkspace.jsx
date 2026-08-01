@@ -484,6 +484,63 @@ function OfficialGameDetails({ details }) {
   );
 }
 
+function TournamentBroadcastTeam({ identity, winner }) {
+  return (
+    <article
+      className={`tournament-broadcast-team is-${identity.side}${winner ? ' is-winner' : ''}`}
+      style={teamIdentityStyle(identity)}
+      data-team-kind={identity.kind}
+    >
+      <TeamMark identity={identity} />
+      <div>
+        <span>{identity.side === 'away' ? 'AWAY' : 'HOME'}</span>
+        <strong>{identity.name}</strong>
+        {winner && <small>WINNER</small>}
+      </div>
+    </article>
+  );
+}
+
+function TournamentBroadcastScore({ game }) {
+  const hasScore = scoreAvailable(game);
+  const hasGoonsquad = [game.awayTeam, game.homeTeam].some(isGoonsquadTeam);
+  const identities = [
+    createTeamIdentity(game.awayTeam, 'away', hasGoonsquad),
+    createTeamIdentity(game.homeTeam, 'home', hasGoonsquad),
+  ];
+  const winnerSide = hasScore
+    ? game.awayScore > game.homeScore
+      ? 'away'
+      : game.homeScore > game.awayScore
+        ? 'home'
+        : 'tie'
+    : '';
+  const scoreLabel = hasScore
+    ? `${identities[0].name} ${game.awayScore}, ${identities[1].name} ${game.homeScore}, final${game.overtime ? ' in overtime' : ''}`
+    : `${identities[0].name} at ${identities[1].name}, result not published`;
+
+  return (
+    <div
+      className={`tournament-broadcast-score${hasScore ? ' is-final' : ' is-pending'}`}
+      role="group"
+      aria-label={scoreLabel}
+      data-score-state={hasScore ? 'final' : 'pending'}
+    >
+      <TournamentBroadcastTeam identity={identities[0]} winner={winnerSide === 'away'} />
+      <div className="tournament-broadcast-score-core">
+        <span>{hasScore ? 'FINAL' : 'RESULT PENDING'}</span>
+        <div>
+          <strong>{hasScore ? game.awayScore : '—'}</strong>
+          <i>–</i>
+          <strong>{hasScore ? game.homeScore : '—'}</strong>
+        </div>
+        {game.overtime && <em>OT</em>}
+      </div>
+      <TournamentBroadcastTeam identity={identities[1]} winner={winnerSide === 'home'} />
+    </div>
+  );
+}
+
 function TournamentGamePage({ tournament, game, onBack }) {
   const teamGame = tournament.games.find((item) => (
     item.id === game.teamGameId
@@ -493,19 +550,16 @@ function TournamentGamePage({ tournament, game, onBack }) {
     )
   ));
   const hasScore = scoreAvailable(game);
-  const winner = hasScore ? (game.awayScore > game.homeScore ? game.awayTeam : game.homeScore > game.awayScore ? game.homeTeam : 'Tie') : '';
   const sourceUrl = game.sourceUrl || tournament.sourceUrl;
   return (
     <section className="tournament-game-page">
       <header className="tournament-game-page-nav"><button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> Back to tournament</button><span>{tournament.shortName || tournament.name}</span>{sourceUrl ? <a href={sourceUrl} target="_blank" rel="noreferrer">Official source <ExternalLink aria-hidden="true" /></a> : <i>Archive record</i>}</header>
       <div className="tournament-game-page-hero">
-        <div><span>{game.stageLabel || game.stage}{game.officialGameNumber ? ` · OFFICIAL GAME ${game.officialGameNumber}` : ''}</span><h2>{game.awayTeam} <i>at</i> {game.homeTeam}</h2><p>{[formatTournamentDate(game.date), formatTournamentTime(game.time), game.location].filter(Boolean).join(' · ')}</p></div>
-        <div className={hasScore ? 'is-final' : 'is-pending'}><small>{hasScore ? 'FINAL' : 'ARCHIVE STATUS'}</small><strong>{hasScore ? `${game.awayScore}-${game.homeScore}` : 'RESULT NOT PUBLISHED'}</strong>{game.overtime && <em>OT</em>}</div>
-      </div>
-      <div className="tournament-game-page-scoreboard">
-        <article className={winner === game.awayTeam ? 'is-winner' : ''}><span>AWAY</span><strong>{game.awayTeam}</strong><b>{hasScore ? game.awayScore : '—'}</b></article>
-        <i>VS</i>
-        <article className={winner === game.homeTeam ? 'is-winner' : ''}><span>HOME</span><strong>{game.homeTeam}</strong><b>{hasScore ? game.homeScore : '—'}</b></article>
+        <div className="tournament-game-page-meta">
+          <span>{game.stageLabel || game.stage}{game.officialGameNumber ? ` · OFFICIAL GAME ${game.officialGameNumber}` : ''}</span>
+          <p>{[formatTournamentDate(game.date), formatTournamentTime(game.time), game.location].filter(Boolean).join(' · ')}</p>
+        </div>
+        <TournamentBroadcastScore game={game} />
       </div>
       {!hasScore && <section className="tournament-game-page-note"><ShieldCheck aria-hidden="true" /><div><span>HONEST ARCHIVE</span><h3>The fixture is official; the result was not preserved publicly.</h3><p>The app keeps the verified teams, stage, time, and venue without fabricating a score. An admin can add a recovered result later.</p></div></section>}
       {teamGame && (!game.details || teamGame.media?.length > 0) && <section className="tournament-game-page-details"><header><div><span>GOONSQUAD GAME FILE</span><h3>{teamGame.media?.length > 0 ? 'Game film' : 'Team details'}</h3></div><strong className={`is-${teamGameResult(teamGame)}`}>{teamGame.scoreFor}-{teamGame.scoreAgainst}</strong></header>{!game.details && <div className="tournament-game-facts">{Array.isArray(teamGame.periodScoreFor) && <span><small>PERIODS</small>{teamGame.periodScoreFor.map((score, index) => <b key={index}>{score}-{teamGame.periodScoreAgainst?.[index] ?? '—'}</b>)}</span>}{Number.isFinite(teamGame.shotsFor) && <span><small>SHOTS</small><b>{teamGame.shotsFor}-{teamGame.shotsAgainst}</b></span>}{teamGame.shotsStatus && <span><small>SHOTS</small><b>{teamGame.shotsStatus === 'not-recorded' ? 'Not recorded' : 'Incomplete'}</b></span>}</div>}{teamGame.media?.length > 0 && <div className="tournament-game-page-media">{teamGame.media.map((media) => <GameVideo key={media.videoId || media.url} media={media} />)}</div>}</section>}

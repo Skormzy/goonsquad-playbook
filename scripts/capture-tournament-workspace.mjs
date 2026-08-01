@@ -113,6 +113,20 @@ for (const viewport of viewports) {
   screenshots.push(await capture(page, viewport, 'championship-game'));
   const gamePageText = (await page.locator('.tournament-game-page').innerText()).replace(/\s+/gu, ' ').trim();
   const internalGameUrl = page.url();
+  const broadcastScoreLayout = await page.locator('.tournament-broadcast-score').evaluate((element) => {
+    const bounds = element.getBoundingClientRect();
+    const hero = element.closest('.tournament-game-page-hero')?.getBoundingClientRect();
+    return {
+      width: Math.round(bounds.width),
+      viewportWidth: document.documentElement.clientWidth,
+      centeredDelta: hero ? Math.round(Math.abs((bounds.left - hero.left) - (hero.right - bounds.right))) : null,
+      teams: element.querySelectorAll('.tournament-broadcast-team').length,
+      scoreValues: element.querySelectorAll('.tournament-broadcast-score-core strong').length,
+      marks: element.querySelectorAll('.tournament-team-mark').length,
+    };
+  });
+  const broadcastScoreText = (await page.locator('.tournament-broadcast-score').innerText()).replace(/\s+/gu, ' ').trim();
+  const legacyScoreboards = await page.locator('.tournament-game-page-scoreboard').count();
   const championshipTeamKeys = await page.locator('.tournament-match-identities > div').count();
   const championshipIdentityKinds = await page.locator('.tournament-official-event').evaluateAll((rows) => [...new Set(rows.map((row) => row.dataset.teamKind).filter(Boolean))]);
   const championshipIdentityRails = await page.locator('.tournament-official-event').evaluateAll((rows) => [...new Set(rows.map((row) => getComputedStyle(row).borderInlineStartColor).filter(Boolean))]);
@@ -120,6 +134,12 @@ for (const viewport of viewports) {
   await page.getByRole('tab', { name: 'All games', exact: true }).click();
   await page.locator('.tournament-event-game').filter({ hasText: '#53' }).click();
   await page.locator('.tournament-official-detail').waitFor({ state: 'visible' });
+  const goonsquadFinalBroadcastText = (await page.locator('.tournament-broadcast-score').innerText()).replace(/\s+/gu, ' ').trim();
+  const goonsquadFinalBroadcastKinds = await page.locator('.tournament-broadcast-team').evaluateAll((rows) => rows.map((row) => row.dataset.teamKind));
+  const goonsquadFinalBroadcastMarks = {
+    crest: await page.locator('.tournament-broadcast-team .tournament-team-mark.is-goonsquad img').count(),
+    opponent: await page.locator('.tournament-broadcast-team .tournament-team-mark.is-opponent b').count(),
+  };
   const goonsquadFinalGoalKinds = await page.locator('.tournament-official-event.is-goal').evaluateAll((rows) => [...new Set(rows.map((row) => row.dataset.teamKind).filter(Boolean))]);
   const goonsquadFinalPenaltyKinds = await page.locator('.tournament-official-event.is-penalty').evaluateAll((rows) => [...new Set(rows.map((row) => row.dataset.teamKind).filter(Boolean))]);
   const goonsquadFinalIdentityRails = await page.locator('.tournament-official-event').evaluateAll((rows) => [...new Set(rows.map((row) => getComputedStyle(row).borderInlineStartColor).filter(Boolean))]);
@@ -205,9 +225,15 @@ for (const viewport of viewports) {
     gameRows,
     gamePageText,
     internalGameUrl,
+    broadcastScoreLayout,
+    broadcastScoreText,
+    legacyScoreboards,
     championshipTeamKeys,
     championshipIdentityKinds,
     championshipIdentityRails,
+    goonsquadFinalBroadcastText,
+    goonsquadFinalBroadcastKinds,
+    goonsquadFinalBroadcastMarks,
     goonsquadFinalGoalKinds,
     goonsquadFinalPenaltyKinds,
     goonsquadFinalIdentityRails,
@@ -263,8 +289,20 @@ for (const viewport of viewports) {
   if (gameFilters !== 4 || gameRows !== 28 || !gamebookText.includes('New Tecumseth Outlaws')) {
     throw new Error(`${viewport.id}: official gamebook is incomplete.`);
   }
-  if (!gamePageText.includes('New Tecumseth Outlaws') || !gamePageText.includes('Canadian Brew Crew') || !gamePageText.includes('6-4') || !internalGameUrl.includes('tournamentGame=2026-oshawa-official-54')) {
+  if (!gamePageText.includes('New Tecumseth Outlaws')
+    || !gamePageText.includes('Canadian Brew Crew')
+    || !broadcastScoreText.includes('6 – 4')
+    || !internalGameUrl.includes('tournamentGame=2026-oshawa-official-54')) {
     throw new Error(`${viewport.id}: tournament scores do not open a complete in-app game page.`);
+  }
+  if (broadcastScoreLayout.teams !== 2
+    || broadcastScoreLayout.scoreValues !== 2
+    || broadcastScoreLayout.marks !== 2
+    || broadcastScoreLayout.width > Math.min(1000, broadcastScoreLayout.viewportWidth)
+    || broadcastScoreLayout.centeredDelta > 2
+    || legacyScoreboards !== 0
+    || !broadcastScoreText.includes('FINAL')) {
+    throw new Error(`${viewport.id}: the tournament matchup is duplicated, stretched, or missing broadcast score context.`);
   }
   if (championshipTeamKeys !== 2
     || !championshipIdentityKinds.includes('away')
@@ -278,6 +316,15 @@ for (const viewport of viewports) {
     || !goonsquadFinalPenaltyKinds.includes('opponent')
     || goonsquadFinalIdentityRails.length < 2) {
     throw new Error(`${viewport.id}: Goonsquad scoring and penalties do not preserve distinct team identities.`);
+  }
+  if (!goonsquadFinalBroadcastText.includes('New Tecumseth Outlaws')
+    || !goonsquadFinalBroadcastText.includes('Goonsquad')
+    || !goonsquadFinalBroadcastText.includes('6 – 1')
+    || !goonsquadFinalBroadcastKinds.includes('goonsquad')
+    || !goonsquadFinalBroadcastKinds.includes('opponent')
+    || goonsquadFinalBroadcastMarks.crest !== 1
+    || goonsquadFinalBroadcastMarks.opponent !== 1) {
+    throw new Error(`${viewport.id}: the Goonsquad final lacks a compact, team-identified score presentation.`);
   }
   if (quarterfinalGoals !== 4 || quarterfinalPenalties !== 2 || quarterfinalBoxScores !== 2
     || quarterfinalTeamKeys !== 2
@@ -301,10 +348,10 @@ for (const viewport of viewports) {
   if (mississaugaBracketMatches !== 3 || !mississaugaBracketText.includes('Blades of Steel') || !mississaugaBracketText.includes('Cambridge Thunder') || !mississaugaBracketText.includes('Woodstock Toros') || !mississaugaBracketText.includes('Moosehead')) {
     throw new Error(`${viewport.id}: the 2024 elimination bracket is incomplete.`);
   }
-  if (mississaugaGameRows !== 15 || !mississaugaGameText.includes('Blades of Steel') || !mississaugaGameText.includes('Cambridge Thunder') || !mississaugaGameText.includes('1-0') || mississaugaGameText.includes('GOONSQUAD GAME FILE') || !mississaugaGameUrl.includes('tournamentGame=2024-mississauga-final')) {
+  if (mississaugaGameRows !== 15 || !mississaugaGameText.includes('Blades of Steel') || !mississaugaGameText.includes('Cambridge Thunder') || !mississaugaGameText.includes('1 – 0') || mississaugaGameText.includes('GOONSQUAD GAME FILE') || !mississaugaGameUrl.includes('tournamentGame=2024-mississauga-final')) {
     throw new Error(`${viewport.id}: the verified 2024 championship does not open as an in-app game.`);
   }
-  if (!mississaugaGoonsquadGameText.includes('Goonsquad') || !mississaugaGoonsquadGameText.includes('Blades of Steel') || !mississaugaGoonsquadGameText.includes('1-8') || !mississaugaGoonsquadGameText.includes('GOONSQUAD GAME FILE') || !mississaugaGoonsquadGameUrl.includes('tournamentGame=2024-mississauga-game-rr-3')) {
+  if (!mississaugaGoonsquadGameText.includes('Goonsquad') || !mississaugaGoonsquadGameText.includes('Blades of Steel') || !mississaugaGoonsquadGameText.includes('1 – 8') || !mississaugaGoonsquadGameText.includes('GOONSQUAD GAME FILE') || !mississaugaGoonsquadGameUrl.includes('tournamentGame=2024-mississauga-game-rr-3')) {
     throw new Error(`${viewport.id}: the recovered 2024 Goonsquad result does not open as a complete in-app game.`);
   }
   if (horizontalOverflow > 1) throw new Error(`${viewport.id}: tournament page has ${horizontalOverflow}px horizontal overflow.`);
