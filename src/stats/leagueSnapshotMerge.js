@@ -60,7 +60,7 @@ export function mergeLeagueSnapshots(...snapshots) {
     .filter(Number.isFinite);
   const merged = {
     source: 'league-snapshot',
-    sourceName: 'Official Goonsquad league archives',
+    sourceName: 'Goonsquad league records',
     sourceUrl: null,
     capturedAt: capturedTimes.length ? new Date(Math.max(...capturedTimes)).toISOString() : null,
     sourceArchives: validSnapshots.map((snapshot) => ({

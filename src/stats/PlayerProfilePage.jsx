@@ -8,7 +8,6 @@ import {
   History,
   Medal,
   RefreshCw,
-  ShieldCheck,
   Sparkles,
   Target,
   Trophy,
@@ -89,7 +88,7 @@ function PlayerSpotlightUnavailable({ displayName, onRetry }) {
     <div className="player-profile-3d-state is-unavailable" role="status">
       <UserRound aria-hidden="true" />
       <strong>3D player view unavailable</strong>
-      <span>{displayName}&apos;s profile and verified statistics are still available.</span>
+      <span>{displayName}&apos;s profile and statistics are still available.</span>
       <button type="button" onClick={onRetry}>
         <RefreshCw aria-hidden="true" />
         Try 3D again
@@ -113,12 +112,12 @@ export default function PlayerProfilePage({
   const officialProfiles = profile.officialProfiles?.length
     ? profile.officialProfiles
     : player.sourceUrl
-      ? [{ playerId: player.id, label: 'Official league', url: player.sourceUrl }]
+      ? [{ playerId: player.id, label: 'League', url: player.sourceUrl }]
       : [];
   const currentSchedule = profile.currentTeams.map(formatLeagueScheduleName).join(' / ');
   const leagueNames = profile.leagueNames?.length
     ? profile.leagueNames
-    : ['Goonsquad league archive'];
+    : [];
   const bestSeason = profile.bestFieldSeason;
   const latestGames = profile.recentGames.slice(0, 10);
   const recentField = latestGames.filter((row) => row.field).slice(0, 5);
@@ -151,9 +150,7 @@ export default function PlayerProfilePage({
               target="_blank"
               rel="noreferrer"
             >
-              {officialProfiles.length > 1
-                ? `${officialProfile.label} profile`
-                : 'Official profile'}
+              {officialProfile.label} profile
               <ExternalLink aria-hidden="true" />
             </a>
           ))}
@@ -201,7 +198,6 @@ export default function PlayerProfilePage({
             ].filter(Boolean).join(' · ')}
           </p>
           <div className="public-player-badges">
-            <span><ShieldCheck aria-hidden="true" /> Official team archive</span>
             {leagueNames.map((leagueName) => (
               <span key={leagueName}><Trophy aria-hidden="true" /> {leagueName}</span>
             ))}
@@ -295,7 +291,7 @@ export default function PlayerProfilePage({
             <div className="public-player-highlight">
               <strong>{profile.careerGoalie.saves}</strong>
               <span>career saves</span>
-              <p>{profile.careerGoalie.gamesPlayed ? `${profile.careerGoalie.minutesPlayed} verified minutes across ${profile.careerGoalie.gamesPlayed} games.` : 'Detailed goaltending lines will appear when the league publishes them.'}</p>
+              <p>{profile.careerGoalie.gamesPlayed ? `${profile.careerGoalie.minutesPlayed} minutes across ${profile.careerGoalie.gamesPlayed} games.` : 'Detailed goaltending lines will appear when the league publishes them.'}</p>
             </div>
           ) : (
             <div className="public-player-highlight">

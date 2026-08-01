@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import {
   Check,
+  PencilLine,
   Plus,
   RotateCcw,
   Save,
-  ShieldCheck,
   Trash2,
   X,
 } from 'lucide-react';
@@ -329,7 +329,7 @@ export default function GameStatCorrectionPanel({
   };
 
   const reset = async () => {
-    if (!window.confirm('Remove this correction and return to the official league data?')) return;
+    if (!window.confirm('Remove this correction and return to the league data?')) return;
     setBusy(true);
     setStatus('');
     try {
@@ -348,9 +348,9 @@ export default function GameStatCorrectionPanel({
       <section className="game-correction-panel" role="dialog" aria-modal="true" aria-labelledby="game-correction-title" onMouseDown={(event) => event.stopPropagation()}>
         <header className="stats-manager-header game-correction-header">
           <div>
-            <span><ShieldCheck aria-hidden="true" /> ADMIN CORRECTION</span>
+            <span><PencilLine aria-hidden="true" /> TEAM UPDATE</span>
             <h2 id="game-correction-title">{game.opponent} · {formatGameDate(game.scheduledAt)}</h2>
-            <p>The official import stays untouched. This audited layer becomes the app&apos;s authoritative game sheet.</p>
+            <p>The league import stays untouched. This team correction becomes the game sheet shown in the app.</p>
           </div>
           <button type="button" onClick={onClose} aria-label="Close game correction" title="Close"><X aria-hidden="true" /></button>
         </header>
@@ -428,7 +428,7 @@ export default function GameStatCorrectionPanel({
           <label><span>Admin note <small>Optional · visible with the correction</small></span><input aria-label="Admin note (optional)" maxLength="1000" value={note} placeholder="Why this was corrected" onChange={(event) => setNote(event.target.value)} /></label>
           {status && <p role="status" data-tone={statusTone}>{status}</p>}
           <div>
-            {game.adminCorrection && <button type="button" className="is-reset" disabled={busy} onClick={reset}><RotateCcw aria-hidden="true" /> Use official data</button>}
+            {game.adminCorrection && <button type="button" className="is-reset" disabled={busy} onClick={reset}><RotateCcw aria-hidden="true" /> Use league data</button>}
             <button type="button" className="is-save" disabled={busy} onClick={save}><Save aria-hidden="true" /> {busy ? 'Publishing…' : 'Publish correction'}</button>
           </div>
         </footer>

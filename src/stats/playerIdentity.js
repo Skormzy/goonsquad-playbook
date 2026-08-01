@@ -117,7 +117,7 @@ export function playerIdentitySourceLabel(player) {
   const source = playerIdentitySource(player);
   if (source === 'ycbhl') return 'YCBHL';
   if (source === 'gtbhl') return 'Greater Toronto Ball Hockey League';
-  return 'Official league';
+  return 'League';
 }
 
 function canonicalPlayer(players) {

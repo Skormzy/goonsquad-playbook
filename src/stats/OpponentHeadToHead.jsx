@@ -178,7 +178,7 @@ export function OpponentHeadToHead({
     ? `${matchup.summary.gamesPlayed} completed meeting${matchup.summary.gamesPlayed === 1 ? '' : 's'}${matchup.awaitingResults.length ? ` · ${matchup.awaitingResults.length} awaiting result${matchup.awaitingResults.length === 1 ? '' : 's'}` : ''} across ${matchup.seasons.length} season${matchup.seasons.length === 1 ? '' : 's'}`
     : matchup.awaitingResults.length
       ? `${matchup.awaitingResults.length} meeting${matchup.awaitingResults.length === 1 ? '' : 's'} played · results pending`
-      : 'The first verified meeting is on the schedule.';
+      : 'The first meeting is on the schedule.';
 
   return (
     <section className="stats-game-page stats-matchup-page" aria-label={`Head-to-head comparison against ${matchup.name}`}>
@@ -186,7 +186,7 @@ export function OpponentHeadToHead({
         <button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> All games</button>
         <div>
           <button type="button" onClick={onCopyLink}><Copy aria-hidden="true" /> {copied ? 'Link copied' : 'Copy matchup'}</button>
-          {fixture?.sourceUrl && <a href={fixture.sourceUrl} target="_blank" rel="noreferrer">Official fixture <ExternalLink aria-hidden="true" /></a>}
+          {fixture?.sourceUrl && <a href={fixture.sourceUrl} target="_blank" rel="noreferrer">League fixture <ExternalLink aria-hidden="true" /></a>}
         </div>
       </div>
 
@@ -235,7 +235,7 @@ export function OpponentHeadToHead({
                   <td>{formatGameDate(game.scheduledAt)}</td>
                   <td>
                     <span className="stats-stage-label">{formatLeagueScheduleName(schedule)}</span>
-                    {game.opponent !== matchup.name && <small className="stats-opponent-official-name">Official: {game.opponent}</small>}
+                    {game.opponent !== matchup.name && <small className="stats-opponent-official-name">Listed as: {game.opponent}</small>}
                   </td>
                   <td>{siteLabel(game)}</td>
                   <td><span className={`stats-result is-${final ? result.toLowerCase() : 'pending'}`}>{result}</span></td>
@@ -243,11 +243,11 @@ export function OpponentHeadToHead({
                   <td><button type="button" className="stats-game-detail-button" onClick={() => onOpenGame(game.id)}>{final ? 'Results' : 'Status'}</button></td>
                 </tr>;
               })}</tbody>
-            </table></div> : <p className="stats-matchup-empty">No played meeting has been published yet. The scheduled fixture above is the verified starting point.</p>}
+            </table></div> : <p className="stats-matchup-empty">No played meeting has been published yet. The scheduled fixture above is the starting point.</p>}
           </section>
 
           <aside className="stats-matchup-read">
-            <header><TrendingUp aria-hidden="true" /><div><span>QUICK READ</span><strong>Verified matchup context</strong></div></header>
+            <header><TrendingUp aria-hidden="true" /><div><span>QUICK READ</span><strong>Matchup at a glance</strong></div></header>
             <div className="stats-matchup-goal-share">
               <div><span>Goonsquad goals</span><strong>{matchup.summary.goalsFor}</strong></div>
               <div><span>Opponent goals</span><strong>{matchup.summary.goalsAgainst}</strong></div>

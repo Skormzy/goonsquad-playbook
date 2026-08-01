@@ -234,8 +234,8 @@ export default function AccountAdminPanel({ onClose }) {
       scope: 'player',
       title: `Assign ${assignmentPlayer.displayName} to ${draft.displayName || draft.username}?`,
       detail: details.length
-        ? `This will ${details.join(' and ')}. Historical approved records remain available.`
-        : 'This links the official player statistics to this account immediately.',
+        ? `This will ${details.join(' and ')}. Historical linked records remain available.`
+        : 'This links the player statistics to this account immediately.',
       confirmLabel: replacingPrimary ? 'Confirm replacement' : 'Confirm link',
       operation: () => assignManagedPlayer(draft.id, assignmentPlayer.id),
       successMessage: `${assignmentPlayer.displayName} is now linked to ${draft.displayName || draft.username}.`,
@@ -253,7 +253,7 @@ export default function AccountAdminPanel({ onClose }) {
       key: `unlink:${draft.id}:${claim.playerId}`,
       scope: 'player',
       title: `Unlink ${claim.player?.displayName || 'this player profile'}?`,
-      detail: `The official statistics remain intact, but they will no longer appear on ${draft.displayName || draft.username}'s profile.`,
+      detail: `The player statistics remain intact, but they will no longer appear on ${draft.displayName || draft.username}'s profile.`,
       confirmLabel: 'Unlink player',
       operation: () => unlinkManagedPlayer(draft.id, claim.playerId),
       successMessage: 'Player profile unlinked.',
@@ -354,7 +354,7 @@ export default function AccountAdminPanel({ onClose }) {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Official profile <ExternalLink aria-hidden="true" />
+                    League profile <ExternalLink aria-hidden="true" />
                   </a>
                 )}
                 <div>
@@ -530,7 +530,7 @@ export default function AccountAdminPanel({ onClose }) {
                 </div>
                 {assignmentPlayer.sourceUrl && (
                   <a href={assignmentPlayer.sourceUrl} target="_blank" rel="noreferrer">
-                    Verify official profile <ExternalLink aria-hidden="true" />
+                    Open league profile <ExternalLink aria-hidden="true" />
                   </a>
                 )}
               </div>

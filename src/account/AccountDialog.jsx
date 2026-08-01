@@ -187,7 +187,7 @@ export default function AccountDialog() {
                 <div><button type="submit" disabled={account.busy || !recoveryEmail.includes('@')}>Send reset link</button><button type="button" onClick={() => setRecoveryOpen(false)}>Cancel</button></div>
               </form>
             )}
-            <p className="account-trust-note"><ShieldCheck aria-hidden="true" /> Your account controls only your profile, favorites, and created plays. Team statistics remain source-verified.</p>
+            <p className="account-trust-note"><LockKeyhole aria-hidden="true" /> Your account controls only your profile, favorites, and created plays. Team statistics stay separate from your account.</p>
           </div>
         )}
 
@@ -201,7 +201,7 @@ export default function AccountDialog() {
 
             <button type="button" className="account-profile-entry" onClick={openProfile}>
               <span className="account-profile-entry-icon"><CheckCircle2 aria-hidden="true" /></span>
-              <span><strong>Open my profile</strong><small>{linkedClaims ? `${linkedClaims} approved player profile${linkedClaims === 1 ? '' : 's'}` : pendingClaims ? 'Player profile request awaiting review' : 'Request your squad player profile'}</small></span>
+              <span><strong>Open my profile</strong><small>{linkedClaims ? `${linkedClaims} linked player profile${linkedClaims === 1 ? '' : 's'}` : pendingClaims ? 'Player profile request awaiting review' : 'Request your squad player profile'}</small></span>
               <ArrowRight aria-hidden="true" />
             </button>
 

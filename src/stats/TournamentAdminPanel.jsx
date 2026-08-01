@@ -148,12 +148,12 @@ function DetailsEditor({ draft, update }) {
         <Field label="Start date"><input type="date" value={draft.startDate || ''} onChange={(event) => update('startDate', event.target.value)} /></Field>
         <Field label="End date"><input type="date" value={draft.endDate || ''} onChange={(event) => update('endDate', event.target.value)} /></Field>
         <Field label="Event status"><select value={draft.status || 'upcoming'} onChange={(event) => update('status', event.target.value)}><option value="upcoming">Upcoming</option><option value="live">Live</option><option value="complete">Complete</option></select></Field>
-        <Field label="Data status"><select value={draft.dataStatus || 'draft'} onChange={(event) => update('dataStatus', event.target.value)}><option value="draft">Draft</option><option value="partial">Archive in progress</option><option value="verified">Verified</option></select></Field>
+        <Field label="Data status"><select value={draft.dataStatus || 'draft'} onChange={(event) => update('dataStatus', event.target.value)}><option value="draft">Draft</option><option value="partial">In progress</option><option value="verified">Ready</option></select></Field>
         <Field label="Division"><input value={draft.division || ''} maxLength="80" onChange={(event) => update('division', event.target.value)} /></Field>
         <Field label="Team name"><input value={draft.teamName || 'Goonsquad'} maxLength="80" onChange={(event) => update('teamName', event.target.value)} /></Field>
-        <Field label="Official source URL" wide><input type="url" value={draft.sourceUrl || ''} onChange={(event) => update('sourceUrl', event.target.value)} placeholder="https://" /></Field>
+        <Field label="Event page URL" wide><input type="url" value={draft.sourceUrl || ''} onChange={(event) => update('sourceUrl', event.target.value)} placeholder="https://" /></Field>
         <Field label="Public summary" wide><textarea rows="3" maxLength="500" value={draft.summary || ''} onChange={(event) => update('summary', event.target.value)} /></Field>
-        <Field label="Archive note" wide><textarea rows="3" maxLength="700" value={draft.verificationNote || ''} onChange={(event) => update('verificationNote', event.target.value)} /></Field>
+        <Field label="Tournament note" wide><textarea rows="3" maxLength="700" value={draft.verificationNote || ''} onChange={(event) => update('verificationNote', event.target.value)} /></Field>
       </div>
     </section>
   );
@@ -181,7 +181,6 @@ function DisplayEditor({ draft, update, updateDisplay }) {
         <Toggle checked={draft.display.showStandings} label="Standings" detail="Pool or tournament table" onChange={(value) => updateDisplay('showStandings', value)} />
         <Toggle checked={draft.display.showBracket} label="Bracket" detail="Elimination rounds and results" onChange={(value) => { updateDisplay('showBracket', value); if (!value) updateDisplay('bracketMode', 'hidden'); else if (draft.display.bracketMode === 'hidden') updateDisplay('bracketMode', 'full'); }} />
         <Toggle checked={draft.display.showGames} label="Games" detail="Goonsquad schedule and results" onChange={(value) => updateDisplay('showGames', value)} />
-        <Toggle checked={draft.display.showVerification} label="Archive note" detail="Show source and verification details" onChange={(value) => updateDisplay('showVerification', value)} />
       </div>
       <div className="tournament-admin-field-grid is-labels">
         <Field label="Overview tab"><input value={draft.display.overviewLabel} maxLength="24" onChange={(event) => updateDisplay('overviewLabel', event.target.value)} /></Field>
@@ -245,7 +244,7 @@ function EventGamesEditor({ rows, setRows, tournamentLocation }) {
       <ArrayHeader eyebrow="MASTER EVENT LEDGER" title="Every tournament game" detail="This is the source of truth for round-robin tables, score links, game pages, and bracket results." addLabel="Add event game" onAdd={() => setRows([...rows, { id: uniqueId('event-game'), officialGameNumber: null, stage: 'round-robin', stageLabel: 'Round robin', awayTeam: '', awayPool: '', awayScore: null, homeTeam: '', homePool: '', homeScore: null, date: '', time: '', location: tournamentLocation || '', status: 'scheduled', sourceUrl: '' }])} />
       <div className="tournament-admin-rows">
         {rows.map((row, index) => <div className="tournament-admin-row is-event-game" key={row.id || index}>
-          <Field label="Official #"><input type="number" min="1" value={row.officialGameNumber ?? ''} onChange={(event) => updateRow(index, { officialGameNumber: event.target.value === '' ? null : Number(event.target.value) })} /></Field>
+          <Field label="Game #"><input type="number" min="1" value={row.officialGameNumber ?? ''} onChange={(event) => updateRow(index, { officialGameNumber: event.target.value === '' ? null : Number(event.target.value) })} /></Field>
           <Field label="Stage"><select value={row.stage || 'round-robin'} onChange={(event) => updateRow(index, { stage: event.target.value, stageLabel: ({ 'round-robin': 'Round robin', quarterfinal: 'Quarterfinal', semifinal: 'Semifinal', final: 'Championship' })[event.target.value] })}><option value="round-robin">Round robin</option><option value="quarterfinal">Quarterfinal</option><option value="semifinal">Semifinal</option><option value="final">Championship</option></select></Field>
           <Field label="Stage label"><input value={row.stageLabel || ''} onChange={(event) => updateRow(index, { stageLabel: event.target.value })} /></Field>
           <Field label="Away team"><input value={row.awayTeam || ''} onChange={(event) => updateRow(index, { awayTeam: event.target.value })} /></Field>
@@ -258,7 +257,7 @@ function EventGamesEditor({ rows, setRows, tournamentLocation }) {
           <Field label="Time"><input type="time" value={row.time || ''} onChange={(event) => updateRow(index, { time: event.target.value })} /></Field>
           <Field label="Status"><select value={row.status || 'scheduled'} onChange={(event) => updateRow(index, { status: event.target.value })}><option value="scheduled">Scheduled</option><option value="documented">Documented, result unavailable</option><option value="played">Played, result pending</option><option value="final">Final</option></select></Field>
           <Field label="Location"><input value={row.location || ''} onChange={(event) => updateRow(index, { location: event.target.value })} /></Field>
-          <Field label="Official URL"><input type="url" value={row.sourceUrl || ''} onChange={(event) => updateRow(index, { sourceUrl: event.target.value })} placeholder="https://" /></Field>
+          <Field label="Game page URL"><input type="url" value={row.sourceUrl || ''} onChange={(event) => updateRow(index, { sourceUrl: event.target.value })} placeholder="https://" /></Field>
           <RemoveButton label={`Remove ${row.awayTeam || 'away team'} at ${row.homeTeam || 'home team'}`} onClick={() => setRows(rows.filter((_, rowIndex) => rowIndex !== index))} />
         </div>)}
         {!rows.length && <p className="tournament-admin-empty-row">No event games yet. Add the schedule once and the rest of the tournament module will use it.</p>}

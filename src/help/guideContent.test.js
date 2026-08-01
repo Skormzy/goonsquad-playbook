@@ -56,7 +56,7 @@ describe('in-product guide content', () => {
     expect(copy).not.toContain('same timeline');
     expect(copy).not.toContain('stay synchronized');
     expect(copy).not.toContain('every 3D camera');
-    expect(copy).toContain('official league sync or authorized team entry');
+    expect(copy).toContain('League records and team-entered updates');
     expect(copy).toContain('may expand an authored moment');
     expect(copy).not.toContain('court');
   });

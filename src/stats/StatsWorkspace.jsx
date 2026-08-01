@@ -22,7 +22,6 @@ import {
   RefreshCw,
   Search,
   Settings2,
-  ShieldCheck,
   Trophy,
   ChevronsUpDown,
   UserPlus,
@@ -228,7 +227,7 @@ function EmptyStats({ section }) {
   return (
     <div className="stats-empty-state">
       <BarChart3 aria-hidden="true" />
-      <strong>No verified {section} yet</strong>
+      <strong>No {section} yet</strong>
       <p>Results appear here only after an authorized team manager records them.</p>
     </div>
   );
@@ -353,7 +352,7 @@ function MatchdayCard({ game, kind, schedules, onOpenGame }) {
         <Icon aria-hidden="true" />
         <div>
           <span>{next ? 'NEXT GAME' : 'LATEST RESULT'}</span>
-          <small>{game ? formatGameDate(game.scheduledAt) : 'No verified fixture'}</small>
+          <small>{game ? formatGameDate(game.scheduledAt) : 'No game scheduled'}</small>
         </div>
       </header>
       {game ? (
@@ -373,7 +372,7 @@ function MatchdayCard({ game, kind, schedules, onOpenGame }) {
       ) : (
         <div className="stats-matchday-empty">
           <strong>{next ? 'No upcoming game published' : 'No final result published'}</strong>
-          <span>The official archive will update when league data is available.</span>
+          <span>This page will update when league data is available.</span>
         </div>
       )}
     </article>
@@ -444,8 +443,8 @@ function formatClock(value) {
 function availableTeamMetrics(team) {
   if (!team) return [];
   const metrics = [
-    { label: 'Shots for', value: team.shotsFor, detail: 'official game sheet' },
-    { label: 'Shots against', value: team.shotsAgainst, detail: 'official game sheet' },
+    { label: 'Shots for', value: team.shotsFor, detail: 'game sheet' },
+    { label: 'Shots against', value: team.shotsAgainst, detail: 'game sheet' },
     {
       label: 'Shot share',
       value: team.shotsFor + team.shotsAgainst > 0 ? formatPercentage(team.shotsFor / (team.shotsFor + team.shotsAgainst)) : null,
@@ -496,7 +495,7 @@ function GameDetails({
         <div>
           {canCorrect && <button type="button" className="stats-game-correct-button" onClick={() => setCorrectionOpen(true)}><Settings2 aria-hidden="true" /> {game.adminCorrection ? 'Edit correction' : 'Correct game'}</button>}
           <button type="button" onClick={onCopyLink}><Copy aria-hidden="true" /> {copied ? 'Link copied' : 'Copy link'}</button>
-          {game.sourceUrl && <a href={game.sourceUrl} target="_blank" rel="noreferrer">Official game sheet <ExternalLink aria-hidden="true" /></a>}
+          {game.sourceUrl && <a href={game.sourceUrl} target="_blank" rel="noreferrer">League game sheet <ExternalLink aria-hidden="true" /></a>}
         </div>
       </div>
 
@@ -506,7 +505,7 @@ function GameDetails({
             <span>{details.schedule ? `${formatLeagueScheduleName(details.schedule).toUpperCase()} · ` : ''}{game.stage === 'playoffs' ? 'PLAYOFFS' : 'REGULAR SEASON'}</span>
             <h2>Goonsquad <b>vs</b> {game.opponent}</h2>
             <p>{formatGameDate(game.scheduledAt)} · {venue}{game.location ? ` · ${game.location}` : ''}</p>
-            {game.adminCorrection && <div className="stats-game-correction-badge"><ShieldCheck aria-hidden="true" /><span>ADMIN VERIFIED</span><strong>Team correction applied</strong>{game.adminCorrection.updatedAt && <small>{formatGameDate(game.adminCorrection.updatedAt)}</small>}</div>}
+            {game.adminCorrection && <div className="stats-game-correction-badge"><Check aria-hidden="true" /><span>TEAM UPDATE</span><strong>Correction applied</strong>{game.adminCorrection.updatedAt && <small>{formatGameDate(game.adminCorrection.updatedAt)}</small>}</div>}
           </div>
           <div className={`stats-game-score is-${result.toLowerCase()}`}>
             <span>{result}{game.overtime ? ' · OT' : ''}</span>
@@ -519,7 +518,7 @@ function GameDetails({
           {teamMetrics.map((metric) => <Metric key={metric.label} {...metric} />)}
         </div>}
 
-        {!hasPublishedDetails ? <div className="stats-game-unpublished"><BarChart3 aria-hidden="true" /><strong>No detailed game sheet was published</strong><p>The verified final score is available, but the league archive did not publish a complete box score for this game.</p></div> : <div className="stats-game-detail-grid">
+        {!hasPublishedDetails ? <div className="stats-game-unpublished"><BarChart3 aria-hidden="true" /><strong>No detailed game sheet was published</strong><p>The final score is available, but the league did not publish a complete box score for this game.</p></div> : <div className="stats-game-detail-grid">
           <section>
             <header><span>GAME EVENTS</span><strong>Scoring and penalties</strong></header>
             {events.length ? <ol className="stats-event-list">{events.map((event) => <li key={event.id}>
@@ -588,6 +587,10 @@ function PlayerDirectory({ dataset, onOpenPlayer }) {
     () => playerRosterCandidates(dataset, { includeHistory: true }),
     [dataset],
   );
+  const leagueNames = useMemo(
+    () => [...new Set(dataset.teams.map((team) => formatLeagueName(team)).filter(Boolean))],
+    [dataset.teams],
+  );
   const matches = useMemo(
     () => playerRosterCandidates(dataset, { includeHistory: true, query }),
     [dataset, query],
@@ -600,7 +603,7 @@ function PlayerDirectory({ dataset, onOpenPlayer }) {
         <div>
           <span>SQUAD ARCHIVE</span>
           <strong>Every Goonsquad player</strong>
-          <small>{allPlayers.length} player profiles across the official archive</small>
+          <small>{allPlayers.length} player profiles{leagueNames.length ? ` · ${leagueNames.join(' · ')}` : ''}</small>
         </div>
         <label>
           <Search aria-hidden="true" />
@@ -656,12 +659,12 @@ function ScheduleCoverage({ schedules, onSelect }) {
           return (
             <div className="stats-schedule-row" key={team.id}>
               <button type="button" onClick={() => onSelect(team.id)}>
-                <span className="stats-schedule-status" data-complete={scheduleComplete}>{scheduleComplete ? 'Verified' : 'Review'}</span>
-                <span className="stats-schedule-copy"><strong>{label}</strong><small>{team.division || 'Official league schedule'}</small></span>
+                <span className="stats-schedule-status" data-complete={scheduleComplete}>{scheduleComplete ? 'Complete' : 'Needs results'}</span>
+                <span className="stats-schedule-copy"><strong>{label}</strong><small>{team.division || `${formatLeagueName(team)} schedule`}</small></span>
                 <span className="stats-schedule-record"><strong>{summary.gamesPlayed ? record : '—'}</strong><small>{games.length} scheduled · {summary.gamesPlayed} final</small></span>
                 <ChevronRight aria-hidden="true" />
               </button>
-              {team.sourceUrl && <a href={team.sourceUrl} target="_blank" rel="noreferrer" aria-label={`Open official source for ${label}`}><ExternalLink aria-hidden="true" /></a>}
+              {team.sourceUrl && <a href={team.sourceUrl} target="_blank" rel="noreferrer" aria-label={`Open league page for ${label}`}><ExternalLink aria-hidden="true" /></a>}
             </div>
           );
         })}
@@ -716,7 +719,7 @@ function StatsManager({ dataset, onClose, onUpdated, snapshot }) {
 
         {mode === 'game' && <form className="stats-manager-form" onSubmit={(event) => {
           event.preventDefault();
-          run(() => recordGameResult({ ...game, seasonTeamId: snapshot.team.id }), 'Verified game saved.');
+          run(() => recordGameResult({ ...game, seasonTeamId: snapshot.team.id }), 'Game saved.');
         }}>
           <label><span>Date and time</span><input type="datetime-local" required value={game.scheduledAt} onChange={(event) => setGame({ ...game, scheduledAt: event.target.value })} /></label>
           <label><span>Opponent</span><input required value={game.opponent} maxLength="100" onChange={(event) => setGame({ ...game, opponent: event.target.value })} /></label>
@@ -1364,9 +1367,9 @@ export default function StatsWorkspace() {
       </>}
       </>}
 
-      <footer className="stats-data-note"><ShieldCheck aria-hidden="true" /><span>{tournamentMode
+      <footer className="stats-data-note"><BarChart3 aria-hidden="true" /><span>{tournamentMode
         ? `${tournamentArchive.length} tournament dossier${tournamentArchive.length === 1 ? '' : 's'} · ${selectedTournament?.games?.length || 0} documented games.`
-        : `${archiveLeagueLabel} · ${dataset.seasons.length} seasons · ${dataset.teams.length} schedules · ${dataset.games.length} games. Verified ${dataset.capturedAt ? formatGameDate(dataset.capturedAt) : 'league archive'}.`}</span>{(tournamentMode ? selectedTournament?.sourceUrl : officialSourceUrl) && <a href={tournamentMode ? selectedTournament.sourceUrl : officialSourceUrl} target="_blank" rel="noreferrer">Official source <ExternalLink aria-hidden="true" /></a>}</footer>
+        : `${archiveLeagueLabel} · ${dataset.seasons.length} seasons · ${dataset.teams.length} schedules · ${dataset.games.length} games.`}</span>{(tournamentMode ? selectedTournament?.sourceUrl : officialSourceUrl) && <a href={tournamentMode ? selectedTournament.sourceUrl : officialSourceUrl} target="_blank" rel="noreferrer">{tournamentMode ? 'Tournament page' : 'League site'} <ExternalLink aria-hidden="true" /></a>}</footer>
       {!tournamentMode && managerOpen && <StatsManager dataset={dataset} snapshot={snapshot} onClose={() => setManagerOpen(false)} onUpdated={refresh} />}
     </main>
   );

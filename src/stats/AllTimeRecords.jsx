@@ -84,7 +84,7 @@ export default function AllTimeRecords({ leagueLabel, records, onOpenPlayer }) {
         <div>
           <span><Trophy aria-hidden="true" /> GOONSQUAD RECORD BOOK</span>
           <h2 id="all-time-records-title">All-time leaders</h2>
-          <p>{leagueLabel} · Every verified season in one sortable Goonsquad archive.</p>
+          <p>{leagueLabel} · Every season in one sortable Goonsquad record book.</p>
         </div>
         <div className="all-time-mode" role="tablist" aria-label="Record book group">
           <button

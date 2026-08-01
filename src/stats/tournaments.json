@@ -15,7 +15,7 @@
     "teamName": "Goonsquad",
     "finish": "Semifinalist",
     "summary": "Goonsquad swept its three preliminary games, won the quarterfinal, and finished as a Men's D semifinalist with a 4-1 tournament record.",
-    "verificationNote": "Official OBHF and GameSheet records verify all 28 Men's D games, four preliminary pools, seven elimination games, venues, scores, Goonsquad player totals, and the New Tecumseth championship. Official Games 27-47 are preliminary play, 48-51 are quarterfinals, 52-53 are semifinals, and 54 is the championship.",
+    "verificationNote": "The tournament record covers all 28 Men's D games, four preliminary pools, seven elimination games, venues, scores, Goonsquad player totals, and the New Tecumseth championship. Games 27-47 are preliminary play, 48-51 are quarterfinals, 52-53 are semifinals, and 54 is the championship.",
     "sourceUrl": "https://ontarioballhockeyfederation.ca/2026-obhf-mens-winter-provincials-b-c-d-rec-summer-provincials-mens-a-mens-masters-33-mens-legends-50-may-22-24-2026/",
     "source": {
       "provider": "OBHF / GameSheet",
@@ -25,7 +25,7 @@
       "capturedAt": "2026-07-31",
       "teamUrl": "https://gamesheetstats.com/seasons/14928/teams/514449/preview",
       "standingsUrl": "https://gamesheetstats.com/seasons/14928/standings",
-      "scope": "Official event, team schedule, Pool D table, player leaderboard, goalie leaderboard, and roster"
+      "scope": "Event, team schedule, Pool D table, player leaderboard, goalie leaderboard, and roster"
     },
     "display": {
       "layout": "championship",
@@ -35,7 +35,7 @@
       "showStandings": true,
       "showBracket": true,
       "showGames": true,
-      "showVerification": true,
+      "showVerification": false,
       "overviewLabel": "Weekend",
       "standingsLabel": "Round robin",
       "bracketLabel": "Full bracket",
@@ -231,13 +231,13 @@
       }
     ],
     "bracket": [
-      { "id": "2026-oshawa-qf-1", "eventGameId": "2026-oshawa-official-48", "roundId": "quarterfinal", "roundName": "Quarterfinals", "roundOrder": 1, "order": 1, "label": "Official Game 48 · OT", "status": "final", "homeTeam": { "name": "Canadian Brew Crew" }, "awayTeam": { "name": "Vaughan Knights" }, "homeScore": 3, "awayScore": 2, "winner": "home" },
-      { "id": "2026-oshawa-qf-2", "eventGameId": "2026-oshawa-official-49", "roundId": "quarterfinal", "roundName": "Quarterfinals", "roundOrder": 1, "order": 2, "label": "Official Game 49", "status": "final", "homeTeam": { "name": "Goonsquad", "seed": 1 }, "awayTeam": { "name": "Toronto Jets" }, "homeScore": 4, "awayScore": 0, "winner": "home" },
-      { "id": "2026-oshawa-qf-3", "eventGameId": "2026-oshawa-official-50", "roundId": "quarterfinal", "roundName": "Quarterfinals", "roundOrder": 1, "order": 3, "label": "Official Game 50", "status": "final", "homeTeam": { "name": "New Tecumseth Outlaws" }, "awayTeam": { "name": "Flyers" }, "homeScore": 9, "awayScore": 3, "winner": "home" },
-      { "id": "2026-oshawa-qf-4", "eventGameId": "2026-oshawa-official-51", "roundId": "quarterfinal", "roundName": "Quarterfinals", "roundOrder": 1, "order": 4, "label": "Official Game 51", "status": "final", "homeTeam": { "name": "PK Pirates" }, "awayTeam": { "name": "York Predators" }, "homeScore": 1, "awayScore": 3, "winner": "away" },
-      { "id": "2026-oshawa-sf-1", "eventGameId": "2026-oshawa-official-52", "roundId": "semifinal", "roundName": "Semifinals", "roundOrder": 2, "order": 1, "label": "Official Game 52", "status": "final", "homeTeam": { "name": "Canadian Brew Crew" }, "awayTeam": { "name": "York Predators" }, "homeScore": 6, "awayScore": 2, "winner": "home" },
-      { "id": "2026-oshawa-sf-2", "eventGameId": "2026-oshawa-official-53", "roundId": "semifinal", "roundName": "Semifinals", "roundOrder": 2, "order": 2, "label": "Official Game 53", "status": "final", "homeTeam": { "name": "Goonsquad", "seed": 1 }, "awayTeam": { "name": "New Tecumseth Outlaws" }, "homeScore": 1, "awayScore": 6, "winner": "away" },
-      { "id": "2026-oshawa-final", "eventGameId": "2026-oshawa-official-54", "roundId": "final", "roundName": "Championship", "roundOrder": 3, "order": 1, "label": "Official Game 54", "status": "final", "homeTeam": { "name": "Canadian Brew Crew" }, "awayTeam": { "name": "New Tecumseth Outlaws" }, "homeScore": 4, "awayScore": 6, "winner": "away" }
+      { "id": "2026-oshawa-qf-1", "eventGameId": "2026-oshawa-official-48", "roundId": "quarterfinal", "roundName": "Quarterfinals", "roundOrder": 1, "order": 1, "label": "Game 48 · OT", "status": "final", "homeTeam": { "name": "Canadian Brew Crew" }, "awayTeam": { "name": "Vaughan Knights" }, "homeScore": 3, "awayScore": 2, "winner": "home" },
+      { "id": "2026-oshawa-qf-2", "eventGameId": "2026-oshawa-official-49", "roundId": "quarterfinal", "roundName": "Quarterfinals", "roundOrder": 1, "order": 2, "label": "Game 49", "status": "final", "homeTeam": { "name": "Goonsquad", "seed": 1 }, "awayTeam": { "name": "Toronto Jets" }, "homeScore": 4, "awayScore": 0, "winner": "home" },
+      { "id": "2026-oshawa-qf-3", "eventGameId": "2026-oshawa-official-50", "roundId": "quarterfinal", "roundName": "Quarterfinals", "roundOrder": 1, "order": 3, "label": "Game 50", "status": "final", "homeTeam": { "name": "New Tecumseth Outlaws" }, "awayTeam": { "name": "Flyers" }, "homeScore": 9, "awayScore": 3, "winner": "home" },
+      { "id": "2026-oshawa-qf-4", "eventGameId": "2026-oshawa-official-51", "roundId": "quarterfinal", "roundName": "Quarterfinals", "roundOrder": 1, "order": 4, "label": "Game 51", "status": "final", "homeTeam": { "name": "PK Pirates" }, "awayTeam": { "name": "York Predators" }, "homeScore": 1, "awayScore": 3, "winner": "away" },
+      { "id": "2026-oshawa-sf-1", "eventGameId": "2026-oshawa-official-52", "roundId": "semifinal", "roundName": "Semifinals", "roundOrder": 2, "order": 1, "label": "Game 52", "status": "final", "homeTeam": { "name": "Canadian Brew Crew" }, "awayTeam": { "name": "York Predators" }, "homeScore": 6, "awayScore": 2, "winner": "home" },
+      { "id": "2026-oshawa-sf-2", "eventGameId": "2026-oshawa-official-53", "roundId": "semifinal", "roundName": "Semifinals", "roundOrder": 2, "order": 2, "label": "Game 53", "status": "final", "homeTeam": { "name": "Goonsquad", "seed": 1 }, "awayTeam": { "name": "New Tecumseth Outlaws" }, "homeScore": 1, "awayScore": 6, "winner": "away" },
+      { "id": "2026-oshawa-final", "eventGameId": "2026-oshawa-official-54", "roundId": "final", "roundName": "Championship", "roundOrder": 3, "order": 1, "label": "Game 54", "status": "final", "homeTeam": { "name": "Canadian Brew Crew" }, "awayTeam": { "name": "New Tecumseth Outlaws" }, "homeScore": 4, "awayScore": 6, "winner": "away" }
     ],
     "leaders": [
       { "type": "points", "label": "Points leader", "player": "Alex Grezlovski", "number": 17, "value": 16, "detail": "9 goals · 7 assists" },
@@ -282,8 +282,8 @@
     "format": "2 pools · semifinals · final",
     "teamName": "Goonsquad",
     "finish": "4th in Pool A",
-    "summary": "The recovered official archive now captures every Men's REC result: both four-team pools, all 12 round-robin games, both semifinals, and the championship. Goonsquad finished 0-3 in Pool A.",
-    "verificationNote": "The archived OBHF/GGTS score sheet and result board verify official Games 30-44, complete Pool A and Pool B standings, the semifinal matchups, and Blades of Steel's 1-0 championship win over Cambridge Thunder.",
+    "summary": "Every Men's REC result is captured: both four-team pools, all 12 round-robin games, both semifinals, and the championship. Goonsquad finished 0-3 in Pool A.",
+    "verificationNote": "The tournament record covers Games 30-44, complete Pool A and Pool B standings, the semifinal matchups, and Blades of Steel's 1-0 championship win over Cambridge Thunder.",
     "sourceUrl": "https://web.archive.org/web/20241213174640/https://ggts.ca/wp-content/uploads/2024/08/Scores-Mens-D-and-REC-1.pdf",
     "source": {
       "provider": "OBHF / GGTS archived results",
@@ -293,7 +293,7 @@
       "scoresUrl": "https://web.archive.org/web/20241213174640/https://ggts.ca/wp-content/uploads/2024/08/Scores-Mens-D-and-REC-1.pdf",
       "standingsUrl": "https://web.archive.org/web/20250806120405/https://ggts.ca/wp-content/uploads/2024/08/Result-Boards-Mens-D-and-REC-3.pdf",
       "eventReportUrl": "https://ontarioballhockeyfederation.ca/2024/08/28/2024-obhf-mens-d-recreational-provincials/",
-      "scope": "Official pools, all 12 round-robin scores, complete pool tables, both semifinals, and the championship"
+      "scope": "Pools, all 12 round-robin scores, complete pool tables, both semifinals, and the championship"
     },
     "display": {
       "layout": "championship",
@@ -303,7 +303,7 @@
       "showStandings": true,
       "showBracket": true,
       "showGames": true,
-      "showVerification": true,
+      "showVerification": false,
       "overviewLabel": "Weekend",
       "standingsLabel": "Round robin",
       "bracketLabel": "Full bracket",

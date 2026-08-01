@@ -226,10 +226,10 @@ export default function AccountWorkspace() {
           <p>{account.user ? 'Keep your name, username, and team profile current.' : 'One account for your playbook, player profile, and created plays.'}</p>
           <div className="account-value-list">
             <AccountValue title="Saved plays" text="Your favorites follow you."><BookMarked aria-hidden="true" /></AccountValue>
-            <AccountValue title="Player profile" text="Link your official squad record."><UserRoundCheck aria-hidden="true" /></AccountValue>
+            <AccountValue title="Player profile" text="Link your Goonsquad player record."><UserRoundCheck aria-hidden="true" /></AccountValue>
             <AccountValue title="Create ownership" text="Keep and share the plays you build."><PencilRuler aria-hidden="true" /></AccountValue>
           </div>
-          <div className="account-workspace-trust"><ShieldCheck aria-hidden="true" /><span>Official team statistics stay source-verified and separate from account details.</span></div>
+          <div className="account-workspace-trust"><LockKeyhole aria-hidden="true" /><span>Your account details stay separate from team statistics.</span></div>
         </aside>
 
         <section

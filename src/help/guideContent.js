@@ -183,7 +183,7 @@ export const GUIDE_TOPICS = Object.freeze({
     label: 'Stats',
     eyebrow: 'TEAM PERFORMANCE',
     title: 'Follow each team one season at a time',
-    intro: 'Statistics are separated by organization, season, and team, so YCBHL and Greater Toronto Ball Hockey League records never blend together. Totals come from official league sync or authorized team entry.',
+    intro: 'Statistics are separated by organization, season, and team, so YCBHL and Greater Toronto Ball Hockey League records never blend together. League records and team-entered updates stay attached to the matching league.',
     sections: [
       {
         title: 'Choose the season and team',
@@ -191,7 +191,7 @@ export const GUIDE_TOPICS = Object.freeze({
       },
       {
         title: 'Read the team result',
-        body: 'Overview shows the official record, goals for and against, goal difference, latest results, and current scoring leaders.',
+        body: 'Overview shows the team record, goals for and against, goal difference, latest results, and current scoring leaders.',
       },
       {
         title: 'Inspect games and players',
@@ -202,7 +202,7 @@ export const GUIDE_TOPICS = Object.freeze({
         body: 'Members can view statistics. Authorized statistics managers record results, maintain rosters, and enter player lines after each game.',
       },
     ],
-    note: 'An empty table means no result has been published from either trusted source. The app never estimates or fills missing team statistics.',
+    note: 'An empty table means no result has been published by the league or entered by the team. The app never estimates or fills missing team statistics.',
   },
   game: {
     label: 'Game result',
@@ -223,7 +223,7 @@ export const GUIDE_TOPICS = Object.freeze({
         body: 'Select a player name in the game sheet to open that player profile and season history.',
       },
     ],
-    note: 'A blank field means the official source did not publish that detail. It is not treated as zero.',
+    note: 'A blank field means the league did not publish that detail. It is not treated as zero.',
   },
   matchup: {
     label: 'Matchup',
@@ -254,7 +254,7 @@ export const GUIDE_TOPICS = Object.freeze({
     sections: [
       {
         title: 'Read the identity',
-        body: 'Number and position appear only when the official record publishes them. Missing details stay clearly marked.',
+        body: 'Number and position appear only when the league record includes them. Missing details stay clearly marked.',
       },
       {
         title: 'Compare seasons',
@@ -265,7 +265,7 @@ export const GUIDE_TOPICS = Object.freeze({
         body: 'Select a recent appearance to review the complete game page and published player line.',
       },
     ],
-    note: 'Public profiles show official team records. They do not expose account details or private created plays.',
+    note: 'Public profiles show team statistics. They do not expose account details or private created plays.',
   },
   profile: {
     label: 'Profile',
@@ -279,7 +279,7 @@ export const GUIDE_TOPICS = Object.freeze({
       },
       {
         title: 'Request your player profile',
-        body: 'Choose yourself from the current roster and send the request. A team admin confirms the match before official statistics appear on your profile.',
+        body: 'Choose yourself from the current roster and send the request. A team admin confirms the match before statistics appear on your profile.',
       },
       {
         title: 'Get assigned directly',
@@ -290,7 +290,7 @@ export const GUIDE_TOPICS = Object.freeze({
         body: 'Review career totals, season history, recent appearances, the next game, saved plays, and shortcuts into Create and the playbook.',
       },
     ],
-    note: 'Player links only control which verified statistics appear on an account. They never edit the official team record.',
+    note: 'Player links only control which statistics appear on an account. They never edit the team record.',
   },
   account: {
     label: 'Account',
@@ -315,7 +315,7 @@ export const GUIDE_TOPICS = Object.freeze({
         body: 'Admins can approve player-profile requests, assign players directly, and manage member names, usernames, access levels, password reset emails, suspensions, and deletion.',
       },
     ],
-    note: 'Account details and official team statistics are stored separately. Linking a player does not edit the team record.',
+    note: 'Account details and team statistics are stored separately. Linking a player does not edit the team record.',
   },
   controls: {
     label: 'Controls',

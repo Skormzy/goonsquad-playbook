@@ -57,7 +57,7 @@ describe('team account and statistics product contract', () => {
     expect(workspaceSource).toContain('NEXT GAME');
     expect(workspaceSource).toContain('LATEST RESULT');
     expect(workspaceSource).toContain('ALL_SEASON_TEAMS_ID');
-    expect(workspaceSource).toContain('Official game sheet');
+    expect(workspaceSource).toContain('League game sheet');
     expect(workspaceSource).toContain("initialQueryValue('game')");
     expect(workspaceSource).toContain("url.searchParams.set('game'");
     expect(workspaceSource).toContain("initialQueryValue('opponent')");

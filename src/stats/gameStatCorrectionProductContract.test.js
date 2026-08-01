@@ -13,7 +13,7 @@ describe('game-stat correction product contract', () => {
   it('puts the correction workflow on the game page for admins', () => {
     expect(workspace).toContain("account.profile?.role === 'admin'");
     expect(workspace).toContain("game.adminCorrection ? 'Edit correction' : 'Correct game'");
-    expect(workspace).toContain('Team correction applied');
+    expect(workspace).toContain('Correction applied');
     expect(panel).toContain('Every edit below changes this game');
     expect(panel).toContain('Publish correction');
   });
@@ -25,7 +25,7 @@ describe('game-stat correction product contract', () => {
     expect(panel).toContain("['goalies', 'Goalies']");
     expect(panel).toContain('Add goal');
     expect(panel).toContain('Add penalty');
-    expect(panel).toContain('Use official data');
+    expect(panel).toContain('Use league data');
   });
 
   it('loads public corrections independently of the optional full cloud projection', () => {

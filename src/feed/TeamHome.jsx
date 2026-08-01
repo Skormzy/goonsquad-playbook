@@ -9,7 +9,6 @@ import {
   ArrowUp,
   AtSign,
   BarChart3,
-  BadgeCheck,
   Camera,
   CalendarClock,
   ChevronRight,
@@ -205,7 +204,7 @@ const QA_POSTS = Object.freeze([
     mediaUrl: '',
     sourceType: 'result',
     sourceKey: 'result:ycbhl-game-53117',
-    sourceLabel: 'Official result · YCBHL · Sunday League',
+    sourceLabel: 'Final result · YCBHL · Sunday League',
     sourceTitle: 'Goonsquad 9–4 OG VIPERZ',
     sourceImageUrl: '',
     sourcePublishedAt: '2026-07-26T21:00:00Z',
@@ -294,7 +293,7 @@ function sourceIdentity(post) {
   if (post.sourceType === 'result') {
     return {
       displayName: 'Goonsquad Scores',
-      username: 'official results',
+      username: 'game result',
       Icon: Trophy,
     };
   }
@@ -343,6 +342,8 @@ function FeedPostAvatar({ post }) {
 function OfficialResultCard({ post }) {
   const details = post.sourceMetadata || {};
   const outcome = details.outcome || 'final';
+  const resultLabel = String(post.sourceLabel || 'Final result')
+    .replace(/^Official result/i, 'Final result');
   const sourceGameId = String(post.sourceKey || '').startsWith('result:')
     ? String(post.sourceKey).slice('result:'.length)
     : '';
@@ -358,7 +359,7 @@ function OfficialResultCard({ post }) {
       aria-label={`${goonsquadDisplayText(post.sourceTitle)}. Open game details`}
     >
       <span className="feed-result-kicker">
-        <BadgeCheck /> {post.sourceLabel || 'Official result'}
+        <Trophy /> {resultLabel}
       </span>
       <div className="feed-result-matchup">
         <strong>GOONSQUAD</strong>
@@ -807,7 +808,6 @@ function PostCard({
         <div>
           <strong>
             {source?.displayName || post.author?.displayName || 'Goonsquad member'}
-            {source && <BadgeCheck className="feed-official-check" aria-label="Official team activity" />}
           </strong>
           <span>
             {source ? source.username : `@${post.author?.username || 'member'}`}

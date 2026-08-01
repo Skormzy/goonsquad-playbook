@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
-  BadgeCheck,
   CalendarClock,
   Camera,
   ChevronRight,
@@ -18,7 +17,6 @@ import {
   Search,
   Save,
   Settings2,
-  ShieldCheck,
   Target,
   TrendingUp,
   Unlink,
@@ -49,7 +47,7 @@ function positionLabel(position) {
 }
 
 function linkCopy() {
-  return { label: 'Player profile approved', detail: 'Your account is linked to the official team archive. An admin can update this assignment at any time.' };
+  return { label: 'Player profile linked', detail: 'Your account is linked to your Goonsquad player record. An admin can update this assignment at any time.' };
 }
 
 function ProfileMetric({ detail, label, value }) {
@@ -110,7 +108,7 @@ function RosterPicker({ account, claims, requests = [], dataset, onClose, onLink
           {account.status}
         </p>
       )}
-      <footer><ShieldCheck aria-hidden="true" /><span>Your request goes to a team admin for approval. It never changes the official statistics archive.</span></footer>
+      <footer><Link2 aria-hidden="true" /><span>Your request goes to a team admin to match your account to the right player record.</span></footer>
     </section>
   );
 }
@@ -261,9 +259,9 @@ export default function ProfileWorkspace() {
             <div className="profile-roster-facts">
               <strong>{profile.jerseyNumber ? `#${profile.jerseyNumber}` : 'NO #'}</strong>
               <strong>{positionLabel(profile.position)}</strong>
-              <span>{profile.currentTeams.map(formatLeagueScheduleName).join(' / ') || 'Goonsquad archive'}</span>
+              <span>{profile.currentTeams.map(formatLeagueScheduleName).join(' / ') || 'Goonsquad'}</span>
             </div>
-            <div className="profile-badges"><span data-status="linked"><BadgeCheck aria-hidden="true" /> {linkState.label}</span><span><History aria-hidden="true" /> {profile.seasonsPlayed} season{profile.seasonsPlayed === 1 ? '' : 's'}</span></div>
+            <div className="profile-badges"><span data-status="linked"><Link2 aria-hidden="true" /> {linkState.label}</span><span><History aria-hidden="true" /> {profile.seasonsPlayed} season{profile.seasonsPlayed === 1 ? '' : 's'}</span></div>
           </div>
           <div className="profile-hero-actions">
             <input
@@ -363,7 +361,7 @@ export default function ProfileWorkspace() {
         )}
         {rosterStatus && <p className="profile-roster-status" role="status">{rosterStatus}</p>}
 
-        <div className="profile-verification-note" data-status="linked"><ShieldCheck aria-hidden="true" /><div><strong>{linkState.label}</strong><span>{linkState.detail}</span></div></div>
+        <div className="profile-verification-note" data-status="linked"><Link2 aria-hidden="true" /><div><strong>{linkState.label}</strong><span>{linkState.detail}</span></div></div>
 
         <section className="profile-metric-strip" aria-label="Career statistics">
           {goalieProfile ? <>
@@ -415,7 +413,7 @@ export default function ProfileWorkspace() {
 
         <section className="profile-band profile-linked-records">
           <header><UserRoundCheck aria-hidden="true" /><div><span>IDENTITY LINKS</span><h2>League records in this profile</h2></div></header>
-          {account.playerClaims.map((claim) => <article key={claim.playerId}><span className="profile-record-avatar" aria-hidden="true">{claim.player?.displayName?.slice(0, 1) || '?'}</span><div><strong>{claim.player?.displayName || 'League player'}</strong><small>{claim.primary ? 'Primary record' : 'Historical record'} · {formatLeagueName(claim.player)} · linked</small></div>{claim.player?.sourceUrl && <a href={claim.player.sourceUrl} target="_blank" rel="noreferrer" aria-label={`Open official profile for ${claim.player.displayName}`}><ExternalLink aria-hidden="true" /></a>}<button type="button" disabled={account.busy} onClick={() => { if (window.confirm('Remove this league record from your profile?')) account.releasePlayer(claim.playerId).catch(() => {}); }} aria-label={`Remove ${claim.player?.displayName || 'player'} from profile`}><Unlink aria-hidden="true" /></button></article>)}
+          {account.playerClaims.map((claim) => <article key={claim.playerId}><span className="profile-record-avatar" aria-hidden="true">{claim.player?.displayName?.slice(0, 1) || '?'}</span><div><strong>{claim.player?.displayName || 'League player'}</strong><small>{claim.primary ? 'Primary record' : 'Historical record'} · {formatLeagueName(claim.player)} · linked</small></div>{claim.player?.sourceUrl && <a href={claim.player.sourceUrl} target="_blank" rel="noreferrer" aria-label={`Open league profile for ${claim.player.displayName}`}><ExternalLink aria-hidden="true" /></a>}<button type="button" disabled={account.busy} onClick={() => { if (window.confirm('Remove this league record from your profile?')) account.releasePlayer(claim.playerId).catch(() => {}); }} aria-label={`Remove ${claim.player?.displayName || 'player'} from profile`}><Unlink aria-hidden="true" /></button></article>)}
         </section>
 
         {account.playerClaimRequests.map((request) => (

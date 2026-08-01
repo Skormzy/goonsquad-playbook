@@ -14,7 +14,6 @@ import {
   Play,
   Settings2,
   ShieldAlert,
-  ShieldCheck,
   Table2,
   Trophy,
   Users,
@@ -208,7 +207,7 @@ function TeamRunCard({ tournament, game, onSelectGame }) {
         <header><span>{game.stageLabel || game.stage}</span><em className={`is-${tone}`}>{tone === 'win' ? 'W' : tone === 'loss' ? 'L' : tone === 'tie' ? 'T' : '—'}</em></header>
         <div className="tournament-game-matchup">
           <div>
-            <small>GAME {String(game.gameNumber).padStart(2, '0')}{game.officialGameNumber ? ` · OFFICIAL ${game.officialGameNumber}` : ''}</small>
+            <small>GAME {String(game.gameNumber).padStart(2, '0')}{game.officialGameNumber ? ` · #${game.officialGameNumber}` : ''}</small>
             <strong>vs {game.opponent}</strong>
             <p>{[formatTournamentDate(game.date, true), formatTournamentTime(game.time)].filter(Boolean).join(' · ')}</p>
           </div>
@@ -225,7 +224,7 @@ function TournamentMetrics({ tournament, summary }) {
   const metrics = [
     [tournament.finish ? 'Finish' : 'Goonsquad files', tournament.finish || `${summary.documentedGames} documented`, tournament.division],
     ['Goonsquad record', summary.record, `${summary.goalsFor} GF · ${summary.goalsAgainst} GA`],
-    [tournament.pool?.name || 'Field', tournament.pool?.record || `${tournament.teams.length} teams`, tournament.pool?.finish ? `Finished #${tournament.pool.finish}` : 'official participants'],
+    [tournament.pool?.name || 'Field', tournament.pool?.record || `${tournament.teams.length} teams`, tournament.pool?.finish ? `Finished #${tournament.pool.finish}` : 'tournament field'],
     ['Goal difference', summary.scoredGames ? `${summary.goalDifferential > 0 ? '+' : ''}${summary.goalDifferential}` : 'Pending', tournament.format],
   ];
   return <section className="tournament-metric-strip" aria-label="Tournament snapshot">{metrics.map(([label, value, detail]) => <div key={label}><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>)}</section>;
@@ -238,7 +237,7 @@ function TournamentLeaders({ tournament }) {
   if (!leaders.length && !skaters.length && !goalies.length) return null;
   return (
     <section className="tournament-leaders">
-      <header><div><span>GOONSQUAD LEADERS</span><h3>Who drove the run</h3></div><small>Official tournament totals</small></header>
+      <header><div><span>GOONSQUAD LEADERS</span><h3>Who drove the run</h3></div><small>Tournament totals</small></header>
       {leaders.length > 0 && <div className="tournament-leader-cards">{leaders.map((leader) => <article key={`${leader.type}-${leader.player}`}><div><Award aria-hidden="true" /><small>{leader.label}</small></div><strong>{leader.value}</strong><h4><b>#{leader.number}</b> {leader.player}</h4><p>{leader.detail}</p></article>)}</div>}
       <div className="tournament-leader-detail">
         {skaters.length > 0 && <div className="tournament-scorer-board"><header><BarChart3 aria-hidden="true" /><div><span>TOP FIVE</span><strong>Scoring</strong></div></header>{skaters.map((player) => <div key={player.name}><b>#{player.number}</b><span>{player.name}<small>{player.gamesPlayed} GP</small></span><em>{player.goals}<small>G</small></em><em>{player.assists}<small>A</small></em><strong>{player.points}<small>PTS</small></strong></div>)}</div>}
@@ -258,7 +257,6 @@ function TournamentOverview({ tournament, summary, onOpenGames, onSelectGame }) 
       </section>
       <TournamentLeaders tournament={tournament} />
       <section className="tournament-field"><header><Users aria-hidden="true" /><div><span>FULL FIELD</span><h3>{tournament.teams.length} tournament teams</h3></div></header><div>{tournament.teams.map((team) => <span className={team.isGoonSquad ? 'is-goonsquad' : ''} key={team.id || team.name}><strong>{team.name}</strong>{team.pool && <small>{team.pool}</small>}</span>)}</div></section>
-      {tournament.display.showVerification && <section className="tournament-archive-notice"><ShieldCheck aria-hidden="true" /><div><span>OFFICIAL SOURCE RECEIPT</span><h3>What is verified</h3><p>{tournament.verificationNote || tournament.summary}</p>{tournament.source?.capturedAt && <small>Checked {formatTournamentDate(tournament.source.capturedAt)} · {tournament.source.provider}</small>}</div>{tournament.sourceUrl && <a href={tournament.sourceUrl} target="_blank" rel="noreferrer">Event source <ExternalLink aria-hidden="true" /></a>}</section>}
     </div>
   );
 }
@@ -267,7 +265,7 @@ function StandingsTable({ standings, label }) {
   const hasResults = standings.some((row) => row.gamesPlayed > 0);
   return (
     <section className="tournament-pool-table">
-      <header><span>{label}</span><strong>{hasResults ? 'Official preliminary table' : 'Results not preserved'}</strong></header>
+      <header><span>{label}</span><strong>{hasResults ? 'Preliminary table' : 'Results not preserved'}</strong></header>
       <div className="tournament-standings-table" role="table" aria-label={`${label} standings`}>
         <div role="row" className="is-header"><span>RK</span><span>Team</span><span>GP</span><span>W</span><span>L</span><span>T</span><span>GF</span><span>GA</span><span>DIFF</span><span>PTS</span></div>
         {standings.map((row) => <div role="row" key={row.team} className={row.isGoonSquad ? 'is-goonsquad' : ''}><strong data-label="Rank">{hasResults ? row.rank : '—'}</strong><span><b>{row.team}</b>{row.isGoonSquad && <small>OUR TEAM</small>}</span><span data-label="GP">{row.gamesPlayed}</span><span data-label="W">{row.wins}</span><span data-label="L">{row.losses}</span><span data-label="T">{row.ties}</span><span data-label="GF">{row.goalsFor}</span><span data-label="GA">{row.goalsAgainst}</span><span data-label="Diff">{row.goalsFor - row.goalsAgainst > 0 ? '+' : ''}{row.goalsFor - row.goalsAgainst}</span><strong data-label="Pts">{row.points}</strong></div>)}
@@ -300,7 +298,7 @@ function TournamentRoundRobin({ tournament, onSelectGame }) {
       <div className="tournament-pool-switcher" role="tablist" aria-label="Tournament pools">{pools.map((pool) => <button type="button" role="tab" aria-selected={pool.id === selectedPool?.id} key={pool.id} onClick={() => setSelectedPoolId(pool.id)}>{pool.name}<small>{pool.teams.length} teams</small></button>)}</div>
       {selectedPool && <StandingsTable standings={standings} label={selectedPool.name} />}
       <div className="tournament-pool-games"><header><span>{selectedPool?.name || 'Pool'} schedule</span><small>Crossovers appear in both affected pools</small></header>{games.map((game) => <EventGameButton key={game.id} game={game} tournament={tournament} onSelectGame={onSelectGame} compact />)}</div>
-      {!standings.some((row) => row.gamesPlayed) && <p className="tournament-path-note"><ShieldCheck aria-hidden="true" /> The official schedule survives, but preliminary scores do not. Teams, times, and venues are shown without inventing results.</p>}
+      {!standings.some((row) => row.gamesPlayed) && <p className="tournament-path-note"><Table2 aria-hidden="true" /> The schedule is available, but preliminary scores are missing. Teams, times, and venues are shown without estimating results.</p>}
     </section>
   );
 }
@@ -354,7 +352,7 @@ function TournamentBracket({ tournament, onSelectGame }) {
           {positions.flat().map(({ match, x, y }, matchIndex) => <button type="button" key={match.id} className={`tournament-bracket-match ${match.status === 'final' ? 'is-final' : ''}`} style={{ left: x, top: y, width: cardWidth, height: cardHeight }} data-bracket-index={matchIndex} onClick={() => match.eventGameId && onSelectGame(match.eventGameId)} disabled={!match.eventGameId}><header><span>{match.label || 'Match'}</span>{match.status === 'final' && <em>FINAL</em>}</header><BracketTeam team={match.awayTeam} score={match.awayScore} winner={match.winner === 'away'} /><BracketTeam team={match.homeTeam} score={match.homeScore} winner={match.winner === 'home'} /></button>)}
         </div>
       </div>
-      <p className="tournament-path-note"><ShieldCheck aria-hidden="true" /> Every recovered elimination result is shown. Select any matchup to open its tournament game page.</p>
+      <p className="tournament-path-note"><GitBranch aria-hidden="true" /> Every available elimination result is shown. Select any matchup to open its tournament game page.</p>
     </section>
   );
 }
@@ -374,7 +372,7 @@ function TournamentGames({ tournament, onSelectGame }) {
     || (filter === 'elimination' && game.stage !== 'round-robin'));
   return (
     <section className="tournament-games">
-      <header><div><span>OFFICIAL EVENT GAMEBOOK</span><h3>Every documented matchup</h3></div><small>{eventGames.length} total games</small></header>
+      <header><div><span>TOURNAMENT GAMEBOOK</span><h3>Every documented matchup</h3></div><small>{eventGames.length} total games</small></header>
       <div className="tournament-game-filters" role="group" aria-label="Filter tournament games">{filters.map(([id, label]) => <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}<small>{id === 'all' ? eventGames.length : id === 'goonsquad' ? eventGames.filter((game) => gameIncludesTeam(game, tournament.teamName)).length : id === 'round-robin' ? eventGames.filter((game) => game.stage === 'round-robin').length : eventGames.filter((game) => game.stage !== 'round-robin').length}</small></button>)}</div>
       <div className="tournament-all-games">{games.map((game) => <EventGameButton key={game.id} game={game} tournament={tournament} onSelectGame={onSelectGame} />)}</div>
     </section>
@@ -473,7 +471,7 @@ function OfficialGameDetails({ details }) {
   return (
     <section className="tournament-official-detail">
       <header>
-        <div><span>OFFICIAL GAME DETAIL</span><h3>Scoring, penalties and player lines</h3></div>
+        <div><span>GAME DETAIL</span><h3>Scoring, penalties and player lines</h3></div>
         <div><Clock3 aria-hidden="true" /><strong>{details.goals.length} goals</strong><strong>{details.penalties.length} penalties</strong></div>
       </header>
       <div className="tournament-match-identities" role="list" aria-label="Match team colours">{identities.map((identity) => <div role="listitem" className={`is-${identity.kind}`} style={teamIdentityStyle(identity)} data-side={identity.side} key={identity.side}><TeamMark identity={identity} /><span><small>{identity.side} team</small><strong>{identity.name}</strong></span></div>)}</div>
@@ -553,18 +551,18 @@ function TournamentGamePage({ tournament, game, onBack }) {
   const sourceUrl = game.sourceUrl || tournament.sourceUrl;
   return (
     <section className="tournament-game-page">
-      <header className="tournament-game-page-nav"><button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> Back to tournament</button><span>{tournament.shortName || tournament.name}</span>{sourceUrl ? <a href={sourceUrl} target="_blank" rel="noreferrer">Official source <ExternalLink aria-hidden="true" /></a> : <i>Archive record</i>}</header>
+      <header className="tournament-game-page-nav"><button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> Back to tournament</button><span>{tournament.shortName || tournament.name}</span>{sourceUrl ? <a href={sourceUrl} target="_blank" rel="noreferrer">Game page <ExternalLink aria-hidden="true" /></a> : <i>Game record</i>}</header>
       <div className="tournament-game-page-hero">
         <div className="tournament-game-page-meta">
-          <span>{game.stageLabel || game.stage}{game.officialGameNumber ? ` · OFFICIAL GAME ${game.officialGameNumber}` : ''}</span>
+          <span>{game.stageLabel || game.stage}{game.officialGameNumber ? ` · GAME ${game.officialGameNumber}` : ''}</span>
           <p>{[formatTournamentDate(game.date), formatTournamentTime(game.time), game.location].filter(Boolean).join(' · ')}</p>
         </div>
         <TournamentBroadcastScore game={game} />
       </div>
-      {!hasScore && <section className="tournament-game-page-note"><ShieldCheck aria-hidden="true" /><div><span>HONEST ARCHIVE</span><h3>The fixture is official; the result was not preserved publicly.</h3><p>The app keeps the verified teams, stage, time, and venue without fabricating a score. An admin can add a recovered result later.</p></div></section>}
+      {!hasScore && <section className="tournament-game-page-note"><ShieldAlert aria-hidden="true" /><div><span>RESULT UNAVAILABLE</span><h3>No result was published for this fixture.</h3><p>The teams, stage, time, and venue are shown. An admin can add the score later.</p></div></section>}
       {teamGame && (!game.details || teamGame.media?.length > 0) && <section className="tournament-game-page-details"><header><div><span>GOONSQUAD GAME FILE</span><h3>{teamGame.media?.length > 0 ? 'Game film' : 'Team details'}</h3></div><strong className={`is-${teamGameResult(teamGame)}`}>{teamGame.scoreFor}-{teamGame.scoreAgainst}</strong></header>{!game.details && <div className="tournament-game-facts">{Array.isArray(teamGame.periodScoreFor) && <span><small>PERIODS</small>{teamGame.periodScoreFor.map((score, index) => <b key={index}>{score}-{teamGame.periodScoreAgainst?.[index] ?? '—'}</b>)}</span>}{Number.isFinite(teamGame.shotsFor) && <span><small>SHOTS</small><b>{teamGame.shotsFor}-{teamGame.shotsAgainst}</b></span>}{teamGame.shotsStatus && <span><small>SHOTS</small><b>{teamGame.shotsStatus === 'not-recorded' ? 'Not recorded' : 'Incomplete'}</b></span>}</div>}{teamGame.media?.length > 0 && <div className="tournament-game-page-media">{teamGame.media.map((media) => <GameVideo key={media.videoId || media.url} media={media} />)}</div>}</section>}
       <OfficialGameDetails details={game.details} />
-      <section className="tournament-game-page-context"><div><span>EVENT</span><strong>{tournament.name}</strong><small>{tournament.division}</small></div><div><span>STAGE</span><strong>{game.stageLabel || game.stage}</strong><small>{game.officialGameNumber ? `Official Game ${game.officialGameNumber}` : 'Documented fixture'}</small></div><div><span>VENUE</span><strong>{game.location || tournament.location}</strong><small>{tournamentDateRange(tournament)}</small></div></section>
+      <section className="tournament-game-page-context"><div><span>EVENT</span><strong>{tournament.name}</strong><small>{tournament.division}</small></div><div><span>STAGE</span><strong>{game.stageLabel || game.stage}</strong><small>{game.officialGameNumber ? `Game ${game.officialGameNumber}` : 'Tournament fixture'}</small></div><div><span>VENUE</span><strong>{game.location || tournament.location}</strong><small>{tournamentDateRange(tournament)}</small></div></section>
     </section>
   );
 }
@@ -606,7 +604,7 @@ export default function TournamentWorkspace({
     <div className={`tournament-workspace${adminOpen ? ' is-admin-open' : ''}`} data-layout={tournament.display.layout} data-accent={tournament.display.accent}>
       <TournamentSelector tournaments={tournaments} selectedTournamentId={tournament.id} onSelectTournament={(id) => { setActiveTab('overview'); setAdminOpen(false); onSelectGame(''); onSelectTournament(id); }} />
       {adminOpen ? <TournamentAdminPanel tournament={tournament} configured={controlRoom.configured} userId={userId} onClose={() => setAdminOpen(false)} onSaved={refreshAndSelect} onDeleted={handleDeleted} /> : <>
-        <section className="tournament-hero"><div className="tournament-hero-copy"><span>TOURNAMENT DOSSIER / {tournament.dataStatus === 'partial' ? 'VERIFIED PARTIAL ARCHIVE' : 'OFFICIAL EVENT'}</span><h2>{tournament.name}</h2><p>{tournament.series}</p>{tournament.summary && <strong className="tournament-hero-summary">{tournament.summary}</strong>}<div><span><CalendarDays aria-hidden="true" /> {tournamentDateRange(tournament)}</span><span><MapPin aria-hidden="true" /> {tournament.location}</span></div></div><div className="tournament-hero-mark"><Trophy aria-hidden="true" />{tournament.finish ? <><span className="is-finish">{tournament.finish}</span><small>{summary.record} · {summary.goalsFor}-{summary.goalsAgainst}</small></> : <><span>{tournamentEventGames(tournament).length}</span><small>documented games</small></>}</div>{canManage && <button type="button" className="tournament-manage-button" onClick={() => setAdminOpen(true)}><Settings2 aria-hidden="true" /><span>Manage tournament<small>Teams, games, results and layout</small></span></button>}</section>
+        <section className="tournament-hero"><div className="tournament-hero-copy"><span>TOURNAMENT DOSSIER</span><h2>{tournament.name}</h2><p>{tournament.series}</p>{tournament.summary && <strong className="tournament-hero-summary">{tournament.summary}</strong>}<div><span><CalendarDays aria-hidden="true" /> {tournamentDateRange(tournament)}</span><span><MapPin aria-hidden="true" /> {tournament.location}</span></div></div><div className="tournament-hero-mark"><Trophy aria-hidden="true" />{tournament.finish ? <><span className="is-finish">{tournament.finish}</span><small>{summary.record} · {summary.goalsFor}-{summary.goalsAgainst}</small></> : <><span>{tournamentEventGames(tournament).length}</span><small>documented games</small></>}</div>{canManage && <button type="button" className="tournament-manage-button" onClick={() => setAdminOpen(true)}><Settings2 aria-hidden="true" /><span>Manage tournament<small>Teams, games, results and layout</small></span></button>}</section>
         {canManage && controlRoom.error && <p className="tournament-control-error" role="alert">{controlRoom.error}</p>}
         <nav className="tournament-tabs" role="tablist" aria-label="Tournament dossier">{visibleTabs.map(({ id, labelKey, icon }) => <button key={id} type="button" role="tab" aria-selected={resolvedActiveTab === id} onClick={() => setActiveTab(id)}>{createElement(icon, { 'aria-hidden': true })}{tournament.display[labelKey]}</button>)}</nav>
         <section className="tournament-panel" role="tabpanel">
