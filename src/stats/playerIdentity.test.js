@@ -3,7 +3,9 @@ import {
   buildPlayerIdentityIndex,
   canonicalPlayerIdentityId,
   expandPlayerIdentityIds,
+  REVIEWED_PLAYER_IDENTITY_GROUPS,
 } from './playerIdentity';
+import { OFFICIAL_STATS_DATASET } from './statsSeed';
 
 function player(id, displayName, sourceUrl) {
   return { id, displayName, sourceUrl };
@@ -56,5 +58,57 @@ describe('verified cross-league player identity', () => {
 
     expect(canonicalPlayerIdentityId(index, 'local-1')).toBe('local-1');
     expect(canonicalPlayerIdentityId(index, 'local-2')).toBe('local-2');
+  });
+
+  it('consolidates every reviewed historical ID into one player identity', () => {
+    const index = buildPlayerIdentityIndex(OFFICIAL_STATS_DATASET.players);
+
+    REVIEWED_PLAYER_IDENTITY_GROUPS.forEach((group) => {
+      const canonicalIds = new Set(group.playerIds.map((playerId) => (
+        canonicalPlayerIdentityId(index, playerId)
+      )));
+      expect(canonicalIds, group.displayName).toHaveLength(1);
+      expect(new Set(expandPlayerIdentityIds(index, new Set([group.playerIds[0]])))).toEqual(
+        new Set(group.playerIds),
+      );
+    });
+  });
+
+  it('never merges two reviewed IDs that appeared in the same official game', () => {
+    REVIEWED_PLAYER_IDENTITY_GROUPS.forEach((group) => {
+      const gameIdsByPlayer = group.playerIds.map((playerId) => new Set(
+        OFFICIAL_STATS_DATASET.playerGameStats
+          .filter((line) => line.playerId === playerId && Number(line.gamesPlayed ?? 1) > 0)
+          .map((line) => line.gameId),
+      ));
+
+      for (let index = 0; index < gameIdsByPlayer.length; index += 1) {
+        for (let comparison = index + 1; comparison < gameIdsByPlayer.length; comparison += 1) {
+          const sharedGames = [...gameIdsByPlayer[index]].filter((gameId) => (
+            gameIdsByPlayer[comparison].has(gameId)
+          ));
+          expect(sharedGames, group.displayName).toEqual([]);
+        }
+      }
+    });
+  });
+
+  it('leaves no duplicate exact-name identities unresolved in the archive', () => {
+    const index = buildPlayerIdentityIndex(OFFICIAL_STATS_DATASET.players);
+    const playersByName = new Map();
+    OFFICIAL_STATS_DATASET.players.forEach((archivePlayer) => {
+      const key = archivePlayer.displayName.toLowerCase().trim();
+      const matches = playersByName.get(key) ?? [];
+      matches.push(archivePlayer.id);
+      playersByName.set(key, matches);
+    });
+
+    playersByName.forEach((playerIds, displayName) => {
+      if (playerIds.length < 2) return;
+      const canonicalIds = new Set(playerIds.map((playerId) => (
+        canonicalPlayerIdentityId(index, playerId)
+      )));
+      expect(canonicalIds, displayName).toHaveLength(1);
+    });
   });
 });

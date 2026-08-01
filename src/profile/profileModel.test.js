@@ -5,6 +5,10 @@ import {
   publicPlayerProfileSnapshot,
 } from './profileModel';
 import { OFFICIAL_STATS_DATASET } from '../stats/statsSeed';
+import {
+  buildPlayerIdentityIndex,
+  canonicalPlayerIdentityId,
+} from '../stats/playerIdentity';
 
 const dataset = {
   seasons: [
@@ -138,7 +142,70 @@ describe('member profile model', () => {
     });
   });
 
+  it.each([
+    ['Adrian Bockner', 'ycbhl-player-25232', 84, 12, 21, 33, 2],
+    ['Andrew Lorenowicz', 'ycbhl-player-308', 235, 0, 16, 16, 2],
+    ['Matthew Stott', 'ycbhl-player-25348', 39, 3, 4, 7, 1],
+    ['Michael Thomas Kerrane', 'ycbhl-player-25741', 62, 5, 5, 10, 2],
+    ['Michael Woods', 'ycbhl-player-25796', 4, 5, 11, 16, 2],
+    ['Michael Yen', 'ycbhl-player-26046', 20, 3, 5, 8, 2],
+    ['Ryan Hunt', 'ycbhl-player-307', 59, 4, 4, 8, 2],
+    ['Stephen Macdonald', 'ycbhl-player-25733', 59, 5, 6, 11, 2],
+    ['Zachary Sher', 'ycbhl-player-25559', 23, 6, 9, 15, 2],
+  ])('combines every reviewed archive identity for %s', (
+    displayName,
+    playerId,
+    gamesPlayed,
+    goals,
+    assists,
+    points,
+    sourceCount,
+  ) => {
+    const profile = publicPlayerProfileSnapshot(
+      OFFICIAL_STATS_DATASET,
+      playerId,
+      '2026-07-29T12:00:00Z',
+    );
+
+    expect(profile.primaryPlayer.displayName).toBe(displayName);
+    expect(profile.careerField).toMatchObject({ gamesPlayed, goals, assists, points });
+    expect(profile.officialProfiles).toHaveLength(sourceCount);
+  });
+
+  it.each([
+    ['Adrian Bockner', 'Adrian Bockner', 'ycbhl-player-25232'],
+    ['Andrew Lorenowicz', 'Andrew Lorenowicz', 'ycbhl-player-308'],
+    ['Andy Lorenowicz', 'Andrew Lorenowicz', 'ycbhl-player-308'],
+    ['Mathew Grenier', 'Mathew Grenier', 'ycbhl-player-25650'],
+    ['Matthew Grenier', 'Mathew Grenier', 'ycbhl-player-25650'],
+    ['Matthew Stott', 'Matthew Stott', 'ycbhl-player-25348'],
+    ['Matt Stott', 'Matthew Stott', 'ycbhl-player-25348'],
+    ['Michael Thomas Kerrane', 'Michael Thomas Kerrane', 'ycbhl-player-25741'],
+    ['Michael Kerrane', 'Michael Thomas Kerrane', 'ycbhl-player-25741'],
+    ['Michael Woods', 'Michael Woods', 'ycbhl-player-25796'],
+    ['Michael Yen', 'Michael Yen', 'ycbhl-player-26046'],
+    ['Mike Yen', 'Michael Yen', 'ycbhl-player-26046'],
+    ['Ryan Hunt', 'Ryan Hunt', 'ycbhl-player-307'],
+    ['Stephen Macdonald', 'Stephen Macdonald', 'ycbhl-player-25733'],
+    ['Steve Macdonald', 'Stephen Macdonald', 'ycbhl-player-25733'],
+    ['Zachary Sher', 'Zachary Sher', 'ycbhl-player-25559'],
+    ['Zack Sher', 'Zachary Sher', 'ycbhl-player-25559'],
+  ])('returns one canonical roster candidate when searching for %s', (
+    query,
+    displayName,
+    playerId,
+  ) => {
+    const rosterMatches = playerRosterCandidates(OFFICIAL_STATS_DATASET, {
+      includeHistory: true,
+      query,
+    });
+
+    expect(rosterMatches).toHaveLength(1);
+    expect(rosterMatches[0]).toMatchObject({ id: playerId, displayName });
+  });
+
   it('builds a durable public profile for every published roster identity', () => {
+    const identityIndex = buildPlayerIdentityIndex(OFFICIAL_STATS_DATASET.players);
     const profiles = OFFICIAL_STATS_DATASET.players.map((player) => (
       publicPlayerProfileSnapshot(OFFICIAL_STATS_DATASET, player.id, '2026-07-29T12:00:00Z')
     ));
@@ -147,10 +214,9 @@ describe('member profile model', () => {
     profiles.forEach((profile, index) => {
       const sourcePlayer = OFFICIAL_STATS_DATASET.players[index];
       expect(profile).not.toBeNull();
-      expect(profile.primaryPlayer).toMatchObject({
-        id: sourcePlayer.id,
-        displayName: sourcePlayer.displayName,
-      });
+      expect(profile.primaryPlayer.id).toBe(
+        canonicalPlayerIdentityId(identityIndex, sourcePlayer.id),
+      );
       expect(profile.players.map((player) => player.id)).toContain(sourcePlayer.id);
       expect(profile.careerField.points).toBe(
         profile.careerField.goals + profile.careerField.assists,
