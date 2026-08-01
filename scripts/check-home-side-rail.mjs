@@ -13,8 +13,9 @@ const chromeCandidates = [
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
 ].filter(Boolean);
 const viewports = [
-  { id: 'desktop', width: 1440, height: 900 },
-  { id: 'laptop', width: 1024, height: 768 },
+  { id: 'desktop', width: 1440, height: 900, stickyRail: true },
+  { id: 'laptop', width: 1024, height: 768, stickyRail: true },
+  { id: 'mobile', width: 390, height: 844, stickyRail: false },
 ];
 
 async function findChrome() {
@@ -27,17 +28,6 @@ async function findChrome() {
     }
   }
   throw new Error('Chrome or Edge was not found for the hidden side-rail review.');
-}
-
-function containedBy(inner, outer) {
-  return Boolean(
-    inner
-    && outer
-    && inner.x >= outer.x - 1
-    && inner.y >= outer.y - 1
-    && inner.x + inner.width <= outer.x + outer.width + 1
-    && inner.y + inner.height <= outer.y + outer.height + 1
-  );
 }
 
 await mkdir(outputDir, { recursive: true });
@@ -67,83 +57,125 @@ for (const viewport of viewports) {
   await page.locator('.game-availability-summary').waitFor({ state: 'visible', timeout: 30_000 });
   await page.evaluate(() => document.fonts.ready);
 
-  const sideRegion = page.locator('.team-home-scroll-region.is-side');
+  const homeScroller = page.locator('.team-home');
+  const sideRail = page.locator('.team-home-side-column');
   const pulse = page.locator('.team-pulse');
-  const attendanceScroller = page.locator('.team-home-attendance-scroll');
   const pulseBefore = await pulse.boundingBox();
-  const sideBefore = await sideRegion.boundingBox();
   const pulseClipBefore = await pulse.evaluate((element) => element.scrollHeight - element.clientHeight);
 
   await page.locator('.game-availability-summary').click();
   await page.locator('.game-availability-roster').waitFor({ state: 'visible' });
-  await attendanceScroller.evaluate((element) => {
-    element.scrollTop = element.scrollHeight;
+  await homeScroller.evaluate((element) => {
+    const maxScroll = element.scrollHeight - element.clientHeight;
+    element.scrollTop = Math.min(Math.max(640, maxScroll * 0.35), maxScroll);
   });
   await page.waitForTimeout(250);
 
+  const homeBox = await homeScroller.boundingBox();
+  const railAfter = await sideRail.boundingBox();
   const pulseAfter = await pulse.boundingBox();
-  const sideAfter = await sideRegion.boundingBox();
   const pulseClipAfter = await pulse.evaluate((element) => element.scrollHeight - element.clientHeight);
-  const attendanceMetrics = await attendanceScroller.evaluate((element) => ({
-    clientHeight: element.clientHeight,
-    clientWidth: element.clientWidth,
-    scrollHeight: element.scrollHeight,
-    scrollTop: element.scrollTop,
-    scrollWidth: element.scrollWidth,
-  }));
-  const scrollButton = page.getByRole('button', { name: 'Back to top of attendance' });
+  const surfaceMetrics = await page.evaluate(() => {
+    const readSurface = (selector) => {
+      const element = document.querySelector(selector);
+      const style = element ? getComputedStyle(element) : null;
+      return element && style ? {
+        clientHeight: element.clientHeight,
+        clientWidth: element.clientWidth,
+        overflowY: style.overflowY,
+        position: style.position,
+        scrollHeight: element.scrollHeight,
+        scrollTop: element.scrollTop,
+        scrollWidth: element.scrollWidth,
+      } : null;
+    };
+    return {
+      attendance: readSurface('.team-home-attendance'),
+      feed: readSurface('.team-feed-column'),
+      home: readSurface('.team-home'),
+      rail: readSurface('.team-home-side-column'),
+      roster: readSurface('.game-availability-roster'),
+    };
+  });
+  const scrollButton = page.getByRole('button', { name: 'Back to top' });
   const scrollButtonVisible = await scrollButton.getAttribute('aria-hidden') === 'false';
+  const mobileBottomNavVisible = viewport.stickyRail
+    ? null
+    : await page.getByTestId('mobile-bottom-nav').isVisible();
   const screenshotPath = path.join(outputDir, `${viewport.id}-${viewport.width}x${viewport.height}-expanded.png`);
   await page.screenshot({ path: screenshotPath, fullPage: false });
 
   if (scrollButtonVisible) {
     await scrollButton.click();
     await page.waitForFunction(
-      () => document.querySelector('.team-home-attendance-scroll')?.scrollTop < 2,
+      () => document.querySelector('.team-home')?.scrollTop < 2,
       null,
       { timeout: 5_000 },
     );
   }
-  const returnedToTop = await attendanceScroller.evaluate((element) => element.scrollTop < 2);
+  const returnedToTop = await homeScroller.evaluate((element) => element.scrollTop < 2);
 
   report[viewport.id] = {
     viewport,
-    pulseContainedBefore: containedBy(pulseBefore, sideBefore),
-    pulseContainedAfter: containedBy(pulseAfter, sideAfter),
     pulseHeightBefore: pulseBefore?.height ?? 0,
     pulseHeightAfter: pulseAfter?.height ?? 0,
-    pulseTopBefore: pulseBefore?.y ?? 0,
-    pulseTopAfter: pulseAfter?.y ?? 0,
     pulseClipBefore,
     pulseClipAfter,
-    attendanceMetrics,
+    railTopWithinHome: (railAfter?.y ?? 0) - (homeBox?.y ?? 0),
+    pulseTopWithinRail: (pulseAfter?.y ?? 0) - (railAfter?.y ?? 0),
+    surfaceMetrics,
     scrollButtonVisible,
+    mobileBottomNavVisible,
     returnedToTop,
     browserErrors,
     screenshot: path.relative(root, screenshotPath).replaceAll('\\', '/'),
   };
 
   const result = report[viewport.id];
-  if (!result.pulseContainedBefore || !result.pulseContainedAfter) {
-    throw new Error(`${viewport.id}: Game Pulse leaves the visible side rail.`);
-  }
   if (Math.abs(result.pulseHeightBefore - result.pulseHeightAfter) > 1) {
     throw new Error(`${viewport.id}: expanding attendance resized Game Pulse.`);
-  }
-  if (Math.abs(result.pulseTopBefore - result.pulseTopAfter) > 1) {
-    throw new Error(`${viewport.id}: scrolling attendance moved Game Pulse.`);
   }
   if (result.pulseClipBefore > 1 || result.pulseClipAfter > 1) {
     throw new Error(`${viewport.id}: Game Pulse content is clipped.`);
   }
-  if (attendanceMetrics.clientHeight < 120 || attendanceMetrics.scrollHeight <= attendanceMetrics.clientHeight) {
-    throw new Error(`${viewport.id}: expanded attendance does not have a usable independent scroller.`);
+  if (result.surfaceMetrics.home?.overflowY !== 'auto') {
+    throw new Error(`${viewport.id}: Home is not the consolidated scroll surface.`);
   }
-  if (attendanceMetrics.scrollWidth - attendanceMetrics.clientWidth > 1) {
-    throw new Error(`${viewport.id}: attendance pane has horizontal overflow.`);
+  if (result.surfaceMetrics.home.scrollHeight <= result.surfaceMetrics.home.clientHeight) {
+    throw new Error(`${viewport.id}: Home does not have enough content to exercise page scrolling.`);
+  }
+  for (const surface of ['feed', 'attendance']) {
+    const overflowY = result.surfaceMetrics[surface]?.overflowY;
+    if (overflowY === 'auto' || overflowY === 'scroll') {
+      throw new Error(`${viewport.id}: ${surface} reintroduced a nested vertical scrollbar.`);
+    }
+  }
+  if (Math.abs(result.pulseTopWithinRail) > 1) {
+    throw new Error(`${viewport.id}: Game Pulse is no longer the first visible rail module.`);
+  }
+  if ((result.surfaceMetrics.attendance?.scrollWidth ?? 0) - (result.surfaceMetrics.attendance?.clientWidth ?? 0) > 1) {
+    throw new Error(`${viewport.id}: attendance has horizontal overflow.`);
   }
   if (!scrollButtonVisible || !returnedToTop) {
-    throw new Error(`${viewport.id}: attendance return-to-top control is not usable.`);
+    throw new Error(`${viewport.id}: the consolidated return-to-top control is not usable.`);
+  }
+  if (viewport.stickyRail) {
+    if (result.surfaceMetrics.roster?.overflowY === 'auto' || result.surfaceMetrics.roster?.overflowY === 'scroll') {
+      throw new Error(`${viewport.id}: the expanded roster reintroduced a nested vertical scrollbar.`);
+    }
+    if (result.surfaceMetrics.rail?.position !== 'sticky') {
+      throw new Error(`${viewport.id}: the full right rail is not sticky.`);
+    }
+    if (Math.abs(result.railTopWithinHome - 14) > 2) {
+      throw new Error(`${viewport.id}: the right rail did not settle at the sticky top offset.`);
+    }
+  } else {
+    if (result.surfaceMetrics.rail?.position !== 'static') {
+      throw new Error(`${viewport.id}: the mobile rail should remain in natural document flow.`);
+    }
+    if (!mobileBottomNavVisible) {
+      throw new Error(`${viewport.id}: the mobile bottom navigation is missing.`);
+    }
   }
   if (browserErrors.length) throw new Error(`${viewport.id}: ${browserErrors.join('; ')}`);
 

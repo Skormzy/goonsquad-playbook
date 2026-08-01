@@ -84,25 +84,28 @@ describe('Squad Live product contract', () => {
     expect(mobileNav).toContain("content: 'stats'");
   });
 
-  it('keeps Game Pulse fixed while feed and attendance scroll independently', () => {
-    expect(home).toContain('ref={feedScrollRef}');
-    expect(home).toContain('ref={sideScrollRef}');
-    expect(home).toContain('Back to top of Squad Live');
-    expect(home).toContain('Back to top of attendance');
+  it('uses one desktop scroll surface with a sticky Game Pulse and attendance rail', () => {
+    expect(home).not.toContain('feedScrollRef');
+    expect(home).not.toContain('sideScrollRef');
+    expect(home.match(/onScroll=/g)).toHaveLength(1);
+    expect(home).not.toContain('Back to top of Squad Live');
+    expect(home).not.toContain('Back to top of attendance');
+    expect(home).toContain('className="team-home-side-column"');
+    expect(home).toContain('className="team-home-attendance"');
+    expect(styles).not.toContain('.team-home-scroll-region');
+    expect(styles).not.toContain('.team-home-attendance-scroll');
     expect(styles).toContain('@media (min-width: 761px)');
-    expect(styles).toContain('.team-home-scroll-region > .team-feed-column');
-    expect(styles).toContain('.team-home-attendance-scroll');
-    expect(styles).toContain('grid-template-rows: auto minmax(0, 1fr)');
-    expect(styles).toContain('overflow-y: auto');
-    expect(styles).toContain('overscroll-behavior: contain');
+    expect(styles).toContain('overflow-x: hidden;\n    overflow-y: auto;');
+    expect(styles).toContain('position: sticky;\n    top: 14px;');
+    expect(styles).toContain('grid-auto-rows: max-content');
     expect(styles).toContain('scrollbar-gutter: stable');
   });
 
-  it('preserves one natural page scroll and a return-to-top action on mobile', () => {
+  it('preserves one Home scroll and a return-to-top action on every layout', () => {
     expect(home).toContain('ref={homeScrollRef}');
-    expect(home).toContain('variant="page"');
+    expect(home).toContain('className={`team-home-scroll-top is-page');
     expect(styles).toContain('.team-home-scroll-top.is-page');
     expect(styles).toContain('bottom: calc(var(--mobile-bottom-nav-height, 62px) + 12px)');
-    expect(styles).toContain('.team-home-scroll-top.is-pane');
+    expect(styles).not.toContain('.team-home-scroll-top.is-pane');
   });
 });

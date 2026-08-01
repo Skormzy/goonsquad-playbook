@@ -103,19 +103,16 @@
   gap: 22px;
 }
 
-.team-home-scroll-region {
-  min-width: 0;
-}
-
 .team-home-side-column {
   position: sticky;
   top: 20px;
+  align-self: start;
   min-width: 0;
   display: grid;
   gap: 14px;
 }
 
-.team-home-attendance-scroll {
+.team-home-attendance {
   min-width: 0;
 }
 
@@ -162,62 +159,45 @@
 }
 
 .team-home-scroll-top.is-page {
-  display: none;
+  position: fixed;
+  right: calc(max(16px, 50vw - 620px) + 384px);
+  bottom: 18px;
+  display: grid;
 }
 
 @media (min-width: 761px) {
   .team-home {
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
   }
 
   .team-home-inner {
-    height: 100%;
-    min-height: 0;
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 100%;
   }
 
   .team-home-layout {
-    min-height: 0;
-    align-items: stretch;
+    align-items: start;
   }
 
-  .team-home-scroll-region {
-    position: relative;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  .team-home-scroll-region > .team-feed-column {
+  .team-feed-column {
     width: 100%;
-    height: 100%;
-    min-height: 0;
-    padding-right: 7px;
-    padding-bottom: 62px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-gutter: stable;
+    padding-bottom: 30px;
   }
 
   .team-home-side-column {
-    position: static;
+    position: sticky;
+    top: 14px;
+    align-self: start;
     width: 100%;
-    height: 100%;
-    min-height: 0;
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-auto-rows: max-content;
     gap: 10px;
-    overflow: hidden;
+    overflow: visible;
   }
 
-  .team-home-attendance-scroll {
-    min-height: 0;
-    padding-right: 7px;
-    padding-bottom: 62px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-gutter: stable;
+  .team-home-attendance {
+    min-width: 0;
   }
 
   .team-home-side-column .team-pulse {
@@ -304,6 +284,11 @@
 
   .team-home-side-column .team-pulse-stats-button {
     display: none;
+  }
+
+  .team-home-side-column .game-availability-roster {
+    max-height: none;
+    overflow: visible;
   }
 }
 
@@ -1989,6 +1974,10 @@
   .team-home-inner {
     width: min(100% - 20px, 1040px);
   }
+
+  .team-home-scroll-top.is-page {
+    right: 346px;
+  }
 }
 
 @media (max-width: 760px) {
@@ -2044,11 +2033,6 @@
     gap: 0;
   }
 
-  .team-home-scroll-region {
-    width: 100%;
-    overflow: visible;
-  }
-
   .team-home-side-column {
     position: static;
     width: 100%;
@@ -2060,10 +2044,6 @@
   .team-feed-column {
     width: 100%;
     padding: 9px 9px 4px;
-  }
-
-  .team-home-scroll-top.is-pane {
-    display: none;
   }
 
   .team-home-scroll-top.is-page {
