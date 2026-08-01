@@ -2323,3 +2323,121 @@
     font-size: 20px;
   }
 }
+
+@media (orientation: landscape) and (max-height: 620px) and (min-width: 700px) {
+  .team-home-inner {
+    width: min(100% - 16px, 1240px);
+    padding: 7px 0 16px;
+  }
+
+  .team-home-hero {
+    display: none;
+  }
+
+  .team-home-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 34vw, 350px);
+    align-items: start;
+    gap: 9px;
+  }
+
+  .team-feed-column {
+    width: 100%;
+    padding: 0 0 22px;
+  }
+
+  .team-home-side-column {
+    position: sticky;
+    top: 7px;
+    width: 100%;
+    max-height: calc(100dvh - var(--mobile-bottom-nav-height, 54px) - 16px);
+    display: grid;
+    grid-auto-rows: max-content;
+    gap: 7px;
+  }
+
+  .team-home-side-column .team-pulse header {
+    padding: 6px 9px;
+  }
+
+  .team-home-side-column .team-pulse header span {
+    font-size: 8px;
+  }
+
+  .team-home-side-column .team-pulse header h2 {
+    margin-top: 1px;
+    font-size: 19px;
+  }
+
+  .team-home-side-column .team-pulse header button {
+    min-height: 29px;
+    padding: 0 4px;
+    font-size: 9px;
+  }
+
+  .team-home-side-column .team-pulse-record {
+    min-height: 41px;
+    gap: 0 8px;
+    padding: 5px 9px;
+  }
+
+  .team-home-side-column .team-pulse-record span {
+    font-size: 8px;
+  }
+
+  .team-home-side-column .team-pulse-record strong {
+    font-size: 24px;
+  }
+
+  .team-home-side-column .team-pulse-record small {
+    font-size: 8px;
+  }
+
+  .team-home-side-column .team-pulse-games {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .team-home-side-column .team-pulse-game {
+    min-height: 49px;
+    grid-template-columns: 23px minmax(0, 1fr);
+    gap: 6px;
+    padding: 5px 7px;
+  }
+
+  .team-home-side-column .team-pulse-game:first-child {
+    border-right: 1px solid var(--feed-border);
+  }
+
+  .team-home-side-column .team-pulse-game > svg:first-child {
+    width: 23px;
+    height: 23px;
+    padding: 5px;
+  }
+
+  .team-home-side-column .team-pulse-game > svg:last-child,
+  .team-home-side-column .team-pulse-game em {
+    display: none;
+  }
+
+  .team-home-side-column .team-pulse-game small {
+    font-size: 7px;
+  }
+
+  .team-home-side-column .team-pulse-game strong {
+    overflow: visible;
+    font-size: 14px;
+    line-height: 1;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .team-home-side-column .team-pulse-leagues,
+  .team-home-side-column .team-pulse-stats-button {
+    display: none;
+  }
+
+  .team-home-scroll-top.is-page {
+    right: calc(clamp(280px, 34vw, 350px) + 18px);
+    bottom: calc(var(--mobile-bottom-nav-height, 54px) + 10px);
+  }
+}

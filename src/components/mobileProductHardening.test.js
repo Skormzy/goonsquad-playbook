@@ -6,6 +6,7 @@ const app = readFileSync(new URL('../App.jsx', import.meta.url), 'utf8');
 const appContext = readFileSync(new URL('../context/AppContext.jsx', import.meta.url), 'utf8');
 const header = readFileSync(new URL('./Header.jsx', import.meta.url), 'utf8');
 const mobileBottomNav = readFileSync(new URL('./MobileBottomNav.jsx', import.meta.url), 'utf8');
+const goonsquadHomeIcon = readFileSync(new URL('./GoonsquadHomeIcon.jsx', import.meta.url), 'utf8');
 const mobileViewModeSwitch = readFileSync(new URL('./MobileViewModeSwitch.jsx', import.meta.url), 'utf8');
 const mobileTeamPlan = readFileSync(new URL('./MobileTeamPlan.jsx', import.meta.url), 'utf8');
 const rolePositionSelector = readFileSync(new URL('./RolePositionSelector.jsx', import.meta.url), 'utf8');
@@ -162,6 +163,8 @@ describe('mobile product hardening contracts', () => {
     expect(mobileBottomNav).toContain('data-testid="mobile-bottom-nav"');
     expect(mobileBottomNav).toContain('window.history.pushState');
     expect(mobileBottomNav).not.toContain('mobile-bottom-nav-mode');
+    expect(mobileBottomNav).toContain("icon: GoonsquadHomeIcon");
+    expect(goonsquadHomeIcon).toContain('data-brand-icon="goonsquad-home"');
     expect(mobileViewModeSwitch).toContain('aria-label="Choose rink view"');
     expect(mobileViewModeSwitch).toContain('aria-label={`Open ${label} rink view`}');
     expect(mobileViewModeSwitch).toContain("setReplay3dCamera('overhead')");

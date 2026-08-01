@@ -104,6 +104,48 @@
 .attendance-board > footer svg { width: 12px; height: 12px; color: #22c55e; }
 .attendance-board-error { margin: 0; padding: 8px 10px; border: 1px solid var(--feed-border); color: #ef4444; background: var(--feed-surface); font-size: 10px; }
 
+.attendance-dock-backdrop {
+  position: fixed;
+  z-index: 108;
+  inset: 0;
+  border: 0;
+  background: color-mix(in srgb, var(--gs-black) 55%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.attendance-board.is-dock-expanded {
+  position: fixed;
+  z-index: 109;
+  top: calc(max(4px, env(safe-area-inset-top)) + 50px);
+  right: max(8px, env(safe-area-inset-right));
+  bottom: calc(var(--mobile-bottom-nav-height, 54px) + 7px);
+  width: min(370px, calc(100vw - 16px));
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid color-mix(in srgb, var(--gs-cyan) 52%, var(--feed-border));
+  border-radius: 7px;
+  background: var(--feed-surface);
+  box-shadow: 0 22px 48px color-mix(in srgb, var(--gs-shadow) 88%, transparent);
+}
+
+.attendance-board.is-dock-expanded .attendance-board-header {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  border-width: 0 0 1px;
+  border-radius: 0;
+  backdrop-filter: blur(14px);
+}
+
+.attendance-board.is-dock-expanded > footer {
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+
 .game-availability {
   overflow: hidden;
   border: 1px solid var(--feed-border);
@@ -205,6 +247,80 @@
   padding: 9px 11px;
   color: var(--feed-muted);
   background: var(--feed-panel);
+}
+
+.game-availability.is-compact-dock {
+  border-top-width: 2px;
+  border-radius: 0 0 6px 6px;
+  box-shadow: none;
+}
+
+.game-availability.is-compact-dock .game-availability-choice {
+  gap: 4px;
+  padding: 6px 8px;
+}
+
+.game-availability.is-compact-dock .game-availability-choice button {
+  min-height: 38px;
+  padding: 3px;
+  font-size: 10px;
+}
+
+.game-availability.is-compact-dock .game-availability-summary {
+  min-height: 40px;
+  padding: 5px 8px;
+  font-size: 8px;
+}
+
+.game-availability.is-compact-dock .game-availability-summary b {
+  font-size: 15px;
+}
+
+.game-availability.is-compact-dock .game-availability-summary > svg {
+  color: var(--gs-cyan);
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  .attendance-board.is-dock-mode:not(.is-dock-expanded) .attendance-board-header {
+    min-height: 42px;
+    padding: 5px 7px;
+  }
+
+  .attendance-board.is-dock-mode:not(.is-dock-expanded) .attendance-board-heading {
+    min-width: 0;
+    display: grid;
+    gap: 1px;
+  }
+
+  .attendance-board.is-dock-mode:not(.is-dock-expanded) .attendance-board-heading > span {
+    font-size: 8px;
+  }
+
+  .attendance-board.is-dock-mode:not(.is-dock-expanded) .attendance-board-current-game {
+    overflow: visible;
+    font-size: 15px;
+    line-height: 1;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .attendance-board.is-dock-mode:not(.is-dock-expanded) .attendance-board-header nav {
+    flex: 0 0 auto;
+  }
+
+  .attendance-board.is-dock-mode:not(.is-dock-expanded) .attendance-board-header nav button {
+    width: 29px;
+    height: 29px;
+  }
+
+  .attendance-board.is-dock-mode:not(.is-dock-expanded) .attendance-board-dock-toggle {
+    border-color: color-mix(in srgb, var(--gs-cyan) 55%, var(--feed-border));
+    color: var(--gs-cyan);
+  }
+
+  .attendance-board.is-dock-expanded .game-availability-roster {
+    max-height: none;
+  }
 }
 .game-availability-coach-view > svg { width: 24px; height: 24px; color: var(--gs-cyan); }
 .game-availability-coach-view > span { display: grid; gap: 2px; }

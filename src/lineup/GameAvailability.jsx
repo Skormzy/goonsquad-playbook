@@ -38,9 +38,11 @@ export default function GameAvailability({
   accessManager = null,
   account,
   canRespond = true,
+  compactDock = false,
   fixture,
   isAdmin = false,
   members = [],
+  onExpandDock = null,
   qaMode = false,
   schedule,
   trackingResponses = [],
@@ -139,6 +141,58 @@ export default function GameAvailability({
     }
   };
 
+  const responseChoices = (shortLabels = false) => (
+    <div className="game-availability-choice" role="group" aria-label="Your availability">
+      {RESPONSES.map((item) => {
+        const ResponseIcon = item.Icon;
+        return (
+          <button
+            type="button"
+            key={item.id}
+            data-response={item.id}
+            aria-label={item.label}
+            aria-pressed={current?.response === item.id}
+            disabled={busy}
+            onClick={() => choose(item.id)}
+          >
+            <ResponseIcon aria-hidden="true" />
+            {shortLabels ? item.short : item.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  if (compactDock) {
+    return (
+      <section className="game-availability is-compact-dock" aria-label={`Attendance for ${fixture.opponent}`}>
+        {!configured ? (
+          <div className="game-availability-setup">
+            <Clock3 aria-hidden="true" />
+            <span><strong>Lineup board is finishing setup</strong><small>Attendance will appear shortly.</small></span>
+          </div>
+        ) : (
+          <>
+            {canRespond && responseChoices(true)}
+            <button
+              type="button"
+              className="game-availability-summary"
+              aria-label="Open attendance details"
+              onClick={onExpandDock}
+            >
+              <span data-response="in"><b>{groups.in.length}</b> In</span>
+              <span data-response="maybe"><b>{groups.maybe.length}</b> Maybe</span>
+              <span data-response="out"><b>{groups.out.length}</b> Out</span>
+              <span><b>{awaiting.length}</b> Waiting</span>
+              <ChevronUp aria-hidden="true" />
+            </button>
+          </>
+        )}
+        {error && <p className="game-availability-error" role="alert">{error}</p>}
+      </section>
+    );
+  }
+
   return (
     <section className="game-availability" aria-labelledby="game-availability-title">
       <header>
@@ -157,26 +211,7 @@ export default function GameAvailability({
         </div>
       ) : (
         <>
-          {canRespond ? (
-            <div className="game-availability-choice" role="group" aria-label="Your availability">
-              {RESPONSES.map((item) => {
-                const ResponseIcon = item.Icon;
-                return (
-                  <button
-                    type="button"
-                    key={item.id}
-                    data-response={item.id}
-                    aria-pressed={current?.response === item.id}
-                    disabled={busy}
-                    onClick={() => choose(item.id)}
-                  >
-                    <ResponseIcon aria-hidden="true" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
+          {canRespond ? responseChoices() : (
             <div className="game-availability-coach-view">
               <UsersRound aria-hidden="true" />
               <span><strong>Coach view</strong><small>Add yourself as a player only if you are dressing for this game.</small></span>

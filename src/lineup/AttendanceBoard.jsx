@@ -3,6 +3,8 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Maximize2,
+  Minimize2,
   ShieldCheck,
 } from 'lucide-react';
 import EpManager from './EpManager';
@@ -20,6 +22,23 @@ import {
 } from './lineupCloud';
 import { formatLeagueScheduleName } from '../stats/statsModel';
 
+const COMPACT_DOCK_MEDIA = '(orientation: landscape) and (max-height: 620px)';
+
+function useCompactAttendanceDock() {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
+    const media = window.matchMedia(COMPACT_DOCK_MEDIA);
+    const sync = () => setMatches(media.matches);
+    sync();
+    media.addEventListener?.('change', sync);
+    return () => media.removeEventListener?.('change', sync);
+  }, []);
+
+  return matches;
+}
+
 export default function AttendanceBoard({
   account,
   currentMember,
@@ -34,7 +53,9 @@ export default function AttendanceBoard({
   const [epPlayers, setEpPlayers] = useState([]);
   const [epConfigured, setEpConfigured] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [dockExpanded, setDockExpanded] = useState(false);
   const [error, setError] = useState('');
+  const compactDock = useCompactAttendanceDock();
   const [requestedFixtureId, setRequestedFixtureId] = useState(() => (typeof window === 'undefined'
     ? ''
     : new URL(window.location.href).searchParams.get('attendanceFixture') || ''));
@@ -94,6 +115,16 @@ export default function AttendanceBoard({
     ? Math.min(requestedIndex >= 0 ? requestedIndex : activeIndex, fixtures.length - 1)
     : 0;
   const fixture = fixtures[safeIndex] || null;
+  const expandedDock = compactDock && dockExpanded;
+
+  useEffect(() => {
+    if (!expandedDock) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setDockExpanded(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [expandedDock]);
 
   const refreshEpRoster = async ({
     optimisticAdd = null,
@@ -173,31 +204,60 @@ export default function AttendanceBoard({
   };
 
   return (
-    <section className="attendance-board" aria-label="Upcoming game attendance">
+    <>
+      {expandedDock && (
+        <button
+          type="button"
+          className="attendance-dock-backdrop"
+          aria-label="Close expanded attendance"
+          onClick={() => setDockExpanded(false)}
+        />
+      )}
+      <section
+        className={`attendance-board ${compactDock ? 'is-dock-mode' : ''} ${expandedDock ? 'is-dock-expanded' : ''}`.trim()}
+        aria-label="Upcoming game attendance"
+      >
       <header className="attendance-board-header">
-        <div>
+        <div className="attendance-board-heading">
           <span><CalendarDays aria-hidden="true" /> ATTENDANCE</span>
-          <strong>{safeIndex + 1} of {fixtures.length}</strong>
+          {compactDock && !expandedDock ? (
+            <strong className="attendance-board-current-game">vs {fixture.opponent}</strong>
+          ) : (
+            <strong>{safeIndex + 1} of {fixtures.length}</strong>
+          )}
         </div>
         <nav aria-label="Choose an upcoming game">
           <button type="button" onClick={() => move(-1)} disabled={fixtures.length < 2} aria-label="Previous game"><ChevronLeft aria-hidden="true" /></button>
           <button type="button" onClick={() => move(1)} disabled={fixtures.length < 2} aria-label="Next game"><ChevronRight aria-hidden="true" /></button>
+          {compactDock && (
+            <button
+              type="button"
+              className="attendance-board-dock-toggle"
+              aria-expanded={expandedDock}
+              aria-label={expandedDock ? 'Collapse attendance' : 'Expand attendance'}
+              onClick={() => setDockExpanded((value) => !value)}
+            >
+              {expandedDock ? <Minimize2 aria-hidden="true" /> : <Maximize2 aria-hidden="true" />}
+            </button>
+          )}
         </nav>
       </header>
-      <div className="attendance-board-tabs" role="tablist" aria-label="Upcoming games">
-        {fixtures.map((item, index) => (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={index === safeIndex}
-            key={item.id}
-            onClick={() => chooseFixture(index)}
-          >
-            <small>{item.kind === 'tournament' ? item.tournamentName : formatLeagueScheduleName(item.schedule)}</small>
-            <strong>vs {item.opponent}</strong>
-          </button>
-        ))}
-      </div>
+      {(!compactDock || expandedDock) && (
+        <div className="attendance-board-tabs" role="tablist" aria-label="Upcoming games">
+          {fixtures.map((item, index) => (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={index === safeIndex}
+              key={item.id}
+              onClick={() => chooseFixture(index)}
+            >
+              <small>{item.kind === 'tournament' ? item.tournamentName : formatLeagueScheduleName(item.schedule)}</small>
+              <strong>vs {item.opponent}</strong>
+            </button>
+          ))}
+        </div>
+      )}
       {error && <p className="attendance-board-error" role="alert">{error}</p>}
       <GameAvailability
         account={account}
@@ -223,6 +283,8 @@ export default function AttendanceBoard({
         members={participants}
         qaMode={qaMode}
         schedule={fixture.schedule}
+        compactDock={compactDock && !expandedDock}
+        onExpandDock={() => setDockExpanded(true)}
         trackingResponses={epPlayers.map((player) => ({
           fixtureId: fixture.id,
           userId: player.id,
@@ -231,7 +293,10 @@ export default function AttendanceBoard({
           updatedAt: player.updatedAt,
         }))}
       />
-      <footer><ShieldCheck aria-hidden="true" /> Attendance is limited to each game&apos;s roster and EPs.</footer>
-    </section>
+      {(!compactDock || expandedDock) && (
+        <footer><ShieldCheck aria-hidden="true" /> Attendance is limited to each game&apos;s roster and EPs.</footer>
+      )}
+      </section>
+    </>
   );
 }

@@ -108,4 +108,16 @@ describe('Squad Live product contract', () => {
     expect(styles).toContain('bottom: calc(var(--mobile-bottom-nav-height, 62px) + 12px)');
     expect(styles).not.toContain('.team-home-scroll-top.is-pane');
   });
+
+  it('keeps attendance actionable beside a compact Game Pulse in short landscape', () => {
+    const attendance = read('src/lineup/AttendanceBoard.jsx');
+    const availability = read('src/lineup/GameAvailability.jsx');
+    expect(attendance).toContain("'(orientation: landscape) and (max-height: 620px)'");
+    expect(attendance).toContain('className="attendance-dock-backdrop"');
+    expect(attendance).toContain("compactDock={compactDock && !expandedDock}");
+    expect(availability).toContain('className="game-availability is-compact-dock"');
+    expect(availability).toContain('onClick={onExpandDock}');
+    expect(styles).toContain('@media (orientation: landscape) and (max-height: 620px) and (min-width: 700px)');
+    expect(styles).toContain('grid-template-columns: minmax(0, 1fr) clamp(280px, 34vw, 350px)');
+  });
 });

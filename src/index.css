@@ -11649,6 +11649,12 @@ input:focus:not(:focus-visible) { outline: none; }
     stroke-width: 2;
   }
 
+  .mobile-bottom-nav .goonsquad-home-icon {
+    width: 21px;
+    height: 21px;
+    stroke-width: 1.65;
+  }
+
   .mobile-bottom-nav button.is-active {
     background: var(--gs-accent-bg);
     color: var(--gs-cyan);
@@ -11774,6 +11780,11 @@ input:focus:not(:focus-visible) { outline: none; }
   .mobile-bottom-nav svg {
     width: 16px;
     height: 16px;
+  }
+
+  .mobile-bottom-nav .goonsquad-home-icon {
+    width: 18px;
+    height: 18px;
   }
 }
 

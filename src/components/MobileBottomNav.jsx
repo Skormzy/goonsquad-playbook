@@ -1,6 +1,5 @@
 import { createElement, useEffect } from 'react';
 import {
-  Activity,
   BarChart3,
   BookOpenText,
   BrainCircuit,
@@ -8,6 +7,7 @@ import {
   PencilRuler,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import GoonsquadHomeIcon from './GoonsquadHomeIcon';
 import {
   activeViewForWorkspace,
   contentForActiveView,
@@ -17,7 +17,7 @@ import {
 import { teamAccessPromptCopy } from '../account/teamAccess';
 
 const DESTINATIONS = [
-  { content: 'home', label: 'Home', icon: Activity },
+  { content: 'home', label: 'Home', icon: GoonsquadHomeIcon },
   { content: 'stats', label: 'Stats', icon: BarChart3 },
   { content: 'plays', label: 'Plays', icon: BookOpenText },
   { content: 'strategy', label: 'Strategy', icon: BrainCircuit },

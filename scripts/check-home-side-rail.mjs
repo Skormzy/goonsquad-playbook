@@ -13,9 +13,11 @@ const chromeCandidates = [
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
 ].filter(Boolean);
 const viewports = [
-  { id: 'desktop', width: 1440, height: 900, stickyRail: true },
-  { id: 'laptop', width: 1024, height: 768, stickyRail: true },
-  { id: 'mobile', width: 390, height: 844, stickyRail: false },
+  { id: 'desktop', width: 1440, height: 900, stickyRail: true, stickyTop: 14, mobileNav: false },
+  { id: 'laptop', width: 1024, height: 768, stickyRail: true, stickyTop: 14, mobileNav: false },
+  { id: 'landscape', width: 1024, height: 470, stickyRail: true, stickyTop: 7, mobileNav: true, compactDock: true, theme: 'light' },
+  { id: 'landscape-dark', width: 1024, height: 470, stickyRail: true, stickyTop: 7, mobileNav: true, compactDock: true, theme: 'dark' },
+  { id: 'mobile', width: 390, height: 844, stickyRail: false, mobileNav: true },
 ];
 
 async function findChrome() {
@@ -39,8 +41,11 @@ for (const viewport of viewports) {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,
-    colorScheme: 'light',
+    colorScheme: viewport.theme ?? 'light',
   });
+  if (viewport.theme) {
+    await context.addInitScript((theme) => localStorage.setItem('theme', theme), viewport.theme);
+  }
   const page = await context.newPage();
   const browserErrors = [];
   page.on('console', (message) => {
@@ -54,16 +59,36 @@ for (const viewport of viewports) {
   url.searchParams.set('qaFeed', '1');
   await page.goto(url.href, { waitUntil: 'networkidle', timeout: 60_000 });
   await page.locator('.team-pulse').waitFor({ state: 'visible', timeout: 30_000 });
-  await page.locator('.game-availability-summary').waitFor({ state: 'visible', timeout: 30_000 });
+  const compactAvailability = page.locator('.game-availability.is-compact-dock');
+  const availabilitySummary = page.locator('.game-availability-summary');
+  if (viewport.compactDock) {
+    await compactAvailability.waitFor({ state: 'visible', timeout: 30_000 });
+  } else {
+    await availabilitySummary.waitFor({ state: 'visible', timeout: 30_000 });
+  }
   await page.evaluate(() => document.fonts.ready);
 
   const homeScroller = page.locator('.team-home');
   const sideRail = page.locator('.team-home-side-column');
   const pulse = page.locator('.team-pulse');
+  const compactAttendanceBefore = viewport.compactDock
+    ? await page.locator('.attendance-board.is-dock-mode').boundingBox()
+    : null;
+  const bottomNavBefore = viewport.mobileNav
+    ? await page.getByTestId('mobile-bottom-nav').boundingBox()
+    : null;
   const pulseBefore = await pulse.boundingBox();
   const pulseClipBefore = await pulse.evaluate((element) => element.scrollHeight - element.clientHeight);
 
-  await page.locator('.game-availability-summary').click();
+  if (viewport.compactDock) {
+    const collapsedScreenshotPath = path.join(outputDir, `${viewport.id}-${viewport.width}x${viewport.height}-compact.png`);
+    await page.screenshot({ path: collapsedScreenshotPath, fullPage: false });
+    await page.getByRole('button', { name: 'Expand attendance' }).click();
+    await page.locator('.attendance-board.is-dock-expanded').waitFor({ state: 'visible' });
+    await availabilitySummary.click();
+  } else {
+    await availabilitySummary.click();
+  }
   await page.locator('.game-availability-roster').waitFor({ state: 'visible' });
   await homeScroller.evaluate((element) => {
     const maxScroll = element.scrollHeight - element.clientHeight;
@@ -99,9 +124,9 @@ for (const viewport of viewports) {
   });
   const scrollButton = page.getByRole('button', { name: 'Back to top' });
   const scrollButtonVisible = await scrollButton.getAttribute('aria-hidden') === 'false';
-  const mobileBottomNavVisible = viewport.stickyRail
-    ? null
-    : await page.getByTestId('mobile-bottom-nav').isVisible();
+  const mobileBottomNavVisible = viewport.mobileNav
+    ? await page.getByTestId('mobile-bottom-nav').isVisible()
+    : null;
   const screenshotPath = path.join(outputDir, `${viewport.id}-${viewport.width}x${viewport.height}-expanded.png`);
   await page.screenshot({ path: screenshotPath, fullPage: false });
 
@@ -128,6 +153,8 @@ for (const viewport of viewports) {
     mobileBottomNavVisible,
     returnedToTop,
     browserErrors,
+    compactAttendanceBefore,
+    bottomNavBefore,
     screenshot: path.relative(root, screenshotPath).replaceAll('\\', '/'),
   };
 
@@ -156,6 +183,18 @@ for (const viewport of viewports) {
   if ((result.surfaceMetrics.attendance?.scrollWidth ?? 0) - (result.surfaceMetrics.attendance?.clientWidth ?? 0) > 1) {
     throw new Error(`${viewport.id}: attendance has horizontal overflow.`);
   }
+  if (viewport.compactDock) {
+    const attendanceBottom = result.compactAttendanceBefore
+      ? result.compactAttendanceBefore.y + result.compactAttendanceBefore.height
+      : Number.POSITIVE_INFINITY;
+    const navTop = result.bottomNavBefore?.y ?? viewport.height;
+    if (!result.compactAttendanceBefore || attendanceBottom > navTop + 1) {
+      throw new Error(`${viewport.id}: compact attendance is not fully visible above the bottom navigation.`);
+    }
+    if (!result.mobileBottomNavVisible) {
+      throw new Error(`${viewport.id}: compact landscape lost the mobile bottom navigation.`);
+    }
+  }
   if (!scrollButtonVisible || !returnedToTop) {
     throw new Error(`${viewport.id}: the consolidated return-to-top control is not usable.`);
   }
@@ -166,14 +205,14 @@ for (const viewport of viewports) {
     if (result.surfaceMetrics.rail?.position !== 'sticky') {
       throw new Error(`${viewport.id}: the full right rail is not sticky.`);
     }
-    if (Math.abs(result.railTopWithinHome - 14) > 2) {
+    if (Math.abs(result.railTopWithinHome - viewport.stickyTop) > 2) {
       throw new Error(`${viewport.id}: the right rail did not settle at the sticky top offset.`);
     }
   } else {
     if (result.surfaceMetrics.rail?.position !== 'static') {
       throw new Error(`${viewport.id}: the mobile rail should remain in natural document flow.`);
     }
-    if (!mobileBottomNavVisible) {
+    if (!result.mobileBottomNavVisible) {
       throw new Error(`${viewport.id}: the mobile bottom navigation is missing.`);
     }
   }
