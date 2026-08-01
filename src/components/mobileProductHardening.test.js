@@ -165,6 +165,11 @@ describe('mobile product hardening contracts', () => {
     expect(mobileBottomNav).not.toContain('mobile-bottom-nav-mode');
     expect(mobileBottomNav).toContain("icon: GoonsquadHomeIcon");
     expect(goonsquadHomeIcon).toContain('data-brand-icon="goonsquad-home"');
+    expect(goonsquadHomeIcon).toContain("goonsquad-home-mark-mask.png");
+    expect(goonsquadHomeIcon).not.toContain('<path');
+    expect(css).toContain('mask-image: var(--goonsquad-home-mark)');
+    expect(css).toContain('width: 25px;');
+    expect(css).toContain('height: 27px;');
     expect(mobileViewModeSwitch).toContain('aria-label="Choose rink view"');
     expect(mobileViewModeSwitch).toContain('aria-label={`Open ${label} rink view`}');
     expect(mobileViewModeSwitch).toContain("setReplay3dCamera('overhead')");

@@ -77,6 +77,18 @@ for (const viewport of viewports) {
   const bottomNavBefore = viewport.mobileNav
     ? await page.getByTestId('mobile-bottom-nav').boundingBox()
     : null;
+  const homeIconMetrics = viewport.mobileNav
+    ? await page.locator('[data-brand-icon="goonsquad-home"]').evaluate((element) => {
+      const style = getComputedStyle(element);
+      const box = element.getBoundingClientRect();
+      return {
+        backgroundColor: style.backgroundColor,
+        height: box.height,
+        maskImage: style.maskImage || style.webkitMaskImage,
+        width: box.width,
+      };
+    })
+    : null;
   const pulseBefore = await pulse.boundingBox();
   const pulseClipBefore = await pulse.evaluate((element) => element.scrollHeight - element.clientHeight);
 
@@ -155,6 +167,7 @@ for (const viewport of viewports) {
     browserErrors,
     compactAttendanceBefore,
     bottomNavBefore,
+    homeIconMetrics,
     screenshot: path.relative(root, screenshotPath).replaceAll('\\', '/'),
   };
 
@@ -193,6 +206,14 @@ for (const viewport of viewports) {
     }
     if (!result.mobileBottomNavVisible) {
       throw new Error(`${viewport.id}: compact landscape lost the mobile bottom navigation.`);
+    }
+  }
+  if (viewport.mobileNav) {
+    if (!result.homeIconMetrics?.maskImage || result.homeIconMetrics.maskImage === 'none') {
+      throw new Error(`${viewport.id}: the Home navigation is not using the production logo mask.`);
+    }
+    if (result.homeIconMetrics.width < 19 || result.homeIconMetrics.height < 21) {
+      throw new Error(`${viewport.id}: the Goonsquad Home mark is too small to remain recognizable.`);
     }
   }
   if (!scrollButtonVisible || !returnedToTop) {

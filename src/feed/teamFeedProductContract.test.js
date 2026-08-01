@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
+const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8')
+  .replaceAll('\r\n', '\n');
 
 const home = read('src/feed/TeamHome.jsx');
 const styles = read('src/feed/feed.css');
