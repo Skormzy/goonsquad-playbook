@@ -605,6 +605,7 @@ export default function ProductionReplayPreview() {
   const {
     currentPlay,
     currentPhase,
+    instructionPhase,
     isPlaying,
     playbackTime,
     selectedPosition,
@@ -1112,7 +1113,7 @@ export default function ProductionReplayPreview() {
         </div>
         <div className="vnext3d-preview-metrics">
           <div><span>PLAYERS</span><strong>{frame.players.length}</strong></div>
-          <div><span>PHASE</span><strong>{currentPhase + 1}</strong></div>
+          <div><span>PHASE</span><strong>{instructionPhase + 1}</strong></div>
           <div><span>TIME</span><strong>{playbackTime.toFixed(1)}s</strong></div>
           <AssetProgress />
         </div>

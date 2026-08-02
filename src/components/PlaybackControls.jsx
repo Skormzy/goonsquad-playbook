@@ -28,6 +28,7 @@ export default function PlaybackControls({ compact = false }) {
     currentReplayScene: scene,
     currentReplayPhases,
     currentPhase,
+    instructionPhase,
     setCurrentPhase,
     transitionToPhase,
     stepPhase,
@@ -46,7 +47,7 @@ export default function PlaybackControls({ compact = false }) {
   const timelineMax = scene?.duration ?? Math.max(phaseCount - 1, 1);
   const timelineValue = scene ? playbackTime : currentPhase;
   const timelineStep = scene ? 0.05 : 1;
-  const navigationPhase = phaseTransitionTarget ?? currentPhase;
+  const navigationPhase = instructionPhase;
   const atEnd = scene
     ? timelineValue >= timelineMax - timelineStep
     : currentPhase >= phaseCount - 1;
@@ -286,7 +287,7 @@ export default function PlaybackControls({ compact = false }) {
                 <button
                   type="button"
                   key={phase.id ?? index}
-                  className={index === currentPhase ? 'is-active' : ''}
+                  className={index === instructionPhase ? 'is-active' : ''}
                   style={{ '--playback-marker-position': `${markerPosition}%` }}
                   onClick={() => goPhase(index)}
                   title={phase.t}

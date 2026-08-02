@@ -86,7 +86,7 @@ export default function PlayViewer() {
     currentReplayScene,
     currentReplayPhases,
     setCurrentPlay,
-    currentPhase,
+    instructionPhase,
     setCurrentPhase,
     isMirrored,
     setIsMirrored,
@@ -108,7 +108,7 @@ export default function PlayViewer() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const lanePlays = itemsForCurriculumLane(CORE_PLAYS, currentPlay?.lane ?? 'defence');
   const playIdx = currentPlay ? lanePlays.findIndex((play) => play.id === currentPlay.id) : -1;
-  const phase = currentReplayPhases[currentPhase];
+  const phase = currentReplayPhases[instructionPhase];
   const currentPhaseColor = phaseColor(phase?.t, t.ac);
   const categoryColor = CAT_COLORS[currentPlay?.cat] || t.ac;
   const teamJobs = useMemo(

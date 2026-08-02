@@ -89,6 +89,7 @@ export default function TacticalReplayPreview() {
   const { theme } = useTheme();
   const {
     currentPhase,
+    instructionPhase,
     currentPlay,
     currentReplayPhases,
     currentReplayScene: replay,
@@ -121,13 +122,13 @@ export default function TacticalReplayPreview() {
     [],
   );
   const teamJobs = useMemo(
-    () => teamJobsForActivePhase(currentReplayPhases, currentPhase, {
+    () => teamJobsForActivePhase(currentReplayPhases, instructionPhase, {
       isMirrored,
       fallbackResponsibilities: replay?.presentation?.responsibilities ?? [],
     }),
-    [currentPhase, currentReplayPhases, isMirrored, replay],
+    [instructionPhase, currentReplayPhases, isMirrored, replay],
   );
-  const activeTeachingPhase = currentReplayPhases?.[currentPhase];
+  const activeTeachingPhase = currentReplayPhases?.[instructionPhase];
   const mobileTeamFallback = activeTeachingPhase?.desc
     ?? activeTeachingPhase?.caption
     ?? activeTeachingPhase?.title
@@ -363,6 +364,7 @@ export default function TacticalReplayPreview() {
       data-role-camera-target={roleCameraState.targetPlayerId ?? 'ball'}
       data-camera-interaction-count={cameraInteractionCount}
       data-phase={currentPhase}
+      data-instruction-phase={instructionPhase}
       data-playing={isPlaying}
       data-replay-time={Number(playbackTime.toFixed(3))}
       data-player-count={frame.players.length}

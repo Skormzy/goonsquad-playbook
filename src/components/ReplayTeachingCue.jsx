@@ -37,6 +37,7 @@ export default function ReplayTeachingCue({
 }) {
   const {
     currentPhase,
+    instructionPhase,
     currentReplayPhases,
     currentReplayScene,
     isPlaying,
@@ -44,7 +45,7 @@ export default function ReplayTeachingCue({
     playbackTime,
   } = useApp();
   const phaseCount = currentReplayPhases.length;
-  const phase = currentReplayPhases[currentPhase] ?? currentReplayPhases[0];
+  const phase = currentReplayPhases[instructionPhase] ?? currentReplayPhases[0];
   if (!phase) return null;
 
   const stageId = replayTeachingStage({
@@ -57,7 +58,7 @@ export default function ReplayTeachingCue({
   });
   const stage = STAGES[stageId];
   const StageIcon = stage.icon;
-  const title = phase.t || phase.desc || `Phase ${currentPhase + 1}`;
+  const title = phase.t || phase.desc || `Phase ${instructionPhase + 1}`;
   const description = phase.desc && phase.desc !== title ? phase.desc : null;
 
   return (
@@ -70,7 +71,7 @@ export default function ReplayTeachingCue({
         '--phase-count': phaseCount,
         '--teaching-accent': accent,
       }}
-      aria-label={`Phase ${currentPhase + 1} coaching cue`}
+      aria-label={`Phase ${instructionPhase + 1} coaching cue`}
       aria-live="polite"
       aria-atomic="true"
     >
@@ -81,10 +82,10 @@ export default function ReplayTeachingCue({
 
       <div
         className="replay-teaching-cue-copy"
-        key={phase.id ?? currentPhase}
+        key={phase.id ?? instructionPhase}
       >
         <small>
-          PHASE {currentPhase + 1} OF {phaseCount}
+          PHASE {instructionPhase + 1} OF {phaseCount}
           <span aria-hidden="true"> / </span>
           {stage.instruction}
         </small>
@@ -99,8 +100,8 @@ export default function ReplayTeachingCue({
           <span
             key={item.id ?? index}
             className={[
-              index === currentPhase ? 'is-current' : '',
-              index < currentPhase ? 'is-complete' : '',
+              index === instructionPhase ? 'is-current' : '',
+              index < instructionPhase ? 'is-complete' : '',
             ].filter(Boolean).join(' ')}
           />
         ))}

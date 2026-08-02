@@ -63,7 +63,7 @@ export default function TacticsLearn() {
     setSelectedTacticId,
     strategyVariant: activeTab,
     setStrategyVariant,
-    currentPhase,
+    instructionPhase,
     setCurrentPhase,
     currentReplayPhases,
     currentReplayScene,
@@ -86,7 +86,7 @@ export default function TacticsLearn() {
   );
   const activePrinciple = Math.max(0, laneTactics.findIndex((tactic) => tactic.id === selectedTacticId));
   const scene = activeTab === 'mistake' ? principle.mistakeScene : principle.correctScene;
-  const phase = scene.phases[currentPhase] ?? scene.phases[0];
+  const phase = scene.phases[instructionPhase] ?? scene.phases[0];
   const availableCoverage = coverageAssignmentsForReplay(currentReplayScene, playbackTime);
   const coverage = contextualCoverageForReplay({
     enabled: showCoverage,
@@ -98,11 +98,11 @@ export default function TacticsLearn() {
   const tabAccent = activeTab === 'mistake' ? TC.mistake : TC.defense;
   const [rolePlanOpen, setRolePlanOpen] = useState(false);
   const teamJobs = useMemo(
-    () => teamJobsForActivePhase(currentReplayPhases, currentPhase, {
+    () => teamJobsForActivePhase(currentReplayPhases, instructionPhase, {
       isMirrored,
       fallbackResponsibilities: currentReplayScene?.presentation?.responsibilities ?? [],
     }),
-    [currentPhase, currentReplayPhases, currentReplayScene, isMirrored],
+    [instructionPhase, currentReplayPhases, currentReplayScene, isMirrored],
   );
 
   const selectPrinciple = useCallback((i) => {
@@ -369,7 +369,7 @@ export default function TacticsLearn() {
             <div className="tactics-role-plan">
               <TeamJobsPanel
                 compact
-                eyebrow={`PHASE ${currentPhase + 1} ROLE PLAN`}
+                eyebrow={`PHASE ${instructionPhase + 1} ROLE PLAN`}
                 jobs={teamJobs}
                 meta={phase?.caption ?? null}
                 summary={phase?.title ?? principle.title}
@@ -402,7 +402,7 @@ export default function TacticsLearn() {
           >
             <TeamJobsPanel
               compact
-              eyebrow={`PHASE ${currentPhase + 1} ROLE PLAN`}
+              eyebrow={`PHASE ${instructionPhase + 1} ROLE PLAN`}
               jobs={teamJobs}
               meta={phase?.caption ?? null}
               summary={phase?.title ?? principle.title}

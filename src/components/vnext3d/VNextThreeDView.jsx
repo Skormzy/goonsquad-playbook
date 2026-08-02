@@ -15,7 +15,7 @@ export default function VNextThreeDView() {
   const {
     currentPlay,
     currentReplayScene,
-    currentPhase,
+    instructionPhase,
     playbackTime,
     selectedPosition,
     setActiveView,
@@ -72,7 +72,7 @@ export default function VNextThreeDView() {
         </div>
         <div>
           <span>PHASE</span>
-          <strong>{currentPhase + 1}</strong>
+          <strong>{instructionPhase + 1}</strong>
         </div>
         <div>
           <span>TIME</span>

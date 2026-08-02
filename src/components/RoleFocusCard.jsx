@@ -12,8 +12,8 @@ const URGENCY = {
 export default function RoleFocusCard({ compact = false, embedded = false, className = '' }) {
   const { theme, themes } = useTheme();
   const t = themes[theme];
-  const { selectedPosition, currentReplayPhases, currentPhase, isMirrored } = useApp();
-  const phase = currentReplayPhases[currentPhase];
+  const { selectedPosition, currentReplayPhases, instructionPhase, isMirrored } = useApp();
+  const phase = currentReplayPhases[instructionPhase];
   const focus = resolveRoleFocus(phase, selectedPosition, isMirrored);
   const detail = focus.responsibility;
 

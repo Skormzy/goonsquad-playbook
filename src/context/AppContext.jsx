@@ -15,6 +15,7 @@ import {
   shouldSkipPhaseTransition,
   steppedPhaseTarget,
 } from '../play-engine/phaseTransition';
+import { resolveInstructionPhase } from '../play-engine/instructionPhase';
 import { createWorkspaceUrl, readWorkspaceUrl } from '../routing/workspaceUrlState';
 import { useAccount } from '../account/AccountContext';
 import {
@@ -159,6 +160,13 @@ export function AppProvider({ children }) {
   const phaseCount = currentReplayPhases.length;
   const currentPhase = playback.phase;
   const playbackTime = playback.time;
+  const instructionPhase = resolveInstructionPhase({
+    currentPhase,
+    phaseTransitionTarget,
+    phaseCount,
+    playbackTime,
+    scene: currentReplayScene,
+  });
 
   useEffect(() => {
     playbackRef.current = playback;
@@ -517,7 +525,8 @@ export function AppProvider({ children }) {
       selectedTactic, selectedTacticId, setSelectedTacticId,
       strategyVariant, setStrategyVariant,
       currentReplayScene, currentReplayPhases,
-      currentPhase, setCurrentPhase, transitionToPhase, stepPhase, phaseTransitionTarget,
+      currentPhase, instructionPhase,
+      setCurrentPhase, transitionToPhase, stepPhase, phaseTransitionTarget,
       playbackTime, setPlaybackTime,
       isPlaying, setIsPlaying,
       isMirrored, setIsMirrored,
