@@ -5,6 +5,7 @@ const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8');
 const app = readFileSync(new URL('../App.jsx', import.meta.url), 'utf8');
 const appContext = readFileSync(new URL('../context/AppContext.jsx', import.meta.url), 'utf8');
 const header = readFileSync(new URL('./Header.jsx', import.meta.url), 'utf8');
+const teamBrand = readFileSync(new URL('../brand/teamBrand.js', import.meta.url), 'utf8');
 const mobileBottomNav = readFileSync(new URL('./MobileBottomNav.jsx', import.meta.url), 'utf8');
 const goonsquadHomeIcon = readFileSync(new URL('./GoonsquadHomeIcon.jsx', import.meta.url), 'utf8');
 const mobileViewModeSwitch = readFileSync(new URL('./MobileViewModeSwitch.jsx', import.meta.url), 'utf8');
@@ -178,6 +179,10 @@ describe('mobile product hardening contracts', () => {
     expect(appContext).toContain("window.addEventListener('popstate'");
     expect(mobileBottomNav.match(/content: '(home|stats|plays|strategy|playmaker)'/g)).toHaveLength(5);
     expect(header).toContain('className="app-header-more"');
+    expect(teamBrand).toContain("GOONSQUAD_CREST_SRC = '/goonsquad-crest-v3.png'");
+    expect(header).toContain('src={GOONSQUAD_CREST_SRC}');
+    expect(css).toMatch(/\.app-brand-crest img\s*\{[^}]*object-fit:\s*contain;[^}]*object-position:\s*center;/s);
+    expect(css).not.toMatch(/\.app-brand-crest img\s*\{[^}]*object-fit:\s*cover;/s);
     expect(css).toContain('env(safe-area-inset-bottom)');
     expect(css).toContain('height: 100dvh');
     expect(css).toContain('min-height: 100svh');

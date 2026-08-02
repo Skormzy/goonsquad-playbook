@@ -5,6 +5,7 @@ const APP_SHELL = [
   '/',
   '/manifest.json',
   '/goonsquad-logo-v3.png',
+  '/goonsquad-crest-v3.png',
   '/goonsquad-icon-v3-192.png',
   '/goonsquad-icon-v3-512.png',
   '/goonsquad-icon-maskable-v3-512.png',

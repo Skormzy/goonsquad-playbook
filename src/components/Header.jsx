@@ -16,7 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import {
-  GOONSQUAD_LOGO_SRC,
+  GOONSQUAD_CREST_SRC,
 } from '../brand/teamBrand';
 import {
   activeViewForWorkspace,
@@ -140,7 +140,7 @@ export default function Header() {
 
           <div className="app-brand-lockup" aria-label="Goonsquad ball hockey playbook">
             <span className="app-brand-crest" aria-hidden="true">
-              <img src={GOONSQUAD_LOGO_SRC} alt="" />
+              <img src={GOONSQUAD_CREST_SRC} alt="" />
             </span>
             <span className="app-brand-copy">
               <span className="app-brand-name"><b>GOON</b><em>SQUAD</em></span>

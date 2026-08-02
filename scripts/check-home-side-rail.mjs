@@ -89,6 +89,30 @@ for (const viewport of viewports) {
       };
     })
     : null;
+  const headerCrestMetrics = await page.locator('.app-brand-crest img').evaluate((element) => {
+    const imageBox = element.getBoundingClientRect();
+    const slotBox = element.closest('.app-brand-crest').getBoundingClientRect();
+    const headerBox = element.closest('.app-header').getBoundingClientRect();
+    const style = getComputedStyle(element);
+    const readBox = (box) => ({
+      bottom: box.bottom,
+      height: box.height,
+      left: box.left,
+      right: box.right,
+      top: box.top,
+      width: box.width,
+    });
+    return {
+      headerBox: readBox(headerBox),
+      imageBox: readBox(imageBox),
+      naturalHeight: element.naturalHeight,
+      naturalWidth: element.naturalWidth,
+      objectFit: style.objectFit,
+      objectPosition: style.objectPosition,
+      slotBox: readBox(slotBox),
+      src: element.getAttribute('src'),
+    };
+  });
   const pulseBefore = await pulse.boundingBox();
   const pulseClipBefore = await pulse.evaluate((element) => element.scrollHeight - element.clientHeight);
 
@@ -168,10 +192,27 @@ for (const viewport of viewports) {
     compactAttendanceBefore,
     bottomNavBefore,
     homeIconMetrics,
+    headerCrestMetrics,
     screenshot: path.relative(root, screenshotPath).replaceAll('\\', '/'),
   };
 
   const result = report[viewport.id];
+  const crest = result.headerCrestMetrics;
+  const outside = (inner, outer) => (
+    inner.left < outer.left - 1
+    || inner.right > outer.right + 1
+    || inner.top < outer.top - 1
+    || inner.bottom > outer.bottom + 1
+  );
+  if (crest.src !== '/goonsquad-crest-v3.png' || crest.naturalWidth !== 258 || crest.naturalHeight !== 325) {
+    throw new Error(`${viewport.id}: the header is not using the complete production crest.`);
+  }
+  if (crest.objectFit !== 'contain' || crest.objectPosition !== '50% 50%') {
+    throw new Error(`${viewport.id}: the header crest can be cropped by its image fit.`);
+  }
+  if (outside(crest.imageBox, crest.slotBox) || outside(crest.imageBox, crest.headerBox)) {
+    throw new Error(`${viewport.id}: the header crest is clipped by its slot or header bounds.`);
+  }
   if (Math.abs(result.pulseHeightBefore - result.pulseHeightAfter) > 1) {
     throw new Error(`${viewport.id}: expanding attendance resized Game Pulse.`);
   }

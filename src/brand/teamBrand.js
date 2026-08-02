@@ -2,6 +2,7 @@ export const GOONSQUAD_NAME = 'Goonsquad';
 export const GOONSQUAD_NAME_UPPER = 'GOONSQUAD';
 export const GOONSQUAD_MOTTO = 'Goon with the squad';
 export const GOONSQUAD_LOGO_SRC = '/goonsquad-logo-v3.png';
+export const GOONSQUAD_CREST_SRC = '/goonsquad-crest-v3.png';
 
 export const GOONSQUAD_SOCIAL_LINKS = Object.freeze([
   {
