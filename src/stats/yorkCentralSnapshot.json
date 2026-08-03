@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-02T23:32:52.028Z",
+  "capturedAt": "2026-08-03T16:28:49.355Z",
   "seasons": [
     {
       "id": "summer-2026",
@@ -2444,16 +2444,6 @@
       "persisted": false
     },
     {
-      "id": "summer-2026-mon-thu-ycbhl-player-136",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "playerId": "ycbhl-player-136",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "summer-2026-mon-thu-ycbhl-player-25875",
       "seasonTeamId": "summer-2026-mon-thu",
       "playerId": "ycbhl-player-25875",
@@ -2471,26 +2461,6 @@
       "position": null,
       "active": true,
       "notes": "",
-      "persisted": false
-    },
-    {
-      "id": "summer-2026-mon-thu-ycbhl-player-25512",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "playerId": "ycbhl-player-25512",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "summer-2026-mon-thu-ycbhl-player-24395",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "playerId": "ycbhl-player-24395",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
       "persisted": false
     },
     {
@@ -2520,7 +2490,7 @@
       "jerseyNumber": null,
       "position": null,
       "active": true,
-      "notes": "",
+      "notes": "NOT ELIGIBLE FOR PLAYOFFS",
       "persisted": false
     },
     {
@@ -2634,16 +2604,6 @@
       "persisted": false
     },
     {
-      "id": "summer-2026-mon-thu-ycbhl-player-25640",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "playerId": "ycbhl-player-25640",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "summer-2026-mon-thu-ycbhl-player-26291",
       "seasonTeamId": "summer-2026-mon-thu",
       "playerId": "ycbhl-player-26291",
@@ -2654,16 +2614,6 @@
       "persisted": false
     },
     {
-      "id": "summer-2026-mon-thu-ycbhl-player-26342",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "playerId": "ycbhl-player-26342",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "summer-2026-mon-thu-ycbhl-player-25596",
       "seasonTeamId": "summer-2026-mon-thu",
       "playerId": "ycbhl-player-25596",
@@ -2671,26 +2621,6 @@
       "position": null,
       "active": true,
       "notes": "",
-      "persisted": false
-    },
-    {
-      "id": "summer-2026-mon-thu-ycbhl-player-24770",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "playerId": "ycbhl-player-24770",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "summer-2026-mon-thu-ycbhl-player-16016",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "playerId": "ycbhl-player-16016",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
       "persisted": false
     },
     {
@@ -2714,16 +2644,6 @@
       "persisted": false
     },
     {
-      "id": "summer-2026-mon-thu-ycbhl-player-25552",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "playerId": "ycbhl-player-25552",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "summer-2026-mon-thu-ycbhl-player-25888",
       "seasonTeamId": "summer-2026-mon-thu",
       "playerId": "ycbhl-player-25888",
@@ -2731,16 +2651,6 @@
       "position": null,
       "active": true,
       "notes": "",
-      "persisted": false
-    },
-    {
-      "id": "summer-2026-mon-thu-ycbhl-player-103",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "playerId": "ycbhl-player-103",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
       "persisted": false
     },
     {
