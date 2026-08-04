@@ -1373,7 +1373,7 @@ export default function StatsWorkspace() {
       </>}
 
       <footer className="stats-data-note"><BarChart3 aria-hidden="true" /><span>{tournamentMode
-        ? `${tournamentArchive.length} tournament dossier${tournamentArchive.length === 1 ? '' : 's'} · ${selectedTournament?.games?.length || 0} documented games.`
+        ? `${tournamentArchive.length} tournament${tournamentArchive.length === 1 ? '' : 's'} · ${selectedTournament?.games?.length || 0} Goonsquad games.`
         : `${archiveLeagueLabel} · ${dataset.seasons.length} seasons · ${dataset.teams.length} schedules · ${dataset.games.length} games.`}</span>{(tournamentMode ? selectedTournament?.sourceUrl : officialSourceUrl) && <a href={tournamentMode ? selectedTournament.sourceUrl : officialSourceUrl} target="_blank" rel="noreferrer">{tournamentMode ? 'Tournament page' : 'League site'} <ExternalLink aria-hidden="true" /></a>}</footer>
       {!tournamentMode && managerOpen && <StatsManager dataset={dataset} snapshot={snapshot} onClose={() => setManagerOpen(false)} onUpdated={refresh} />}
     </main>

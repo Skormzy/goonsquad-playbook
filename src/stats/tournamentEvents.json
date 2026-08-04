@@ -1,4 +1,30 @@
 {
+  "2026-mississauga-provincials": {
+    "pools": [
+      { "id": "pool-a", "name": "Pool A", "teams": ["Balls of Glory", "Moosehead", "Dirty Birds"] },
+      { "id": "pool-b", "name": "Pool B", "teams": ["Goonsquad", "Cambridge", "Sudbury Silly Gooses"] },
+      { "id": "pool-c", "name": "Pool C", "teams": ["High Park Highlanders", "Sarabha", "Mitt Magicians"] }
+    ],
+    "eventGames": [
+      { "id": "2026-mississauga-official-42", "officialGameNumber": 42, "stage": "round-robin", "stageLabel": "Pool A · Round robin", "awayTeam": "Moosehead", "awayPool": "Pool A", "homeTeam": "Balls of Glory", "homePool": "Pool A", "date": "2026-08-21", "time": "17:00", "location": "Burnhamthorpe · Pad 1", "status": "scheduled" },
+      { "id": "2026-mississauga-official-43", "officialGameNumber": 43, "teamGameId": "2026-mississauga-game-1", "stage": "round-robin", "stageLabel": "Pool B · Round robin", "awayTeam": "Cambridge", "awayPool": "Pool B", "homeTeam": "Goonsquad", "homePool": "Pool B", "date": "2026-08-21", "time": "17:00", "location": "Corbasson CC · East Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-44", "officialGameNumber": 44, "stage": "round-robin", "stageLabel": "Pool C · Round robin", "awayTeam": "Sarabha", "awayPool": "Pool C", "homeTeam": "High Park Highlanders", "homePool": "Pool C", "date": "2026-08-21", "time": "17:00", "location": "Corbasson CC · West Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-45", "officialGameNumber": 45, "stage": "round-robin", "stageLabel": "Pool A · Round robin", "awayTeam": "Balls of Glory", "awayPool": "Pool A", "homeTeam": "Dirty Birds", "homePool": "Pool A", "date": "2026-08-21", "time": "20:00", "location": "Burnhamthorpe · Pad 1", "status": "scheduled" },
+      { "id": "2026-mississauga-official-46", "officialGameNumber": 46, "teamGameId": "2026-mississauga-game-2", "stage": "round-robin", "stageLabel": "Pool B · Round robin", "awayTeam": "Goonsquad", "awayPool": "Pool B", "homeTeam": "Sudbury Silly Gooses", "homePool": "Pool B", "date": "2026-08-21", "time": "20:00", "location": "Corbasson CC · East Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-47", "officialGameNumber": 47, "stage": "round-robin", "stageLabel": "Pool C · Round robin", "awayTeam": "High Park Highlanders", "awayPool": "Pool C", "homeTeam": "Mitt Magicians", "homePool": "Pool C", "date": "2026-08-21", "time": "20:00", "location": "Corbasson CC · West Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-48", "officialGameNumber": 48, "stage": "round-robin", "stageLabel": "Pool A · Round robin", "awayTeam": "Dirty Birds", "awayPool": "Pool A", "homeTeam": "Moosehead", "homePool": "Pool A", "date": "2026-08-22", "time": "09:00", "location": "Burnhamthorpe · Pad 1", "status": "scheduled" },
+      { "id": "2026-mississauga-official-49", "officialGameNumber": 49, "stage": "round-robin", "stageLabel": "Pool B · Round robin", "awayTeam": "Sudbury Silly Gooses", "awayPool": "Pool B", "homeTeam": "Cambridge", "homePool": "Pool B", "date": "2026-08-22", "time": "09:00", "location": "Corbasson CC · East Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-50", "officialGameNumber": 50, "stage": "round-robin", "stageLabel": "Pool C · Round robin", "awayTeam": "Mitt Magicians", "awayPool": "Pool C", "homeTeam": "Sarabha", "homePool": "Pool C", "date": "2026-08-22", "time": "09:00", "location": "Corbasson CC · West Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-51", "officialGameNumber": 51, "stage": "elimination", "stageLabel": "Men's REC elimination", "awayTeam": "9th Overall", "homeTeam": "8th Overall", "date": "2026-08-22", "time": "13:15", "location": "Corbasson CC · West Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-52", "officialGameNumber": 52, "stage": "quarterfinal", "stageLabel": "Men's REC quarterfinal", "awayTeam": "5th Overall", "homeTeam": "4th Overall", "date": "2026-08-22", "time": "16:30", "location": "Corbasson CC · East Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-53", "officialGameNumber": 53, "stage": "quarterfinal", "stageLabel": "Men's REC quarterfinal", "awayTeam": "6th Overall", "homeTeam": "3rd PW Overall", "date": "2026-08-22", "time": "16:30", "location": "Corbasson CC · West Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-54", "officialGameNumber": 54, "stage": "quarterfinal", "stageLabel": "Men's REC quarterfinal", "awayTeam": "7th Overall", "homeTeam": "2nd PW Overall", "date": "2026-08-22", "time": "17:30", "location": "Corbasson CC · East Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-55", "officialGameNumber": 55, "stage": "quarterfinal", "stageLabel": "Men's REC quarterfinal", "awayTeam": "Winner Game 51", "homeTeam": "1st PW Overall", "date": "2026-08-22", "time": "17:30", "location": "Corbasson CC · West Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-56", "officialGameNumber": 56, "stage": "semifinal", "stageLabel": "Men's REC semifinal", "awayTeam": "Winner Game 52", "homeTeam": "Winner Game 55", "date": "2026-08-23", "time": "09:00", "location": "Corbasson CC · East Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-57", "officialGameNumber": 57, "stage": "semifinal", "stageLabel": "Men's REC semifinal", "awayTeam": "Winner Game 53", "homeTeam": "Winner Game 54", "date": "2026-08-23", "time": "09:00", "location": "Corbasson CC · West Pad", "status": "scheduled" },
+      { "id": "2026-mississauga-official-58", "officialGameNumber": 58, "stage": "final", "stageLabel": "Men's REC championship", "awayTeam": "Winner Game 56", "homeTeam": "Winner Game 57", "date": "2026-08-23", "time": "12:30", "location": "Corbasson CC · East Pad", "status": "scheduled" }
+    ]
+  },
   "2026-oshawa-provincials": {
     "pools": [
       { "id": "pool-a", "name": "Pool A", "teams": ["PK Pirates", "Flyers", "Toronto Jets", "Small Heath Rifles"] },

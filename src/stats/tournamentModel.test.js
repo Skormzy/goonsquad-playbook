@@ -16,6 +16,56 @@ import {
 } from './tournamentModel';
 
 describe('tournament archive model', () => {
+  it('maps the complete 2026 Mississauga schedule, pools, and seeded elimination path', () => {
+    const tournament = TOURNAMENT_ARCHIVE.find((item) => item.id === '2026-mississauga-provincials');
+    const eventGames = tournamentEventGames(tournament);
+    const rounds = tournamentBracketRounds(tournament.bracket);
+
+    expect(tournament).toBeTruthy();
+    expect(tournament.status).toBe('scheduled');
+    expect(tournament.startDate).toBe('2026-08-21');
+    expect(tournament.endDate).toBe('2026-08-23');
+    expect(tournament.games).toEqual([
+      expect.objectContaining({ officialGameNumber: 43, opponent: 'Cambridge', time: '17:00', site: 'Home' }),
+      expect.objectContaining({ officialGameNumber: 46, opponent: 'Sudbury Silly Gooses', time: '20:00', site: 'Away' }),
+    ]);
+    expect(tournament.games.every((game) => game.status === 'scheduled' && game.scoreFor === null && game.scoreAgainst === null)).toBe(true);
+
+    expect(new Set(tournament.pools.flatMap((pool) => pool.teams))).toHaveLength(9);
+    expect(tournament.pools.map((pool) => [pool.name, pool.teams])).toEqual([
+      ['Pool A', ['Balls of Glory', 'Moosehead', 'Dirty Birds']],
+      ['Pool B', ['Goonsquad', 'Cambridge', 'Sudbury Silly Gooses']],
+      ['Pool C', ['High Park Highlanders', 'Sarabha', 'Mitt Magicians']],
+    ]);
+
+    expect(eventGames).toHaveLength(17);
+    expect(eventGames.map((game) => game.officialGameNumber)).toEqual([
+      42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58,
+    ]);
+    expect(eventGames.filter((game) => game.stage === 'round-robin')).toHaveLength(9);
+    expect(eventGames.filter((game) => game.stage === 'elimination')).toHaveLength(1);
+    expect(eventGames.filter((game) => game.stage === 'quarterfinal')).toHaveLength(4);
+    expect(eventGames.filter((game) => game.stage === 'semifinal')).toHaveLength(2);
+    expect(eventGames.filter((game) => game.stage === 'final')).toHaveLength(1);
+    expect(eventGames.every((game) => game.status === 'scheduled')).toBe(true);
+
+    expect(rounds.map((round) => [round.id, round.matches.length])).toEqual([
+      ['quarterfinal', 4],
+      ['semifinal', 2],
+      ['final', 1],
+    ]);
+    expect(rounds[0].matches.map((match) => match.eventGameId)).toEqual([
+      '2026-mississauga-official-52',
+      '2026-mississauga-official-55',
+      '2026-mississauga-official-53',
+      '2026-mississauga-official-54',
+    ]);
+    expect(rounds[1].matches.map((match) => [match.homeTeam.name, match.awayTeam.name])).toEqual([
+      ['Winner Game 55', 'Winner Game 52'],
+      ['Winner Game 54', 'Winner Game 53'],
+    ]);
+  });
+
   it('derives an editable tournament field from legacy game opponents', () => {
     expect(tournamentTeams({
       teamName: 'Goonsquad',
