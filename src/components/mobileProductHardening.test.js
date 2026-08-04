@@ -5,6 +5,7 @@ const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8');
 const app = readFileSync(new URL('../App.jsx', import.meta.url), 'utf8');
 const appContext = readFileSync(new URL('../context/AppContext.jsx', import.meta.url), 'utf8');
 const header = readFileSync(new URL('./Header.jsx', import.meta.url), 'utf8');
+const workspaceSwitcher = readFileSync(new URL('./WorkspaceSwitcher.jsx', import.meta.url), 'utf8');
 const teamBrand = readFileSync(new URL('../brand/teamBrand.js', import.meta.url), 'utf8');
 const mobileBottomNav = readFileSync(new URL('./MobileBottomNav.jsx', import.meta.url), 'utf8');
 const goonsquadHomeIcon = readFileSync(new URL('./GoonsquadHomeIcon.jsx', import.meta.url), 'utf8');
@@ -165,6 +166,9 @@ describe('mobile product hardening contracts', () => {
     expect(mobileBottomNav).toContain('window.history.pushState');
     expect(mobileBottomNav).not.toContain('mobile-bottom-nav-mode');
     expect(mobileBottomNav).toContain("icon: GoonsquadHomeIcon");
+    expect(header).toContain('<WorkspaceSwitcher');
+    expect(workspaceSwitcher).toContain('icon={GoonsquadHomeIcon}');
+    expect(workspaceSwitcher).not.toContain('icon={Activity}');
     expect(goonsquadHomeIcon).toContain('data-brand-icon="goonsquad-home"');
     expect(goonsquadHomeIcon).toContain("goonsquad-home-mark-mask.png");
     expect(goonsquadHomeIcon).not.toContain('<path');

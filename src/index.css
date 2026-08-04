@@ -518,6 +518,26 @@ input:focus:not(:focus-visible) { outline: none; }
   stroke-width: 1.9;
 }
 
+.goonsquad-home-icon {
+  display: block;
+  background: currentColor;
+  -webkit-mask-image: var(--goonsquad-home-mark);
+  mask-image: var(--goonsquad-home-mark);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  filter: drop-shadow(0 0 0.35px currentColor);
+}
+
+.workspace-segment-button .goonsquad-home-icon {
+  width: 16px;
+  height: 18px;
+  flex: 0 0 16px;
+}
+
 .workspace-segment-button[data-state='active'] {
   border-color: var(--ws-accent);
   background: var(--ws-accent-bg);
@@ -11651,19 +11671,8 @@ input:focus:not(:focus-visible) { outline: none; }
   }
 
   .mobile-bottom-nav .goonsquad-home-icon {
-    display: block;
     width: 25px;
     height: 27px;
-    background: currentColor;
-    -webkit-mask-image: var(--goonsquad-home-mark);
-    mask-image: var(--goonsquad-home-mark);
-    -webkit-mask-position: center;
-    mask-position: center;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: contain;
-    mask-size: contain;
-    filter: drop-shadow(0 0 0.35px currentColor);
   }
 
   .mobile-bottom-nav button.is-active {

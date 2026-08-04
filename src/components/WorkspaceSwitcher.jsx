@@ -1,11 +1,11 @@
 import {
-  Activity,
   BarChart3,
   BookOpenText,
   BrainCircuit,
   LockKeyhole,
   PencilRuler,
 } from 'lucide-react';
+import GoonsquadHomeIcon from './GoonsquadHomeIcon';
 
 function SegmentButton({
   active,
@@ -78,7 +78,7 @@ export default function WorkspaceSwitcher({
       <nav className="workspace-segment-group workspace-primary-nav" aria-label="Primary navigation">
         <SegmentButton
           label="HOME"
-          icon={Activity}
+          icon={GoonsquadHomeIcon}
           title="Squad Live"
           active={content === 'home'}
           onClick={() => onContentChange('home')}

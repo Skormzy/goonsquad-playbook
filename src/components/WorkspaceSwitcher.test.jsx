@@ -28,6 +28,7 @@ describe('WorkspaceSwitcher', () => {
     expect(markup).toContain('data-testid="workspace-content-plays"');
     expect(markup).toContain('data-testid="workspace-content-playmaker"');
     expect(markup).toContain('data-testid="workspace-content-home"');
+    expect(markup).toContain('data-brand-icon="goonsquad-home"');
     expect(markup).toContain('data-testid="workspace-content-stats"');
     expect(markup).toContain('data-testid="workspace-view-3d"');
     expect(markup).toContain('>HOME</span>');
