@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
+  BadgeCheck,
   CalendarClock,
+  Clock3,
+  Database,
   ExternalLink,
   FileQuestion,
   LockKeyhole,
@@ -9,6 +12,7 @@ import {
   Radar,
   Search,
   ShieldCheck,
+  Trophy,
   Users,
 } from 'lucide-react';
 import { loadTournamentOpponentIntelligence } from './tournamentIntelligenceCloud';
@@ -123,6 +127,108 @@ function SourceList({ sources = [] }) {
   );
 }
 
+function RosterStatus({ rosterStatus }) {
+  if (!rosterStatus) return null;
+  const isPublished = rosterStatus.status === 'published';
+  const Icon = isPublished ? BadgeCheck : Clock3;
+
+  return (
+    <section className={`tournament-intelligence-roster-status ${isPublished ? 'is-published' : 'is-pending'}`}>
+      <Icon aria-hidden="true" />
+      <div>
+        <span>OFFICIAL TOURNAMENT ROSTER</span>
+        <h4>{isPublished ? `${rosterStatus.publishedPlayers} players published` : 'Not published yet'}</h4>
+        <p>{rosterStatus.note}</p>
+        {rosterStatus.lastChecked && <small>Last checked {rosterStatus.lastChecked}</small>}
+      </div>
+      {rosterStatus.officialTeamUrl && (
+        <a href={rosterStatus.officialTeamUrl} target="_blank" rel="noreferrer">
+          Open official team page <ExternalLink aria-hidden="true" />
+        </a>
+      )}
+    </section>
+  );
+}
+
+function RosterMatch({ rosterMatch }) {
+  if (!rosterMatch) return null;
+  const metrics = [
+    ['Roster overlap', `${rosterMatch.overlap}/${rosterMatch.total}`],
+    ['Current record', rosterMatch.record],
+    ['Standing', rosterMatch.standing],
+    ['Goal difference', rosterMatch.goalDifference],
+  ].filter(([, value]) => value);
+
+  return (
+    <section className="tournament-intelligence-roster-match">
+      <header>
+        <BadgeCheck aria-hidden="true" />
+        <div><span>ROSTER FINGERPRINT</span><h4>{rosterMatch.label || 'Multi-player match found'}</h4></div>
+        <strong>{rosterMatch.overlap}/{rosterMatch.total}<small>players aligned</small></strong>
+      </header>
+      <p>{rosterMatch.note}</p>
+      <div className="tournament-intelligence-roster-metrics">
+        {metrics.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
+      </div>
+      <footer>
+        <span><Trophy aria-hidden="true" /><strong>{rosterMatch.matchedTeam}</strong><small>{[rosterMatch.league, rosterMatch.division, rosterMatch.season].filter(Boolean).join(' · ')}</small></span>
+        {rosterMatch.sourceUrl && <a href={rosterMatch.sourceUrl} target="_blank" rel="noreferrer">Open league stats <ExternalLink aria-hidden="true" /></a>}
+      </footer>
+    </section>
+  );
+}
+
+function RegionalSearch({ regionalSearch }) {
+  if (!regionalSearch) return null;
+  const candidates = Array.isArray(regionalSearch.candidates) ? regionalSearch.candidates : [];
+
+  return (
+    <section className="tournament-intelligence-regional-search">
+      <header><Database aria-hidden="true" /><div><span>REGIONAL MATCHING POOL</span><h4>{regionalSearch.league}</h4></div></header>
+      <p>{regionalSearch.note}</p>
+      {candidates.length > 0 && <div>{candidates.map((candidate) => <span key={candidate}>{candidate}</span>)}</div>}
+      {regionalSearch.sourceUrl && <a href={regionalSearch.sourceUrl} target="_blank" rel="noreferrer">Open regional player records <ExternalLink aria-hidden="true" /></a>}
+    </section>
+  );
+}
+
+function PlayerRoster({ players, hasRosterMatch }) {
+  if (!players.length) {
+    return <p>No tournament names are available to cross-match yet. The official roster page will remain the source of truth.</p>;
+  }
+
+  if (!hasRosterMatch) {
+    return <div>{players.map((player) => <span key={`${player.name}-${player.number || ''}`}><strong>{player.name}</strong><small>{[player.number && `#${player.number}`, player.position, player.note].filter(Boolean).join(' · ')}</small></span>)}</div>;
+  }
+
+  return (
+    <div className="tournament-intelligence-player-table" role="table" aria-label="Tournament roster matched to regional league statistics">
+      <div role="row" className="tournament-intelligence-player-row is-header">
+        <span role="columnheader">#</span>
+        <span role="columnheader">Tournament roster</span>
+        <span role="columnheader">Regional league entry</span>
+        <span role="columnheader">GP</span>
+        <span role="columnheader">G</span>
+        <span role="columnheader">A</span>
+        <span role="columnheader">PTS</span>
+        <span role="columnheader">PIM</span>
+      </div>
+      {players.map((player) => (
+        <div role="row" className="tournament-intelligence-player-row" key={`${player.eventName}-${player.number || ''}`}>
+          <strong role="cell">{player.number || '–'}</strong>
+          <span role="cell"><strong>{player.eventName}</strong><small>{[player.position, player.match === 'normalized' ? 'Name variant matched' : 'Exact name match'].filter(Boolean).join(' · ')}</small></span>
+          <span role="cell"><strong>{player.leagueName || player.eventName}</strong><small>{player.team || ''}</small></span>
+          <span role="cell">{player.gp ?? '–'}</span>
+          <span role="cell">{player.goals ?? '–'}</span>
+          <span role="cell">{player.assists ?? '–'}</span>
+          <strong role="cell">{player.points ?? '–'}</strong>
+          <span role="cell">{player.pim ?? '–'}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function TeamIntelligence({ record }) {
   const identityStatus = record.identity?.status || 'unresolved';
   const facts = Array.isArray(record.facts) ? record.facts : [];
@@ -130,6 +236,9 @@ function TeamIntelligence({ record }) {
   const players = Array.isArray(record.players) ? record.players : [];
   const questions = Array.isArray(record.questions) ? record.questions : [];
   const sources = Array.isArray(record.sources) ? record.sources : [];
+  const rosterStatus = record.rosterStatus || null;
+  const rosterMatch = record.rosterMatch || null;
+  const regionalSearch = record.regionalSearch || null;
 
   return (
     <article className="tournament-intelligence-detail" data-identity-status={identityStatus}>
@@ -150,9 +259,15 @@ function TeamIntelligence({ record }) {
         {facts.map((fact) => <div key={`${fact.label}-${fact.value}`}><span>{fact.label}</span><strong>{fact.value}</strong></div>)}
       </div>
 
+      <div className="tournament-intelligence-evidence">
+        <RosterStatus rosterStatus={rosterStatus} />
+        <RosterMatch rosterMatch={rosterMatch} />
+      </div>
+
       <div className="tournament-intelligence-grid">
         <div className="tournament-intelligence-main">
           <MeetingCard meeting={record.meeting} />
+          <RegionalSearch regionalSearch={regionalSearch} />
           <section className="tournament-intelligence-history">
             <header><Search aria-hidden="true" /><div><span>PUBLIC RECORD</span><h4>What we can connect safely</h4></div></header>
             {history.length ? <div>{history.map((item, index) => (
@@ -166,7 +281,7 @@ function TeamIntelligence({ record }) {
 
           <section className="tournament-intelligence-players">
             <header><Users aria-hidden="true" /><div><span>PERSONNEL</span><h4>Known player information</h4></div></header>
-            {players.length ? <div>{players.map((player) => <span key={`${player.name}-${player.number || ''}`}><strong>{player.name}</strong><small>{[player.number && `#${player.number}`, player.position, player.note].filter(Boolean).join(' · ')}</small></span>)}</div> : <p>No current player can be attributed to this tournament roster from a reliable public source.</p>}
+            <PlayerRoster players={players} hasRosterMatch={Boolean(rosterMatch)} />
           </section>
         </div>
 

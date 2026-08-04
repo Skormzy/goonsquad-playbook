@@ -7,7 +7,7 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
 describe('tournament admin product contract', () => {
   it('keeps tournament writes behind the existing admin role', () => {
-    const migration = read('../../supabase/migrations/20260731_tournament_control_room.sql');
+    const migration = read('../../supabase/migrations/202607310004_tournament_control_room.sql');
 
     expect(migration).toContain('public.is_team_admin()');
     expect(migration).toContain('for insert to authenticated');
@@ -35,7 +35,9 @@ describe('tournament admin product contract', () => {
   });
 
   it('keeps opponent intelligence out of public data and behind the admin role', () => {
-    const migration = read('../../supabase/migrations/20260804_tournament_opponent_intelligence.sql');
+    const migration = read('../../supabase/migrations/202608040001_tournament_opponent_intelligence.sql');
+    const rosterMigration = read('../../supabase/migrations/202608040002_tournament_roster_match_intelligence.sql');
+    const intelligenceView = read('./TournamentOpponentIntelligence.jsx');
     const workspace = read('./TournamentWorkspace.jsx');
     const publicArchive = read('./tournaments.json');
     const publicEvents = read('./tournamentEvents.json');
@@ -44,6 +46,13 @@ describe('tournament admin product contract', () => {
     expect(migration).toContain('for select to authenticated');
     expect(migration).toContain('using (public.is_team_admin())');
     expect(migration).toContain('revoke all on public.tournament_opponent_intelligence from anon');
+    expect(rosterMigration).toContain('"overlap": 17');
+    expect(rosterMigration).toContain('"total": 17');
+    expect(rosterMigration).toContain('Official roster not published yet');
+    expect(rosterMigration).toContain('Greater Sudbury Ball Hockey League');
+    expect(intelligenceView).toContain('ROSTER FINGERPRINT');
+    expect(intelligenceView).toContain('REGIONAL MATCHING POOL');
+    expect(intelligenceView).toContain('No tournament names are available to cross-match yet');
     expect(workspace).toContain("tab.adminOnly ? canManage");
     expect(workspace).toContain("resolvedActiveTab === 'intelligence' && canManage");
     expect(publicArchive).not.toContain('tournament_opponent_intelligence');
