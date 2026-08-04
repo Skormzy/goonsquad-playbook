@@ -377,4 +377,5 @@ set
 select
   'Tournament opponent intelligence ready' as status,
   count(*) filter (where tournament_id = '2026-mississauga-provincials') as mississauga_teams,
-  has_table_privilege('anon', 'public.tournament_opponent_intelligence', 'select') as anon_can_read;
+  has_table_privilege('anon', 'public.tournament_opponent_intelligence', 'select') as anon_can_read
+from public.tournament_opponent_intelligence;
