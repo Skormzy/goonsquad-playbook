@@ -52,6 +52,9 @@ describe('team account and statistics product contract', () => {
     expect(workspaceSource).toContain("{ id: 'games', label: 'Games' }");
     expect(workspaceSource).toContain("{ id: 'players', label: 'Players' }");
     expect(workspaceSource).toContain('Every Goonsquad schedule');
+    expect(workspaceSource).toContain("!scheduleComplete && <span className=\"stats-schedule-status\"");
+    expect(workspaceSource).toContain('Results pending');
+    expect(workspaceSource).not.toContain("scheduleComplete ? 'Complete'");
     expect(workspaceSource).toContain('TEAM STATISTICS');
     expect(workspaceSource).toContain('MatchdayCard');
     expect(workspaceSource).toContain('NEXT GAME');

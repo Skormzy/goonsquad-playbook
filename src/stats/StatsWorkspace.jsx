@@ -659,8 +659,13 @@ function ScheduleCoverage({ schedules, onSelect }) {
           return (
             <div className="stats-schedule-row" key={team.id}>
               <button type="button" onClick={() => onSelect(team.id)}>
-                <span className="stats-schedule-status" data-complete={scheduleComplete}>{scheduleComplete ? 'Complete' : 'Needs results'}</span>
-                <span className="stats-schedule-copy"><strong>{label}</strong><small>{team.division || `${formatLeagueName(team)} schedule`}</small></span>
+                <span className="stats-schedule-copy">
+                  <span className="stats-schedule-title">
+                    <strong>{label}</strong>
+                    {!scheduleComplete && <span className="stats-schedule-status" data-complete="false">Results pending</span>}
+                  </span>
+                  <small>{team.division || `${formatLeagueName(team)} schedule`}</small>
+                </span>
                 <span className="stats-schedule-record"><strong>{summary.gamesPlayed ? record : '—'}</strong><small>{games.length} scheduled · {summary.gamesPlayed} final</small></span>
                 <ChevronRight aria-hidden="true" />
               </button>
