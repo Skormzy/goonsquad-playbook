@@ -85,7 +85,7 @@ describe('Squad Live product contract', () => {
     expect(mobileNav).toContain("content: 'stats'");
   });
 
-  it('uses one desktop scroll surface with a sticky Game Pulse and attendance rail', () => {
+  it('keeps the page scroll consolidated while expanded attendance stays reachable', () => {
     expect(home).not.toContain('feedScrollRef');
     expect(home).not.toContain('sideScrollRef');
     expect(home.match(/onScroll=/g)).toHaveLength(1);
@@ -98,7 +98,9 @@ describe('Squad Live product contract', () => {
     expect(styles).toContain('@media (min-width: 761px)');
     expect(styles).toContain('overflow-x: hidden;\n    overflow-y: auto;');
     expect(styles).toContain('position: sticky;\n    top: 14px;');
-    expect(styles).toContain('grid-auto-rows: max-content');
+    expect(styles).toContain('max-height: calc(100dvh - 72px)');
+    expect(styles).toContain('grid-template-rows: max-content minmax(0, 1fr)');
+    expect(styles).toContain('overscroll-behavior-y: contain');
     expect(styles).toContain('scrollbar-gutter: stable');
   });
 

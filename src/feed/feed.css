@@ -191,13 +191,22 @@
     top: 14px;
     align-self: start;
     width: 100%;
-    grid-auto-rows: max-content;
+    max-height: calc(100vh - 72px);
+    max-height: calc(100dvh - 72px);
+    grid-template-rows: max-content minmax(0, 1fr);
     gap: 10px;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .team-home-attendance {
     min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scroll-padding-block: 8px 12px;
   }
 
   .team-home-side-column .team-pulse {
@@ -2352,8 +2361,16 @@
     width: 100%;
     max-height: calc(100dvh - var(--mobile-bottom-nav-height, 54px) - 16px);
     display: grid;
-    grid-auto-rows: max-content;
+    grid-template-rows: max-content minmax(0, 1fr);
     gap: 7px;
+    overflow: hidden;
+  }
+
+  .team-home-attendance {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
   }
 
   .team-home-side-column .team-pulse header {
