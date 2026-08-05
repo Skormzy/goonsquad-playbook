@@ -991,20 +991,39 @@ function TeamPulse({ dataset, onOpenGame, onOpenStats, snapshot }) {
   const finals = snapshot.games.filter((game) => game.status === 'final');
   const latest = finals[0] || null;
   const next = nextUpcomingGame(snapshot.games);
-  const record = `${snapshot.summary.wins}–${snapshot.summary.losses}–${snapshot.summary.ties}`;
   const schedule = (game) => dataset.teams.find((team) => team.id === game?.seasonTeamId);
   const leagueNames = [...new Set(snapshot.seasonTeams.map(formatLeagueName))].join(' + ');
+  const teamRecords = [...snapshot.seasonSchedules].sort((left, right) => {
+    const rank = (label) => (/Sunday/iu.test(label) ? 0 : /Monday/iu.test(label) ? 1 : 2);
+    return rank(left.label) - rank(right.label) || left.label.localeCompare(right.label);
+  });
 
   return (
     <aside className="team-pulse" aria-label="Team performance pulse">
       <header>
         <div><span>GAME PULSE · {leagueNames}</span><h2>{snapshot.season?.name || 'Goonsquad'}</h2></div>
-        <button type="button" onClick={onOpenStats}>Full stats <ChevronRight /></button>
+        <button type="button" onClick={() => onOpenStats()}>All stats <ChevronRight /></button>
       </header>
-      <div className="team-pulse-record">
-        <span><Trophy /> SEASON RECORD</span>
-        <strong>{record}</strong>
-        <small>{snapshot.summary.gamesPlayed} games · {snapshot.summary.goalsFor} GF · {snapshot.summary.goalsAgainst} GA</small>
+      <div className="team-pulse-team-records" aria-label={`${snapshot.season?.name || 'Current season'} team records`}>
+        {teamRecords.map(({ team, label, summary }) => {
+          const day = /Sunday/iu.test(label) ? 'Sunday' : /Monday/iu.test(label) ? 'Monday' : label;
+          const tone = day === 'Sunday' ? 'is-sunday' : day === 'Monday' ? 'is-monday' : '';
+          const record = `${summary.wins}–${summary.losses}–${summary.ties}`;
+          return (
+            <button
+              type="button"
+              className={`team-pulse-team-record ${tone}`.trim()}
+              key={team.id}
+              aria-label={`Open ${label} stats. Record ${record}`}
+              onClick={() => onOpenStats({ season: snapshot.season.id, team: team.id })}
+            >
+              <span><Trophy /> {day.toUpperCase()} TEAM</span>
+              <strong>{record}</strong>
+              <small>{formatLeagueName(team)} · {summary.gamesPlayed} GP · {summary.goalsFor} GF · {summary.goalsAgainst} GA</small>
+              <ChevronRight aria-hidden="true" />
+            </button>
+          );
+        })}
       </div>
       <div className="team-pulse-games">
         <button type="button" className="team-pulse-game is-next" onClick={() => next && onOpenGame(next)} disabled={!next}>
@@ -1026,15 +1045,7 @@ function TeamPulse({ dataset, onOpenGame, onOpenStats, snapshot }) {
           {latest && <ChevronRight />}
         </button>
       </div>
-      <div className="team-pulse-leagues">
-        {snapshot.seasonSchedules.map(({ team, summary }) => (
-          <div key={team.id}>
-            <span>{formatLeagueScheduleName(team)}</span>
-            <strong>{summary.wins}–{summary.losses}–{summary.ties}</strong>
-          </div>
-        ))}
-      </div>
-      <button type="button" className="team-pulse-stats-button" onClick={onOpenStats}>
+      <button type="button" className="team-pulse-stats-button" onClick={() => onOpenStats()}>
         <BarChart3 /> Standings, games and player stats
       </button>
     </aside>
@@ -1247,7 +1258,18 @@ export default function TeamHome() {
     url.searchParams.set('content', activeView === 'stats' ? 'stats' : activeView);
     url.searchParams.set('mode', '2d');
     url.searchParams.delete('post');
-    ['game', 'player', 'opponent', 'fixture'].forEach((key) => url.searchParams.delete(key));
+    [
+      'competition',
+      'fixture',
+      'game',
+      'opponent',
+      'player',
+      'season',
+      'stage',
+      'team',
+      'tournament',
+      'tournamentGame',
+    ].forEach((key) => url.searchParams.delete(key));
     Object.entries(params).forEach(([key, value]) => {
       if (value) url.searchParams.set(key, value);
     });
@@ -1507,7 +1529,7 @@ export default function TeamHome() {
             <TeamPulse
               dataset={dataset}
               snapshot={snapshot}
-              onOpenStats={() => navigate('stats')}
+              onOpenStats={(params = {}) => navigate('stats', params)}
               onOpenGame={(game) => navigate('stats', { game: game.id })}
             />
             <div
