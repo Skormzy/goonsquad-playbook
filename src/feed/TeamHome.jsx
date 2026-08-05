@@ -40,6 +40,7 @@ import { useAccount } from '../account/AccountContext';
 import { teamAccessPromptCopy } from '../account/teamAccess';
 import OfficialSocialLinks from '../brand/OfficialSocialLinks';
 import AttendanceBoard from '../lineup/AttendanceBoard';
+import { memberScopedLeagueGames } from '../lineup/attendanceModel';
 import { goonsquadDisplayText } from '../brand/teamBrand';
 import { useApp } from '../context/AppContext';
 import { loadStatisticsDataset } from '../stats/statsCloud';
@@ -984,13 +985,14 @@ function PostCard({
   );
 }
 
-function TeamPulse({ dataset, onOpenGame, onOpenStats, snapshot }) {
+function TeamPulse({ dataset, member, onOpenGame, onOpenStats, snapshot }) {
   if (!dataset || !snapshot) {
     return <div className="team-pulse-loading"><RefreshCw /> Loading game pulse…</div>;
   }
-  const finals = snapshot.games.filter((game) => game.status === 'final');
+  const visibleGames = memberScopedLeagueGames({ dataset, games: snapshot.games, member });
+  const finals = visibleGames.filter((game) => game.status === 'final');
   const latest = finals[0] || null;
-  const next = nextUpcomingGame(snapshot.games);
+  const next = nextUpcomingGame(visibleGames);
   const schedule = (game) => dataset.teams.find((team) => team.id === game?.seasonTeamId);
   const leagueNames = [...new Set(snapshot.seasonTeams.map(formatLeagueName))].join(' + ');
   const teamRecords = [...snapshot.seasonSchedules].sort((left, right) => {
@@ -1528,6 +1530,7 @@ export default function TeamHome() {
           >
             <TeamPulse
               dataset={dataset}
+              member={currentMember}
               snapshot={snapshot}
               onOpenStats={(params = {}) => navigate('stats', params)}
               onOpenGame={(game) => navigate('stats', { game: game.id })}
