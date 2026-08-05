@@ -159,20 +159,42 @@ export async function loadTeamFeed({ limit = 140, userId = '' } = {}) {
   throwIfError(reactionsError);
   throwIfError(mentionsError);
 
+  const commentIds = (comments || []).map((comment) => comment.id);
+  let commentLikes = [];
+  if (commentIds.length) {
+    const { data, error } = await cloud
+      .from('team_feed_comment_likes')
+      .select('*')
+      .in('comment_id', commentIds);
+    throwIfError(error);
+    commentLikes = data || [];
+  }
+
   const memberById = new Map(members.map((member) => [member.id, member]));
   const mediaUrls = await signedMediaUrls(
     cloud,
     (postRows || []).map((post) => post.media_path),
   );
+  const commentLikesByComment = new Map();
+  commentLikes.forEach((like) => {
+    const existing = commentLikesByComment.get(like.comment_id) || [];
+    existing.push({
+      userId: like.user_id,
+      createdAt: like.created_at,
+    });
+    commentLikesByComment.set(like.comment_id, existing);
+  });
   const commentsByPost = new Map();
   (comments || []).forEach((comment) => {
     const existing = commentsByPost.get(comment.post_id) || [];
     existing.push({
       id: comment.id,
       postId: comment.post_id,
+      parentCommentId: comment.parent_comment_id || '',
       body: comment.body,
       authorId: comment.author_id,
       author: memberById.get(comment.author_id) || null,
+      likes: commentLikesByComment.get(comment.id) || [],
       createdAt: comment.created_at,
       updatedAt: comment.updated_at,
     });
@@ -384,6 +406,7 @@ export async function createTeamFeedPost({
 export async function createTeamFeedComment({
   body,
   members = [],
+  parentCommentId = '',
   postId,
   userId,
 }) {
@@ -398,6 +421,7 @@ export async function createTeamFeedComment({
       .insert({
         post_id: postId,
         author_id: userId,
+        parent_comment_id: parentCommentId || null,
         body: cleanBody,
       })
       .select('id')
@@ -437,6 +461,23 @@ export async function setTeamFeedReaction({
     : await query.upsert(
       { post_id: postId, user_id: userId, reaction },
       { onConflict: 'post_id,user_id' },
+    );
+  throwIfError(error);
+}
+
+export async function setTeamFeedCommentLike({
+  commentId,
+  currentLiked = false,
+  userId,
+}) {
+  const cloud = requireCloud();
+  requireUserId(userId);
+  const query = cloud.from('team_feed_comment_likes');
+  const { error } = currentLiked
+    ? await query.delete().eq('comment_id', commentId).eq('user_id', userId)
+    : await query.upsert(
+      { comment_id: commentId, user_id: userId },
+      { ignoreDuplicates: true, onConflict: 'comment_id,user_id' },
     );
   throwIfError(error);
 }
@@ -496,6 +537,11 @@ export function subscribeTeamFeed(onChange) {
       event: '*',
       schema: 'public',
       table: 'team_feed_reactions',
+    }, onChange)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'team_feed_comment_likes',
     }, onChange)
     .on('postgres_changes', {
       event: '*',

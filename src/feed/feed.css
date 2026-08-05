@@ -1329,9 +1329,15 @@
 }
 
 .feed-comments {
+  display: grid;
+  gap: 10px;
   padding: 10px 15px 13px;
   border-top: 1px solid var(--feed-border);
   background: color-mix(in srgb, var(--feed-soft) 48%, transparent);
+}
+
+.feed-comment-thread {
+  min-width: 0;
 }
 
 .feed-comment {
@@ -1339,18 +1345,19 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   gap: 8px;
-  margin-bottom: 9px;
 }
 
-.feed-comment > div {
+.feed-comment-main {
   min-width: 0;
+}
+
+.feed-comment-bubble {
   padding: 7px 9px;
   border-radius: 5px;
   background: var(--feed-soft);
 }
 
-.feed-comment strong,
-.feed-comment .feed-member-name {
+.feed-comment-bubble .feed-member-name {
   display: block;
   font-size: 11px;
   font-weight: 850;
@@ -1362,12 +1369,52 @@
   line-height: 1.4;
 }
 
-.feed-comment small {
+.feed-comment-actions {
+  min-height: 25px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  padding: 3px 6px 0;
+}
+
+.feed-comment-actions small {
   color: var(--feed-muted);
   font-size: 9px;
 }
 
-.feed-comment > button {
+.feed-comment-actions button {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--feed-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.feed-comment-actions button:hover,
+.feed-comment-actions button:focus-visible {
+  color: var(--feed-text);
+}
+
+.feed-comment-actions button.is-liked {
+  color: var(--gs-red);
+}
+
+.feed-comment-actions button:disabled {
+  opacity: 0.45;
+}
+
+.feed-comment-actions svg {
+  width: 12px;
+  height: 12px;
+}
+
+.feed-comment-delete {
   width: 27px;
   height: 27px;
   display: grid;
@@ -1378,13 +1425,131 @@
   color: var(--feed-muted);
 }
 
-.feed-comment > button:hover {
+.feed-comment-delete:hover {
   color: var(--gs-red);
 }
 
-.feed-comment > button svg {
+.feed-comment-delete svg {
   width: 13px;
   height: 13px;
+}
+
+.feed-comment-replies-toggle {
+  min-height: 29px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 0 38px;
+  padding: 0 5px;
+  border: 0;
+  background: transparent;
+  color: var(--feed-muted);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.feed-comment-replies-toggle > span {
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+}
+
+.feed-comment-replies-toggle:hover,
+.feed-comment-replies-toggle:focus-visible {
+  color: var(--gs-cyan);
+}
+
+.feed-comment-replies {
+  display: grid;
+  gap: 9px;
+  margin: 2px 0 0 38px;
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, var(--gs-cyan) 24%, var(--feed-border));
+}
+
+.feed-comment.is-reply .feed-comment-bubble {
+  background: color-mix(in srgb, var(--feed-soft) 78%, var(--feed-surface));
+}
+
+.feed-comment-likers {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px 9px;
+  margin: 3px 5px 0;
+  padding: 6px 7px;
+  border: 1px solid color-mix(in srgb, var(--feed-border) 78%, transparent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--feed-surface) 72%, transparent);
+}
+
+.feed-comment-likers > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.feed-comment-likers .feed-avatar.is-sm {
+  width: 22px;
+  height: 22px;
+  font-size: 8px;
+}
+
+.feed-comment-likers .feed-member-name {
+  min-height: 22px;
+  padding: 0;
+  font-size: 10px;
+}
+
+.feed-reply-target {
+  min-height: 35px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--gs-cyan) 45%, var(--feed-border));
+  border-radius: 5px;
+  background: var(--gs-accent-bg);
+  color: var(--feed-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.feed-reply-target > svg {
+  width: 14px;
+  height: 14px;
+  color: var(--gs-cyan);
+}
+
+.feed-reply-target > span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.feed-reply-target .feed-member-name {
+  min-height: 24px;
+  padding: 0;
+  color: var(--feed-text);
+  font-size: 11px;
+}
+
+.feed-reply-target > button {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--feed-muted);
+}
+
+.feed-reply-target > button svg {
+  width: 14px;
+  height: 14px;
 }
 
 .feed-comment-composer {

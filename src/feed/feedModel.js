@@ -165,6 +165,53 @@ export function feedReactionDetails(reactions = [], members = []) {
     ));
 }
 
+export function feedCommentLikeDetails(likes = [], members = []) {
+  const memberById = new Map(
+    members.map((member) => [String(member.id || ''), member]),
+  );
+
+  return likes
+    .map((entry) => ({
+      ...entry,
+      member: memberById.get(String(entry.userId || '')) || null,
+    }))
+    .sort((left, right) => String(
+      left.member?.displayName || left.member?.username || '',
+    ).localeCompare(
+      String(right.member?.displayName || right.member?.username || ''),
+    ));
+}
+
+export function threadFeedComments(comments = []) {
+  const commentById = new Map(
+    comments.map((comment) => [String(comment.id || ''), { ...comment, replies: [] }]),
+  );
+  const roots = [];
+
+  commentById.forEach((comment) => {
+    let parentId = String(comment.parentCommentId || '');
+    let parent = parentId ? commentById.get(parentId) : null;
+    const visited = new Set([String(comment.id || '')]);
+
+    while (parent?.parentCommentId && !visited.has(parentId)) {
+      visited.add(parentId);
+      const nextParentId = String(parent.parentCommentId || '');
+      const nextParent = commentById.get(nextParentId);
+      if (!nextParent) break;
+      parentId = nextParentId;
+      parent = nextParent;
+    }
+
+    if (parent && parent.id !== comment.id) {
+      parent.replies.push(comment);
+      return;
+    }
+    roots.push(comment);
+  });
+
+  return roots;
+}
+
 export function formatFeedTime(value, now = new Date()) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
