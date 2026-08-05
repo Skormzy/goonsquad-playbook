@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  canOpenFeedMemberProfile,
   canPublishFeedPost,
   extractFirstUrl,
   extractMentionUsernames,
   feedGameDetailsHref,
   feedMediaContentType,
+  feedReactionDetails,
   feedTextParts,
   formatFeedTime,
   normalizeExternalUrl,
@@ -83,5 +85,36 @@ describe('team feed model', () => {
       { id: 'like', emoji: '👍', label: 'Like', count: 1 },
       { id: 'fire', emoji: '🔥', label: 'Fire', count: 2 },
     ]);
+  });
+
+  it('resolves reactors to member identities and linked player profiles', () => {
+    const members = [
+      { id: 'u1', displayName: 'Ryan Hunt', playerId: 'ycbhl-player-307' },
+      { id: 'u2', displayName: 'Coach', playerId: '' },
+    ];
+    const details = feedReactionDetails([
+      { userId: 'u2', reaction: 'fire' },
+      { userId: 'u1', reaction: 'like' },
+      { userId: 'missing', reaction: 'unsupported' },
+    ], members);
+
+    expect(details).toEqual([
+      {
+        userId: 'u1',
+        reaction: 'like',
+        emoji: '👍',
+        label: 'Like',
+        member: members[0],
+      },
+      {
+        userId: 'u2',
+        reaction: 'fire',
+        emoji: '🔥',
+        label: 'Fire',
+        member: members[1],
+      },
+    ]);
+    expect(canOpenFeedMemberProfile(members[0])).toBe(true);
+    expect(canOpenFeedMemberProfile(members[1])).toBe(false);
   });
 });

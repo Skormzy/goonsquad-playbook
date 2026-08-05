@@ -69,12 +69,14 @@ import {
   subscribeTeamFeed,
 } from './feedCloud';
 import {
+  canOpenFeedMemberProfile,
   canPublishFeedPost,
   FEED_COMMENT_MAX_LENGTH,
   FEED_POST_MAX_LENGTH,
   FEED_REACTIONS,
   feedGameDetailsHref,
   feedMediaContentType,
+  feedReactionDetails,
   feedTextParts,
   formatFeedTime,
   initialsForMember,
@@ -107,7 +109,7 @@ const QA_MEMBERS = Object.freeze([
     username: 'seymour',
     displayName: 'Seymour Korman',
     role: 'admin',
-    playerId: '',
+    playerId: 'ycbhl-player-26133',
   },
   {
     id: 'qa-coach',
@@ -121,7 +123,7 @@ const QA_MEMBERS = Object.freeze([
     username: 'winger',
     displayName: 'Ryan Hunt',
     role: 'member',
-    playerId: '',
+    playerId: 'ycbhl-player-307',
   },
   {
     id: 'qa-ep-account',
@@ -290,6 +292,38 @@ function Avatar({ member, size = 'md' }) {
   );
 }
 
+function MemberAvatar({ member, onOpenMember, size = 'md' }) {
+  if (!canOpenFeedMemberProfile(member)) return <Avatar member={member} size={size} />;
+  const label = member.playerName || member.displayName || member.username || 'member';
+  return (
+    <button
+      type="button"
+      className="feed-member-avatar-button"
+      onClick={() => onOpenMember(member)}
+      aria-label={`Open ${label}'s player page`}
+    >
+      <Avatar member={member} size={size} />
+    </button>
+  );
+}
+
+function MemberName({ fallback = 'Team member', member, onOpenMember }) {
+  const label = member?.displayName || fallback;
+  if (!canOpenFeedMemberProfile(member)) {
+    return <strong className="feed-member-name is-static">{label}</strong>;
+  }
+  return (
+    <button
+      type="button"
+      className="feed-member-name"
+      onClick={() => onOpenMember(member)}
+      aria-label={`Open ${label}'s player page`}
+    >
+      {label}
+    </button>
+  );
+}
+
 function sourceIdentity(post) {
   if (post.sourceType === 'result') {
     return {
@@ -329,9 +363,9 @@ function sourceIdentity(post) {
   return null;
 }
 
-function FeedPostAvatar({ post }) {
+function FeedPostAvatar({ onOpenMember, post }) {
   const source = sourceIdentity(post);
-  if (!source) return <Avatar member={post.author} />;
+  if (!source) return <MemberAvatar member={post.author} onOpenMember={onOpenMember} />;
   const { Icon } = source;
   return (
     <span className={`feed-source-avatar is-${post.sourceType}`} aria-hidden="true">
@@ -765,6 +799,7 @@ function PostCard({
   const [commentsOpen, setCommentsOpen] = useState(post.comments.length > 0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [reactionOpen, setReactionOpen] = useState(false);
+  const [reactionDetailsOpen, setReactionDetailsOpen] = useState(false);
   const currentReaction = post.reactions.find(
     (reaction) => reaction.userId === currentUserId,
   )?.reaction || '';
@@ -772,6 +807,7 @@ function PostCard({
     (reaction) => reaction.id === currentReaction,
   );
   const reactionSummary = summarizeFeedReactions(post.reactions);
+  const reactionDetails = feedReactionDetails(post.reactions, members);
   const source = sourceIdentity(post);
   const canManage = isAdmin || (
     post.sourceType === 'member'
@@ -805,11 +841,11 @@ function PostCard({
     >
       {post.pinnedAt && <div className="feed-post-pinned"><Pin /> PINNED FOR THE SQUAD</div>}
       <header className="feed-post-header">
-        <FeedPostAvatar post={post} />
+        <FeedPostAvatar post={post} onOpenMember={onOpenMember} />
         <div>
-          <strong>
-            {source?.displayName || post.author?.displayName || 'Goonsquad member'}
-          </strong>
+          {source
+            ? <strong>{source.displayName}</strong>
+            : <MemberName member={post.author} onOpenMember={onOpenMember} fallback="Goonsquad member" />}
           <span>
             {source ? source.username : `@${post.author?.username || 'member'}`}
             {' · '}
@@ -893,17 +929,67 @@ function PostCard({
       )}
       {(post.reactions.length > 0 || post.comments.length > 0) && (
         <div className="feed-post-counts">
-          <span className="feed-reaction-counts">
-            {reactionSummary.map((reaction) => (
-              <span key={reaction.id} title={`${reaction.count} ${reaction.label}`}>
-                {reaction.emoji}<b>{reaction.count}</b>
-              </span>
-            ))}
-          </span>
+          {post.reactions.length > 0 && (
+            <button
+              type="button"
+              className="feed-reaction-counts"
+              onClick={() => {
+                setReactionOpen(false);
+                setReactionDetailsOpen((open) => !open);
+              }}
+              aria-expanded={reactionDetailsOpen}
+              aria-controls={`feed-reactions-${post.id}`}
+              aria-label={`View ${post.reactions.length} ${post.reactions.length === 1 ? 'reaction' : 'reactions'}`}
+            >
+              {reactionSummary.map((reaction) => (
+                <span key={reaction.id} title={`${reaction.count} ${reaction.label}`}>
+                  {reaction.emoji}<b>{reaction.count}</b>
+                </span>
+              ))}
+            </button>
+          )}
           <button type="button" onClick={() => setCommentsOpen((open) => !open)}>
             {post.comments.length ? `${post.comments.length} ${post.comments.length === 1 ? 'comment' : 'comments'}` : ''}
           </button>
         </div>
+      )}
+      {reactionDetailsOpen && (
+        <section
+          className="feed-reaction-people"
+          id={`feed-reactions-${post.id}`}
+          aria-label="People who reacted"
+        >
+          <header>
+            <strong>Reactions</strong>
+            <button type="button" onClick={() => setReactionDetailsOpen(false)} aria-label="Close reactions">
+              <X />
+            </button>
+          </header>
+          <div className="feed-reaction-people-list">
+            {reactionDetails.map((detail, index) => (
+              <div className="feed-reaction-person" key={`${detail.userId}-${detail.reaction}-${index}`}>
+                <MemberAvatar
+                  member={detail.member}
+                  onOpenMember={(member) => {
+                    setReactionDetailsOpen(false);
+                    onOpenMember(member);
+                  }}
+                  size="sm"
+                />
+                <div>
+                  <MemberName
+                    member={detail.member}
+                    onOpenMember={(member) => {
+                      setReactionDetailsOpen(false);
+                      onOpenMember(member);
+                    }}
+                  />
+                  <span aria-label={detail.label}>{detail.emoji} {detail.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
       <div className="feed-post-actions">
         <div className="feed-reaction-action">
@@ -911,7 +997,10 @@ function PostCard({
             type="button"
             className={currentReaction ? 'is-active' : ''}
             disabled={pendingAction}
-            onClick={() => setReactionOpen((open) => !open)}
+            onClick={() => {
+              setReactionDetailsOpen(false);
+              setReactionOpen((open) => !open);
+            }}
             aria-expanded={reactionOpen}
           >
             {currentReactionOption
@@ -951,9 +1040,9 @@ function PostCard({
         <div className="feed-comments">
           {post.comments.map((item) => (
             <div className="feed-comment" key={item.id}>
-              <Avatar member={item.author} size="sm" />
+              <MemberAvatar member={item.author} onOpenMember={onOpenMember} size="sm" />
               <div>
-                <strong>{item.author?.displayName || 'Team member'}</strong>
+                <MemberName member={item.author} onOpenMember={onOpenMember} />
                 <RichFeedText members={members} onOpenMember={onOpenMember}>{item.body}</RichFeedText>
                 <small>{formatFeedTime(item.createdAt)}</small>
               </div>

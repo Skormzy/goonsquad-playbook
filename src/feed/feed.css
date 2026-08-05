@@ -356,6 +356,28 @@
   object-fit: cover;
 }
 
+.feed-member-avatar-button {
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.feed-member-avatar-button:hover .feed-avatar {
+  border-color: var(--gs-cyan);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gs-cyan) 18%, transparent);
+}
+
+.feed-member-avatar-button:focus-visible,
+.feed-member-name:focus-visible {
+  outline: 2px solid var(--gs-cyan);
+  outline-offset: 2px;
+}
+
 .feed-source-avatar {
   flex: 0 0 auto;
   width: 42px;
@@ -521,7 +543,8 @@
   display: grid;
 }
 
-.feed-post-header strong {
+.feed-post-header strong,
+.feed-post-header .feed-member-name {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -530,6 +553,28 @@
   font-weight: 850;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.feed-member-name {
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--feed-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.feed-member-name:not(.is-static):hover {
+  color: var(--gs-cyan);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.feed-member-name.is-static {
+  cursor: default;
 }
 
 .feed-official-check {
@@ -1069,6 +1114,11 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
 }
 
 .feed-reaction-counts > span {
@@ -1082,6 +1132,20 @@
   color: var(--feed-muted);
   font-size: 10px;
   font-weight: 800;
+}
+
+.feed-reaction-counts:hover b,
+.feed-reaction-counts:focus-visible b {
+  color: var(--gs-cyan);
+}
+
+.feed-reaction-counts:focus-visible {
+  outline: 2px solid var(--gs-cyan);
+  outline-offset: 2px;
+}
+
+.feed-post-counts > button:last-child {
+  margin-left: auto;
 }
 
 .feed-post-counts button {
@@ -1185,6 +1249,85 @@
   transform: translateY(-3px) scale(1.08);
 }
 
+.feed-reaction-people {
+  padding: 9px 15px 11px;
+  border-top: 1px solid var(--feed-border);
+  background: color-mix(in srgb, var(--feed-soft) 48%, transparent);
+}
+
+.feed-reaction-people > header {
+  min-height: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.feed-reaction-people > header > strong {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.feed-reaction-people > header > button {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--feed-muted);
+}
+
+.feed-reaction-people > header > button:hover {
+  background: var(--feed-soft);
+  color: var(--feed-text);
+}
+
+.feed-reaction-people > header svg {
+  width: 15px;
+  height: 15px;
+}
+
+.feed-reaction-people-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  column-gap: 18px;
+}
+
+.feed-reaction-person {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-top: 1px solid color-mix(in srgb, var(--feed-border) 70%, transparent);
+}
+
+.feed-reaction-person > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.feed-reaction-person .feed-member-name {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-reaction-person > div > span {
+  color: var(--feed-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
 .feed-comments {
   padding: 10px 15px 13px;
   border-top: 1px solid var(--feed-border);
@@ -1206,7 +1349,8 @@
   background: var(--feed-soft);
 }
 
-.feed-comment strong {
+.feed-comment strong,
+.feed-comment .feed-member-name {
   display: block;
   font-size: 11px;
   font-weight: 850;

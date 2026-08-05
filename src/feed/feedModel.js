@@ -133,6 +133,38 @@ export function summarizeFeedReactions(reactions = []) {
     }));
 }
 
+export function canOpenFeedMemberProfile(member) {
+  return Boolean(String(member?.playerId || '').trim());
+}
+
+export function feedReactionDetails(reactions = [], members = []) {
+  const memberById = new Map(
+    members.map((member) => [String(member.id || ''), member]),
+  );
+  const reactionOrder = new Map(
+    FEED_REACTIONS.map((reaction, index) => [reaction.id, index]),
+  );
+
+  return reactions
+    .map((entry) => {
+      const option = FEED_REACTIONS.find((reaction) => reaction.id === entry.reaction);
+      if (!option) return null;
+      return {
+        ...entry,
+        emoji: option.emoji,
+        label: option.label,
+        member: memberById.get(String(entry.userId || '')) || null,
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) => (
+      reactionOrder.get(left.reaction) - reactionOrder.get(right.reaction)
+      || String(left.member?.displayName || left.member?.username || '').localeCompare(
+        String(right.member?.displayName || right.member?.username || ''),
+      )
+    ));
+}
+
 export function formatFeedTime(value, now = new Date()) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
