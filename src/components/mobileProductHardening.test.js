@@ -30,6 +30,7 @@ const serviceWorker = readFileSync(new URL('../../public/sw.js', import.meta.url
 const pwaPrecache = readFileSync(new URL('../../scripts/inject-pwa-precache.mjs', import.meta.url), 'utf8');
 const publicBuildCheck = readFileSync(new URL('../../scripts/check-public-build.mjs', import.meta.url), 'utf8');
 const packageJson = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
+const vercel = JSON.parse(readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8'));
 
 describe('mobile product hardening contracts', () => {
   it('keeps portrait coaching collapsed, fills short landscape, and exposes view tools in a rink overlay', () => {
@@ -223,10 +224,22 @@ describe('mobile product hardening contracts', () => {
     expect(html).toContain('goonsquad-favicon-v3-64.png');
     expect(html).toContain('property="og:title" content="Goon with the squad"');
     expect(html).toContain('goonsquad-social-v3.jpeg');
-    expect(main).toContain("navigator.serviceWorker.register('/sw.js', { scope: '/' })");
+    expect(main).toContain("navigator.serviceWorker.register('/sw.js', {");
+    expect(main).toContain("updateViaCache: 'none'");
+    expect(main).toContain("navigator.serviceWorker.addEventListener('controllerchange'");
+    expect(main).toContain('window.location.reload()');
+    expect(main).toContain('registration.update()');
     expect(serviceWorker).toContain("self.addEventListener('fetch'");
     expect(serviceWorker).toContain('PRECACHE_ASSETS');
     expect(serviceWorker).toContain("contentType.includes('text/html')");
+    expect(serviceWorker).toContain("key.startsWith('goonsquad-app-')");
+    expect(serviceWorker).toContain("releaseUrl.searchParams.set('__release', BUILD_ID)");
+    expect(serviceWorker).toContain('client.navigate(releaseUrl.href)');
+    expect(vercel.headers.find(({ source }) => source === '/sw.js')).toEqual(expect.objectContaining({
+      headers: expect.arrayContaining([
+        { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+      ]),
+    }));
     expect(pwaPrecache).toContain('BUILD_ASSETS');
     expect(packageJson.scripts.build).toContain('inject-pwa-precache.mjs');
     expect(publicBuildCheck).toContain('production asset manifest');

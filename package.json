@@ -84,6 +84,7 @@
     "qa:3d-navigation": "node scripts/capture-3d-catalog-navigation.mjs",
     "qa:replay-product": "node scripts/capture-replay-product-audit.mjs",
     "qa:mobile-product": "node scripts/capture-mobile-product-audit.mjs",
+    "qa:pwa-release-update": "node scripts/check-pwa-release-update.mjs",
     "qa:faceoffs": "node scripts/capture-faceoff-outcomes.mjs",
     "qa:play-workspace": "node scripts/capture-unified-play-workspace.mjs",
     "qa:playmaker:parity": "node scripts/capture-playmaker-receiver-parity.mjs",

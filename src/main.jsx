@@ -22,9 +22,34 @@ createRoot(document.getElementById('root')).render(
 );
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+  let activeController = navigator.serviceWorker.controller;
+  let reloadingForRelease = false;
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!activeController) {
+      activeController = navigator.serviceWorker.controller;
+      return;
+    }
+    if (reloadingForRelease) return;
+    reloadingForRelease = true;
+    window.location.reload();
+  });
+
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+        updateViaCache: 'none',
+      });
+      const checkForRelease = () => registration.update().catch(() => undefined);
+      await checkForRelease();
+      window.setInterval(checkForRelease, 30 * 60 * 1000);
+      window.addEventListener('focus', checkForRelease);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkForRelease();
+      });
+    } catch {
       // The online app remains fully usable when service workers are unavailable.
-    });
+    }
   }, { once: true });
 }

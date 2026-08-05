@@ -47,7 +47,10 @@ function applicationServerKey(value) {
 async function attendanceServiceWorker({ create = false } = {}) {
   let registration = await navigator.serviceWorker.getRegistration('/');
   if (!registration && create) {
-    registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    registration = await navigator.serviceWorker.register('/sw.js', {
+      scope: '/',
+      updateViaCache: 'none',
+    });
   }
   return registration;
 }
