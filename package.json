@@ -91,6 +91,7 @@
     "qa:team-platform": "node scripts/capture-team-platform.mjs",
     "qa:home-side-rail": "node scripts/check-home-side-rail.mjs",
     "qa:tournaments": "node scripts/capture-tournament-workspace.mjs",
+    "qa:tournament:entrants": "node scripts/check-tournament-entrants.mjs",
     "qa:attendance": "node scripts/capture-attendance-review.mjs",
     "qa:member-profile": "node scripts/capture-member-profile.mjs",
     "qa:account": "node scripts/capture-member-profile.mjs",

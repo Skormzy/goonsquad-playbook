@@ -10,6 +10,7 @@ import {
   tournamentEventGames,
   tournamentForPersistence,
   tournamentGameById,
+  isTournamentEntrantName,
   tournamentPoolStandings,
   tournamentTeams,
   tournamentSummary,
@@ -36,6 +37,17 @@ describe('tournament archive model', () => {
       ['Pool A', ['Balls of Glory', 'Moosehead', 'Dirty Birds']],
       ['Pool B', ['Goonsquad', 'Cambridge', 'Sudbury Silly Gooses']],
       ['Pool C', ['High Park Highlanders', 'Sarabha', 'Mitt Magicians']],
+    ]);
+    expect(tournament.teams.map((team) => team.name)).toEqual([
+      'Goonsquad',
+      'Cambridge',
+      'Sudbury Silly Gooses',
+      'Balls of Glory',
+      'Moosehead',
+      'Dirty Birds',
+      'High Park Highlanders',
+      'Sarabha',
+      'Mitt Magicians',
     ]);
 
     expect(eventGames).toHaveLength(17);
@@ -247,6 +259,51 @@ describe('tournament archive model', () => {
 
     expect(rounds.map((round) => round.id)).toEqual(['quarterfinal', 'semifinal']);
     expect(rounds[1].matches.map((match) => match.id)).toEqual(['sf-1', 'sf-2']);
+  });
+
+  it('keeps bracket seed instructions out of the registered tournament field', () => {
+    const tournament = {
+      id: 'future-event',
+      name: 'Future event',
+      teamName: 'Goonsquad',
+      teams: [{ name: 'Cambridge' }, { name: '8th Overall' }],
+      eventGames: [
+        { awayTeam: 'Sudbury Silly Gooses', homeTeam: '9th Overall' },
+        { awayTeam: 'Winner Game 51', homeTeam: '1st PW Overall' },
+      ],
+      bracket: [
+        { awayTeam: { name: 'Winner Game 56' }, homeTeam: { name: 'Winner Game 57' } },
+      ],
+    };
+    const teams = tournamentTeams(tournament);
+
+    expect(teams.map((team) => team.name)).toEqual([
+      'Goonsquad',
+      'Cambridge',
+      'Sudbury Silly Gooses',
+    ]);
+    expect([
+      '8th Overall',
+      '3rd PW Overall',
+      'Winner Game 51',
+      'Loser Game 52',
+      'TBD',
+      'Pool A winner',
+    ].every((name) => !isTournamentEntrantName(name))).toBe(true);
+    expect(tournamentForPersistence(tournament).teams.map((team) => team.name)).toEqual([
+      'Goonsquad',
+      'Cambridge',
+      'Sudbury Silly Gooses',
+    ]);
+  });
+
+  it('keeps every published tournament field limited to named entrants', () => {
+    TOURNAMENT_ARCHIVE.forEach((tournament) => {
+      expect(
+        tournament.teams.every((team) => isTournamentEntrantName(team.name)),
+        `${tournament.id} contains a bracket instruction in its team field`,
+      ).toBe(true);
+    });
   });
 
   it('orders every elimination round by the winners that feed the next matchup', () => {
