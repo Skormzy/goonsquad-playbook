@@ -7,9 +7,9 @@ const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), '
 const home = read('src/feed/TeamHome.jsx');
 const styles = read('src/feed/feed.css');
 const cloud = read('src/feed/feedCloud.js');
-const migration = read('supabase/migrations/20260730_team_feed.sql');
-const activityMigration = read('supabase/migrations/20260730_team_feed_activity.sql');
-const tiktokMigration = read('supabase/migrations/20260731_team_feed_tiktok.sql');
+const migration = read('supabase/migrations/202607300001_team_feed.sql');
+const activityMigration = read('supabase/migrations/202607300002_team_feed_activity.sql');
+const tiktokMigration = read('supabase/migrations/202607310002_team_feed_tiktok.sql');
 const desktopNav = read('src/components/WorkspaceSwitcher.jsx');
 const mobileNav = read('src/components/MobileBottomNav.jsx');
 const deployment = read('vercel.json');
