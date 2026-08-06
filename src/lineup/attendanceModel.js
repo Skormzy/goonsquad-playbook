@@ -40,6 +40,17 @@ export function rosterTeamIdsForMember(dataset, member) {
     .map((membership) => membership.seasonTeamId));
 }
 
+export function memberScopedLeagueGames({ dataset, games = [], member }) {
+  if (!dataset || !Array.isArray(games)) return [];
+  if (member?.role === 'admin') return games;
+
+  const playerId = datasetPlayerIdForMember(dataset, member);
+  if (!playerId) return games;
+
+  const teamIds = rosterTeamIdsForMember(dataset, member);
+  return games.filter((game) => teamIds.has(game.seasonTeamId));
+}
+
 export function memberScheduleLabels(dataset, member) {
   const teamIds = rosterTeamIdsForMember(dataset, member);
   return [...new Set((dataset?.teams || [])

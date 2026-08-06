@@ -24,13 +24,25 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys
-        .filter((key) => key !== CACHE_NAME)
-        .map((key) => caches.delete(key))))
-      .then(() => self.clients.claim()),
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    const previousAppCaches = keys.filter((key) => (
+      key.startsWith('goonsquad-app-') && key !== CACHE_NAME
+    ));
+    await Promise.all(previousAppCaches.map((key) => caches.delete(key)));
+    await self.clients.claim();
+
+    if (previousAppCaches.length > 0) {
+      const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      windows.forEach((client) => {
+        const releaseUrl = new URL(client.url);
+        releaseUrl.searchParams.set('__release', BUILD_ID);
+        client.navigate(releaseUrl.href).catch(() => {
+          // A later focus or navigation will load the active release.
+        });
+      });
+    }
+  })());
 });
 
 self.addEventListener('fetch', (event) => {

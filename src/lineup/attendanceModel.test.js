@@ -4,6 +4,7 @@ import {
   buildAttendanceFixtures,
   leagueEpDirectory,
   memberCanViewAttendance,
+  memberScopedLeagueGames,
 } from './attendanceModel';
 
 const NOW = new Date('2026-07-31T12:00:00-04:00').getTime();
@@ -37,6 +38,44 @@ const dataset = {
 };
 const seymour = { id: 'user-seymour', role: 'member', playerExternalId: '101' };
 const sundayPlayer = { id: 'user-sunday', role: 'member', playerExternalId: '202' };
+
+describe('member-scoped league games', () => {
+  it('keeps a Monday-only player on the Monday schedule', () => {
+    const games = memberScopedLeagueGames({ dataset, games: dataset.games, member: seymour });
+    expect(games.map((game) => game.id)).toEqual(['mon-1', 'mon-2', 'mon-3']);
+  });
+
+  it('keeps a Sunday-only player on the Sunday schedule', () => {
+    const games = memberScopedLeagueGames({ dataset, games: dataset.games, member: sundayPlayer });
+    expect(games.map((game) => game.id)).toEqual(['sun-1', 'sun-2']);
+  });
+
+  it('shows both schedules to a dual-roster player', () => {
+    const dualDataset = {
+      ...dataset,
+      memberships: [
+        ...dataset.memberships,
+        { playerId: 'player-seymour', seasonTeamId: 'sunday', active: true },
+      ],
+    };
+    const games = memberScopedLeagueGames({ dataset: dualDataset, games: dataset.games, member: seymour });
+    expect(games.map((game) => game.id)).toEqual(dataset.games.map((game) => game.id));
+  });
+
+  it('keeps the combined public view and the admin operations view', () => {
+    expect(memberScopedLeagueGames({ dataset, games: dataset.games, member: null })).toEqual(dataset.games);
+    expect(memberScopedLeagueGames({
+      dataset,
+      games: dataset.games,
+      member: { id: 'coach', role: 'admin' },
+    })).toEqual(dataset.games);
+  });
+
+  it('fails closed for a linked player whose roster membership is missing', () => {
+    const member = { id: 'user-orphaned', role: 'member', playerExternalId: '303' };
+    expect(memberScopedLeagueGames({ dataset, games: dataset.games, member })).toEqual([]);
+  });
+});
 
 describe('fixture-scoped attendance', () => {
   it('shows a linked member only the next two games on their own roster', () => {

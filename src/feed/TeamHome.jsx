@@ -40,6 +40,7 @@ import { useAccount } from '../account/AccountContext';
 import { teamAccessPromptCopy } from '../account/teamAccess';
 import OfficialSocialLinks from '../brand/OfficialSocialLinks';
 import AttendanceBoard from '../lineup/AttendanceBoard';
+import { memberScopedLeagueGames } from '../lineup/attendanceModel';
 import { goonsquadDisplayText } from '../brand/teamBrand';
 import { useApp } from '../context/AppContext';
 import { loadStatisticsDataset } from '../stats/statsCloud';
@@ -63,22 +64,27 @@ import {
   deleteTeamFeedPost,
   loadTeamFeed,
   markTeamFeedMentionsRead,
+  setTeamFeedCommentLike,
   setTeamFeedPostPinned,
   setTeamFeedReaction,
   subscribeTeamFeed,
 } from './feedCloud';
 import {
+  canOpenFeedMemberProfile,
   canPublishFeedPost,
   FEED_COMMENT_MAX_LENGTH,
   FEED_POST_MAX_LENGTH,
   FEED_REACTIONS,
+  feedCommentLikeDetails,
   feedGameDetailsHref,
   feedMediaContentType,
+  feedReactionDetails,
   feedTextParts,
   formatFeedTime,
   initialsForMember,
   linkDomain,
   summarizeFeedReactions,
+  threadFeedComments,
   validateFeedMedia,
 } from './feedModel';
 import {
@@ -106,7 +112,7 @@ const QA_MEMBERS = Object.freeze([
     username: 'seymour',
     displayName: 'Seymour Korman',
     role: 'admin',
-    playerId: '',
+    playerId: 'ycbhl-player-26133',
   },
   {
     id: 'qa-coach',
@@ -120,7 +126,7 @@ const QA_MEMBERS = Object.freeze([
     username: 'winger',
     displayName: 'Ryan Hunt',
     role: 'member',
-    playerId: '',
+    playerId: 'ycbhl-player-307',
   },
   {
     id: 'qa-ep-account',
@@ -158,10 +164,24 @@ const QA_POSTS = Object.freeze([
     comments: [{
       id: 'qa-comment-1',
       postId: 'qa-post-1',
+      parentCommentId: '',
       body: 'Got it. Inside-out pressure and protect the middle.',
       authorId: 'qa-winger',
       author: QA_MEMBERS[2],
+      likes: [
+        { userId: 'qa-user', createdAt: '2026-07-30T14:12:00Z' },
+        { userId: 'qa-coach', createdAt: '2026-07-30T14:13:00Z' },
+      ],
       createdAt: '2026-07-30T14:10:00Z',
+    }, {
+      id: 'qa-comment-2',
+      postId: 'qa-post-1',
+      parentCommentId: 'qa-comment-1',
+      body: '@winger exactly. Force the ball outside and let the second layer close.',
+      authorId: 'qa-coach',
+      author: QA_MEMBERS[1],
+      likes: [{ userId: 'qa-winger', createdAt: '2026-07-30T14:17:00Z' }],
+      createdAt: '2026-07-30T14:15:00Z',
     }],
     mentions: [{
       id: 'qa-mention-1',
@@ -289,6 +309,38 @@ function Avatar({ member, size = 'md' }) {
   );
 }
 
+function MemberAvatar({ member, onOpenMember, size = 'md' }) {
+  if (!canOpenFeedMemberProfile(member)) return <Avatar member={member} size={size} />;
+  const label = member.playerName || member.displayName || member.username || 'member';
+  return (
+    <button
+      type="button"
+      className="feed-member-avatar-button"
+      onClick={() => onOpenMember(member)}
+      aria-label={`Open ${label}'s player page`}
+    >
+      <Avatar member={member} size={size} />
+    </button>
+  );
+}
+
+function MemberName({ fallback = 'Team member', member, onOpenMember }) {
+  const label = member?.displayName || fallback;
+  if (!canOpenFeedMemberProfile(member)) {
+    return <strong className="feed-member-name is-static">{label}</strong>;
+  }
+  return (
+    <button
+      type="button"
+      className="feed-member-name"
+      onClick={() => onOpenMember(member)}
+      aria-label={`Open ${label}'s player page`}
+    >
+      {label}
+    </button>
+  );
+}
+
 function sourceIdentity(post) {
   if (post.sourceType === 'result') {
     return {
@@ -328,9 +380,9 @@ function sourceIdentity(post) {
   return null;
 }
 
-function FeedPostAvatar({ post }) {
+function FeedPostAvatar({ onOpenMember, post }) {
   const source = sourceIdentity(post);
-  if (!source) return <Avatar member={post.author} />;
+  if (!source) return <MemberAvatar member={post.author} onOpenMember={onOpenMember} />;
   const { Icon } = source;
   return (
     <span className={`feed-source-avatar is-${post.sourceType}`} aria-hidden="true">
@@ -495,6 +547,7 @@ function RichFeedText({ children, members, onOpenMember }) {
 
 function MentionInput({
   ariaLabel,
+  inputRef,
   maxLength,
   members,
   onChange,
@@ -530,6 +583,7 @@ function MentionInput({
     <div className="feed-mention-input">
       <textarea
         aria-label={ariaLabel}
+        ref={inputRef}
         maxLength={maxLength}
         rows={rows}
         value={value}
@@ -746,6 +800,124 @@ function MemberFeedVideo({ mediaUrl }) {
   );
 }
 
+function FeedCommentItem({
+  currentUserId,
+  isAdmin,
+  isReply = false,
+  item,
+  members,
+  onDeleteComment,
+  onLikeComment,
+  onOpenMember,
+  onReply,
+  pendingAction,
+}) {
+  const [likesOpen, setLikesOpen] = useState(false);
+  const likes = item.likes || [];
+  const liked = likes.some((like) => like.userId === currentUserId);
+  const likeDetails = feedCommentLikeDetails(likes, members);
+
+  return (
+    <div className={`feed-comment${isReply ? ' is-reply' : ''}`}>
+      <MemberAvatar member={item.author} onOpenMember={onOpenMember} size="sm" />
+      <div className="feed-comment-main">
+        <div className="feed-comment-bubble">
+          <MemberName member={item.author} onOpenMember={onOpenMember} />
+          <RichFeedText members={members} onOpenMember={onOpenMember}>{item.body}</RichFeedText>
+        </div>
+        <div className="feed-comment-actions">
+          <small>{formatFeedTime(item.createdAt)}</small>
+          <button
+            type="button"
+            className={liked ? 'is-liked' : ''}
+            disabled={pendingAction}
+            onClick={() => onLikeComment(item)}
+            aria-pressed={liked}
+            aria-label={`${liked ? 'Unlike' : 'Like'} ${item.author?.displayName || 'this'} comment`}
+          >
+            <Heart fill={liked ? 'currentColor' : 'none'} aria-hidden="true" />
+            {liked ? 'Liked' : 'Like'}
+          </button>
+          {likes.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setLikesOpen((open) => !open)}
+              aria-expanded={likesOpen}
+              aria-controls={`feed-comment-likes-${item.id}`}
+            >
+              {likes.length} {likes.length === 1 ? 'like' : 'likes'}
+            </button>
+          )}
+          <button type="button" onClick={() => onReply(item)}>
+            <MessageCircle aria-hidden="true" /> Reply
+          </button>
+        </div>
+        {likesOpen && (
+          <div
+            className="feed-comment-likers"
+            id={`feed-comment-likes-${item.id}`}
+            aria-label="People who liked this comment"
+          >
+            {likeDetails.map((detail) => (
+              <span key={detail.userId}>
+                <MemberAvatar member={detail.member} onOpenMember={onOpenMember} size="sm" />
+                <MemberName member={detail.member} onOpenMember={onOpenMember} />
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      {(isAdmin || item.authorId === currentUserId) && (
+        <button
+          type="button"
+          className="feed-comment-delete"
+          onClick={() => onDeleteComment(item.id)}
+          aria-label="Delete comment"
+        >
+          <Trash2 />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function FeedCommentThread(props) {
+  const { item } = props;
+  const [repliesOpen, setRepliesOpen] = useState(true);
+  const replyCount = item.replies.length;
+
+  return (
+    <section className="feed-comment-thread" aria-label="Comment thread">
+      <FeedCommentItem {...props} />
+      {replyCount > 0 && (
+        <button
+          type="button"
+          className="feed-comment-replies-toggle"
+          onClick={() => setRepliesOpen((open) => !open)}
+          aria-expanded={repliesOpen}
+        >
+          <span aria-hidden="true" />
+          {repliesOpen
+            ? `Hide ${replyCount === 1 ? 'reply' : 'replies'}`
+            : `View ${replyCount} ${replyCount === 1 ? 'reply' : 'replies'}`}
+        </button>
+      )}
+      {repliesOpen && replyCount > 0 && (
+        <div className="feed-comment-replies">
+          {item.replies.map((reply) => (
+            <FeedCommentItem
+              {...props}
+              isReply
+              item={reply}
+              key={reply.id}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function PostCard({
   currentUserId,
   isAdmin,
@@ -753,6 +925,7 @@ function PostCard({
   onComment,
   onDeleteComment,
   onDeletePost,
+  onLikeComment,
   onOpenMember,
   onPin,
   onReact,
@@ -764,6 +937,9 @@ function PostCard({
   const [commentsOpen, setCommentsOpen] = useState(post.comments.length > 0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [reactionOpen, setReactionOpen] = useState(false);
+  const [reactionDetailsOpen, setReactionDetailsOpen] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
+  const commentInputRef = useRef(null);
   const currentReaction = post.reactions.find(
     (reaction) => reaction.userId === currentUserId,
   )?.reaction || '';
@@ -771,6 +947,9 @@ function PostCard({
     (reaction) => reaction.id === currentReaction,
   );
   const reactionSummary = summarizeFeedReactions(post.reactions);
+  const reactionDetails = feedReactionDetails(post.reactions, members);
+  const commentThreads = useMemo(() => threadFeedComments(post.comments), [post.comments]);
+  const commentCount = post.comments.length;
   const source = sourceIdentity(post);
   const canManage = isAdmin || (
     post.sourceType === 'member'
@@ -782,15 +961,27 @@ function PostCard({
     const next = comment;
     setComment('');
     try {
-      const completed = await onComment(post.id, next);
+      const completed = await onComment(post.id, next, replyingTo?.commentId || '');
       if (!completed) {
         setComment(next);
         return;
       }
+      setReplyingTo(null);
       setCommentsOpen(true);
     } catch {
       setComment(next);
     }
+  };
+
+  const beginReply = (item) => {
+    const username = String(item.author?.username || '').trim();
+    setReplyingTo({
+      commentId: item.parentCommentId || item.id,
+      member: item.author,
+    });
+    setComment(username ? `@${username} ` : '');
+    setCommentsOpen(true);
+    window.requestAnimationFrame(() => commentInputRef.current?.focus());
   };
 
   return (
@@ -804,11 +995,11 @@ function PostCard({
     >
       {post.pinnedAt && <div className="feed-post-pinned"><Pin /> PINNED FOR THE SQUAD</div>}
       <header className="feed-post-header">
-        <FeedPostAvatar post={post} />
+        <FeedPostAvatar post={post} onOpenMember={onOpenMember} />
         <div>
-          <strong>
-            {source?.displayName || post.author?.displayName || 'Goonsquad member'}
-          </strong>
+          {source
+            ? <strong>{source.displayName}</strong>
+            : <MemberName member={post.author} onOpenMember={onOpenMember} fallback="Goonsquad member" />}
           <span>
             {source ? source.username : `@${post.author?.username || 'member'}`}
             {' · '}
@@ -892,17 +1083,67 @@ function PostCard({
       )}
       {(post.reactions.length > 0 || post.comments.length > 0) && (
         <div className="feed-post-counts">
-          <span className="feed-reaction-counts">
-            {reactionSummary.map((reaction) => (
-              <span key={reaction.id} title={`${reaction.count} ${reaction.label}`}>
-                {reaction.emoji}<b>{reaction.count}</b>
-              </span>
-            ))}
-          </span>
+          {post.reactions.length > 0 && (
+            <button
+              type="button"
+              className="feed-reaction-counts"
+              onClick={() => {
+                setReactionOpen(false);
+                setReactionDetailsOpen((open) => !open);
+              }}
+              aria-expanded={reactionDetailsOpen}
+              aria-controls={`feed-reactions-${post.id}`}
+              aria-label={`View ${post.reactions.length} ${post.reactions.length === 1 ? 'reaction' : 'reactions'}`}
+            >
+              {reactionSummary.map((reaction) => (
+                <span key={reaction.id} title={`${reaction.count} ${reaction.label}`}>
+                  {reaction.emoji}<b>{reaction.count}</b>
+                </span>
+              ))}
+            </button>
+          )}
           <button type="button" onClick={() => setCommentsOpen((open) => !open)}>
-            {post.comments.length ? `${post.comments.length} ${post.comments.length === 1 ? 'comment' : 'comments'}` : ''}
+            {commentCount ? `${commentCount} ${commentCount === 1 ? 'comment' : 'comments'}` : ''}
           </button>
         </div>
+      )}
+      {reactionDetailsOpen && (
+        <section
+          className="feed-reaction-people"
+          id={`feed-reactions-${post.id}`}
+          aria-label="People who reacted"
+        >
+          <header>
+            <strong>Reactions</strong>
+            <button type="button" onClick={() => setReactionDetailsOpen(false)} aria-label="Close reactions">
+              <X />
+            </button>
+          </header>
+          <div className="feed-reaction-people-list">
+            {reactionDetails.map((detail, index) => (
+              <div className="feed-reaction-person" key={`${detail.userId}-${detail.reaction}-${index}`}>
+                <MemberAvatar
+                  member={detail.member}
+                  onOpenMember={(member) => {
+                    setReactionDetailsOpen(false);
+                    onOpenMember(member);
+                  }}
+                  size="sm"
+                />
+                <div>
+                  <MemberName
+                    member={detail.member}
+                    onOpenMember={(member) => {
+                      setReactionDetailsOpen(false);
+                      onOpenMember(member);
+                    }}
+                  />
+                  <span aria-label={detail.label}>{detail.emoji} {detail.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
       <div className="feed-post-actions">
         <div className="feed-reaction-action">
@@ -910,7 +1151,10 @@ function PostCard({
             type="button"
             className={currentReaction ? 'is-active' : ''}
             disabled={pendingAction}
-            onClick={() => setReactionOpen((open) => !open)}
+            onClick={() => {
+              setReactionDetailsOpen(false);
+              setReactionOpen((open) => !open);
+            }}
             aria-expanded={reactionOpen}
           >
             {currentReactionOption
@@ -939,7 +1183,14 @@ function PostCard({
             </div>
           )}
         </div>
-        <button type="button" onClick={() => setCommentsOpen(true)}>
+        <button
+          type="button"
+          onClick={() => {
+            setReplyingTo(null);
+            setCommentsOpen(true);
+            window.requestAnimationFrame(() => commentInputRef.current?.focus());
+          }}
+        >
           <MessageCircle /> Comment
         </button>
         <button type="button" onClick={() => onShare(post)}>
@@ -948,31 +1199,49 @@ function PostCard({
       </div>
       {commentsOpen && (
         <div className="feed-comments">
-          {post.comments.map((item) => (
-            <div className="feed-comment" key={item.id}>
-              <Avatar member={item.author} size="sm" />
-              <div>
-                <strong>{item.author?.displayName || 'Team member'}</strong>
-                <RichFeedText members={members} onOpenMember={onOpenMember}>{item.body}</RichFeedText>
-                <small>{formatFeedTime(item.createdAt)}</small>
-              </div>
-              {(isAdmin || item.authorId === currentUserId) && (
-                <button type="button" onClick={() => onDeleteComment(item.id)} aria-label="Delete comment">
-                  <Trash2 />
-                </button>
-              )}
-            </div>
+          {commentThreads.map((item) => (
+            <FeedCommentThread
+              currentUserId={currentUserId}
+              isAdmin={isAdmin}
+              item={item}
+              key={item.id}
+              members={members}
+              onDeleteComment={onDeleteComment}
+              onLikeComment={onLikeComment}
+              onOpenMember={onOpenMember}
+              onReply={beginReply}
+              pendingAction={pendingAction}
+            />
           ))}
+          {replyingTo && (
+            <div className="feed-reply-target">
+              <MessageCircle aria-hidden="true" />
+              <span>Replying to <MemberName member={replyingTo.member} onOpenMember={onOpenMember} /></span>
+              <button
+                type="button"
+                onClick={() => {
+                  setReplyingTo(null);
+                  setComment('');
+                }}
+                aria-label="Cancel reply"
+              >
+                <X />
+              </button>
+            </div>
+          )}
           <div className="feed-comment-composer">
             <Avatar member={members.find((member) => member.id === currentUserId)} size="sm" />
             <MentionInput
               ariaLabel={`Comment on ${post.author?.displayName || 'post'}`}
+              inputRef={commentInputRef}
               maxLength={FEED_COMMENT_MAX_LENGTH}
               members={members.filter((member) => member.id !== currentUserId)}
               value={comment}
               onChange={setComment}
               onSubmit={submitComment}
-              placeholder="Write a comment…"
+              placeholder={replyingTo
+                ? `Reply to ${replyingTo.member?.displayName || 'comment'}…`
+                : 'Write a comment…'}
             />
             <button type="button" disabled={!comment.trim() || pendingAction} onClick={submitComment} aria-label="Post comment">
               <Send />
@@ -984,27 +1253,47 @@ function PostCard({
   );
 }
 
-function TeamPulse({ dataset, onOpenGame, onOpenStats, snapshot }) {
+function TeamPulse({ dataset, member, onOpenGame, onOpenStats, snapshot }) {
   if (!dataset || !snapshot) {
     return <div className="team-pulse-loading"><RefreshCw /> Loading game pulse…</div>;
   }
-  const finals = snapshot.games.filter((game) => game.status === 'final');
+  const visibleGames = memberScopedLeagueGames({ dataset, games: snapshot.games, member });
+  const finals = visibleGames.filter((game) => game.status === 'final');
   const latest = finals[0] || null;
-  const next = nextUpcomingGame(snapshot.games);
-  const record = `${snapshot.summary.wins}–${snapshot.summary.losses}–${snapshot.summary.ties}`;
+  const next = nextUpcomingGame(visibleGames);
   const schedule = (game) => dataset.teams.find((team) => team.id === game?.seasonTeamId);
   const leagueNames = [...new Set(snapshot.seasonTeams.map(formatLeagueName))].join(' + ');
+  const teamRecords = [...snapshot.seasonSchedules].sort((left, right) => {
+    const rank = (label) => (/Sunday/iu.test(label) ? 0 : /Monday/iu.test(label) ? 1 : 2);
+    return rank(left.label) - rank(right.label) || left.label.localeCompare(right.label);
+  });
 
   return (
     <aside className="team-pulse" aria-label="Team performance pulse">
       <header>
         <div><span>GAME PULSE · {leagueNames}</span><h2>{snapshot.season?.name || 'Goonsquad'}</h2></div>
-        <button type="button" onClick={onOpenStats}>Full stats <ChevronRight /></button>
+        <button type="button" onClick={() => onOpenStats()}>All stats <ChevronRight /></button>
       </header>
-      <div className="team-pulse-record">
-        <span><Trophy /> SEASON RECORD</span>
-        <strong>{record}</strong>
-        <small>{snapshot.summary.gamesPlayed} games · {snapshot.summary.goalsFor} GF · {snapshot.summary.goalsAgainst} GA</small>
+      <div className="team-pulse-team-records" aria-label={`${snapshot.season?.name || 'Current season'} team records`}>
+        {teamRecords.map(({ team, label, summary }) => {
+          const day = /Sunday/iu.test(label) ? 'Sunday' : /Monday/iu.test(label) ? 'Monday' : label;
+          const tone = day === 'Sunday' ? 'is-sunday' : day === 'Monday' ? 'is-monday' : '';
+          const record = `${summary.wins}–${summary.losses}–${summary.ties}`;
+          return (
+            <button
+              type="button"
+              className={`team-pulse-team-record ${tone}`.trim()}
+              key={team.id}
+              aria-label={`Open ${label} stats. Record ${record}`}
+              onClick={() => onOpenStats({ season: snapshot.season.id, team: team.id })}
+            >
+              <span><Trophy /> {day.toUpperCase()} TEAM</span>
+              <strong>{record}</strong>
+              <small>{formatLeagueName(team)} · {summary.gamesPlayed} GP · {summary.goalsFor} GF · {summary.goalsAgainst} GA</small>
+              <ChevronRight aria-hidden="true" />
+            </button>
+          );
+        })}
       </div>
       <div className="team-pulse-games">
         <button type="button" className="team-pulse-game is-next" onClick={() => next && onOpenGame(next)} disabled={!next}>
@@ -1026,15 +1315,7 @@ function TeamPulse({ dataset, onOpenGame, onOpenStats, snapshot }) {
           {latest && <ChevronRight />}
         </button>
       </div>
-      <div className="team-pulse-leagues">
-        {snapshot.seasonSchedules.map(({ team, summary }) => (
-          <div key={team.id}>
-            <span>{formatLeagueScheduleName(team)}</span>
-            <strong>{summary.wins}–{summary.losses}–{summary.ties}</strong>
-          </div>
-        ))}
-      </div>
-      <button type="button" className="team-pulse-stats-button" onClick={onOpenStats}>
+      <button type="button" className="team-pulse-stats-button" onClick={() => onOpenStats()}>
         <BarChart3 /> Standings, games and player stats
       </button>
     </aside>
@@ -1247,7 +1528,18 @@ export default function TeamHome() {
     url.searchParams.set('content', activeView === 'stats' ? 'stats' : activeView);
     url.searchParams.set('mode', '2d');
     url.searchParams.delete('post');
-    ['game', 'player', 'opponent', 'fixture'].forEach((key) => url.searchParams.delete(key));
+    [
+      'competition',
+      'fixture',
+      'game',
+      'opponent',
+      'player',
+      'season',
+      'stage',
+      'team',
+      'tournament',
+      'tournamentGame',
+    ].forEach((key) => url.searchParams.delete(key));
     Object.entries(params).forEach(([key, value]) => {
       if (value) url.searchParams.set(key, value);
     });
@@ -1452,18 +1744,81 @@ export default function TeamHome() {
                           userId: currentUserId,
                         })
                     ))}
-                    onComment={(postId, body) => runPostAction(post.id, () => (
+                    onComment={(postId, body, parentCommentId) => runPostAction(post.id, () => (
                       qaFeed
-                        ? Promise.resolve()
+                        ? Promise.resolve(setFeed((current) => ({
+                          ...current,
+                          posts: current.posts.map((candidate) => candidate.id === postId
+                            ? {
+                              ...candidate,
+                              comments: [...candidate.comments, {
+                                id: `qa-comment-${Date.now()}`,
+                                postId,
+                                parentCommentId,
+                                body,
+                                authorId: currentUserId,
+                                author: currentMember,
+                                likes: [],
+                                createdAt: new Date().toISOString(),
+                              }],
+                            }
+                            : candidate),
+                        })))
                         : createTeamFeedComment({
                           postId,
+                          parentCommentId,
                           body,
                           members: feed.members,
                           userId: currentUserId,
                         })
                     ))}
+                    onLikeComment={(commentItem) => runPostAction(post.id, () => (
+                      qaFeed
+                        ? Promise.resolve(setFeed((current) => ({
+                          ...current,
+                          posts: current.posts.map((candidate) => candidate.id === post.id
+                            ? {
+                              ...candidate,
+                              comments: candidate.comments.map((feedComment) => {
+                                if (feedComment.id !== commentItem.id) return feedComment;
+                                const likes = feedComment.likes || [];
+                                const liked = likes.some((like) => like.userId === currentUserId);
+                                return {
+                                  ...feedComment,
+                                  likes: liked
+                                    ? likes.filter((like) => like.userId !== currentUserId)
+                                    : [...likes, {
+                                      userId: currentUserId,
+                                      createdAt: new Date().toISOString(),
+                                    }],
+                                };
+                              }),
+                            }
+                            : candidate),
+                        })))
+                        : setTeamFeedCommentLike({
+                          commentId: commentItem.id,
+                          currentLiked: (commentItem.likes || []).some(
+                            (like) => like.userId === currentUserId,
+                          ),
+                          userId: currentUserId,
+                        })
+                    ))}
                     onDeleteComment={(commentId) => runPostAction(post.id, () => (
-                      qaFeed ? Promise.resolve() : deleteTeamFeedComment(commentId)
+                      qaFeed
+                        ? Promise.resolve(setFeed((current) => ({
+                          ...current,
+                          posts: current.posts.map((candidate) => candidate.id === post.id
+                            ? {
+                              ...candidate,
+                              comments: candidate.comments.filter((feedComment) => (
+                                feedComment.id !== commentId
+                                && feedComment.parentCommentId !== commentId
+                              )),
+                            }
+                            : candidate),
+                        })))
+                        : deleteTeamFeedComment(commentId)
                     ))}
                     onDeletePost={(item) => runPostAction(post.id, () => (
                       qaFeed
@@ -1506,8 +1861,9 @@ export default function TeamHome() {
           >
             <TeamPulse
               dataset={dataset}
+              member={currentMember}
               snapshot={snapshot}
-              onOpenStats={() => navigate('stats')}
+              onOpenStats={(params = {}) => navigate('stats', params)}
               onOpenGame={(game) => navigate('stats', { game: game.id })}
             />
             <div

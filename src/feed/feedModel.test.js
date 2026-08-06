@@ -1,14 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import {
+  canOpenFeedMemberProfile,
   canPublishFeedPost,
   extractFirstUrl,
   extractMentionUsernames,
   feedGameDetailsHref,
+  feedCommentLikeDetails,
   feedMediaContentType,
+  feedReactionDetails,
   feedTextParts,
   formatFeedTime,
   normalizeExternalUrl,
   summarizeFeedReactions,
+  threadFeedComments,
   validateFeedMedia,
 } from './feedModel';
 
@@ -82,6 +86,94 @@ describe('team feed model', () => {
     ])).toEqual([
       { id: 'like', emoji: '👍', label: 'Like', count: 1 },
       { id: 'fire', emoji: '🔥', label: 'Fire', count: 2 },
+    ]);
+  });
+
+  it('resolves reactors to member identities and linked player profiles', () => {
+    const members = [
+      { id: 'u1', displayName: 'Ryan Hunt', playerId: 'ycbhl-player-307' },
+      { id: 'u2', displayName: 'Coach', playerId: '' },
+    ];
+    const details = feedReactionDetails([
+      { userId: 'u2', reaction: 'fire' },
+      { userId: 'u1', reaction: 'like' },
+      { userId: 'missing', reaction: 'unsupported' },
+    ], members);
+
+    expect(details).toEqual([
+      {
+        userId: 'u1',
+        reaction: 'like',
+        emoji: '👍',
+        label: 'Like',
+        member: members[0],
+      },
+      {
+        userId: 'u2',
+        reaction: 'fire',
+        emoji: '🔥',
+        label: 'Fire',
+        member: members[1],
+      },
+    ]);
+    expect(canOpenFeedMemberProfile(members[0])).toBe(true);
+    expect(canOpenFeedMemberProfile(members[1])).toBe(false);
+  });
+
+  it('groups replies under their parent while keeping malformed replies visible', () => {
+    const comments = [
+      { id: 'root', body: 'Parent comment', parentCommentId: '' },
+      { id: 'reply', body: 'Reply', parentCommentId: 'root' },
+      { id: 'nested', body: 'Reply to reply', parentCommentId: 'reply' },
+      { id: 'orphan', body: 'Still visible', parentCommentId: 'missing' },
+    ];
+
+    expect(threadFeedComments(comments)).toEqual([
+      {
+        id: 'root',
+        body: 'Parent comment',
+        parentCommentId: '',
+        replies: [{
+          id: 'reply',
+          body: 'Reply',
+          parentCommentId: 'root',
+          replies: [],
+        }, {
+          id: 'nested',
+          body: 'Reply to reply',
+          parentCommentId: 'reply',
+          replies: [],
+        }],
+      },
+      {
+        id: 'orphan',
+        body: 'Still visible',
+        parentCommentId: 'missing',
+        replies: [],
+      },
+    ]);
+  });
+
+  it('resolves comment likes to member identities for profile navigation', () => {
+    const members = [
+      { id: 'u2', displayName: 'Seymour Korman', playerId: 'player-2' },
+      { id: 'u1', displayName: 'Ryan Hunt', playerId: 'player-1' },
+    ];
+
+    expect(feedCommentLikeDetails([
+      { userId: 'u2', createdAt: '2026-08-05T10:00:00Z' },
+      { userId: 'u1', createdAt: '2026-08-05T09:00:00Z' },
+    ], members)).toEqual([
+      {
+        userId: 'u1',
+        createdAt: '2026-08-05T09:00:00Z',
+        member: members[1],
+      },
+      {
+        userId: 'u2',
+        createdAt: '2026-08-05T10:00:00Z',
+        member: members[0],
+      },
     ]);
   });
 });

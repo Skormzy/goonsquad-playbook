@@ -67,10 +67,22 @@ for (const viewport of viewports) {
     await availabilitySummary.waitFor({ state: 'visible', timeout: 30_000 });
   }
   await page.evaluate(() => document.fonts.ready);
+  const topScreenshotPath = path.join(outputDir, `${viewport.id}-${viewport.width}x${viewport.height}-top.png`);
+  await page.screenshot({ path: topScreenshotPath, fullPage: false });
 
   const homeScroller = page.locator('.team-home');
   const sideRail = page.locator('.team-home-side-column');
   const pulse = page.locator('.team-pulse');
+  const teamRecordMetrics = await page.locator('.team-pulse-team-record').evaluateAll((elements) => (
+    elements.map((element) => ({
+      ariaLabel: element.getAttribute('aria-label'),
+      clientHeight: element.clientHeight,
+      clientWidth: element.clientWidth,
+      scrollHeight: element.scrollHeight,
+      scrollWidth: element.scrollWidth,
+      text: element.textContent.replace(/\s+/gu, ' ').trim(),
+    }))
+  ));
   const compactAttendanceBefore = viewport.compactDock
     ? await page.locator('.attendance-board.is-dock-mode').boundingBox()
     : null;
@@ -78,7 +90,7 @@ for (const viewport of viewports) {
     ? await page.getByTestId('mobile-bottom-nav').boundingBox()
     : null;
   const homeIconMetrics = viewport.mobileNav
-    ? await page.locator('[data-brand-icon="goonsquad-home"]').evaluate((element) => {
+    ? await page.getByTestId('mobile-nav-home').locator('[data-brand-icon="goonsquad-home"]').evaluate((element) => {
       const style = getComputedStyle(element);
       const box = element.getBoundingClientRect();
       return {
@@ -182,6 +194,7 @@ for (const viewport of viewports) {
     pulseHeightAfter: pulseAfter?.height ?? 0,
     pulseClipBefore,
     pulseClipAfter,
+    teamRecordMetrics,
     railTopWithinHome: (railAfter?.y ?? 0) - (homeBox?.y ?? 0),
     pulseTopWithinRail: (pulseAfter?.y ?? 0) - (railAfter?.y ?? 0),
     surfaceMetrics,
@@ -193,6 +206,7 @@ for (const viewport of viewports) {
     bottomNavBefore,
     homeIconMetrics,
     headerCrestMetrics,
+    topScreenshot: path.relative(root, topScreenshotPath).replaceAll('\\', '/'),
     screenshot: path.relative(root, screenshotPath).replaceAll('\\', '/'),
   };
 
@@ -219,17 +233,34 @@ for (const viewport of viewports) {
   if (result.pulseClipBefore > 1 || result.pulseClipAfter > 1) {
     throw new Error(`${viewport.id}: Game Pulse content is clipped.`);
   }
+  if (result.teamRecordMetrics.length !== 2) {
+    throw new Error(`${viewport.id}: Game Pulse must show exactly one Sunday and one Monday team record.`);
+  }
+  for (const expectedDay of ['Sunday', 'Monday']) {
+    const teamRecord = result.teamRecordMetrics.find((item) => item.ariaLabel?.includes(`${expectedDay} League stats`));
+    if (!teamRecord) {
+      throw new Error(`${viewport.id}: ${expectedDay} League record is missing or not directly actionable.`);
+    }
+    if (teamRecord.scrollWidth - teamRecord.clientWidth > 1 || teamRecord.scrollHeight - teamRecord.clientHeight > 1) {
+      throw new Error(`${viewport.id}: ${expectedDay} League record content is clipped.`);
+    }
+  }
   if (result.surfaceMetrics.home?.overflowY !== 'auto') {
     throw new Error(`${viewport.id}: Home is not the consolidated scroll surface.`);
   }
   if (result.surfaceMetrics.home.scrollHeight <= result.surfaceMetrics.home.clientHeight) {
     throw new Error(`${viewport.id}: Home does not have enough content to exercise page scrolling.`);
   }
-  for (const surface of ['feed', 'attendance']) {
-    const overflowY = result.surfaceMetrics[surface]?.overflowY;
-    if (overflowY === 'auto' || overflowY === 'scroll') {
-      throw new Error(`${viewport.id}: ${surface} reintroduced a nested vertical scrollbar.`);
-    }
+  const feedOverflowY = result.surfaceMetrics.feed?.overflowY;
+  if (feedOverflowY === 'auto' || feedOverflowY === 'scroll') {
+    throw new Error(`${viewport.id}: the feed reintroduced a nested vertical scrollbar.`);
+  }
+  const attendanceOverflowY = result.surfaceMetrics.attendance?.overflowY;
+  if (viewport.stickyRail && attendanceOverflowY !== 'auto' && attendanceOverflowY !== 'scroll') {
+    throw new Error(`${viewport.id}: sticky attendance cannot reveal an expanded roster.`);
+  }
+  if (!viewport.stickyRail && (attendanceOverflowY === 'auto' || attendanceOverflowY === 'scroll')) {
+    throw new Error(`${viewport.id}: mobile attendance should remain in the consolidated page flow.`);
   }
   if (Math.abs(result.pulseTopWithinRail) > 1) {
     throw new Error(`${viewport.id}: Game Pulse is no longer the first visible rail module.`);
@@ -276,6 +307,26 @@ for (const viewport of viewports) {
     }
     if (!result.mobileBottomNavVisible) {
       throw new Error(`${viewport.id}: the mobile bottom navigation is missing.`);
+    }
+  }
+  if (viewport.id === 'desktop') {
+    result.scopedTeamRoutes = [];
+    for (const expected of [
+      { day: 'Sunday', team: 'summer-2026-sunday' },
+      { day: 'Monday', team: 'summer-2026-mon-thu' },
+    ]) {
+      const routePage = await context.newPage();
+      await routePage.goto(url.href, { waitUntil: 'networkidle', timeout: 60_000 });
+      await routePage.getByRole('button', { name: new RegExp(`Open YCBHL · ${expected.day} League stats`, 'u') }).click();
+      await routePage.waitForFunction((team) => {
+        const current = new URL(window.location.href);
+        return current.searchParams.get('content') === 'stats'
+          && current.searchParams.get('season') === 'summer-2026'
+          && current.searchParams.get('team') === team;
+      }, expected.team);
+      const destination = routePage.url();
+      result.scopedTeamRoutes.push({ day: expected.day, destination });
+      await routePage.close();
     }
   }
   if (browserErrors.length) throw new Error(`${viewport.id}: ${browserErrors.join('; ')}`);

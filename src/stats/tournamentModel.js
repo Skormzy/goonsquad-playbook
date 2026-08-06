@@ -22,6 +22,15 @@ export const DEFAULT_TOURNAMENT_DISPLAY = Object.freeze({
 
 const VIDEO_TITLE_PATTERN = /^Goonsquad vs (.+?) \((Home|Away) View\) - Game (\d+) \| (.+)$/i;
 
+const TOURNAMENT_SLOT_LABEL_PATTERNS = Object.freeze([
+  /^(?:tbd|tba|bye)$/iu,
+  /^\d+(?:st|nd|rd|th)\b.*\boverall$/iu,
+  /^(?:winner|loser)\b/iu,
+  /^(?:highest|lowest|best)\s+(?:remaining\s+)?seed$/iu,
+  /^(?:pool\s+)?[a-z]\s+(?:winner|runner-up)$/iu,
+  /^(?:play-in|wildcard)\s+winner$/iu,
+]);
+
 function normalized(value) {
   return String(value || '').trim().toLowerCase();
 }
@@ -30,6 +39,11 @@ function tournamentTeamId(name, index) {
   return normalized(name)
     .replace(/[^a-z0-9]+/gu, '-')
     .replace(/^-+|-+$/gu, '') || `team-${index + 1}`;
+}
+
+export function isTournamentEntrantName(value) {
+  const name = String(value || '').trim();
+  return Boolean(name) && !TOURNAMENT_SLOT_LABEL_PATTERNS.some((pattern) => pattern.test(name));
 }
 
 export function tournamentTeams(tournament = {}) {
@@ -49,7 +63,7 @@ export function tournamentTeams(tournament = {}) {
   return names.reduce((teams, name, index) => {
     const trimmedName = String(name || '').trim();
     const key = normalized(trimmedName);
-    if (!trimmedName || key === 'tbd' || seen.has(key)) return teams;
+    if (!isTournamentEntrantName(trimmedName) || seen.has(key)) return teams;
     seen.add(key);
     const explicit = explicitTeams.find((team) => normalized(team?.name) === key);
     teams.push({

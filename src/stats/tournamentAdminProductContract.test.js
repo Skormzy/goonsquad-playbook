@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { isMissingTournamentControlRoom } from './tournamentCloud';
+import { isMissingIntelligenceTable } from './tournamentIntelligenceCloud';
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
 describe('tournament admin product contract', () => {
   it('keeps tournament writes behind the existing admin role', () => {
-    const migration = read('../../supabase/migrations/20260731_tournament_control_room.sql');
+    const migration = read('../../supabase/migrations/202607310004_tournament_control_room.sql');
 
     expect(migration).toContain('public.is_team_admin()');
     expect(migration).toContain('for insert to authenticated');
@@ -31,5 +32,34 @@ describe('tournament admin product contract', () => {
     expect(isMissingTournamentControlRoom({ code: '42P01' })).toBe(true);
     expect(isMissingTournamentControlRoom({ message: 'team_tournaments does not exist' })).toBe(true);
     expect(isMissingTournamentControlRoom({ message: 'network request failed' })).toBe(false);
+  });
+
+  it('keeps opponent intelligence out of public data and behind the admin role', () => {
+    const migration = read('../../supabase/migrations/202608040001_tournament_opponent_intelligence.sql');
+    const rosterMigration = read('../../supabase/migrations/202608040002_tournament_roster_match_intelligence.sql');
+    const intelligenceView = read('./TournamentOpponentIntelligence.jsx');
+    const workspace = read('./TournamentWorkspace.jsx');
+    const publicArchive = read('./tournaments.json');
+    const publicEvents = read('./tournamentEvents.json');
+
+    expect(migration).toContain('alter table public.tournament_opponent_intelligence enable row level security');
+    expect(migration).toContain('for select to authenticated');
+    expect(migration).toContain('using (public.is_team_admin())');
+    expect(migration).toContain('revoke all on public.tournament_opponent_intelligence from anon');
+    expect(rosterMigration).toContain('"overlap": 17');
+    expect(rosterMigration).toContain('"total": 17');
+    expect(rosterMigration).toContain('Official roster not published yet');
+    expect(rosterMigration).toContain('Greater Sudbury Ball Hockey League');
+    expect(intelligenceView).toContain('ROSTER FINGERPRINT');
+    expect(intelligenceView).toContain('REGIONAL MATCHING POOL');
+    expect(intelligenceView).toContain('No tournament names are available to cross-match yet');
+    expect(workspace).toContain("tab.adminOnly ? canManage");
+    expect(workspace).toContain("resolvedActiveTab === 'intelligence' && canManage");
+    expect(publicArchive).not.toContain('tournament_opponent_intelligence');
+    expect(publicArchive).not.toContain('Cambridge Hitmen');
+    expect(publicEvents).not.toContain('Cambridge Hitmen');
+    expect(isMissingIntelligenceTable({ code: '42P01' })).toBe(true);
+    expect(isMissingIntelligenceTable({ message: 'tournament_opponent_intelligence does not exist' })).toBe(true);
+    expect(isMissingIntelligenceTable({ message: 'network request failed' })).toBe(false);
   });
 });

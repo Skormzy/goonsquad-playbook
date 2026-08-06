@@ -12,6 +12,7 @@ import {
   MapPin,
   Medal,
   Play,
+  Radar,
   Settings2,
   ShieldAlert,
   Table2,
@@ -29,6 +30,7 @@ import {
 } from './tournamentModel';
 import { GOONSQUAD_LOGO_SRC, goonsquadDisplayText } from '../brand/teamBrand';
 import TournamentAdminPanel from './TournamentAdminPanel';
+import TournamentOpponentIntelligence from './TournamentOpponentIntelligence';
 import './tournamentWorkspace.css';
 
 const TOURNAMENT_TABS = Object.freeze([
@@ -36,6 +38,7 @@ const TOURNAMENT_TABS = Object.freeze([
   { id: 'standings', labelKey: 'standingsLabel', showKey: 'showStandings', icon: Table2 },
   { id: 'bracket', labelKey: 'bracketLabel', showKey: 'showBracket', icon: GitBranch },
   { id: 'games', labelKey: 'gamesLabel', showKey: 'showGames', icon: Film },
+  { id: 'intelligence', label: 'Team intelligence', adminOnly: true, icon: Radar },
 ]);
 
 function normalized(value) {
@@ -501,6 +504,7 @@ function TournamentBroadcastTeam({ identity, winner }) {
 
 function TournamentBroadcastScore({ game }) {
   const hasScore = scoreAvailable(game);
+  const isScheduled = !hasScore && game.status === 'scheduled';
   const hasGoonsquad = [game.awayTeam, game.homeTeam].some(isGoonsquadTeam);
   const identities = [
     createTeamIdentity(game.awayTeam, 'away', hasGoonsquad),
@@ -515,18 +519,20 @@ function TournamentBroadcastScore({ game }) {
     : '';
   const scoreLabel = hasScore
     ? `${identities[0].name} ${game.awayScore}, ${identities[1].name} ${game.homeScore}, final${game.overtime ? ' in overtime' : ''}`
-    : `${identities[0].name} at ${identities[1].name}, result not published`;
+    : isScheduled
+      ? `${identities[0].name} at ${identities[1].name}, scheduled tournament game`
+      : `${identities[0].name} at ${identities[1].name}, result not published`;
 
   return (
     <div
-      className={`tournament-broadcast-score${hasScore ? ' is-final' : ' is-pending'}`}
+      className={`tournament-broadcast-score${hasScore ? ' is-final' : isScheduled ? ' is-scheduled' : ' is-pending'}`}
       role="group"
       aria-label={scoreLabel}
-      data-score-state={hasScore ? 'final' : 'pending'}
+      data-score-state={hasScore ? 'final' : isScheduled ? 'scheduled' : 'pending'}
     >
       <TournamentBroadcastTeam identity={identities[0]} winner={winnerSide === 'away'} />
       <div className="tournament-broadcast-score-core">
-        <span>{hasScore ? 'FINAL' : 'RESULT PENDING'}</span>
+        <span>{hasScore ? 'FINAL' : isScheduled ? 'SCHEDULED' : 'RESULT PENDING'}</span>
         <div>
           <strong>{hasScore ? game.awayScore : '—'}</strong>
           <i>–</i>
@@ -548,6 +554,8 @@ function TournamentGamePage({ tournament, game, onBack }) {
     )
   ));
   const hasScore = scoreAvailable(game);
+  const isScheduled = !hasScore && game.status === 'scheduled';
+  const teamGameHasScore = Number.isFinite(teamGame?.scoreFor) && Number.isFinite(teamGame?.scoreAgainst);
   const sourceUrl = game.sourceUrl || tournament.sourceUrl;
   return (
     <section className="tournament-game-page">
@@ -559,8 +567,8 @@ function TournamentGamePage({ tournament, game, onBack }) {
         </div>
         <TournamentBroadcastScore game={game} />
       </div>
-      {!hasScore && <section className="tournament-game-page-note"><ShieldAlert aria-hidden="true" /><div><span>RESULT UNAVAILABLE</span><h3>No result was published for this fixture.</h3><p>The teams, stage, time, and venue are shown. An admin can add the score later.</p></div></section>}
-      {teamGame && (!game.details || teamGame.media?.length > 0) && <section className="tournament-game-page-details"><header><div><span>GOONSQUAD GAME FILE</span><h3>{teamGame.media?.length > 0 ? 'Game film' : 'Team details'}</h3></div><strong className={`is-${teamGameResult(teamGame)}`}>{teamGame.scoreFor}-{teamGame.scoreAgainst}</strong></header>{!game.details && <div className="tournament-game-facts">{Array.isArray(teamGame.periodScoreFor) && <span><small>PERIODS</small>{teamGame.periodScoreFor.map((score, index) => <b key={index}>{score}-{teamGame.periodScoreAgainst?.[index] ?? '—'}</b>)}</span>}{Number.isFinite(teamGame.shotsFor) && <span><small>SHOTS</small><b>{teamGame.shotsFor}-{teamGame.shotsAgainst}</b></span>}{teamGame.shotsStatus && <span><small>SHOTS</small><b>{teamGame.shotsStatus === 'not-recorded' ? 'Not recorded' : 'Incomplete'}</b></span>}</div>}{teamGame.media?.length > 0 && <div className="tournament-game-page-media">{teamGame.media.map((media) => <GameVideo key={media.videoId || media.url} media={media} />)}</div>}</section>}
+      {!hasScore && <section className={`tournament-game-page-note${isScheduled ? ' is-scheduled' : ''}`}>{isScheduled ? <CalendarDays aria-hidden="true" /> : <ShieldAlert aria-hidden="true" />}<div><span>{isScheduled ? 'UPCOMING GAME' : 'RESULT UNAVAILABLE'}</span><h3>{isScheduled ? 'This tournament matchup is scheduled.' : 'No result was published for this fixture.'}</h3><p>{isScheduled ? 'The matchup, start time, pad, and tournament path are ready. Results and game details will fill in after the game.' : 'The teams, stage, time, and venue are shown. An admin can add the score later.'}</p></div></section>}
+      {teamGame && (!game.details || teamGame.media?.length > 0) && <section className="tournament-game-page-details"><header><div><span>GOONSQUAD GAME FILE</span><h3>{teamGame.media?.length > 0 ? 'Game film' : 'Team details'}</h3></div><strong className={teamGameHasScore ? `is-${teamGameResult(teamGame)}` : 'is-scheduled'}>{teamGameHasScore ? `${teamGame.scoreFor}-${teamGame.scoreAgainst}` : 'SCHEDULED'}</strong></header>{!game.details && <div className="tournament-game-facts">{Array.isArray(teamGame.periodScoreFor) && <span><small>PERIODS</small>{teamGame.periodScoreFor.map((score, index) => <b key={index}>{score}-{teamGame.periodScoreAgainst?.[index] ?? '—'}</b>)}</span>}{Number.isFinite(teamGame.shotsFor) && <span><small>SHOTS</small><b>{teamGame.shotsFor}-{teamGame.shotsAgainst}</b></span>}{teamGame.shotsStatus && <span><small>SHOTS</small><b>{teamGame.shotsStatus === 'not-recorded' ? 'Not recorded' : 'Incomplete'}</b></span>}</div>}{teamGame.media?.length > 0 && <div className="tournament-game-page-media">{teamGame.media.map((media) => <GameVideo key={media.videoId || media.url} media={media} />)}</div>}</section>}
       <OfficialGameDetails details={game.details} />
       <section className="tournament-game-page-context"><div><span>EVENT</span><strong>{tournament.name}</strong><small>{tournament.division}</small></div><div><span>STAGE</span><strong>{game.stageLabel || game.stage}</strong><small>{game.officialGameNumber ? `Game ${game.officialGameNumber}` : 'Tournament fixture'}</small></div><div><span>VENUE</span><strong>{game.location || tournament.location}</strong><small>{tournamentDateRange(tournament)}</small></div></section>
     </section>
@@ -583,13 +591,15 @@ export default function TournamentWorkspace({
   const [activeTab, setActiveTab] = useState('overview');
   const [adminOpen, setAdminOpen] = useState(false);
   const visibleTabs = useMemo(() => {
-    const tabs = TOURNAMENT_TABS.filter((tab) => tournament?.display?.[tab.showKey]);
+    const tabs = TOURNAMENT_TABS.filter((tab) => (
+      tab.adminOnly ? canManage : tournament?.display?.[tab.showKey]
+    ));
     return tabs.length ? tabs : [TOURNAMENT_TABS[0]];
-  }, [tournament]);
+  }, [canManage, tournament]);
   const resolvedActiveTab = visibleTabs.some((tab) => tab.id === activeTab) ? activeTab : visibleTabs[0].id;
   const summary = useMemo(() => tournamentSummary(tournament), [tournament]);
 
-  if (!tournament) return <section className="tournament-empty"><Trophy aria-hidden="true" /><h2>Tournament archive ready</h2><p>Add the first tournament dossier to populate the event.</p></section>;
+  if (!tournament) return <section className="tournament-empty"><Trophy aria-hidden="true" /><h2>Tournament archive ready</h2><p>Add the first tournament to populate the event.</p></section>;
   if (selectedGame) return <TournamentGamePage tournament={tournament} game={selectedGame} onBack={() => onSelectGame('')} />;
 
   const refreshAndSelect = async (tournamentId) => { await onArchiveRefresh?.(); onSelectTournament(tournamentId); };
@@ -604,14 +614,15 @@ export default function TournamentWorkspace({
     <div className={`tournament-workspace${adminOpen ? ' is-admin-open' : ''}`} data-layout={tournament.display.layout} data-accent={tournament.display.accent}>
       <TournamentSelector tournaments={tournaments} selectedTournamentId={tournament.id} onSelectTournament={(id) => { setActiveTab('overview'); setAdminOpen(false); onSelectGame(''); onSelectTournament(id); }} />
       {adminOpen ? <TournamentAdminPanel tournament={tournament} configured={controlRoom.configured} userId={userId} onClose={() => setAdminOpen(false)} onSaved={refreshAndSelect} onDeleted={handleDeleted} /> : <>
-        <section className="tournament-hero"><div className="tournament-hero-copy"><span>TOURNAMENT DOSSIER</span><h2>{tournament.name}</h2><p>{tournament.series}</p>{tournament.summary && <strong className="tournament-hero-summary">{tournament.summary}</strong>}<div><span><CalendarDays aria-hidden="true" /> {tournamentDateRange(tournament)}</span><span><MapPin aria-hidden="true" /> {tournament.location}</span></div></div><div className="tournament-hero-mark"><Trophy aria-hidden="true" />{tournament.finish ? <><span className="is-finish">{tournament.finish}</span><small>{summary.record} · {summary.goalsFor}-{summary.goalsAgainst}</small></> : <><span>{tournamentEventGames(tournament).length}</span><small>documented games</small></>}</div>{canManage && <button type="button" className="tournament-manage-button" onClick={() => setAdminOpen(true)}><Settings2 aria-hidden="true" /><span>Manage tournament<small>Teams, games, results and layout</small></span></button>}</section>
+        <section className="tournament-hero"><div className="tournament-hero-copy"><span>TOURNAMENT HQ</span><h2>{tournament.name}</h2><p>{tournament.series}</p>{tournament.summary && <strong className="tournament-hero-summary">{tournament.summary}</strong>}<div><span><CalendarDays aria-hidden="true" /> {tournamentDateRange(tournament)}</span><span><MapPin aria-hidden="true" /> {tournament.location}</span></div></div><div className="tournament-hero-mark"><Trophy aria-hidden="true" />{tournament.finish ? <><span className="is-finish">{tournament.finish}</span><small>{summary.record} · {summary.goalsFor}-{summary.goalsAgainst}</small></> : <><span>{tournamentEventGames(tournament).length}</span><small>scheduled games</small></>}</div>{canManage && <button type="button" className="tournament-manage-button" onClick={() => setAdminOpen(true)}><Settings2 aria-hidden="true" /><span>Manage tournament<small>Teams, games, results and layout</small></span></button>}</section>
         {canManage && controlRoom.error && <p className="tournament-control-error" role="alert">{controlRoom.error}</p>}
-        <nav className="tournament-tabs" role="tablist" aria-label="Tournament dossier">{visibleTabs.map(({ id, labelKey, icon }) => <button key={id} type="button" role="tab" aria-selected={resolvedActiveTab === id} onClick={() => setActiveTab(id)}>{createElement(icon, { 'aria-hidden': true })}{tournament.display[labelKey]}</button>)}</nav>
+        <nav className="tournament-tabs" role="tablist" aria-label="Tournament navigation">{visibleTabs.map(({ id, labelKey, label, icon }) => <button key={id} type="button" role="tab" aria-selected={resolvedActiveTab === id} onClick={() => setActiveTab(id)}>{createElement(icon, { 'aria-hidden': true })}{label || tournament.display[labelKey]}</button>)}</nav>
         <section className="tournament-panel" role="tabpanel">
           {resolvedActiveTab === 'overview' && <TournamentOverview tournament={tournament} summary={summary} onOpenGames={() => setActiveTab('games')} onSelectGame={onSelectGame} />}
           {resolvedActiveTab === 'standings' && <TournamentRoundRobin tournament={tournament} onSelectGame={onSelectGame} />}
           {resolvedActiveTab === 'bracket' && <TournamentBracket tournament={tournament} onSelectGame={onSelectGame} />}
           {resolvedActiveTab === 'games' && <TournamentGames tournament={tournament} onSelectGame={onSelectGame} />}
+          {resolvedActiveTab === 'intelligence' && canManage && <TournamentOpponentIntelligence key={tournament.id} tournamentId={tournament.id} />}
         </section>
       </>}
     </div>

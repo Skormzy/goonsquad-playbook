@@ -659,8 +659,13 @@ function ScheduleCoverage({ schedules, onSelect }) {
           return (
             <div className="stats-schedule-row" key={team.id}>
               <button type="button" onClick={() => onSelect(team.id)}>
-                <span className="stats-schedule-status" data-complete={scheduleComplete}>{scheduleComplete ? 'Complete' : 'Needs results'}</span>
-                <span className="stats-schedule-copy"><strong>{label}</strong><small>{team.division || `${formatLeagueName(team)} schedule`}</small></span>
+                <span className="stats-schedule-copy">
+                  <span className="stats-schedule-title">
+                    <strong>{label}</strong>
+                    {!scheduleComplete && <span className="stats-schedule-status" data-complete="false">Results pending</span>}
+                  </span>
+                  <small>{team.division || `${formatLeagueName(team)} schedule`}</small>
+                </span>
                 <span className="stats-schedule-record"><strong>{summary.gamesPlayed ? record : '—'}</strong><small>{games.length} scheduled · {summary.gamesPlayed} final</small></span>
                 <ChevronRight aria-hidden="true" />
               </button>
@@ -1368,7 +1373,7 @@ export default function StatsWorkspace() {
       </>}
 
       <footer className="stats-data-note"><BarChart3 aria-hidden="true" /><span>{tournamentMode
-        ? `${tournamentArchive.length} tournament dossier${tournamentArchive.length === 1 ? '' : 's'} · ${selectedTournament?.games?.length || 0} documented games.`
+        ? `${tournamentArchive.length} tournament${tournamentArchive.length === 1 ? '' : 's'} · ${selectedTournament?.games?.length || 0} Goonsquad games.`
         : `${archiveLeagueLabel} · ${dataset.seasons.length} seasons · ${dataset.teams.length} schedules · ${dataset.games.length} games.`}</span>{(tournamentMode ? selectedTournament?.sourceUrl : officialSourceUrl) && <a href={tournamentMode ? selectedTournament.sourceUrl : officialSourceUrl} target="_blank" rel="noreferrer">{tournamentMode ? 'Tournament page' : 'League site'} <ExternalLink aria-hidden="true" /></a>}</footer>
       {!tournamentMode && managerOpen && <StatsManager dataset={dataset} snapshot={snapshot} onClose={() => setManagerOpen(false)} onUpdated={refresh} />}
     </main>
