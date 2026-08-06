@@ -90,7 +90,7 @@ export async function loadFeedMembers() {
   if (claimedPlayerIds.length) {
     const { data: playerRows, error: playersError } = await cloud
       .from('players')
-      .select('id, external_id, display_name, jersey_number, primary_position')
+      .select('id, external_id, display_name, jersey_number, primary_position, source_url')
       .in('id', claimedPlayerIds);
     throwIfError(playersError);
     players = playerRows || [];
@@ -112,6 +112,7 @@ export async function loadFeedMembers() {
       role: profile.role,
       playerId,
       playerExternalId: player?.external_id || '',
+      playerSourceUrl: player?.source_url || '',
       playerName: player?.display_name || '',
       jerseyNumber: player?.jersey_number || '',
       position: player?.primary_position || '',

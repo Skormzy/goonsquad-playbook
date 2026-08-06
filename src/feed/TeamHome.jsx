@@ -83,6 +83,7 @@ import {
   formatFeedTime,
   initialsForMember,
   linkDomain,
+  resolveFeedMemberPlayerRouteId,
   summarizeFeedReactions,
   threadFeedComments,
   validateFeedMedia,
@@ -1495,6 +1496,7 @@ export default function TeamHome() {
     role: account.profile?.role || 'member',
     playerId: primaryPlayerClaim?.player?.id || primaryPlayerClaim?.playerId || '',
     playerExternalId: primaryPlayerClaim?.player?.externalId || '',
+    playerSourceUrl: primaryPlayerClaim?.player?.sourceUrl || '',
     playerName: primaryPlayerClaim?.player?.displayName || '',
     jerseyNumber: primaryPlayerClaim?.player?.jerseyNumber || '',
     position: primaryPlayerClaim?.player?.primaryPosition || '',
@@ -1587,7 +1589,12 @@ export default function TeamHome() {
   };
 
   const openMember = (member) => {
-    if (member?.playerId) navigate('stats', { player: member.playerId });
+    const playerRouteId = resolveFeedMemberPlayerRouteId(member, dataset?.players);
+    if (playerRouteId) {
+      navigate('stats', { player: playerRouteId });
+      return;
+    }
+    setStatus('This member has not linked a published player profile yet.');
   };
 
   const sharePost = async (post) => {
