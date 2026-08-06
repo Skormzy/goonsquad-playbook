@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-05T09:39:03.280Z",
+  "capturedAt": "2026-08-06T10:10:22.425Z",
   "seasons": [
     {
       "id": "summer-2026",
@@ -140500,9 +140500,9 @@
       "rank": 1,
       "teamName": "BLAZERS",
       "teamExternalId": "7239",
-      "gamesPlayed": 11,
+      "gamesPlayed": 12,
       "wins": 9,
-      "losses": 2,
+      "losses": 3,
       "ties": 0,
       "points": 18,
       "isGoonSquad": false,
@@ -140511,6 +140511,19 @@
     {
       "seasonTeamId": "summer-2026-sunday",
       "rank": 2,
+      "teamName": "OG VIPERZ",
+      "teamExternalId": "7243",
+      "gamesPlayed": 12,
+      "wins": 8,
+      "losses": 3,
+      "ties": 1,
+      "points": 17,
+      "isGoonSquad": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7243-og-viperz"
+    },
+    {
+      "seasonTeamId": "summer-2026-sunday",
+      "rank": 3,
       "teamName": "ML WARRIORS",
       "teamExternalId": "7238",
       "gamesPlayed": 12,
@@ -140520,19 +140533,6 @@
       "points": 17,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7238-ml-warriors"
-    },
-    {
-      "seasonTeamId": "summer-2026-sunday",
-      "rank": 3,
-      "teamName": "OG VIPERZ",
-      "teamExternalId": "7243",
-      "gamesPlayed": 11,
-      "wins": 7,
-      "losses": 3,
-      "ties": 1,
-      "points": 15,
-      "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7243-og-viperz"
     },
     {
       "seasonTeamId": "summer-2026-sunday",
