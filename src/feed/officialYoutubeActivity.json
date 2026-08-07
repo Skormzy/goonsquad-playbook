@@ -1,4 +1,6 @@
 {
+  "channelId": "UCtNyBYGsEMv_puzlZn_yntg",
+  "channelHandle": "@GoonsquadBHC",
   "items": [
     {
       "body": "Thank you for watching! Make sure to subscribe, like and comment! Video is recorded in the offensive zone. Social Links: ❤️Instagram: https://www.instagram.com/goonsquad_bhc 🖤TikTok: https://www.tiktok.com/@goonsquad.bhc",
@@ -675,8 +677,71 @@
         "videoId": "JEnVPcwJiFU"
       },
       "sourcePublishedAt": "2026-07-30T03:59:10.000Z"
+    },
+    {
+      "sourceKey": "youtube:5-jOKDU8OeY",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Dew Lang Ducks (Home View) - Game 6 | 2026 Summer - Monday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=5-jOKDU8OeY",
+      "sourceImageUrl": "https://i.ytimg.com/vi/5-jOKDU8OeY/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGAoWTAP&rs=AOn4CLBsmKDXArhRG-PpHkDRmoMHzEBybg",
+      "sourcePublishedAt": "2026-08-07T05:42:48.894Z",
+      "sourceMetadata": {
+        "videoId": "5-jOKDU8OeY"
+      }
+    },
+    {
+      "sourceKey": "youtube:fbXEAf24jqw",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs ML Warriors (Home View) - Game 6 | 2026 Summer - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=fbXEAf24jqw",
+      "sourceImageUrl": "https://i.ytimg.com/vi/fbXEAf24jqw/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGUoZTAP&rs=AOn4CLC5jdB6ohtpGJoIxAvs7-61qgV0cQ",
+      "sourcePublishedAt": "2026-08-07T05:42:48.936Z",
+      "sourceMetadata": {
+        "videoId": "fbXEAf24jqw"
+      }
+    },
+    {
+      "sourceKey": "youtube:4j6d9kKrsiE",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Viperz (Home View) - Game 7 | 2026 Summer - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=4j6d9kKrsiE",
+      "sourceImageUrl": "https://i.ytimg.com/vi/4j6d9kKrsiE/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARg5IGEocjAP&rs=AOn4CLB7gtXCch1JhUgzFaFfEze5fE8dDQ",
+      "sourcePublishedAt": "2026-08-07T05:42:48.981Z",
+      "sourceMetadata": {
+        "videoId": "4j6d9kKrsiE"
+      }
+    },
+    {
+      "sourceKey": "youtube:GqFe9pT0qo8",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs ML Warriors (Away View) - Game 6 | 2026 Summer - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=GqFe9pT0qo8",
+      "sourceImageUrl": "https://i.ytimg.com/vi/GqFe9pT0qo8/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGUoZTAP&rs=AOn4CLD9f-RrwRzJGCtRTOyg0AasRWu4aA",
+      "sourcePublishedAt": "2026-08-07T05:42:49.006Z",
+      "sourceMetadata": {
+        "videoId": "GqFe9pT0qo8"
+      }
+    },
+    {
+      "sourceKey": "youtube:zgsAfka9Ru4",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Dew Lang Ducks (Away View) - Game 6 | 2026 Summer - Monday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=zgsAfka9Ru4",
+      "sourceImageUrl": "https://i.ytimg.com/vi/zgsAfka9Ru4/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIF8oVDAP&rs=AOn4CLDTkNEeUgj-wWge8KwAyaImYRahcQ",
+      "sourcePublishedAt": "2026-08-07T05:42:49.108Z",
+      "sourceMetadata": {
+        "videoId": "zgsAfka9Ru4"
+      }
     }
-  ],
-  "channelId": "UCtNyBYGsEMv_puzlZn_yntg",
-  "channelHandle": "@GoonsquadBHC"
+  ]
 }
