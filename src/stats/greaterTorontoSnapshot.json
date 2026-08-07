@@ -3,7 +3,7 @@
   "sourceKey": "greater-toronto",
   "sourceName": "Greater Toronto Ball Hockey League",
   "sourceUrl": "https://www.greatertorontobhl.com/team/3878-goonsquad",
-  "capturedAt": "2026-08-06T14:56:45.203Z",
+  "capturedAt": "2026-08-07T00:25:53.709Z",
   "seasons": [
     {
       "id": "gtbhl-fall-2024",
@@ -30027,10 +30027,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-84486-field",
+      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-57256-field",
       "seasonTeamId": "gtbhl-fall-2024-downsview-sunday",
       "stage": "regular",
-      "playerId": "gtbhl-player-84486",
+      "playerId": "gtbhl-player-57256",
       "gamesPlayed": 5,
       "goals": 0,
       "assists": 0,
@@ -30042,10 +30042,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-57256-field",
+      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-84486-field",
       "seasonTeamId": "gtbhl-fall-2024-downsview-sunday",
       "stage": "regular",
-      "playerId": "gtbhl-player-57256",
+      "playerId": "gtbhl-player-84486",
       "gamesPlayed": 5,
       "goals": 0,
       "assists": 0,
@@ -32097,10 +32097,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough-playoffs-gtbhl-player-33071-field",
+      "id": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough-playoffs-gtbhl-player-87824-field",
       "seasonTeamId": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough",
       "stage": "playoffs",
-      "playerId": "gtbhl-player-33071",
+      "playerId": "gtbhl-player-87824",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -32112,10 +32112,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough-playoffs-gtbhl-player-87824-field",
+      "id": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough-playoffs-gtbhl-player-33071-field",
       "seasonTeamId": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough",
       "stage": "playoffs",
-      "playerId": "gtbhl-player-87824",
+      "playerId": "gtbhl-player-33071",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
