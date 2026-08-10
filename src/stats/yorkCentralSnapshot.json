@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-09T23:34:43.389Z",
+  "capturedAt": "2026-08-10T02:02:49.409Z",
   "seasons": [
     {
       "id": "summer-2026",
@@ -1238,7 +1238,7 @@
       "externalId": "26061",
       "displayName": "Jarratt Daoust",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/26061-scott-bockner",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/26061-jarratt-daoust",
       "primaryPosition": null,
       "persisted": false
     },
