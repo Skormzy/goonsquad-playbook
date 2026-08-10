@@ -100,6 +100,37 @@ describe('member profile model', () => {
     });
   });
 
+  it('publishes separate regular-season, playoff, tournament, and combined profile totals', () => {
+    const scopedDataset = {
+      ...dataset,
+      playerSeasonStats: [
+        ...dataset.playerSeasonStats,
+        { id: 's4', seasonTeamId: 'summer-mon', stage: 'playoffs', playerId: 'current-id', gamesPlayed: 2, goals: 1, assists: 3, points: 4, penaltyMinutes: 2 },
+      ],
+    };
+    const tournaments = [{
+      id: 'cup',
+      name: 'Summer Cup',
+      shortName: 'Cup 2026',
+      startDate: '2026-08-01',
+      division: 'Men\'s Rec',
+      playerStats: [{ name: 'Sam Member', gamesPlayed: 3, goals: 2, assists: 2, points: 4, penaltyMinutes: 0 }],
+      goalieStats: [],
+    }];
+    const profile = publicPlayerProfileSnapshot(
+      scopedDataset,
+      'current-id',
+      '2026-06-30T12:00:00Z',
+      { tournaments },
+    );
+
+    expect(profile.competitionStats.regular.careerField).toMatchObject({ gamesPlayed: 4, points: 8 });
+    expect(profile.competitionStats.playoffs.careerField).toMatchObject({ gamesPlayed: 2, points: 4 });
+    expect(profile.competitionStats.tournaments.careerField).toMatchObject({ gamesPlayed: 3, points: 4 });
+    expect(profile.competitionStats.all.careerField).toMatchObject({ gamesPlayed: 9, points: 16 });
+    expect(profile.availableCompetitionScopes).toEqual(['regular', 'playoffs', 'tournaments', 'all']);
+  });
+
   it('returns null for an unknown public player route', () => {
     expect(publicPlayerProfileSnapshot(dataset, 'missing')).toBeNull();
   });
@@ -149,7 +180,7 @@ describe('member profile model', () => {
     ['Michael Thomas Kerrane', 'ycbhl-player-25741', 62, 5, 5, 10, 2],
     ['Michael Woods', 'ycbhl-player-25796', 4, 5, 11, 16, 2],
     ['Michael Yen', 'ycbhl-player-26046', 20, 3, 5, 8, 2],
-    ['Ryan Hunt', 'ycbhl-player-307', 59, 4, 4, 8, 2],
+    ['Ryan Hunt', 'ycbhl-player-307', 60, 4, 4, 8, 2],
     ['Stephen Macdonald', 'ycbhl-player-25733', 59, 5, 6, 11, 2],
     ['Zachary Sher', 'ycbhl-player-25559', 23, 6, 9, 15, 2],
   ])('combines every reviewed archive identity for %s', (

@@ -179,12 +179,14 @@ function DisplayEditor({ draft, update, updateDisplay }) {
       <div className="tournament-admin-toggle-grid">
         <Toggle checked={draft.display.showOverview} label="Overview" detail="Summary, metrics, field, and game journey" onChange={(value) => updateDisplay('showOverview', value)} />
         <Toggle checked={draft.display.showStandings} label="Standings" detail="Pool or tournament table" onChange={(value) => updateDisplay('showStandings', value)} />
+        <Toggle checked={draft.display.showStats} label="Stats" detail="Tournament-only player and goalie totals" onChange={(value) => updateDisplay('showStats', value)} />
         <Toggle checked={draft.display.showBracket} label="Bracket" detail="Elimination rounds and results" onChange={(value) => { updateDisplay('showBracket', value); if (!value) updateDisplay('bracketMode', 'hidden'); else if (draft.display.bracketMode === 'hidden') updateDisplay('bracketMode', 'full'); }} />
         <Toggle checked={draft.display.showGames} label="Games" detail="Goonsquad schedule and results" onChange={(value) => updateDisplay('showGames', value)} />
       </div>
       <div className="tournament-admin-field-grid is-labels">
         <Field label="Overview tab"><input value={draft.display.overviewLabel} maxLength="24" onChange={(event) => updateDisplay('overviewLabel', event.target.value)} /></Field>
         <Field label="Standings tab"><input value={draft.display.standingsLabel} maxLength="24" onChange={(event) => updateDisplay('standingsLabel', event.target.value)} /></Field>
+        <Field label="Stats tab"><input value={draft.display.statsLabel} maxLength="24" onChange={(event) => updateDisplay('statsLabel', event.target.value)} /></Field>
         <Field label="Bracket tab"><input value={draft.display.bracketLabel} maxLength="24" onChange={(event) => updateDisplay('bracketLabel', event.target.value)} /></Field>
         <Field label="Games tab"><input value={draft.display.gamesLabel} maxLength="24" onChange={(event) => updateDisplay('gamesLabel', event.target.value)} /></Field>
       </div>
@@ -342,7 +344,7 @@ export default function TournamentAdminPanel({
   const validation = useMemo(() => {
     if (!draft.name.trim()) return 'Tournament name is required.';
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(draft.id)) return 'Archive ID must use lowercase words separated by hyphens.';
-    if (![draft.display.showOverview, draft.display.showStandings, draft.display.showBracket, draft.display.showGames].some(Boolean)) return 'Keep at least one public tournament section visible.';
+    if (![draft.display.showOverview, draft.display.showStandings, draft.display.showStats, draft.display.showBracket, draft.display.showGames].some(Boolean)) return 'Keep at least one public tournament section visible.';
     return '';
   }, [draft]);
 

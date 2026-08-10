@@ -339,6 +339,108 @@
   font-size: 10px;
 }
 
+.public-player-competition {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.58fr);
+  border: 1px solid var(--stats-border);
+  background: var(--stats-surface);
+}
+
+.public-player-competition-tabs {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--stats-border);
+}
+
+.public-player-competition-tabs > button {
+  min-width: 0;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: 23px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 10px 11px;
+  border: 0;
+  background: var(--stats-surface);
+  color: var(--stats-muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.public-player-competition-tabs > button:hover:not(:disabled),
+.public-player-competition-tabs > button:focus-visible,
+.public-player-competition-tabs > button[aria-selected='true'] {
+  background: var(--stats-accent-bg);
+  color: var(--stats-accent);
+  box-shadow: inset 0 -3px 0 var(--stats-accent);
+}
+
+.public-player-competition-tabs > button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.public-player-competition-tabs svg {
+  width: 20px;
+  height: 20px;
+}
+
+.public-player-competition-tabs span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.public-player-competition-tabs strong {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.public-player-competition-tabs small {
+  color: var(--stats-muted);
+  font-size: 8px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.public-player-competition-readout {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 11px 16px;
+  border-left: 1px solid var(--stats-border);
+  background: var(--stats-panel);
+}
+
+.public-player-competition-readout > span {
+  color: var(--stats-accent);
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.public-player-competition-readout > strong {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.public-player-competition-readout > p {
+  margin: 0;
+  color: var(--stats-muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
 .public-player-metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -763,6 +865,15 @@
   .public-player-history {
     grid-row: auto;
   }
+
+  .public-player-competition {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .public-player-competition-readout {
+    border-top: 1px solid var(--stats-border);
+    border-left: 0;
+  }
 }
 
 @media (max-width: 640px) {
@@ -836,6 +947,19 @@
 
   .public-player-next-game {
     width: 100%;
+  }
+
+  .public-player-competition-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .public-player-competition-tabs > button {
+    min-height: 60px;
+    padding: 8px 10px;
+  }
+
+  .public-player-competition-readout {
+    padding: 10px 12px;
   }
 
   .public-player-metrics {
