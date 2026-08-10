@@ -898,6 +898,32 @@
       "sourceMetadata": {
         "videoId": "yLWAcLoyf4w"
       }
+    },
+    {
+      "sourceKey": "youtube:j0KpfL76Vo4",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Viperz (Home View) - Game 12 | 2026 Summer - Monday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=j0KpfL76Vo4",
+      "sourceImageUrl": "https://i.ytimg.com/vi/j0KpfL76Vo4/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhNIF8oZTAP&rs=AOn4CLCZoEGpzALHl7FZGa3lZrXyuhCFVw",
+      "sourcePublishedAt": "2026-08-10T05:56:28.194Z",
+      "sourceMetadata": {
+        "videoId": "j0KpfL76Vo4"
+      }
+    },
+    {
+      "sourceKey": "youtube:2IbNZHV8PWM",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Viperz (Away View) - Game 12 | 2026 Summer - Monday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=2IbNZHV8PWM",
+      "sourceImageUrl": "https://i.ytimg.com/vi/2IbNZHV8PWM/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhOIF8oZTAP&rs=AOn4CLD5XOkgT5C6XvRBLwiQdRkUNZL48w",
+      "sourcePublishedAt": "2026-08-10T05:56:28.298Z",
+      "sourceMetadata": {
+        "videoId": "2IbNZHV8PWM"
+      }
     }
   ]
 }
