@@ -100,6 +100,37 @@ describe('member profile model', () => {
     });
   });
 
+  it('publishes separate regular-season, playoff, tournament, and combined profile totals', () => {
+    const scopedDataset = {
+      ...dataset,
+      playerSeasonStats: [
+        ...dataset.playerSeasonStats,
+        { id: 's4', seasonTeamId: 'summer-mon', stage: 'playoffs', playerId: 'current-id', gamesPlayed: 2, goals: 1, assists: 3, points: 4, penaltyMinutes: 2 },
+      ],
+    };
+    const tournaments = [{
+      id: 'cup',
+      name: 'Summer Cup',
+      shortName: 'Cup 2026',
+      startDate: '2026-08-01',
+      division: 'Men\'s Rec',
+      playerStats: [{ name: 'Sam Member', gamesPlayed: 3, goals: 2, assists: 2, points: 4, penaltyMinutes: 0 }],
+      goalieStats: [],
+    }];
+    const profile = publicPlayerProfileSnapshot(
+      scopedDataset,
+      'current-id',
+      '2026-06-30T12:00:00Z',
+      { tournaments },
+    );
+
+    expect(profile.competitionStats.regular.careerField).toMatchObject({ gamesPlayed: 4, points: 8 });
+    expect(profile.competitionStats.playoffs.careerField).toMatchObject({ gamesPlayed: 2, points: 4 });
+    expect(profile.competitionStats.tournaments.careerField).toMatchObject({ gamesPlayed: 3, points: 4 });
+    expect(profile.competitionStats.all.careerField).toMatchObject({ gamesPlayed: 9, points: 16 });
+    expect(profile.availableCompetitionScopes).toEqual(['regular', 'playoffs', 'tournaments', 'all']);
+  });
+
   it('returns null for an unknown public player route', () => {
     expect(publicPlayerProfileSnapshot(dataset, 'missing')).toBeNull();
   });

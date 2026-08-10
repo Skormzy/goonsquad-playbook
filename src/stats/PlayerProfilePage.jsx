@@ -1,13 +1,20 @@
-import { lazy, Suspense } from 'react';
+import {
+  lazy,
+  Suspense,
+  useState,
+} from 'react';
 import {
   ArrowLeft,
+  CalendarDays,
   CalendarClock,
   ChevronRight,
   Copy,
   ExternalLink,
   History,
+  Layers3,
   Medal,
   RefreshCw,
+  ShieldCheck,
   Sparkles,
   Target,
   Trophy,
@@ -19,6 +26,10 @@ import {
   formatLeagueScheduleName,
   formatPercentage,
 } from './statsModel';
+import {
+  COMPETITION_SCOPE_META,
+  COMPETITION_SCOPE_ORDER,
+} from './competitionScopeModel';
 import PlayerSpotlightErrorBoundary from './PlayerSpotlightErrorBoundary';
 import OfficialSocialLinks from '../brand/OfficialSocialLinks';
 import './playerProfilePage.css';
@@ -74,6 +85,38 @@ function gameValue(row) {
   };
 }
 
+function CompetitionIcon({ scopeId }) {
+  if (scopeId === 'regular') return <CalendarDays aria-hidden="true" />;
+  if (scopeId === 'playoffs') return <ShieldCheck aria-hidden="true" />;
+  if (scopeId === 'tournaments') return <Trophy aria-hidden="true" />;
+  return <Layers3 aria-hidden="true" />;
+}
+
+function historyContext(row) {
+  const parts = [];
+  if (row.competition === 'tournaments') {
+    parts.push('Tournament');
+  } else {
+    const league = formatLeagueName(row.season);
+    if (league && league !== 'League archive') parts.push(league);
+  }
+  if (row.schedules?.length) parts.push(row.schedules.join(' / '));
+  if (row.competition === 'playoffs') parts.push('Playoffs');
+  if (row.competition === 'regular') parts.push('Regular season');
+  return parts.join(' · ') || 'Goonsquad';
+}
+
+function eventCountLabel(scopeId, count) {
+  const singular = scopeId === 'tournaments'
+    ? 'tournament'
+    : scopeId === 'playoffs'
+      ? 'postseason'
+      : scopeId === 'all'
+        ? 'entry'
+        : 'season';
+  return `${count} ${singular}${count === 1 ? '' : 's'}`;
+}
+
 function PlayerSpotlightLoading({ displayName }) {
   return (
     <div className="player-profile-3d-state" role="status">
@@ -105,9 +148,29 @@ export default function PlayerProfilePage({
   onCopyLink,
   onOpenGame,
 }) {
+  const [requestedScopeId, setRequestedScopeId] = useState('regular');
+  const availableScopes = profile?.availableCompetitionScopes || [];
+  const scopeId = availableScopes.includes(requestedScopeId)
+    ? requestedScopeId
+    : availableScopes[0] || 'regular';
+
   if (!profile) return null;
+  const activeScope = profile.competitionStats?.[scopeId] || {
+    id: scopeId,
+    ...COMPETITION_SCOPE_META[scopeId],
+    eventCount: profile.seasonsPlayed,
+    careerField: profile.careerField,
+    careerGoalie: profile.careerGoalie,
+    seasonHistory: profile.seasonHistory,
+    recentGames: profile.recentGames,
+    bestFieldSeason: profile.bestFieldSeason,
+  };
+  const careerField = activeScope.careerField;
+  const careerGoalie = activeScope.careerGoalie;
+  const seasonHistory = activeScope.seasonHistory || [];
+  const eventCount = activeScope.eventCount || seasonHistory.length;
   const goalie = profile.position === 'G'
-    || profile.careerGoalie.gamesPlayed > profile.careerField.gamesPlayed;
+    || careerGoalie.gamesPlayed > careerField.gamesPlayed;
   const player = profile.primaryPlayer;
   const officialProfiles = profile.officialProfiles?.length
     ? profile.officialProfiles
@@ -118,8 +181,8 @@ export default function PlayerProfilePage({
   const leagueNames = profile.leagueNames?.length
     ? profile.leagueNames
     : [];
-  const bestSeason = profile.bestFieldSeason;
-  const latestGames = profile.recentGames.slice(0, 10);
+  const bestSeason = activeScope.bestFieldSeason;
+  const latestGames = (activeScope.recentGames || []).slice(0, 10);
   const recentField = latestGames.filter((row) => row.field).slice(0, 5);
   const recentPoints = recentField.reduce((total, row) => total + row.points, 0);
   const recentGoals = recentField.reduce(
@@ -222,20 +285,50 @@ export default function PlayerProfilePage({
         </div>
       </header>
 
+      <section className="public-player-competition" aria-label="Choose competition statistics">
+        <div className="public-player-competition-tabs" role="tablist" aria-label="Competition type">
+          {COMPETITION_SCOPE_ORDER.map((id) => {
+            const item = profile.competitionStats?.[id];
+            const available = Boolean(item?.available);
+            return (
+              <button
+                type="button"
+                role="tab"
+                key={id}
+                aria-selected={scopeId === id}
+                disabled={!available}
+                onClick={() => setRequestedScopeId(id)}
+              >
+                <CompetitionIcon scopeId={id} />
+                <span>
+                  <strong>{COMPETITION_SCOPE_META[id].label}</strong>
+                  <small>{available ? eventCountLabel(id, item.eventCount) : 'No stats yet'}</small>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="public-player-competition-readout">
+          <span>{activeScope.eyebrow}</span>
+          <strong>{activeScope.label}</strong>
+          <p>{activeScope.description}</p>
+        </div>
+      </section>
+
       <section className="public-player-metrics" aria-label="Career statistics">
         {goalie ? (
           <>
-            <PlayerMetric label="Games" value={profile.careerGoalie.gamesPlayed || '—'} detail={`${profile.seasonsPlayed} seasons`} />
-            <PlayerMetric label="Record" value={profile.careerGoalie.gamesPlayed ? `${profile.careerGoalie.wins}–${profile.careerGoalie.losses}–${profile.careerGoalie.ties}` : '—'} detail="wins · losses · ties" />
-            <PlayerMetric label="Save rate" value={profile.careerGoalie.gamesPlayed ? formatPercentage(profile.careerGoalie.savePercentage) : '—'} detail={`${profile.careerGoalie.saves} saves`} />
-            <PlayerMetric label="Shutouts" value={profile.careerGoalie.gamesPlayed ? profile.careerGoalie.shutouts : '—'} detail={profile.careerGoalie.gamesPlayed ? `${profile.careerGoalie.goalsAgainstAverage.toFixed(2)} GAA` : 'No goalie line published'} />
+            <PlayerMetric label="Games" value={careerGoalie.gamesPlayed || '—'} detail={eventCountLabel(scopeId, eventCount)} />
+            <PlayerMetric label="Record" value={careerGoalie.gamesPlayed ? `${careerGoalie.wins}–${careerGoalie.losses}–${careerGoalie.ties}` : '—'} detail="wins · losses · ties" />
+            <PlayerMetric label="Save rate" value={careerGoalie.gamesPlayed ? formatPercentage(careerGoalie.savePercentage) : '—'} detail={Number.isFinite(careerGoalie.saves) ? `${careerGoalie.saves} saves` : 'Published rate'} />
+            <PlayerMetric label="Shutouts" value={careerGoalie.gamesPlayed ? careerGoalie.shutouts : '—'} detail={careerGoalie.gamesPlayed && Number.isFinite(careerGoalie.goalsAgainstAverage) ? `${careerGoalie.goalsAgainstAverage.toFixed(2)} GAA` : 'No goalie line published'} />
           </>
         ) : (
           <>
-            <PlayerMetric label="Games" value={profile.careerField.gamesPlayed || '—'} detail={`${profile.seasonsPlayed} seasons`} />
-            <PlayerMetric label="Goals" value={profile.careerField.gamesPlayed ? profile.careerField.goals : '—'} detail={`${profile.careerField.powerPlayGoals} power play`} />
-            <PlayerMetric label="Assists" value={profile.careerField.gamesPlayed ? profile.careerField.assists : '—'} detail="career total" />
-            <PlayerMetric label="Points" value={profile.careerField.gamesPlayed ? profile.careerField.points : '—'} detail={profile.careerField.gamesPlayed ? `${profile.careerField.pointsPerGame.toFixed(2)} per game` : 'No player line published'} />
+            <PlayerMetric label="Games" value={careerField.gamesPlayed || '—'} detail={eventCountLabel(scopeId, eventCount)} />
+            <PlayerMetric label="Goals" value={careerField.gamesPlayed ? careerField.goals : '—'} detail={`${careerField.powerPlayGoals} power play`} />
+            <PlayerMetric label="Assists" value={careerField.gamesPlayed ? careerField.assists : '—'} detail="career total" />
+            <PlayerMetric label="Points" value={careerField.gamesPlayed ? careerField.points : '—'} detail={careerField.gamesPlayed ? `${careerField.pointsPerGame.toFixed(2)} per game` : 'No player line published'} />
           </>
         )}
       </section>
@@ -246,18 +339,18 @@ export default function PlayerProfilePage({
             <Trophy aria-hidden="true" />
             <div>
               <span>SEASON HISTORY</span>
-              <h2>Every Goonsquad season</h2>
+              <h2>{activeScope.label} history</h2>
             </div>
           </header>
           <div className="public-player-season-list">
-            {profile.seasonHistory.map((row) => {
+            {seasonHistory.map((row) => {
               const rowGoalie = row.goalie.gamesPlayed > row.field.gamesPlayed;
               const metrics = rowGoalie ? goalieSeasonLine(row) : fieldSeasonLine(row);
               return (
-                <article key={row.season.id} data-current={row.season.current}>
+                <article key={row.id || row.season.id} data-current={row.season.current}>
                   <div>
                     <strong>{row.season.name}</strong>
-                    <small>{row.schedules.join(' / ') || 'Goonsquad'}</small>
+                    <small>{historyContext(row)}</small>
                   </div>
                   <div className="public-player-season-metrics">
                     {metrics.map((metric) => (
@@ -271,9 +364,9 @@ export default function PlayerProfilePage({
                 </article>
               );
             })}
-            {!profile.seasonHistory.length && (
+            {!seasonHistory.length && (
               <div className="public-player-empty">
-                No season totals were published for this roster record.
+                No {activeScope.label.toLowerCase()} totals were published for this player.
               </div>
             )}
           </div>
@@ -289,9 +382,9 @@ export default function PlayerProfilePage({
           </header>
           {goalie ? (
             <div className="public-player-highlight">
-              <strong>{profile.careerGoalie.saves}</strong>
-              <span>career saves</span>
-              <p>{profile.careerGoalie.gamesPlayed ? `${profile.careerGoalie.minutesPlayed} minutes across ${profile.careerGoalie.gamesPlayed} games.` : 'Detailed goaltending lines will appear when the league publishes them.'}</p>
+              <strong>{Number.isFinite(careerGoalie.saves) ? careerGoalie.saves : '—'}</strong>
+              <span>{activeScope.label.toLowerCase()} saves</span>
+              <p>{careerGoalie.gamesPlayed ? `${careerGoalie.minutesPlayed} minutes across ${careerGoalie.gamesPlayed} games.` : 'Detailed goaltending lines will appear when the competition publishes them.'}</p>
             </div>
           ) : (
             <div className="public-player-highlight">
@@ -306,7 +399,7 @@ export default function PlayerProfilePage({
               <span>
                 <small>BEST SCORING SEASON</small>
                 <strong>{bestSeason.season.name}</strong>
-                <small>{formatLeagueName(bestSeason.season)}</small>
+                <small>{historyContext(bestSeason)}</small>
                 <b>{bestSeason.field.points} PTS · {bestSeason.field.goals} G</b>
               </span>
             </div>
@@ -318,7 +411,7 @@ export default function PlayerProfilePage({
             <History aria-hidden="true" />
             <div>
               <span>GAME LOG</span>
-              <h2>Recent appearances</h2>
+              <h2>{scopeId === 'tournaments' ? 'Tournament appearances' : 'Recent appearances'}</h2>
             </div>
           </header>
           <div className="public-player-game-list">
@@ -329,7 +422,7 @@ export default function PlayerProfilePage({
                   <span className={`profile-game-result is-${row.result.toLowerCase()}`}>{row.result}</span>
                   <span>
                     <strong>{row.game.opponent}</strong>
-                    <small>{formatGameDate(row.game.scheduledAt)} · {row.team ? formatLeagueScheduleName(row.team) : 'League game'}</small>
+                    <small>{formatGameDate(row.game.scheduledAt)} · {[row.season ? formatLeagueName(row.season) : null, row.team ? formatLeagueScheduleName(row.team) : null, row.game.stage === 'playoffs' ? 'Playoffs' : 'Regular season'].filter(Boolean).join(' · ')}</small>
                   </span>
                   <span>
                     <b>{value.primary}</b>
@@ -341,7 +434,9 @@ export default function PlayerProfilePage({
             })}
             {!latestGames.length && (
               <div className="public-player-empty">
-                No detailed game appearances were published for this player.
+                {scopeId === 'tournaments'
+                  ? 'Tournament totals are available above. Game-level player lines were not published for this event.'
+                  : `No detailed ${activeScope.label.toLowerCase()} appearances were published for this player.`}
               </div>
             )}
           </div>

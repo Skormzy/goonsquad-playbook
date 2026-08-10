@@ -36,6 +36,7 @@ import './tournamentWorkspace.css';
 const TOURNAMENT_TABS = Object.freeze([
   { id: 'overview', labelKey: 'overviewLabel', showKey: 'showOverview', icon: Trophy },
   { id: 'standings', labelKey: 'standingsLabel', showKey: 'showStandings', icon: Table2 },
+  { id: 'stats', labelKey: 'statsLabel', showKey: 'showStats', icon: BarChart3 },
   { id: 'bracket', labelKey: 'bracketLabel', showKey: 'showBracket', icon: GitBranch },
   { id: 'games', labelKey: 'gamesLabel', showKey: 'showGames', icon: Film },
   { id: 'intelligence', label: 'Team intelligence', adminOnly: true, icon: Radar },
@@ -303,6 +304,87 @@ function TournamentRoundRobin({ tournament, onSelectGame }) {
       <div className="tournament-pool-games"><header><span>{selectedPool?.name || 'Pool'} schedule</span><small>Crossovers appear in both affected pools</small></header>{games.map((game) => <EventGameButton key={game.id} game={game} tournament={tournament} onSelectGame={onSelectGame} compact />)}</div>
       {!standings.some((row) => row.gamesPlayed) && <p className="tournament-path-note"><Table2 aria-hidden="true" /> The schedule is available, but preliminary scores are missing. Teams, times, and venues are shown without estimating results.</p>}
     </section>
+  );
+}
+
+const TOURNAMENT_SKATER_COLUMNS = Object.freeze([
+  ['gamesPlayed', 'GP'],
+  ['goals', 'G'],
+  ['assists', 'A'],
+  ['points', 'PTS'],
+  ['penaltyMinutes', 'PIM'],
+  ['powerPlayGoals', 'PPG'],
+  ['shortHandedGoals', 'SHG'],
+  ['gameWinningGoals', 'GWG'],
+]);
+
+const TOURNAMENT_GOALIE_COLUMNS = Object.freeze([
+  ['gamesPlayed', 'GP'],
+  ['gamesStarted', 'GS'],
+  ['wins', 'W'],
+  ['losses', 'L'],
+  ['ties', 'T'],
+  ['savePercentage', 'SV%'],
+  ['goalsAgainstAverage', 'GAA'],
+  ['shutouts', 'SO'],
+]);
+
+function tournamentStatValue(value, key) {
+  if (!Number.isFinite(value)) return '—';
+  if (key === 'savePercentage') return value.toFixed(3).replace(/^0/u, '');
+  if (key === 'goalsAgainstAverage') return value.toFixed(2);
+  return value;
+}
+
+function sortTournamentStats(lines, sort) {
+  return [...lines].sort((a, b) => {
+    const aValue = Number.isFinite(a[sort.key]) ? a[sort.key] : Number.NEGATIVE_INFINITY;
+    const bValue = Number.isFinite(b[sort.key]) ? b[sort.key] : Number.NEGATIVE_INFINITY;
+    const primary = (aValue - bValue) * (sort.direction === 'asc' ? 1 : -1);
+    return primary || Number(b.gamesPlayed || 0) - Number(a.gamesPlayed || 0) || String(a.name).localeCompare(String(b.name));
+  });
+}
+
+function TournamentStatTable({ title, eyebrow, rows, columns, sort, onSort }) {
+  return (
+    <section className="tournament-stat-table-shell">
+      <header><div><span>{eyebrow}</span><h3>{title}</h3></div><small>{rows.length} players</small></header>
+      <div className="tournament-stat-table-scroll">
+        <table className="tournament-stat-table">
+          <thead><tr><th scope="col">#</th><th scope="col">Player</th>{columns.map(([key, label]) => <th scope="col" aria-sort={sort.key === key ? (sort.direction === 'desc' ? 'descending' : 'ascending') : 'none'} key={key}><button type="button" onClick={() => onSort({ key, direction: sort.key === key && sort.direction === 'desc' ? 'asc' : 'desc' })}>{label}<span aria-hidden="true">{sort.key === key ? (sort.direction === 'desc' ? '↓' : '↑') : ''}</span></button></th>)}</tr></thead>
+          <tbody>{sortTournamentStats(rows, sort).map((player, index) => <tr key={`${player.name}-${player.number || index}`}><td>{player.number || '—'}</td><th scope="row"><strong>{player.name}</strong><small>{player.gamesPlayed || 0} GP</small></th>{columns.map(([key]) => <td key={key}>{tournamentStatValue(player[key], key)}</td>)}</tr>)}</tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function TournamentStats({ tournament }) {
+  const playerRows = tournament.playerStats || [];
+  const goalies = tournament.goalieStats || [];
+  const [skaterSort, setSkaterSort] = useState({ key: 'points', direction: 'desc' });
+  const [goalieSort, setGoalieSort] = useState({ key: 'wins', direction: 'desc' });
+  const pointsLeader = sortTournamentStats(playerRows, { key: 'points', direction: 'desc' })[0];
+  const goalsLeader = sortTournamentStats(playerRows, { key: 'goals', direction: 'desc' })[0];
+  const winsLeader = sortTournamentStats(goalies, { key: 'wins', direction: 'desc' })[0];
+
+  if (!playerRows.length && !goalies.length) {
+    return <section className="tournament-stats-empty"><BarChart3 aria-hidden="true" /><span>TOURNAMENT STATS</span><h3>Player totals are not available yet</h3><p>The event, schedule, standings, bracket, and game results remain available. Player and goalie totals will appear here when they are published or entered by an admin.</p></section>;
+  }
+
+  return (
+    <div className="tournament-stats-workspace">
+      <header className="tournament-stats-header"><div><span>TOURNAMENT STATS</span><h3>One event. One clean leaderboard.</h3><p>These totals include this tournament only and never blend into regular-season or playoff numbers.</p></div><Trophy aria-hidden="true" /></header>
+      <section className="tournament-stat-pulse" aria-label="Tournament leaders">
+        <div><span>Players</span><strong>{playerRows.length}</strong><small>with published totals</small></div>
+        <div><span>Points leader</span><strong>{pointsLeader?.points ?? '—'}</strong><small>{pointsLeader?.name || 'Not published'}</small></div>
+        <div><span>Goals leader</span><strong>{goalsLeader?.goals ?? '—'}</strong><small>{goalsLeader?.name || 'Not published'}</small></div>
+        <div><span>Goalie wins</span><strong>{winsLeader?.wins ?? '—'}</strong><small>{winsLeader?.name || 'Not published'}</small></div>
+      </section>
+      {playerRows.length > 0 && <TournamentStatTable title="Player leaderboard" eyebrow="GOONSQUAD PLAYERS" rows={playerRows} columns={TOURNAMENT_SKATER_COLUMNS} sort={skaterSort} onSort={setSkaterSort} />}
+      {goalies.length > 0 && <TournamentStatTable title="Goalie leaderboard" eyebrow="GOONSQUAD GOALIES" rows={goalies} columns={TOURNAMENT_GOALIE_COLUMNS} sort={goalieSort} onSort={setGoalieSort} />}
+      {goalies.some((goalie) => Number.isFinite(goalie.savePercentage) && !Number.isFinite(goalie.shotsAgainst)) && <p className="tournament-path-note"><ShieldAlert aria-hidden="true" /> Save percentages are shown exactly as published by the tournament source; shot totals were not available for recalculation.</p>}
+    </div>
   );
 }
 
@@ -620,6 +702,7 @@ export default function TournamentWorkspace({
         <section className="tournament-panel" role="tabpanel">
           {resolvedActiveTab === 'overview' && <TournamentOverview tournament={tournament} summary={summary} onOpenGames={() => setActiveTab('games')} onSelectGame={onSelectGame} />}
           {resolvedActiveTab === 'standings' && <TournamentRoundRobin tournament={tournament} onSelectGame={onSelectGame} />}
+          {resolvedActiveTab === 'stats' && <TournamentStats tournament={tournament} />}
           {resolvedActiveTab === 'bracket' && <TournamentBracket tournament={tournament} onSelectGame={onSelectGame} />}
           {resolvedActiveTab === 'games' && <TournamentGames tournament={tournament} onSelectGame={onSelectGame} />}
           {resolvedActiveTab === 'intelligence' && canManage && <TournamentOpponentIntelligence key={tournament.id} tournamentId={tournament.id} />}

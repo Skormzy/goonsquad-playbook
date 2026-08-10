@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
+  CalendarDays,
   CalendarClock,
   Camera,
   ChevronRight,
@@ -9,6 +10,7 @@ import {
   Hash,
   History,
   Link2,
+  Layers3,
   LoaderCircle,
   LogIn,
   Medal,
@@ -17,8 +19,10 @@ import {
   Search,
   Save,
   Settings2,
+  ShieldCheck,
   Target,
   TrendingUp,
+  Trophy,
   Unlink,
   UserRoundCheck,
   UsersRound,
@@ -34,6 +38,12 @@ import {
   formatPercentage,
 } from '../stats/statsModel';
 import { loadStatisticsDataset } from '../stats/statsCloud';
+import { loadTournamentArchive } from '../stats/tournamentCloud';
+import { TOURNAMENT_ARCHIVE } from '../stats/tournamentModel';
+import {
+  COMPETITION_SCOPE_META,
+  COMPETITION_SCOPE_ORDER,
+} from '../stats/competitionScopeModel';
 import { memberProfileSnapshot, playerRosterCandidates } from './profileModel';
 import OfficialSocialLinks from '../brand/OfficialSocialLinks';
 import './profile.css';
@@ -52,6 +62,38 @@ function linkCopy() {
 
 function ProfileMetric({ detail, label, value }) {
   return <div className="profile-metric"><span>{label}</span><strong>{value}</strong><small>{detail}</small></div>;
+}
+
+function CompetitionIcon({ scopeId }) {
+  if (scopeId === 'regular') return <CalendarDays aria-hidden="true" />;
+  if (scopeId === 'playoffs') return <ShieldCheck aria-hidden="true" />;
+  if (scopeId === 'tournaments') return <Trophy aria-hidden="true" />;
+  return <Layers3 aria-hidden="true" />;
+}
+
+function eventCountLabel(scopeId, count) {
+  const singular = scopeId === 'tournaments'
+    ? 'tournament'
+    : scopeId === 'playoffs'
+      ? 'postseason'
+      : scopeId === 'all'
+        ? 'entry'
+        : 'season';
+  return `${count} ${singular}${count === 1 ? '' : 's'}`;
+}
+
+function historyContext(row) {
+  const parts = [];
+  if (row.competition === 'tournaments') {
+    parts.push('Tournament');
+  } else {
+    const league = formatLeagueName(row.season);
+    if (league && league !== 'League archive') parts.push(league);
+  }
+  if (row.schedules?.length) parts.push(row.schedules.join(' / '));
+  if (row.competition === 'playoffs') parts.push('Playoffs');
+  if (row.competition === 'regular') parts.push('Regular season');
+  return parts.join(' · ') || 'Goonsquad';
 }
 
 function RosterPicker({ account, claims, requests = [], dataset, onClose, onLinked, open }) {
@@ -171,6 +213,9 @@ export default function ProfileWorkspace() {
   const account = useAccount();
   const { favorites, setActiveView } = useApp();
   const [dataset, setDataset] = useState(null);
+  const [tournamentArchive, setTournamentArchive] = useState(TOURNAMENT_ARCHIVE);
+  const [requestedCompetitionScopeId, setRequestedCompetitionScopeId] = useState('regular');
+  const [snapshotTime] = useState(() => Date.now());
   const [pickerOpen, setPickerOpen] = useState(false);
   const [rosterEditorOpen, setRosterEditorOpen] = useState(false);
   const [jerseyNumber, setJerseyNumber] = useState('');
@@ -181,15 +226,38 @@ export default function ProfileWorkspace() {
 
   useEffect(() => {
     let active = true;
-    loadStatisticsDataset().then((next) => { if (active) setDataset(next); });
+    Promise.all([
+      loadStatisticsDataset(),
+      loadTournamentArchive(TOURNAMENT_ARCHIVE).catch(() => ({ tournaments: TOURNAMENT_ARCHIVE })),
+    ]).then(([nextDataset, nextTournaments]) => {
+      if (!active) return;
+      setDataset(nextDataset);
+      setTournamentArchive(nextTournaments.tournaments || TOURNAMENT_ARCHIVE);
+    });
     return () => { active = false; };
   }, []);
 
-  const profile = useMemo(() => dataset ? memberProfileSnapshot(dataset, account.playerClaims) : null, [account.playerClaims, dataset]);
+  const profile = useMemo(() => dataset ? memberProfileSnapshot(
+    dataset,
+    account.playerClaims,
+    snapshotTime,
+    { tournaments: tournamentArchive },
+  ) : null, [account.playerClaims, dataset, snapshotTime, tournamentArchive]);
+  const availableCompetitionScopes = profile?.availableCompetitionScopes || [];
+  const competitionScopeId = availableCompetitionScopes.includes(requestedCompetitionScopeId)
+    ? requestedCompetitionScopeId
+    : availableCompetitionScopes[0] || 'regular';
+  const activeCompetition = profile?.competitionStats?.[competitionScopeId] || null;
   const linkState = profile ? linkCopy() : null;
   const pendingRequest = account.playerClaimRequests.find((request) => request.status === 'pending');
   const rejectedRequests = account.playerClaimRequests.filter((request) => request.status === 'rejected');
-  const goalieProfile = profile && profile.careerGoalie.gamesPlayed > profile.careerField.gamesPlayed;
+  const scopeCareerField = activeCompetition?.careerField || profile?.careerField;
+  const scopeCareerGoalie = activeCompetition?.careerGoalie || profile?.careerGoalie;
+  const scopeHistory = activeCompetition?.seasonHistory || profile?.seasonHistory || [];
+  const scopeGames = activeCompetition?.recentGames || profile?.recentGames || [];
+  const scopeEventCount = activeCompetition?.eventCount ?? scopeHistory.length;
+  const goalieProfile = scopeCareerGoalie
+    && scopeCareerGoalie.gamesPlayed > scopeCareerField.gamesPlayed;
   const primaryClaim = account.playerClaims.find((claim) => claim.primary) || account.playerClaims[0] || null;
 
   const saveRosterDetails = async (event) => {
@@ -363,17 +431,47 @@ export default function ProfileWorkspace() {
 
         <div className="profile-verification-note" data-status="linked"><Link2 aria-hidden="true" /><div><strong>{linkState.label}</strong><span>{linkState.detail}</span></div></div>
 
-        <section className="profile-metric-strip" aria-label="Career statistics">
+        <section className="profile-competition" aria-label="Choose competition statistics">
+          <div className="profile-competition-tabs" role="tablist" aria-label="Competition type">
+            {COMPETITION_SCOPE_ORDER.map((scopeId) => {
+              const scope = profile.competitionStats?.[scopeId];
+              const available = Boolean(scope?.available);
+              return (
+                <button
+                  type="button"
+                  role="tab"
+                  key={scopeId}
+                  aria-selected={competitionScopeId === scopeId}
+                  disabled={!available}
+                  onClick={() => setRequestedCompetitionScopeId(scopeId)}
+                >
+                  <CompetitionIcon scopeId={scopeId} />
+                  <span>
+                    <strong>{COMPETITION_SCOPE_META[scopeId].label}</strong>
+                    <small>{available ? eventCountLabel(scopeId, scope.eventCount) : 'No stats yet'}</small>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="profile-competition-readout">
+            <span>{activeCompetition?.eyebrow}</span>
+            <strong>{activeCompetition?.label}</strong>
+            <p>{activeCompetition?.description}</p>
+          </div>
+        </section>
+
+        <section className="profile-metric-strip" aria-label={`${activeCompetition?.label || 'Career'} statistics`}>
           {goalieProfile ? <>
-            <ProfileMetric label="Games" value={profile.careerGoalie.gamesPlayed} detail={`${profile.seasonsPlayed} seasons`} />
-            <ProfileMetric label="Record" value={`${profile.careerGoalie.wins}-${profile.careerGoalie.losses}-${profile.careerGoalie.ties}`} detail="wins · losses · ties" />
-            <ProfileMetric label="Save rate" value={formatPercentage(profile.careerGoalie.savePercentage)} detail={`${profile.careerGoalie.saves} saves`} />
-            <ProfileMetric label="Shutouts" value={profile.careerGoalie.shutouts} detail={`${profile.careerGoalie.goalsAgainstAverage.toFixed(2)} GAA`} />
+            <ProfileMetric label="Games" value={scopeCareerGoalie.gamesPlayed || '—'} detail={eventCountLabel(competitionScopeId, scopeEventCount)} />
+            <ProfileMetric label="Record" value={scopeCareerGoalie.gamesPlayed ? `${scopeCareerGoalie.wins}-${scopeCareerGoalie.losses}-${scopeCareerGoalie.ties}` : '—'} detail="wins · losses · ties" />
+            <ProfileMetric label="Save rate" value={scopeCareerGoalie.gamesPlayed ? formatPercentage(scopeCareerGoalie.savePercentage) : '—'} detail={Number.isFinite(scopeCareerGoalie.saves) ? `${scopeCareerGoalie.saves} saves` : 'Published rate'} />
+            <ProfileMetric label="Shutouts" value={scopeCareerGoalie.gamesPlayed ? scopeCareerGoalie.shutouts : '—'} detail={scopeCareerGoalie.gamesPlayed && Number.isFinite(scopeCareerGoalie.goalsAgainstAverage) ? `${scopeCareerGoalie.goalsAgainstAverage.toFixed(2)} GAA` : 'No goalie line published'} />
           </> : <>
-            <ProfileMetric label="Games" value={profile.careerField.gamesPlayed} detail={`${profile.seasonsPlayed} seasons`} />
-            <ProfileMetric label="Goals" value={profile.careerField.goals} detail={`${profile.careerField.powerPlayGoals} power play`} />
-            <ProfileMetric label="Assists" value={profile.careerField.assists} detail="career total" />
-            <ProfileMetric label="Points" value={profile.careerField.points} detail={`${profile.careerField.pointsPerGame.toFixed(2)} per game`} />
+            <ProfileMetric label="Games" value={scopeCareerField.gamesPlayed || '—'} detail={eventCountLabel(competitionScopeId, scopeEventCount)} />
+            <ProfileMetric label="Goals" value={scopeCareerField.gamesPlayed ? scopeCareerField.goals : '—'} detail={`${scopeCareerField.powerPlayGoals} power play`} />
+            <ProfileMetric label="Assists" value={scopeCareerField.gamesPlayed ? scopeCareerField.assists : '—'} detail="career total" />
+            <ProfileMetric label="Points" value={scopeCareerField.gamesPlayed ? scopeCareerField.points : '—'} detail={scopeCareerField.gamesPlayed ? `${scopeCareerField.pointsPerGame.toFixed(2)} per game` : 'No player line published'} />
           </>}
         </section>
 
@@ -387,26 +485,27 @@ export default function ProfileWorkspace() {
 
         <div className="profile-content-grid">
           <section className="profile-band profile-season-history">
-            <header><Medal aria-hidden="true" /><div><span>SEASON HISTORY</span><h2>Every linked Goonsquad season</h2></div></header>
+            <header><Medal aria-hidden="true" /><div><span>STAT HISTORY</span><h2>{activeCompetition?.label} history</h2></div></header>
             <div className="profile-season-rows">
-              {profile.seasonHistory.map((row) => <article key={row.season.id} data-current={row.season.current}>
-                <div><strong>{row.season.name}</strong><small>{row.schedules.join(' / ')}</small></div>
+              {scopeHistory.map((row) => <article key={row.id || row.season.id} data-current={row.season.current}>
+                <div><strong>{row.season.name}</strong><small>{historyContext(row)}</small></div>
                 {row.goalie.gamesPlayed > row.field.gamesPlayed ? <div className="profile-season-line"><span><b>{row.goalie.gamesPlayed}</b> GP</span><span><b>{row.goalie.wins}</b> W</span><span><b>{formatPercentage(row.goalie.savePercentage)}</b> SV%</span><span><b>{row.goalie.shutouts}</b> SO</span></div> : <div className="profile-season-line"><span><b>{row.field.gamesPlayed}</b> GP</span><span><b>{row.field.goals}</b> G</span><span><b>{row.field.assists}</b> A</span><span><b>{row.field.points}</b> PTS</span></div>}
                 {row.season.current && <span className="profile-current-season">CURRENT</span>}
               </article>)}
+              {!scopeHistory.length && <div className="profile-empty"><History aria-hidden="true" /><strong>No {activeCompetition?.label.toLowerCase()} totals published</strong><p>This scope will appear when player statistics are available.</p></div>}
             </div>
           </section>
 
           <section className="profile-band profile-recent-games">
             <header><History aria-hidden="true" /><div><span>GAME LOG</span><h2>Recent appearances</h2></div></header>
             <div className="profile-game-rows">
-              {profile.recentGames.slice(0, 8).map((row) => <button type="button" key={row.game.id} onClick={() => openLinkedGame(row.game.id)}>
+              {scopeGames.slice(0, 8).map((row) => <button type="button" key={row.game.id} onClick={() => openLinkedGame(row.game.id)}>
                 <span className={`profile-game-result is-${row.result.toLowerCase()}`}>{row.result}</span>
-                <span><strong>{row.game.opponent}</strong><small>{formatGameDate(row.game.scheduledAt)} · {row.team ? formatLeagueScheduleName(row.team) : 'League game'}</small></span>
+                <span><strong>{row.game.opponent}</strong><small>{formatGameDate(row.game.scheduledAt)} · {[row.season ? formatLeagueName(row.season) : null, row.team ? formatLeagueScheduleName(row.team) : null, row.game.stage === 'playoffs' ? 'Playoffs' : 'Regular season'].filter(Boolean).join(' · ')}</small></span>
                 <span>{row.field ? <><b>{row.points}</b><small>PTS</small></> : <><b>{formatPercentage(row.goalie?.savePercentage)}</b><small>SV%</small></>}</span>
                 <ChevronRight aria-hidden="true" />
               </button>)}
-              {!profile.recentGames.length && <div className="profile-empty"><History aria-hidden="true" /><strong>No detailed game appearances published</strong><p>Season totals remain available above.</p></div>}
+              {!scopeGames.length && <div className="profile-empty"><History aria-hidden="true" /><strong>No detailed {activeCompetition?.label.toLowerCase()} appearances published</strong><p>Available totals remain visible above.</p></div>}
             </div>
           </section>
         </div>

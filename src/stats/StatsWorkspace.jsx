@@ -97,11 +97,11 @@ function initialQueryValue(key) {
 
 // Exported for direct deep-link regression tests; the component remains the only UI export.
 // eslint-disable-next-line react-refresh/only-export-components
-export function resolvePlayerDetailState(dataset, playerId) {
+export function resolvePlayerDetailState(dataset, playerId, tournaments = []) {
   const requestedPlayerId = String(playerId || '').trim();
   if (!requestedPlayerId) return { status: 'idle', profile: null };
   if (!dataset) return { status: 'loading', profile: null };
-  const profile = publicPlayerProfileSnapshot(dataset, requestedPlayerId);
+  const profile = publicPlayerProfileSnapshot(dataset, requestedPlayerId, Date.now(), { tournaments });
   return profile
     ? { status: 'found', profile }
     : { status: 'not-found', profile: null };
@@ -1007,13 +1007,18 @@ export default function StatsWorkspace() {
       .sort((a, b) => a.displayName.localeCompare(b.displayName));
   }, [dataset, selectedFinalGameContext]);
   const selectedPlayerDetail = useMemo(
-    () => resolvePlayerDetailState(dataset, selectedPlayerId),
-    [dataset, selectedPlayerId],
+    () => resolvePlayerDetailState(dataset, selectedPlayerId, tournamentArchive),
+    [dataset, selectedPlayerId, tournamentArchive],
   );
   const selectedPlayerProfile = selectedPlayerDetail.profile;
   const allTimeRecords = useMemo(
-    () => dataset ? buildAllTimeRecords(dataset) : { skaters: [], goalies: [] },
-    [dataset],
+    () => dataset ? buildAllTimeRecords(dataset, tournamentArchive) : {
+      skaters: [],
+      goalies: [],
+      scopes: {},
+      availableScopes: [],
+    },
+    [dataset, tournamentArchive],
   );
 
   useEffect(() => {
@@ -1300,7 +1305,7 @@ export default function StatsWorkspace() {
           onArchiveRefresh={refreshTournamentArchive}
         />
       ) : <>{snapshot.availableStages.length > 1 && <div className="stats-stage-switcher" role="group" aria-label="Season stage">
-        {snapshot.availableStages.map((item) => <button key={item} type="button" aria-pressed={snapshot.stage === item} onClick={() => { setStage(item); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }}>{item === 'regular' ? 'Regular season' : item === 'playoffs' ? 'Playoffs' : 'All games'}</button>)}
+        {snapshot.availableStages.map((item) => <button key={item} type="button" aria-pressed={snapshot.stage === item} onClick={() => { setStage(item); setSelectedGameId(''); setSelectedOpponentSlug(''); setSelectedFixtureId(''); }}>{item === 'regular' ? 'Regular season' : item === 'playoffs' ? 'Playoffs' : 'Combined'}</button>)}
       </div>}
 
       <nav className="stats-tabs" role="tablist" aria-label="Statistics view">

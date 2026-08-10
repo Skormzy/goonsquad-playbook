@@ -77,6 +77,48 @@ describe('all-time records', () => {
     ))).toBe(true);
   });
 
+  it('keeps regular season, playoffs, and tournaments separate before building combined totals', () => {
+    const scopedDataset = {
+      ...dataset,
+      playerSeasonStats: [
+        { playerId: 'p1', seasonTeamId: 't1', stage: 'regular', gamesPlayed: 4, goals: 2, assists: 3, points: 5, penaltyMinutes: 2 },
+        { playerId: 'p1', seasonTeamId: 't1', stage: 'playoffs', gamesPlayed: 2, goals: 1, assists: 2, points: 3, penaltyMinutes: 4 },
+      ],
+      goalieSeasonStats: [
+        { playerId: 'g1', seasonTeamId: 't1', stage: 'regular', gamesPlayed: 4, wins: 2, losses: 2, ties: 0, shutouts: 0, shotsAgainst: 80, goalsAgainst: 12, minutesPlayed: 120 },
+        { playerId: 'g1', seasonTeamId: 't1', stage: 'playoffs', gamesPlayed: 2, wins: 1, losses: 1, ties: 0, shutouts: 1, shotsAgainst: 40, goalsAgainst: 4, minutesPlayed: 60 },
+      ],
+    };
+    const tournaments = [{
+      id: 'cup',
+      playerStats: [{ name: 'Alpha', gamesPlayed: 3, goals: 4, assists: 1, points: 5 }],
+      goalieStats: [{ name: 'Goalie', gamesPlayed: 1, wins: 1, losses: 0, goalsAgainst: 2, minutes: 30, savePercentage: 0.9 }],
+    }];
+    const records = buildAllTimeRecords(scopedDataset, tournaments);
+
+    expect(records.scopes.regular.skaters[0]).toMatchObject({ gamesPlayed: 4, points: 5 });
+    expect(records.scopes.playoffs.skaters[0]).toMatchObject({ gamesPlayed: 2, points: 3 });
+    expect(records.scopes.tournaments.skaters[0]).toMatchObject({ gamesPlayed: 3, points: 5 });
+    expect(records.scopes.all.skaters[0]).toMatchObject({ gamesPlayed: 9, points: 13 });
+    expect(records.scopes.all.goalies[0]).toMatchObject({ gamesPlayed: 7, savePercentage: null, saves: null });
+  });
+
+  it('recomputes combined league goalie rates from regular-season and playoff totals', () => {
+    const scopedDataset = {
+      ...dataset,
+      playerSeasonStats: [],
+      goalieSeasonStats: [
+        { playerId: 'g1', seasonTeamId: 't1', stage: 'regular', gamesPlayed: 4, wins: 2, losses: 2, ties: 0, shutouts: 0, shotsAgainst: 80, goalsAgainst: 12, minutesPlayed: 120 },
+        { playerId: 'g1', seasonTeamId: 't1', stage: 'playoffs', gamesPlayed: 2, wins: 1, losses: 1, ties: 0, shutouts: 1, shotsAgainst: 40, goalsAgainst: 4, minutesPlayed: 60 },
+      ],
+    };
+    const goalie = buildAllTimeRecords(scopedDataset).scopes.all.goalies[0];
+
+    expect(goalie).toMatchObject({ shotsAgainst: 120, goalsAgainst: 16, saves: 104 });
+    expect(goalie.savePercentage).toBeCloseTo(104 / 120, 5);
+    expect(goalie.goalsAgainstAverage).toBeCloseTo(16 * 30 / 180, 5);
+  });
+
   it('publishes one combined all-time record for Mathew Grenier', () => {
     const records = buildAllTimeRecords(OFFICIAL_STATS_DATASET);
     const matches = records.skaters.filter((line) => line.displayName === 'Mathew Grenier');

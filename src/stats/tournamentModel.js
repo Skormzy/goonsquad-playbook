@@ -11,11 +11,13 @@ export const DEFAULT_TOURNAMENT_DISPLAY = Object.freeze({
   bracketMode: 'full',
   showOverview: true,
   showStandings: true,
+  showStats: true,
   showBracket: true,
   showGames: true,
   showVerification: true,
   overviewLabel: 'Overview',
   standingsLabel: 'Standings',
+  statsLabel: 'Stats',
   bracketLabel: 'Bracket',
   gamesLabel: 'Games',
 });
@@ -89,10 +91,10 @@ export function normalizeTournamentDisplay(display = {}) {
     next.bracketMode = DEFAULT_TOURNAMENT_DISPLAY.bracketMode;
   }
   next.showBracket = next.bracketMode === 'hidden' ? false : Boolean(next.showBracket);
-  ['showOverview', 'showStandings', 'showGames', 'showVerification'].forEach((key) => {
+  ['showOverview', 'showStandings', 'showStats', 'showGames', 'showVerification'].forEach((key) => {
     next[key] = Boolean(next[key]);
   });
-  ['overviewLabel', 'standingsLabel', 'bracketLabel', 'gamesLabel'].forEach((key) => {
+  ['overviewLabel', 'standingsLabel', 'statsLabel', 'bracketLabel', 'gamesLabel'].forEach((key) => {
     next[key] = String(next[key] || DEFAULT_TOURNAMENT_DISPLAY[key]).trim().slice(0, 24)
       || DEFAULT_TOURNAMENT_DISPLAY[key];
   });

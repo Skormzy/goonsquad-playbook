@@ -85,6 +85,13 @@ for (const viewport of viewports) {
     .map((value) => value.replace(/\s+/gu, ' ').trim());
   const tabs = (await page.locator('.tournament-tabs button').allTextContents()).map((value) => value.trim());
 
+  await page.getByRole('tab', { name: 'Stats', exact: true }).click();
+  await page.locator('.tournament-stats-workspace').scrollIntoViewIfNeeded();
+  screenshots.push(await capture(page, viewport, 'stats'));
+  const tournamentStatTables = await page.locator('.tournament-stat-table').count();
+  const tournamentStatRows = await page.locator('.tournament-stat-table tbody tr').count();
+  const tournamentStatsText = (await page.locator('.tournament-stats-workspace').innerText()).replace(/\s+/gu, ' ').trim();
+
   await page.getByRole('tab', { name: 'Round robin', exact: true }).click();
   await page.locator('.tournament-round-robin').scrollIntoViewIfNeeded();
   const poolTabs = await page.locator('.tournament-pool-switcher [role="tab"]').count();
@@ -177,6 +184,10 @@ for (const viewport of viewports) {
   const mississaugaOverviewText = (await page.locator('.tournament-workspace').innerText()).replace(/\s+/gu, ' ').trim();
   const mississaugaTeamGames = await page.locator('.tournament-game-card').count();
 
+  await page.getByRole('tab', { name: 'Stats', exact: true }).click();
+  const mississaugaStatsText = (await page.locator('.tournament-stats-empty').innerText()).replace(/\s+/gu, ' ').trim();
+  screenshots.push(await capture(page, viewport, '2024-stats-empty'));
+
   await page.getByRole('tab', { name: 'Round robin', exact: true }).click();
   const mississaugaPoolTabs = await page.locator('.tournament-pool-switcher [role="tab"]').count();
   const mississaugaStandingsRows = await page.locator('.tournament-standings-table [role="row"]').count();
@@ -211,6 +222,9 @@ for (const viewport of viewports) {
     viewport,
     selectorLabels,
     tabs,
+    tournamentStatTables,
+    tournamentStatRows,
+    tournamentStatsText,
     gameCards,
     leaderCards,
     scorerRows,
@@ -249,6 +263,7 @@ for (const viewport of viewports) {
     quarterfinalGameUrl,
     mississauga2024: {
       teamGames: mississaugaTeamGames,
+      statsText: mississaugaStatsText,
       poolTabs: mississaugaPoolTabs,
       standingsRows: mississaugaStandingsRows,
       bracketMatches: mississaugaBracketMatches,
@@ -277,8 +292,14 @@ for (const viewport of viewports) {
   }
   if (!selectorLabels.some((label) => label.includes('Oshawa 2026'))
     || !selectorLabels.some((label) => label.includes('Mississauga 2024'))
-    || tabs.join('|') !== 'Weekend|Round robin|Full bracket|All games') {
+    || tabs.join('|') !== 'Weekend|Round robin|Stats|Full bracket|All games') {
     throw new Error(`${viewport.id}: tournament navigation is incomplete.`);
+  }
+  if (tournamentStatTables !== 2
+    || tournamentStatRows < 7
+    || !tournamentStatsText.includes('Player leaderboard')
+    || !tournamentStatsText.includes('Goalie leaderboard')) {
+    throw new Error(`${viewport.id}: tournament-only player and goalie statistics are incomplete.`);
   }
   if (poolTabs !== 4 || standingsRows !== 4 || !standingsText.includes('Goonsquad') || !standingsText.includes('Brampton All Blacks')) {
     throw new Error(`${viewport.id}: official standings are incomplete.`);
@@ -341,6 +362,9 @@ for (const viewport of viewports) {
   }
   if (!mississaugaOverviewText.includes('2024 OBHF Summer Provincials') || mississaugaTeamGames !== 3) {
     throw new Error(`${viewport.id}: the 2024 tournament dossier is incomplete.`);
+  }
+  if (!mississaugaStatsText.includes('Player totals are not available yet')) {
+    throw new Error(`${viewport.id}: tournaments without published player totals need an honest empty state.`);
   }
   if (mississaugaPoolTabs !== 2 || mississaugaStandingsRows !== 5 || !mississaugaRoundRobinText.includes('Cambridge Thunder') || !mississaugaRoundRobinText.includes('Goonsquad') || mississaugaRoundRobinText.includes('Result unavailable')) {
     throw new Error(`${viewport.id}: the verified 2024 round-robin table is incomplete.`);

@@ -11,6 +11,10 @@ import {
   playerIdentitySource,
   playerIdentitySourceLabel,
 } from '../stats/playerIdentity';
+import {
+  availableCompetitionScopes,
+  COMPETITION_SCOPE_META,
+} from '../stats/competitionScopeModel';
 
 function value(number) {
   const parsed = Number(number);
@@ -222,7 +226,225 @@ function gameResult(game) {
   return 'T';
 }
 
-export function memberProfileSnapshot(dataset, claims, now = Date.now()) {
+function playerSeasonHistory(dataset, playerIds, stage = 'all') {
+  const teamsById = new Map(dataset.teams.map((team) => [team.id, team]));
+  const seasonsById = new Map(dataset.seasons.map((season) => [season.id, season]));
+  const seasonIndex = new Map(dataset.seasons.map((season, index) => [season.id, index]));
+  const history = new Map();
+  const includesStage = (line) => stage === 'all' || (line.stage || 'regular') === stage;
+  const ensureSeason = (seasonTeamId) => {
+    const team = teamsById.get(seasonTeamId);
+    const season = seasonsById.get(team?.seasonId);
+    if (!season) return null;
+    if (!history.has(season.id)) history.set(season.id, emptySeasonLine(season));
+    const row = history.get(season.id);
+    if (team) row.schedules.add(formatLeagueScheduleName(team));
+    return row;
+  };
+
+  (dataset.playerSeasonStats ?? [])
+    .filter((line) => playerIds.has(line.playerId) && includesStage(line))
+    .forEach((line) => {
+      const row = ensureSeason(line.seasonTeamId);
+      if (!row) return;
+      row.stages.add(line.stage || 'regular');
+      addFieldLine(row.field, line);
+    });
+  (dataset.goalieSeasonStats ?? [])
+    .filter((line) => playerIds.has(line.playerId) && includesStage(line))
+    .forEach((line) => {
+      const row = ensureSeason(line.seasonTeamId);
+      if (!row) return;
+      row.stages.add(line.stage || 'regular');
+      addGoalieLine(row.goalie, line);
+    });
+
+  return [...history.values()]
+    .map((row) => ({
+      ...row,
+      id: `${stage}:${row.season.id}`,
+      competition: stage === 'playoffs' ? 'playoffs' : stage === 'regular' ? 'regular' : 'all',
+      schedules: [...row.schedules],
+      stages: [...row.stages],
+      field: {
+        ...row.field,
+        pointsPerGame: row.field.gamesPlayed ? row.field.points / row.field.gamesPlayed : 0,
+      },
+      goalie: { ...finalizeGoalie(row.goalie), rateSource: 'league-raw' },
+    }))
+    .sort((a, b) => (
+      seasonSortValue(b.season, seasonIndex.get(b.season.id))
+      - seasonSortValue(a.season, seasonIndex.get(a.season.id))
+    ));
+}
+
+function tournamentHistoryForPlayers(tournaments, players) {
+  const playerNames = new Set(players.map((player) => normalizePlayerIdentityName(player.displayName)));
+  return (tournaments ?? []).map((tournament) => {
+    const skaterLines = (tournament.playerStats ?? []).filter((line) => (
+      playerNames.has(normalizePlayerIdentityName(line.name))
+    ));
+    const goalieLines = (tournament.goalieStats ?? []).filter((line) => (
+      playerNames.has(normalizePlayerIdentityName(line.name))
+    ));
+    if (!skaterLines.length && !goalieLines.length) return null;
+
+    const season = {
+      id: `tournament:${tournament.id}`,
+      name: tournament.shortName || tournament.name,
+      startDate: tournament.startDate || '',
+      endDate: tournament.endDate || '',
+      current: false,
+      leagueName: 'Tournament',
+    };
+    const row = emptySeasonLine(season);
+    row.schedules.add(tournament.division || tournament.series || 'Tournament');
+    row.stages.add('tournament');
+    skaterLines.forEach((line) => addFieldLine(row.field, {
+      ...line,
+      points: Number.isFinite(line.points) ? line.points : value(line.goals) + value(line.assists),
+    }));
+
+    let publishedSaveWeight = 0;
+    let publishedSaveTotal = 0;
+    goalieLines.forEach((line) => {
+      const minutesPlayed = value(line.minutes ?? line.minutesPlayed);
+      addGoalieLine(row.goalie, {
+        gamesPlayed: line.gamesPlayed,
+        wins: line.wins,
+        losses: line.losses,
+        ties: line.ties,
+        shutouts: line.shutouts,
+        goalsAgainst: line.goalsAgainst,
+        minutesPlayed,
+      });
+      if (Number.isFinite(line.savePercentage) && minutesPlayed > 0) {
+        publishedSaveWeight += minutesPlayed;
+        publishedSaveTotal += line.savePercentage * minutesPlayed;
+      }
+    });
+    const goalie = finalizeGoalie(row.goalie);
+    if (goalie.gamesPlayed && !goalie.shotsAgainst) {
+      goalie.saves = null;
+      goalie.savePercentage = publishedSaveWeight
+        ? publishedSaveTotal / publishedSaveWeight
+        : null;
+      goalie.rateSource = 'tournament-published';
+    }
+
+    return {
+      ...row,
+      id: `tournaments:${tournament.id}`,
+      competition: 'tournaments',
+      tournamentId: tournament.id,
+      schedules: [...row.schedules],
+      stages: [...row.stages],
+      field: {
+        ...row.field,
+        pointsPerGame: row.field.gamesPlayed ? row.field.points / row.field.gamesPlayed : 0,
+      },
+      goalie,
+    };
+  }).filter(Boolean).sort((a, b) => (
+    seasonSortValue(b.season) - seasonSortValue(a.season)
+  ));
+}
+
+function careerFieldFromHistory(history) {
+  const career = history.reduce((total, row) => {
+    addFieldLine(total, row.field);
+    return total;
+  }, emptySeasonLine(null).field);
+  career.pointsPerGame = career.gamesPlayed ? career.points / career.gamesPlayed : 0;
+  return career;
+}
+
+function careerGoalieFromHistory(history) {
+  const career = history.reduce((total, row) => {
+    addGoalieLine(total, row.goalie);
+    return total;
+  }, emptySeasonLine(null).goalie);
+  const finalized = finalizeGoalie(career);
+  const publishedRows = history.filter((row) => (
+    row.goalie.gamesPlayed && row.goalie.rateSource === 'tournament-published'
+  ));
+  const leagueRows = history.filter((row) => (
+    row.goalie.gamesPlayed && row.goalie.rateSource !== 'tournament-published'
+  ));
+  if (publishedRows.length && leagueRows.length) {
+    finalized.saves = null;
+    finalized.savePercentage = null;
+    finalized.rateSource = 'mixed-incomplete';
+  } else if (publishedRows.length) {
+    const rateWeight = publishedRows.reduce((sum, row) => sum + value(row.goalie.minutesPlayed), 0);
+    finalized.saves = null;
+    finalized.savePercentage = rateWeight
+      ? publishedRows.reduce((sum, row) => (
+        sum + value(row.goalie.savePercentage) * value(row.goalie.minutesPlayed)
+      ), 0) / rateWeight
+      : null;
+    finalized.rateSource = 'tournament-published';
+  }
+  return finalized;
+}
+
+function recentGamesForStage(dataset, playerIds, stage = 'all') {
+  const teamsById = new Map(dataset.teams.map((team) => [team.id, team]));
+  const seasonsById = new Map(dataset.seasons.map((season) => [season.id, season]));
+  const fieldGameLines = (dataset.playerGameStats ?? []).filter((line) => playerIds.has(line.playerId));
+  const goalieGameLines = (dataset.goalieGameStats ?? []).filter((line) => playerIds.has(line.playerId));
+  const recentGameIds = new Set([...fieldGameLines, ...goalieGameLines].map((line) => line.gameId));
+  return (dataset.games ?? [])
+    .filter((game) => (
+      recentGameIds.has(game.id)
+      && (stage === 'all' || (game.stage || 'regular') === stage)
+    ))
+    .map((game) => {
+      const fieldLines = fieldGameLines.filter((line) => line.gameId === game.id);
+      const goalieLines = goalieGameLines.filter((line) => line.gameId === game.id);
+      const field = fieldLines.length ? fieldLines.reduce((total, line) => {
+        addFieldLine(total, line);
+        return total;
+      }, emptySeasonLine(null).field) : null;
+      const goalie = goalieLines.length ? finalizeGoalie(goalieLines.reduce((total, line) => {
+        addGoalieLine(total, line);
+        return total;
+      }, emptySeasonLine(null).goalie)) : null;
+      const team = teamsById.get(game.seasonTeamId) ?? null;
+      const season = seasonsById.get(team?.seasonId) ?? null;
+      return {
+        game,
+        field,
+        goalie,
+        team,
+        season,
+        result: gameResult(game),
+        points: value(field?.goals) + value(field?.assists),
+      };
+    })
+    .sort((a, b) => String(b.game.scheduledAt).localeCompare(String(a.game.scheduledAt)));
+}
+
+function competitionScope(id, history, recentGames = []) {
+  const careerField = careerFieldFromHistory(history);
+  const careerGoalie = careerGoalieFromHistory(history);
+  const scope = {
+    id,
+    ...COMPETITION_SCOPE_META[id],
+    seasonHistory: history,
+    eventCount: history.length,
+    careerField,
+    careerGoalie,
+    recentGames,
+    bestFieldSeason: history.slice().sort((a, b) => (
+      b.field.points - a.field.points || b.field.goals - a.field.goals
+    ))[0] ?? null,
+  };
+  scope.available = careerField.gamesPlayed > 0 || careerGoalie.gamesPlayed > 0;
+  return scope;
+}
+
+export function memberProfileSnapshot(dataset, claims, now = Date.now(), { tournaments = [] } = {}) {
   const players = resolvedPlayers(dataset, claims);
   const playerIds = new Set(players.map((player) => player.id));
   const primaryClaim = claims.find((claim) => claim.primary) ?? claims[0] ?? null;
@@ -244,74 +466,30 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now()) {
   if (!playerIds.size || !primaryPlayer) return null;
 
   const teamsById = new Map(dataset.teams.map((team) => [team.id, team]));
-  const seasonsById = new Map(dataset.seasons.map((season) => [season.id, season]));
   const seasonIndex = new Map(dataset.seasons.map((season, index) => [season.id, index]));
-  const history = new Map();
-  const ensureSeason = (seasonTeamId) => {
-    const team = teamsById.get(seasonTeamId);
-    const season = seasonsById.get(team?.seasonId);
-    if (!season) return null;
-    if (!history.has(season.id)) history.set(season.id, emptySeasonLine(season));
-    const row = history.get(season.id);
-    if (team) row.schedules.add(formatLeagueScheduleName(team));
-    return row;
+  const seasonHistory = playerSeasonHistory(dataset, playerIds, 'all');
+  const regularHistory = playerSeasonHistory(dataset, playerIds, 'regular');
+  const playoffHistory = playerSeasonHistory(dataset, playerIds, 'playoffs');
+  const tournamentHistory = tournamentHistoryForPlayers(tournaments, players);
+  const careerField = careerFieldFromHistory(seasonHistory);
+  const careerGoalie = careerGoalieFromHistory(seasonHistory);
+  const recentGames = recentGamesForStage(dataset, playerIds, 'all');
+  const competitionStats = {
+    regular: competitionScope(
+      'regular',
+      regularHistory,
+      recentGamesForStage(dataset, playerIds, 'regular'),
+    ),
+    playoffs: competitionScope(
+      'playoffs',
+      playoffHistory,
+      recentGamesForStage(dataset, playerIds, 'playoffs'),
+    ),
+    tournaments: competitionScope('tournaments', tournamentHistory),
+    all: competitionScope('all', [...seasonHistory, ...tournamentHistory].sort((a, b) => (
+      seasonSortValue(b.season) - seasonSortValue(a.season)
+    )), recentGames),
   };
-
-  dataset.playerSeasonStats.filter((line) => playerIds.has(line.playerId)).forEach((line) => {
-    const row = ensureSeason(line.seasonTeamId);
-    if (!row) return;
-    row.stages.add(line.stage || 'regular');
-    addFieldLine(row.field, line);
-  });
-  dataset.goalieSeasonStats.filter((line) => playerIds.has(line.playerId)).forEach((line) => {
-    const row = ensureSeason(line.seasonTeamId);
-    if (!row) return;
-    row.stages.add(line.stage || 'regular');
-    addGoalieLine(row.goalie, line);
-  });
-
-  const seasonHistory = [...history.values()]
-    .map((row) => ({
-      ...row,
-      schedules: [...row.schedules],
-      stages: [...row.stages],
-      field: { ...row.field, pointsPerGame: row.field.gamesPlayed ? row.field.points / row.field.gamesPlayed : 0 },
-      goalie: finalizeGoalie(row.goalie),
-    }))
-    .sort((a, b) => seasonSortValue(b.season, seasonIndex.get(b.season.id)) - seasonSortValue(a.season, seasonIndex.get(a.season.id)));
-
-  const careerField = seasonHistory.reduce((total, row) => {
-    addFieldLine(total, row.field);
-    return total;
-  }, emptySeasonLine(null).field);
-  careerField.pointsPerGame = careerField.gamesPlayed ? careerField.points / careerField.gamesPlayed : 0;
-  const careerGoalieBase = seasonHistory.reduce((total, row) => {
-    addGoalieLine(total, row.goalie);
-    return total;
-  }, emptySeasonLine(null).goalie);
-  const careerGoalie = finalizeGoalie(careerGoalieBase);
-
-  const fieldGameLines = dataset.playerGameStats.filter((line) => playerIds.has(line.playerId));
-  const goalieGameLines = dataset.goalieGameStats.filter((line) => playerIds.has(line.playerId));
-  const recentGameIds = new Set([...fieldGameLines, ...goalieGameLines].map((line) => line.gameId));
-  const recentGames = dataset.games
-    .filter((game) => recentGameIds.has(game.id))
-    .map((game) => {
-      const field = fieldGameLines.find((line) => line.gameId === game.id) ?? null;
-      const goalie = goalieGameLines.find((line) => line.gameId === game.id) ?? null;
-      const team = teamsById.get(game.seasonTeamId) ?? null;
-      const season = seasonsById.get(team?.seasonId) ?? null;
-      return {
-        game,
-        field,
-        goalie: goalie ? finalizeGoalie(goalie) : null,
-        team,
-        season,
-        result: gameResult(game),
-        points: value(field?.goals) + value(field?.assists),
-      };
-    })
-    .sort((a, b) => String(b.game.scheduledAt).localeCompare(String(a.game.scheduledAt)));
 
   const memberships = dataset.memberships.filter((membership) => playerIds.has(membership.playerId));
   const currentSeason = dataset.seasons.find((season) => season.current) ?? dataset.seasons[0] ?? null;
@@ -341,6 +519,8 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now()) {
     bestFieldSeason,
     careerField,
     careerGoalie,
+    competitionStats,
+    availableCompetitionScopes: availableCompetitionScopes(competitionStats),
     recentGames,
     nextGame,
     currentTeams: currentMemberships.map((membership) => teamsById.get(membership.seasonTeamId)).filter(Boolean),
@@ -349,12 +529,12 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now()) {
   };
 }
 
-export function publicPlayerProfileSnapshot(dataset, playerId, now = Date.now()) {
+export function publicPlayerProfileSnapshot(dataset, playerId, now = Date.now(), options = {}) {
   const player = dataset?.players?.find((candidate) => candidate.id === playerId) ?? null;
   if (!player) return null;
   return memberProfileSnapshot(dataset, [{
     playerId: player.id,
     primary: true,
     player,
-  }], now);
+  }], now, options);
 }

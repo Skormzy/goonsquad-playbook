@@ -335,6 +335,8 @@ describe('tournament archive model', () => {
       accent: 'gold',
       bracketMode: 'hidden',
       showBracket: false,
+      showStats: true,
+      statsLabel: 'Stats',
       gamesLabel: 'Matchups',
     });
   });

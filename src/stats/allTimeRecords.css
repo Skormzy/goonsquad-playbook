@@ -85,6 +85,100 @@
   height: 16px;
 }
 
+.all-time-scope-switcher {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  border-top: 1px solid var(--stats-border);
+  background: var(--stats-border);
+}
+
+.all-time-scope-switcher > button {
+  min-width: 0;
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 10px 13px;
+  border: 0;
+  background: var(--stats-surface);
+  color: var(--stats-muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.all-time-scope-switcher > button:hover:not(:disabled),
+.all-time-scope-switcher > button:focus-visible,
+.all-time-scope-switcher > button[aria-selected='true'] {
+  background: var(--stats-accent-bg);
+  color: var(--stats-accent);
+  box-shadow: inset 0 -3px 0 var(--stats-accent);
+}
+
+.all-time-scope-switcher > button:disabled {
+  cursor: default;
+  opacity: 0.48;
+}
+
+.all-time-scope-switcher svg {
+  width: 21px;
+  height: 21px;
+}
+
+.all-time-scope-switcher span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.all-time-scope-switcher strong {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.05;
+}
+
+.all-time-scope-switcher small {
+  color: var(--stats-muted);
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.all-time-scope-summary {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 9px;
+  padding: 11px 18px;
+  border-top: 1px solid var(--stats-border);
+  background: var(--stats-panel);
+}
+
+.all-time-scope-summary > span {
+  color: var(--stats-accent);
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.all-time-scope-summary > strong {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.all-time-scope-summary > p {
+  margin: 0;
+  color: var(--stats-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .all-time-podium {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -106,6 +200,10 @@
   color: var(--stats-text);
   text-align: left;
   cursor: pointer;
+}
+
+.all-time-podium > button:disabled {
+  cursor: default;
 }
 
 .all-time-podium > button[data-place='1'] {
@@ -131,12 +229,11 @@
 
 .all-time-podium strong {
   max-width: 100%;
-  overflow: hidden;
   font-family: var(--font-display);
   font-size: clamp(19px, 2vw, 27px);
   font-weight: 900;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
 }
 
 .all-time-podium small {
@@ -263,10 +360,9 @@
 }
 
 .all-time-player strong {
-  overflow: hidden;
   font-size: 14px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .all-time-player small {
@@ -292,6 +388,44 @@
   height: 16px;
 }
 
+.all-time-player:disabled {
+  cursor: default;
+}
+
+.all-time-unlinked {
+  color: var(--stats-muted);
+}
+
+.all-time-empty {
+  min-height: 250px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 32px 18px;
+  color: var(--stats-muted);
+  text-align: center;
+}
+
+.all-time-empty svg {
+  width: 34px;
+  height: 34px;
+  color: var(--stats-accent);
+}
+
+.all-time-empty strong {
+  color: var(--stats-text);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.all-time-empty span {
+  max-width: 460px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 @media (max-width: 720px) {
   .all-time-records-hero {
     align-items: stretch;
@@ -306,6 +440,25 @@
   .all-time-mode {
     width: 100%;
     min-width: 0;
+  }
+
+  .all-time-scope-switcher {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .all-time-scope-switcher > button {
+    min-height: 62px;
+    padding: 9px 10px;
+  }
+
+  .all-time-scope-summary {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 8px;
+    padding: 10px 13px;
+  }
+
+  .all-time-scope-summary > p {
+    grid-column: 1 / -1;
   }
 
   .all-time-podium {
