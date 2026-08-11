@@ -62,6 +62,25 @@ describe('member-scoped league games', () => {
     expect(games.map((game) => game.id)).toEqual(dataset.games.map((game) => game.id));
   });
 
+  it('unifies reviewed player identities before resolving league rosters', () => {
+    const identityDataset = {
+      ...dataset,
+      players: [
+        ...dataset.players,
+        { id: 'ycbhl-player-25650', externalId: '25650', displayName: 'Mathew Grenier' },
+        { id: 'gtbhl-player-88577', externalId: '88577', displayName: 'Matt Grenier' },
+      ],
+      memberships: [
+        ...dataset.memberships,
+        { playerId: 'ycbhl-player-25650', seasonTeamId: 'monday', active: true },
+        { playerId: 'gtbhl-player-88577', seasonTeamId: 'sunday', active: true },
+      ],
+    };
+    const member = { id: 'user-mathew', role: 'member', playerExternalId: '25650' };
+    const games = memberScopedLeagueGames({ dataset: identityDataset, games: dataset.games, member });
+    expect(games.map((game) => game.id)).toEqual(dataset.games.map((game) => game.id));
+  });
+
   it('keeps the combined public view and the admin operations view', () => {
     expect(memberScopedLeagueGames({ dataset, games: dataset.games, member: null })).toEqual(dataset.games);
     expect(memberScopedLeagueGames({
@@ -87,8 +106,20 @@ describe('fixture-scoped attendance', () => {
   it('adds exactly one other-league game when an admin calls the member up', () => {
     const grants = [{ scopeType: 'fixture', scopeId: 'sun-1', userId: seymour.id }];
     const fixtures = buildAttendanceFixtures({ dataset, grants, member: seymour, now: NOW });
-    expect(fixtures.map((fixture) => fixture.id)).toEqual(['sun-1', 'mon-1']);
+    expect(fixtures.map((fixture) => fixture.id)).toEqual(['sun-1', 'mon-1', 'mon-2']);
     expect(memberCanViewAttendance({ dataset, fixture: dataset.games[2], grants, member: seymour })).toBe(false);
+  });
+
+  it('reserves two RSVP fixtures for each league of a dual-roster player', () => {
+    const dualDataset = {
+      ...dataset,
+      memberships: [
+        ...dataset.memberships,
+        { playerId: 'player-seymour', seasonTeamId: 'sunday', active: true },
+      ],
+    };
+    const fixtures = buildAttendanceFixtures({ dataset: dualDataset, member: seymour, now: NOW });
+    expect(fixtures.map((fixture) => fixture.id)).toEqual(['sun-1', 'mon-1', 'sun-2', 'mon-2']);
   });
 
   it('unlocks every open game in an invited tournament', () => {
@@ -149,7 +180,7 @@ describe('fixture-scoped attendance', () => {
   it('lets an admin see the next two team games without making the coach a player', () => {
     const coach = { id: 'coach', role: 'admin' };
     const fixtures = buildAttendanceFixtures({ dataset, member: coach, now: NOW });
-    expect(fixtures.map((fixture) => fixture.id)).toEqual(['sun-1', 'mon-1']);
+    expect(fixtures.map((fixture) => fixture.id)).toEqual(['sun-1', 'mon-1', 'sun-2', 'mon-2']);
     const participants = attendanceParticipants({ dataset, fixture: fixtures[0], members: [coach, sundayPlayer] });
     expect(participants.map((member) => member.id)).toEqual([sundayPlayer.id]);
   });

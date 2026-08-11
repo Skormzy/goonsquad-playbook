@@ -1,4 +1,8 @@
 import { isUpcomingGame } from '../stats/scheduleFreshness';
+import {
+  buildPlayerIdentityIndex,
+  expandPlayerIdentityIds,
+} from '../stats/playerIdentity';
 import { formatLeagueScheduleName } from '../stats/statsModel';
 
 const OPEN_TOURNAMENT_STATUSES = new Set(['upcoming', 'live']);
@@ -21,22 +25,32 @@ function tournamentGameTime(tournament, game, index) {
   return '';
 }
 
-export function datasetPlayerIdForMember(dataset, member) {
-  if (!dataset || !member) return '';
+export function datasetPlayerIdsForMember(dataset, member) {
+  if (!dataset || !member) return new Set();
   const externalId = String(member.playerExternalId || '').trim();
   const directId = String(member.playerId || '').trim();
-  const player = (dataset.players || []).find((candidate) => (
+  const directMatches = (dataset.players || []).filter((candidate) => (
     (externalId && String(candidate.externalId || '') === externalId)
     || (directId && candidate.id === directId)
   ));
-  return player?.id || '';
+  if (!directMatches.length) return new Set();
+
+  const identityIndex = buildPlayerIdentityIndex(dataset.players || []);
+  return expandPlayerIdentityIds(
+    identityIndex,
+    new Set(directMatches.map((player) => player.id)),
+  );
+}
+
+export function datasetPlayerIdForMember(dataset, member) {
+  return datasetPlayerIdsForMember(dataset, member).values().next().value || '';
 }
 
 export function rosterTeamIdsForMember(dataset, member) {
-  const playerId = datasetPlayerIdForMember(dataset, member);
-  if (!playerId) return new Set();
+  const playerIds = datasetPlayerIdsForMember(dataset, member);
+  if (!playerIds.size) return new Set();
   return new Set((dataset.memberships || [])
-    .filter((membership) => membership.playerId === playerId && membership.active)
+    .filter((membership) => playerIds.has(membership.playerId) && membership.active !== false)
     .map((membership) => membership.seasonTeamId));
 }
 
@@ -127,12 +141,19 @@ export function buildAttendanceFixtures({
   now = Date.now(),
 }) {
   if (!dataset || !member?.id) return [];
-  const league = (dataset.games || [])
+  const eligibleLeagueFixtures = (dataset.games || [])
     .filter((game) => isUpcomingGame(game, now))
     .map((game) => leagueFixture(game, dataset))
     .filter((fixture) => memberCanViewAttendance({ dataset, fixture, grants, member }))
-    .sort((left, right) => timestamp(left.scheduledAt) - timestamp(right.scheduledAt))
-    .slice(0, 2);
+    .sort((left, right) => timestamp(left.scheduledAt) - timestamp(right.scheduledAt));
+  const fixturesBySchedule = new Map();
+  eligibleLeagueFixtures.forEach((fixture) => {
+    const scheduleId = fixture.seasonTeamId || fixture.schedule?.id || 'league';
+    const scheduleFixtures = fixturesBySchedule.get(scheduleId) || [];
+    if (scheduleFixtures.length < 2) scheduleFixtures.push(fixture);
+    fixturesBySchedule.set(scheduleId, scheduleFixtures);
+  });
+  const league = [...fixturesBySchedule.values()].flat();
   const tournament = tournaments
     .flatMap(tournamentFixtures)
     .filter((fixture) => {

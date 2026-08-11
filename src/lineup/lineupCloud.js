@@ -66,6 +66,28 @@ function mapGameEp(row) {
   };
 }
 
+function fixtureDetails(fixtureOrId) {
+  if (typeof fixtureOrId === 'string') return { id: fixtureOrId };
+  return fixtureOrId || {};
+}
+
+export async function ensureGameAttendanceFixture(fixtureOrId) {
+  const fixture = fixtureDetails(fixtureOrId);
+  if (!fixture.id || (!fixture.seasonTeamId && !fixture.tournamentId)) return;
+  const cloud = requireCloud();
+  const { error } = await cloud.rpc('register_game_attendance_fixture', {
+    p_fixture_id: fixture.id,
+    p_season_team_id: fixture.seasonTeamId || null,
+    p_tournament_id: fixture.tournamentId || null,
+    p_scheduled_at: fixture.scheduledAt || null,
+    p_opponent: fixture.opponent || null,
+  });
+  if (error?.code === 'PGRST202') {
+    throw new Error('Attendance is finishing a live update. Refresh in a moment.');
+  }
+  if (error) throw error;
+}
+
 function epPayload({
   action,
   fixtureId,
@@ -140,8 +162,11 @@ export async function revokeAttendanceAccess({ scopeType, scopeId, userId }) {
   if (error) throw error;
 }
 
-export async function loadGameEpRoster(fixtureId) {
+export async function loadGameEpRoster(fixtureOrId) {
+  const fixture = fixtureDetails(fixtureOrId);
+  const fixtureId = fixture.id;
   if (!fixtureId) return { configured: true, players: [] };
+  await ensureGameAttendanceFixture(fixture);
   const cloud = requireCloud();
   const { data, error } = await cloud.rpc('list_game_ep_roster', {
     p_fixture_id: fixtureId,
@@ -187,8 +212,11 @@ export async function removeGameEp({ fixtureId, playerId }) {
   if (error) throw error;
 }
 
-export async function loadGameAvailability(fixtureId) {
+export async function loadGameAvailability(fixtureOrId) {
+  const fixture = fixtureDetails(fixtureOrId);
+  const fixtureId = fixture.id;
   if (!fixtureId) return { configured: true, responses: [] };
+  await ensureGameAttendanceFixture(fixture);
   const cloud = requireCloud();
   const { data, error } = await cloud
     .from('team_game_availability')
@@ -203,17 +231,21 @@ export async function loadGameAvailability(fixtureId) {
 }
 
 export async function saveGameAvailability({
+  fixture = null,
   fixtureId,
   userId,
   response,
   note = '',
 }) {
-  if (!fixtureId || !userId) throw new Error('Choose a published game before setting availability.');
+  const attendanceFixture = fixture || { id: fixtureId };
+  const resolvedFixtureId = attendanceFixture.id || fixtureId;
+  if (!resolvedFixtureId || !userId) throw new Error('Choose a published game before setting availability.');
+  await ensureGameAttendanceFixture(attendanceFixture);
   const cloud = requireCloud();
   const { error } = await cloud
     .from('team_game_availability')
     .upsert({
-      fixture_id: fixtureId,
+      fixture_id: resolvedFixtureId,
       user_id: userId,
       response,
       note: String(note || '').trim().slice(0, 140) || null,

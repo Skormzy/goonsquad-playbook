@@ -7,10 +7,12 @@ const projectFile = (path) => readFileSync(
 );
 
 describe('private game availability and player pictures', () => {
-  const migration = projectFile('supabase/migrations/20260731_player_photos_and_game_availability.sql');
-  const scopedMigration = projectFile('supabase/migrations/20260801_scoped_game_attendance.sql');
-  const epMigration = projectFile('supabase/migrations/20260802_game_ep_management.sql');
+  const migration = projectFile('supabase/migrations/202607310001_player_photos_and_game_availability.sql');
+  const scopedMigration = projectFile('supabase/migrations/202608010001_scoped_game_attendance.sql');
+  const epMigration = projectFile('supabase/migrations/202608020001_game_ep_management.sql');
+  const resilientMigration = projectFile('supabase/migrations/202608110001_resilient_game_attendance.sql');
   const availability = projectFile('src/lineup/GameAvailability.jsx');
+  const lineupCloud = projectFile('src/lineup/lineupCloud.js');
   const attendanceBoard = projectFile('src/lineup/AttendanceBoard.jsx');
   const epManager = projectFile('src/lineup/EpManager.jsx');
   const home = projectFile('src/feed/TeamHome.jsx');
@@ -38,6 +40,11 @@ describe('private game availability and player pictures', () => {
     expect(epMigration).toContain('public.can_access_game_attendance(fixture_id)');
     expect(epMigration).toContain('public.is_team_admin()');
     expect(epMigration).not.toContain('grant select, insert, update, delete on public.team_game_ep_roster to anon');
+    expect(resilientMigration).toContain('create table if not exists public.team_game_attendance_fixtures');
+    expect(resilientMigration).toContain('create or replace function public.user_has_roster_schedule');
+    expect(resilientMigration).toContain('create or replace function public.register_game_attendance_fixture');
+    expect(resilientMigration).toContain("('gtbhl-game-' || game.external_id)");
+    expect(resilientMigration).not.toContain('grant execute on function public.register_game_attendance_fixture(text, text, text, timestamptz, text) to anon');
   });
 
   it('lets eligible players answer once across a compact multi-game board', () => {
@@ -58,6 +65,8 @@ describe('private game availability and player pictures', () => {
     expect(epManager).toContain("fixture.kind === 'tournament' ? 'tournament' : 'fixture'");
     expect(home).toContain('<AttendanceBoard');
     expect(home).toContain('tournaments={tournaments}');
+    expect(lineupCloud).toContain("cloud.rpc('register_game_attendance_fixture'");
+    expect(availability).toContain('fixture: attendanceFixture,\n        fixtureId: fixture.id');
   });
 
   it('stores optional member pictures in the owner folder and exposes only approved links', () => {
