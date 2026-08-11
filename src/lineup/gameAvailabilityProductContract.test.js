@@ -66,7 +66,8 @@ describe('private game availability and player pictures', () => {
     expect(home).toContain('<AttendanceBoard');
     expect(home).toContain('tournaments={tournaments}');
     expect(lineupCloud).toContain("cloud.rpc('register_game_attendance_fixture'");
-    expect(availability).toContain('fixture: attendanceFixture,\n        fixtureId: fixture.id');
+    expect(availability).toContain('fixture: attendanceFixture,');
+    expect(availability).toContain('fixtureId: fixture.id,');
   });
 
   it('stores optional member pictures in the owner folder and exposes only approved links', () => {
