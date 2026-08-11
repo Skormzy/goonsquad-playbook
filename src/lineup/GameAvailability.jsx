@@ -52,22 +52,29 @@ export default function GameAvailability({
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState('');
+  const attendanceFixture = useMemo(() => (fixture ? {
+    id: fixture.id,
+    seasonTeamId: fixture.seasonTeamId || '',
+    tournamentId: fixture.tournamentId || '',
+    scheduledAt: fixture.scheduledAt || '',
+    opponent: fixture.opponent || '',
+  } : null), [fixture]);
 
   useEffect(() => {
     let active = true;
-    if (!fixture?.id || (!account.hasTeamAccess && !qaMode)) {
+    if (!attendanceFixture?.id || (!account.hasTeamAccess && !qaMode)) {
       setResponses([]);
       return undefined;
     }
     if (qaMode) {
       setConfigured(true);
       setResponses([
-        { fixtureId: fixture.id, userId: 'qa-user', response: 'in', note: '', updatedAt: new Date().toISOString() },
-        { fixtureId: fixture.id, userId: 'qa-coach', response: 'in', note: '', updatedAt: new Date().toISOString() },
+        { fixtureId: attendanceFixture.id, userId: 'qa-user', response: 'in', note: '', updatedAt: new Date().toISOString() },
+        { fixtureId: attendanceFixture.id, userId: 'qa-coach', response: 'in', note: '', updatedAt: new Date().toISOString() },
       ]);
       return undefined;
     }
-    loadGameAvailability(fixture.id)
+    loadGameAvailability(attendanceFixture)
       .then((result) => {
         if (!active) return;
         setConfigured(result.configured);
@@ -77,7 +84,7 @@ export default function GameAvailability({
         if (active) setError(loadError instanceof Error ? loadError.message : 'Availability could not load.');
       });
     return () => { active = false; };
-  }, [account.hasTeamAccess, fixture?.id, qaMode]);
+  }, [account.hasTeamAccess, attendanceFixture, qaMode]);
 
   const memberById = useMemo(
     () => new Map(members.map((member) => [member.id, member])),
@@ -128,12 +135,13 @@ export default function GameAvailability({
     try {
       if (qaMode) return;
       await saveGameAvailability({
+        fixture: attendanceFixture,
         fixtureId: fixture.id,
         userId: actorId,
         response,
       });
     } catch (saveError) {
-      const refreshed = await loadGameAvailability(fixture.id).catch(() => null);
+      const refreshed = await loadGameAvailability(attendanceFixture).catch(() => null);
       if (refreshed) setResponses(refreshed.responses);
       setError(saveError instanceof Error ? saveError.message : 'Availability could not be saved.');
     } finally {

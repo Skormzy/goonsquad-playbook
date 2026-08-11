@@ -115,6 +115,13 @@ export default function AttendanceBoard({
     ? Math.min(requestedIndex >= 0 ? requestedIndex : activeIndex, fixtures.length - 1)
     : 0;
   const fixture = fixtures[safeIndex] || null;
+  const attendanceFixture = useMemo(() => (fixture ? {
+    id: fixture.id,
+    seasonTeamId: fixture.seasonTeamId || '',
+    tournamentId: fixture.tournamentId || '',
+    scheduledAt: fixture.scheduledAt || '',
+    opponent: fixture.opponent || '',
+  } : null), [fixture]);
   const expandedDock = compactDock && dockExpanded;
 
   useEffect(() => {
@@ -152,15 +159,15 @@ export default function AttendanceBoard({
       setEpPlayers([]);
       return;
     }
-    const result = await loadGameEpRoster(fixture.id);
+    const result = await loadGameEpRoster(attendanceFixture);
     setEpConfigured(result.configured);
     setEpPlayers(result.players);
   };
 
   useEffect(() => {
     let active = true;
-    if ((!account.hasTeamAccess && !qaMode) || qaMode || !fixture?.id) return undefined;
-    loadGameEpRoster(fixture.id)
+    if ((!account.hasTeamAccess && !qaMode) || qaMode || !attendanceFixture?.id) return undefined;
+    loadGameEpRoster(attendanceFixture)
       .then((result) => {
         if (!active) return;
         setEpConfigured(result.configured);
@@ -170,7 +177,7 @@ export default function AttendanceBoard({
         if (active) setError(loadError instanceof Error ? loadError.message : 'EP roster could not load.');
       });
     return () => { active = false; };
-  }, [account.hasTeamAccess, fixture?.id, qaMode]);
+  }, [account.hasTeamAccess, attendanceFixture, qaMode]);
 
   if ((!account.hasTeamAccess && !qaMode) || !dataset || !fixtures.length) return null;
 

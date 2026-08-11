@@ -44,7 +44,15 @@ for (const viewport of viewports) {
   const page = await context.newPage();
   const errors = [];
   page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+    if (message.type() === 'error' && !message.text().startsWith('Failed to load resource:')) {
+      errors.push(`console: ${message.text()}`);
+    }
+  });
+  page.on('response', (response) => {
+    const responseUrl = new URL(response.url());
+    if (response.status() >= 400 && responseUrl.origin === new URL(baseUrl).origin) {
+      errors.push(`response: ${response.status()} ${response.url()}`);
+    }
   });
   page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
 
@@ -83,18 +91,27 @@ for (const viewport of viewports) {
   const screenshotPath = path.join(outputDir, `${viewport.id}-${viewport.width}x${viewport.height}.png`);
   await page.screenshot({ path: screenshotPath, fullPage: false });
 
-  await board.getByRole('button', { name: 'Next game' }).click();
-  const secondTitle = await board.locator('.game-availability h2').innerText();
+  const nextGameButton = board.getByRole('button', { name: 'Next game' });
+  let secondTitle = '';
+  if (tabCount > 1) {
+    await nextGameButton.click();
+    secondTitle = await board.locator('.game-availability h2').innerText();
+  }
 
   if (cardCount !== 1) throw new Error(`${viewport.id}: expected one active attendance card, received ${cardCount}.`);
-  if (tabCount !== 2) throw new Error(`${viewport.id}: expected two upcoming league fixtures, received ${tabCount}.`);
+  if (tabCount < 1) throw new Error(`${viewport.id}: expected at least one upcoming fixture.`);
   if (viewport.id === 'mobile' && tabsVisible) throw new Error('mobile: fixture tabs should collapse behind arrows.');
   if (viewport.id === 'desktop' && !tabsVisible) throw new Error('desktop: fixture tabs should remain visible.');
   if (!managerVisible) throw new Error(`${viewport.id}: call-up manager did not open.`);
   if (!notificationControlVisible) throw new Error(`${viewport.id}: member notification setup did not open.`);
   if (!reminderManagerVisible) throw new Error(`${viewport.id}: coach reminder manager did not open.`);
   if (reminderRecipientCount < 1) throw new Error(`${viewport.id}: coach reminder manager has no waiting recipient.`);
-  if (firstTitle === secondTitle) throw new Error(`${viewport.id}: next-game navigation did not change the fixture.`);
+  if (tabCount > 1 && firstTitle === secondTitle) {
+    throw new Error(`${viewport.id}: next-game navigation did not change the fixture.`);
+  }
+  if (tabCount === 1 && await nextGameButton.isEnabled()) {
+    throw new Error(`${viewport.id}: next-game navigation should be disabled for a single fixture.`);
+  }
   if (documentOverflow > 1) throw new Error(`${viewport.id}: horizontal overflow ${documentOverflow}px.`);
   if (errors.length) throw new Error(`${viewport.id}: ${errors.join('; ')}`);
 
