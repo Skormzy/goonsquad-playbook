@@ -240,15 +240,26 @@ export async function saveGameAvailability({
   const attendanceFixture = fixture || { id: fixtureId };
   const resolvedFixtureId = attendanceFixture.id || fixtureId;
   if (!resolvedFixtureId || !userId) throw new Error('Choose a published game before setting availability.');
-  await ensureGameAttendanceFixture(attendanceFixture);
   const cloud = requireCloud();
-  const { error } = await cloud
-    .from('team_game_availability')
-    .upsert({
-      fixture_id: resolvedFixtureId,
-      user_id: userId,
-      response,
-      note: String(note || '').trim().slice(0, 140) || null,
-    }, { onConflict: 'fixture_id,user_id' });
+  const { data, error } = await cloud.rpc('set_my_game_availability', {
+    p_fixture_id: resolvedFixtureId,
+    p_season_team_id: attendanceFixture.seasonTeamId || null,
+    p_tournament_id: attendanceFixture.tournamentId || null,
+    p_scheduled_at: attendanceFixture.scheduledAt || null,
+    p_opponent: attendanceFixture.opponent || null,
+    p_response: response,
+    p_note: String(note || '').trim().slice(0, 140) || null,
+  });
+  if (error?.code === 'PGRST202') {
+    throw new Error('Attendance is finishing a live update. Refresh in a moment.');
+  }
   if (error) throw error;
+  const saved = Array.isArray(data) ? data[0] : data;
+  if (!saved
+    || saved.fixture_id !== resolvedFixtureId
+    || saved.user_id !== userId
+    || saved.response !== response) {
+    throw new Error('The server did not confirm your attendance response.');
+  }
+  return mapAvailability(saved);
 }
