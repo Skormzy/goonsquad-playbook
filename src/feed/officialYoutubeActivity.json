@@ -924,6 +924,32 @@
       "sourceMetadata": {
         "videoId": "2IbNZHV8PWM"
       }
+    },
+    {
+      "sourceKey": "youtube:r7-5l2bmrnI",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Bloodhounds (Home View) - Elimination Game | 2026 Summer - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=r7-5l2bmrnI",
+      "sourceImageUrl": "https://i.ytimg.com/vi/r7-5l2bmrnI/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhMIF4oZTAP&rs=AOn4CLAZ2vEzHvgnSAXVuT2XJt9MNgcDyg",
+      "sourcePublishedAt": "2026-08-11T03:51:32.103Z",
+      "sourceMetadata": {
+        "videoId": "r7-5l2bmrnI"
+      }
+    },
+    {
+      "sourceKey": "youtube:h9lZSyAttFY",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Bloodhounds (Away View) - Elimination Game | 2026 Summer - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=h9lZSyAttFY",
+      "sourceImageUrl": "https://i.ytimg.com/vi/h9lZSyAttFY/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhFIFsoZTAP&rs=AOn4CLAt6b_rC67LUuOuWKigeyRjDh32xg",
+      "sourcePublishedAt": "2026-08-11T03:51:32.138Z",
+      "sourceMetadata": {
+        "videoId": "h9lZSyAttFY"
+      }
     }
   ]
 }
