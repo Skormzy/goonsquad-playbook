@@ -47,7 +47,7 @@ export default function GameAvailability({
   schedule,
   trackingResponses = [],
 }) {
-  const [responses, setResponses] = useState([]);
+  const [responseState, setResponseState] = useState({ fixtureId: '', rows: [] });
   const [configured, setConfigured] = useState(true);
   const [busy, setBusy] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -59,29 +59,35 @@ export default function GameAvailability({
     scheduledAt: fixture.scheduledAt || '',
     opponent: fixture.opponent || '',
   } : null), [fixture]);
+  const activeFixtureId = attendanceFixture?.id || '';
 
   useEffect(() => {
     let active = true;
     if (!attendanceFixture?.id || (!account.hasTeamAccess && !qaMode)) {
-      setResponses([]);
+      setResponseState({ fixtureId: '', rows: [] });
       return undefined;
     }
     if (qaMode) {
       setConfigured(true);
-      setResponses([
-        { fixtureId: attendanceFixture.id, userId: 'qa-user', response: 'in', note: '', updatedAt: new Date().toISOString() },
-        { fixtureId: attendanceFixture.id, userId: 'qa-coach', response: 'in', note: '', updatedAt: new Date().toISOString() },
-      ]);
+      setResponseState({
+        fixtureId: attendanceFixture.id,
+        rows: [
+          { fixtureId: attendanceFixture.id, userId: 'qa-user', response: 'in', note: '', updatedAt: new Date().toISOString() },
+          { fixtureId: attendanceFixture.id, userId: 'qa-coach', response: 'in', note: '', updatedAt: new Date().toISOString() },
+        ],
+      });
       return undefined;
     }
     loadGameAvailability(attendanceFixture)
       .then((result) => {
         if (!active) return;
         setConfigured(result.configured);
-        setResponses(result.responses);
+        setResponseState({ fixtureId: attendanceFixture.id, rows: result.responses });
       })
       .catch((loadError) => {
-        if (active) setError(loadError instanceof Error ? loadError.message : 'Availability could not load.');
+        if (!active) return;
+        setError(loadError instanceof Error ? loadError.message : 'Availability could not load.');
+        setResponseState({ fixtureId: attendanceFixture.id, rows: [] });
       });
     return () => { active = false; };
   }, [account.hasTeamAccess, attendanceFixture, qaMode]);
@@ -90,9 +96,10 @@ export default function GameAvailability({
     () => new Map(members.map((member) => [member.id, member])),
     [members],
   );
+  const fixtureReady = qaMode || responseState.fixtureId === activeFixtureId;
   const allResponses = useMemo(
-    () => [...responses, ...trackingResponses],
-    [responses, trackingResponses],
+    () => [...(fixtureReady ? responseState.rows : []), ...trackingResponses],
+    [fixtureReady, responseState.rows, trackingResponses],
   );
   const responseByUser = useMemo(
     () => new Map(allResponses.map((response) => [response.userId, response])),
@@ -118,32 +125,35 @@ export default function GameAvailability({
     : formatLeagueScheduleName(schedule);
 
   const choose = async (response) => {
-    if (busy || !configured || !actorId || !canRespond) return;
+    if (busy || !configured || !fixtureReady || !actorId || !canRespond) return;
     setBusy(true);
     setError('');
-    const optimistic = {
-      fixtureId: fixture.id,
-      userId: actorId,
-      response,
-      note: '',
-      updatedAt: new Date().toISOString(),
-    };
-    setResponses((currentRows) => [
-      optimistic,
-      ...currentRows.filter((row) => row.userId !== actorId),
-    ]);
     try {
-      if (qaMode) return;
-      await saveGameAvailability({
+      const saved = qaMode ? {
+        fixtureId: fixture.id,
+        userId: actorId,
+        response,
+        note: '',
+        updatedAt: new Date().toISOString(),
+      } : await saveGameAvailability({
         fixture: attendanceFixture,
         fixtureId: fixture.id,
         userId: actorId,
         response,
       });
+      setResponseState((currentState) => {
+        if (currentState.fixtureId !== saved.fixtureId) return currentState;
+        return {
+          fixtureId: saved.fixtureId,
+          rows: [
+            saved,
+            ...currentState.rows.filter((row) => row.userId !== actorId),
+          ],
+        };
+      });
     } catch (saveError) {
-      const refreshed = await loadGameAvailability(attendanceFixture).catch(() => null);
-      if (refreshed) setResponses(refreshed.responses);
-      setError(saveError instanceof Error ? saveError.message : 'Availability could not be saved.');
+      const detail = saveError instanceof Error ? saveError.message : 'Please try again.';
+      setError(`Your response was not saved. ${detail}`);
     } finally {
       setBusy(false);
     }
@@ -160,7 +170,7 @@ export default function GameAvailability({
             data-response={item.id}
             aria-label={item.label}
             aria-pressed={current?.response === item.id}
-            disabled={busy}
+            disabled={busy || !fixtureReady}
             onClick={() => choose(item.id)}
           >
             <ResponseIcon aria-hidden="true" />

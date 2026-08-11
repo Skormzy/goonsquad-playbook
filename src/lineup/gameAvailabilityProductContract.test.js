@@ -11,6 +11,7 @@ describe('private game availability and player pictures', () => {
   const scopedMigration = projectFile('supabase/migrations/202608010001_scoped_game_attendance.sql');
   const epMigration = projectFile('supabase/migrations/202608020001_game_ep_management.sql');
   const resilientMigration = projectFile('supabase/migrations/202608110001_resilient_game_attendance.sql');
+  const atomicRsvpMigration = projectFile('supabase/migrations/202608110002_atomic_game_attendance_rsvp.sql');
   const availability = projectFile('src/lineup/GameAvailability.jsx');
   const lineupCloud = projectFile('src/lineup/lineupCloud.js');
   const attendanceBoard = projectFile('src/lineup/AttendanceBoard.jsx');
@@ -45,6 +46,10 @@ describe('private game availability and player pictures', () => {
     expect(resilientMigration).toContain('create or replace function public.register_game_attendance_fixture');
     expect(resilientMigration).toContain("('gtbhl-game-' || game.external_id)");
     expect(resilientMigration).not.toContain('grant execute on function public.register_game_attendance_fixture(text, text, text, timestamptz, text) to anon');
+    expect(atomicRsvpMigration).toContain('create or replace function public.set_my_game_availability');
+    expect(atomicRsvpMigration).toContain('perform public.register_game_attendance_fixture');
+    expect(atomicRsvpMigration).toContain('current_user_id uuid := auth.uid()');
+    expect(atomicRsvpMigration).not.toContain('to anon');
   });
 
   it('lets eligible players answer once across a compact multi-game board', () => {
@@ -65,9 +70,15 @@ describe('private game availability and player pictures', () => {
     expect(epManager).toContain("fixture.kind === 'tournament' ? 'tournament' : 'fixture'");
     expect(home).toContain('<AttendanceBoard');
     expect(home).toContain('tournaments={tournaments}');
-    expect(lineupCloud).toContain("cloud.rpc('register_game_attendance_fixture'");
+    expect(lineupCloud).toContain("cloud.rpc('set_my_game_availability'");
+    expect(lineupCloud).toContain('The server did not confirm your attendance response.');
     expect(availability).toContain('fixture: attendanceFixture,');
     expect(availability).toContain('fixtureId: fixture.id,');
+    expect(availability).toContain('Your response was not saved.');
+    expect(availability).not.toContain('const optimistic =');
+    expect(availability).toContain('responseState.fixtureId === activeFixtureId');
+    expect(availability).toContain('currentState.fixtureId !== saved.fixtureId');
+    expect(availability).toContain('disabled={busy || !fixtureReady}');
   });
 
   it('stores optional member pictures in the owner folder and exposes only approved links', () => {
