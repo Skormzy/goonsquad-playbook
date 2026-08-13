@@ -3,7 +3,7 @@
   "sourceKey": "greater-toronto",
   "sourceName": "Greater Toronto Ball Hockey League",
   "sourceUrl": "https://www.greatertorontobhl.com/team/3878-goonsquad",
-  "capturedAt": "2026-08-13T15:06:10.032Z",
+  "capturedAt": "2026-08-13T16:26:02.548Z",
   "seasons": [
     {
       "id": "gtbhl-fall-2024",
@@ -30027,10 +30027,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-84486-field",
+      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-57256-field",
       "seasonTeamId": "gtbhl-fall-2024-downsview-sunday",
       "stage": "regular",
-      "playerId": "gtbhl-player-84486",
+      "playerId": "gtbhl-player-57256",
       "gamesPlayed": 5,
       "goals": 0,
       "assists": 0,
@@ -30042,10 +30042,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-57256-field",
+      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-84486-field",
       "seasonTeamId": "gtbhl-fall-2024-downsview-sunday",
       "stage": "regular",
-      "playerId": "gtbhl-player-57256",
+      "playerId": "gtbhl-player-84486",
       "gamesPlayed": 5,
       "goals": 0,
       "assists": 0,
