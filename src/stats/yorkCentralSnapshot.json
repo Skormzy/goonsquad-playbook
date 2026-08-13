@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-13T16:25:54.938Z",
+  "capturedAt": "2026-08-13T17:30:47.448Z",
   "seasons": [
     {
       "id": "summer-2026",
@@ -143830,21 +143830,6 @@
       "source": "league"
     },
     {
-      "id": "summer-2026-mon-thu-regular-ycbhl-player-26086-field",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "stage": "regular",
-      "playerId": "ycbhl-player-26086",
-      "gamesPlayed": 9,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 2,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "summer-2026-mon-thu-regular-ycbhl-player-26291-field",
       "seasonTeamId": "summer-2026-mon-thu",
       "stage": "regular",
@@ -143854,6 +143839,21 @@
       "assists": 0,
       "points": 0,
       "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "summer-2026-mon-thu-regular-ycbhl-player-26086-field",
+      "seasonTeamId": "summer-2026-mon-thu",
+      "stage": "regular",
+      "playerId": "ycbhl-player-26086",
+      "gamesPlayed": 9,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 2,
       "powerPlayGoals": 0,
       "shortHandedGoals": 0,
       "emptyNetGoals": 0,
@@ -143965,6 +143965,21 @@
       "source": "league"
     },
     {
+      "id": "summer-2026-mon-thu-regular-ycbhl-player-26244-field",
+      "seasonTeamId": "summer-2026-mon-thu",
+      "stage": "regular",
+      "playerId": "ycbhl-player-26244",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
       "id": "summer-2026-mon-thu-regular-ycbhl-player-103-field",
       "seasonTeamId": "summer-2026-mon-thu",
       "stage": "regular",
@@ -143999,21 +144014,6 @@
       "seasonTeamId": "summer-2026-mon-thu",
       "stage": "regular",
       "playerId": "ycbhl-player-26342",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "summer-2026-mon-thu-regular-ycbhl-player-26244-field",
-      "seasonTeamId": "summer-2026-mon-thu",
-      "stage": "regular",
-      "playerId": "ycbhl-player-26244",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
