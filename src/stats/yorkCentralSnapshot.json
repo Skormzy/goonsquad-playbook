@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-16T23:23:18.817Z",
+  "capturedAt": "2026-08-16T23:46:29.126Z",
   "seasons": [
     {
       "id": "summer-2026",
@@ -2093,7 +2093,7 @@
       "externalId": "25137",
       "displayName": "Scott Bockner",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25137-aman-paruk",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25137-scott-bockner",
       "primaryPosition": null,
       "persisted": false
     },
@@ -157306,8 +157306,8 @@
       "shutouts": 0,
       "shotsAgainst": 68,
       "goalsAgainst": 16,
-      "minutesPlayed": 60,
-      "goalsAgainstAverage": 8,
+      "minutesPlayed": 90,
+      "goalsAgainstAverage": 5.33,
       "savePercentage": 0.765,
       "goals": 0,
       "assists": 0,
