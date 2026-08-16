@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-16T16:29:08.408Z",
+  "capturedAt": "2026-08-16T16:55:10.624Z",
   "seasons": [
     {
       "id": "summer-2026",
@@ -144835,10 +144835,10 @@
       "source": "league"
     },
     {
-      "id": "summer-2026-sunday-playoffs-ycbhl-player-25997-field",
+      "id": "summer-2026-sunday-playoffs-ycbhl-player-26180-field",
       "seasonTeamId": "summer-2026-sunday",
       "stage": "playoffs",
-      "playerId": "ycbhl-player-25997",
+      "playerId": "ycbhl-player-26180",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -144850,10 +144850,10 @@
       "source": "league"
     },
     {
-      "id": "summer-2026-sunday-playoffs-ycbhl-player-26180-field",
+      "id": "summer-2026-sunday-playoffs-ycbhl-player-25997-field",
       "seasonTeamId": "summer-2026-sunday",
       "stage": "playoffs",
-      "playerId": "ycbhl-player-26180",
+      "playerId": "ycbhl-player-25997",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
