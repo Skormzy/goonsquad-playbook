@@ -3,7 +3,7 @@
   "sourceKey": "greater-toronto",
   "sourceName": "Greater Toronto Ball Hockey League",
   "sourceUrl": "https://www.greatertorontobhl.com/team/3878-goonsquad",
-  "capturedAt": "2026-08-16T20:49:40.648Z",
+  "capturedAt": "2026-08-16T21:23:20.244Z",
   "seasons": [
     {
       "id": "gtbhl-fall-2024",
@@ -32487,10 +32487,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview-regular-gtbhl-player-85166-field",
+      "id": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview-regular-gtbhl-player-87642-field",
       "seasonTeamId": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview",
       "stage": "regular",
-      "playerId": "gtbhl-player-85166",
+      "playerId": "gtbhl-player-87642",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -32502,10 +32502,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview-regular-gtbhl-player-87642-field",
+      "id": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview-regular-gtbhl-player-85166-field",
       "seasonTeamId": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview",
       "stage": "regular",
-      "playerId": "gtbhl-player-87642",
+      "playerId": "gtbhl-player-85166",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
