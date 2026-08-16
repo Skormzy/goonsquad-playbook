@@ -3,7 +3,7 @@
   "sourceKey": "greater-toronto",
   "sourceName": "Greater Toronto Ball Hockey League",
   "sourceUrl": "https://www.greatertorontobhl.com/team/3878-goonsquad",
-  "capturedAt": "2026-08-16T03:03:35.125Z",
+  "capturedAt": "2026-08-16T04:09:13.114Z",
   "seasons": [
     {
       "id": "gtbhl-fall-2024",
@@ -32097,10 +32097,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough-playoffs-gtbhl-player-33071-field",
+      "id": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough-playoffs-gtbhl-player-87824-field",
       "seasonTeamId": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough",
       "stage": "playoffs",
-      "playerId": "gtbhl-player-33071",
+      "playerId": "gtbhl-player-87824",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -32112,10 +32112,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough-playoffs-gtbhl-player-87824-field",
+      "id": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough-playoffs-gtbhl-player-33071-field",
       "seasonTeamId": "gtbhl-winter-2023-2024-co-ed-thursday-scarborough",
       "stage": "playoffs",
-      "playerId": "gtbhl-player-87824",
+      "playerId": "gtbhl-player-33071",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
