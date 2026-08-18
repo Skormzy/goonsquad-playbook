@@ -950,6 +950,58 @@
       "sourceMetadata": {
         "videoId": "h9lZSyAttFY"
       }
+    },
+    {
+      "sourceKey": "youtube:oKWxN6hV2Oo",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Dew Lang Ducks (Away View) - R1G1 | 2026 Summer - Monday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=oKWxN6hV2Oo",
+      "sourceImageUrl": "https://i.ytimg.com/vi/oKWxN6hV2Oo/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhsIGwobDAP&rs=AOn4CLDO7d4edY3rPJir-TFAdzkLCaI91g",
+      "sourcePublishedAt": "2026-08-18T03:47:50.277Z",
+      "sourceMetadata": {
+        "videoId": "oKWxN6hV2Oo"
+      }
+    },
+    {
+      "sourceKey": "youtube:9OZA9m0Pwds",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Dew Lang Ducks (Home View) - R1G1 | 2026 Summer - Monday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=9OZA9m0Pwds",
+      "sourceImageUrl": "https://i.ytimg.com/vi/9OZA9m0Pwds/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGIoWjAP&rs=AOn4CLDd1RhFTFaMya3RttGc0hgH2gvwyw",
+      "sourcePublishedAt": "2026-08-18T03:47:50.318Z",
+      "sourceMetadata": {
+        "videoId": "9OZA9m0Pwds"
+      }
+    },
+    {
+      "sourceKey": "youtube:Xg7Hw43OE5c",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Blazers (Home View) - R1G1 | 2026 Summer - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=Xg7Hw43OE5c",
+      "sourceImageUrl": "https://i.ytimg.com/vi/Xg7Hw43OE5c/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGUoUzAP&rs=AOn4CLDQbl_BCUnAxH0zDszOP35ukHzDoQ",
+      "sourcePublishedAt": "2026-08-18T03:47:50.379Z",
+      "sourceMetadata": {
+        "videoId": "Xg7Hw43OE5c"
+      }
+    },
+    {
+      "sourceKey": "youtube:--M8Oij241I",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Blazers (Away View) - R1G1 | 2026 Summer - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=--M8Oij241I",
+      "sourceImageUrl": "https://i.ytimg.com/vi/--M8Oij241I/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhHIFsoZTAP&rs=AOn4CLBDBgl8IuPsSTEY3B4GPsBO2qy4Ug",
+      "sourcePublishedAt": "2026-08-18T03:47:50.418Z",
+      "sourceMetadata": {
+        "videoId": "--M8Oij241I"
+      }
     }
   ]
 }
