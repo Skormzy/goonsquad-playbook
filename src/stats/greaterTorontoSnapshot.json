@@ -3,7 +3,7 @@
   "sourceKey": "greater-toronto",
   "sourceName": "Greater Toronto Ball Hockey League",
   "sourceUrl": "https://www.greatertorontobhl.com/team/3878-goonsquad",
-  "capturedAt": "2026-08-18T06:49:06.819Z",
+  "capturedAt": "2026-08-18T07:40:34.978Z",
   "seasons": [
     {
       "id": "gtbhl-fall-2024",
@@ -29832,21 +29832,6 @@
   ],
   "playerSeasonStats": [
     {
-      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-86653-field",
-      "seasonTeamId": "gtbhl-fall-2024-downsview-sunday",
-      "stage": "regular",
-      "playerId": "gtbhl-player-86653",
-      "gamesPlayed": 8,
-      "goals": 2,
-      "assists": 1,
-      "points": 3,
-      "penaltyMinutes": 4,
-      "powerPlayGoals": 2,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-88715-field",
       "seasonTeamId": "gtbhl-fall-2024-downsview-sunday",
       "stage": "regular",
@@ -29857,6 +29842,21 @@
       "points": 3,
       "penaltyMinutes": 4,
       "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-86653-field",
+      "seasonTeamId": "gtbhl-fall-2024-downsview-sunday",
+      "stage": "regular",
+      "playerId": "gtbhl-player-86653",
+      "gamesPlayed": 8,
+      "goals": 2,
+      "assists": 1,
+      "points": 3,
+      "penaltyMinutes": 4,
+      "powerPlayGoals": 2,
       "shortHandedGoals": 0,
       "emptyNetGoals": 0,
       "source": "league"
@@ -30027,10 +30027,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-57256-field",
+      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-84486-field",
       "seasonTeamId": "gtbhl-fall-2024-downsview-sunday",
       "stage": "regular",
-      "playerId": "gtbhl-player-57256",
+      "playerId": "gtbhl-player-84486",
       "gamesPlayed": 5,
       "goals": 0,
       "assists": 0,
@@ -30042,10 +30042,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-84486-field",
+      "id": "gtbhl-fall-2024-downsview-sunday-regular-gtbhl-player-57256-field",
       "seasonTeamId": "gtbhl-fall-2024-downsview-sunday",
       "stage": "regular",
-      "playerId": "gtbhl-player-84486",
+      "playerId": "gtbhl-player-57256",
       "gamesPlayed": 5,
       "goals": 0,
       "assists": 0,
@@ -31227,36 +31227,6 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-81784-field",
-      "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
-      "stage": "regular",
-      "playerId": "gtbhl-player-81784",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-88020-field",
-      "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
-      "stage": "regular",
-      "playerId": "gtbhl-player-88020",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-88132-field",
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "regular",
@@ -31317,10 +31287,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-86844-field",
+      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-81784-field",
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "regular",
-      "playerId": "gtbhl-player-86844",
+      "playerId": "gtbhl-player-81784",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -31332,10 +31302,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-77180-field",
+      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-88020-field",
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "regular",
-      "playerId": "gtbhl-player-77180",
+      "playerId": "gtbhl-player-88020",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -31396,6 +31366,36 @@
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "regular",
       "playerId": "gtbhl-player-84130",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-86844-field",
+      "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
+      "stage": "regular",
+      "playerId": "gtbhl-player-86844",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-77180-field",
+      "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
+      "stage": "regular",
+      "playerId": "gtbhl-player-77180",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
