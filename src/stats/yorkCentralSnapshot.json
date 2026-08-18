@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-18T01:22:46.307Z",
+  "capturedAt": "2026-08-18T02:38:15.142Z",
   "seasons": [
     {
       "id": "summer-2026",
@@ -572,7 +572,7 @@
       "externalId": "25875",
       "displayName": "Aiden Anderson",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/25875-aiden-anderson",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25875-aiden-anderson",
       "primaryPosition": null,
       "persisted": false
     },
@@ -689,7 +689,7 @@
       "externalId": "26086",
       "displayName": "Andrew Harlow",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/26086-aiden-anderson",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/26086-andrew-harlow",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1013,7 +1013,7 @@
       "externalId": "10252",
       "displayName": "Dan Hoban",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/10252-dan-hoban",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/10252-dan-hoban",
       "primaryPosition": "G",
       "persisted": false
     },
@@ -1247,7 +1247,7 @@
       "externalId": "26275",
       "displayName": "Jarrid Ward",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/26275-jarrid-ward",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/26275-jarrid-ward",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1274,7 +1274,7 @@
       "externalId": "25892",
       "displayName": "Jason Huang",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/25892-jason-huang",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25892-jason-huang",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1301,7 +1301,7 @@
       "externalId": "26291",
       "displayName": "Jayce McGarrigle",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/26291-jayce-mcgarrigle",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/26291-jayce-mcgarrigle",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1733,7 +1733,7 @@
       "externalId": "25596",
       "displayName": "Mirko Mladenovic",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/25596-mirko-mladenovic",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25596-mirko-mladenovic",
       "primaryPosition": null,
       "persisted": false
     },
