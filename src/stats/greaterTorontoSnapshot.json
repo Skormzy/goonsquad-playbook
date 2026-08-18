@@ -3,7 +3,7 @@
   "sourceKey": "greater-toronto",
   "sourceName": "Greater Toronto Ball Hockey League",
   "sourceUrl": "https://www.greatertorontobhl.com/team/3878-goonsquad",
-  "capturedAt": "2026-08-18T16:35:25.041Z",
+  "capturedAt": "2026-08-18T17:30:12.636Z",
   "seasons": [
     {
       "id": "gtbhl-fall-2024",
@@ -31122,21 +31122,6 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-86636-field",
-      "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
-      "stage": "regular",
-      "playerId": "gtbhl-player-86636",
-      "gamesPlayed": 3,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-28476-field",
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "regular",
@@ -31156,6 +31141,21 @@
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "regular",
       "playerId": "gtbhl-player-87744",
+      "gamesPlayed": 3,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-86636-field",
+      "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
+      "stage": "regular",
+      "playerId": "gtbhl-player-86636",
       "gamesPlayed": 3,
       "goals": 0,
       "assists": 0,
@@ -32577,21 +32577,6 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview-playoffs-gtbhl-player-28476-field",
-      "seasonTeamId": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview",
-      "stage": "playoffs",
-      "playerId": "gtbhl-player-28476",
-      "gamesPlayed": 2,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview-playoffs-gtbhl-player-87637-field",
       "seasonTeamId": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview",
       "stage": "playoffs",
@@ -32622,10 +32607,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview-playoffs-gtbhl-player-33083-field",
+      "id": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview-playoffs-gtbhl-player-28476-field",
       "seasonTeamId": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview",
       "stage": "playoffs",
-      "playerId": "gtbhl-player-33083",
+      "playerId": "gtbhl-player-28476",
       "gamesPlayed": 2,
       "goals": 0,
       "assists": 0,
@@ -32656,6 +32641,21 @@
       "seasonTeamId": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview",
       "stage": "playoffs",
       "playerId": "gtbhl-player-87640",
+      "gamesPlayed": 2,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview-playoffs-gtbhl-player-33083-field",
+      "seasonTeamId": "gtbhl-fall-2023-co-ed-thursday-scarborough-downsview",
+      "stage": "playoffs",
+      "playerId": "gtbhl-player-33083",
       "gamesPlayed": 2,
       "goals": 0,
       "assists": 0,
