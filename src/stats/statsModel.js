@@ -47,12 +47,14 @@ export function formatScheduleName(team) {
     .replace(/\s+Team$/i, '')
     .trim();
   if (!source) return 'League schedule';
+  const disambiguatingTier = String(team?.name || '').match(/\bTier\s+([^\s]+)/i)?.[1] || '';
+  const tierLabel = disambiguatingTier ? ` Tier ${disambiguatingTier}` : '';
   const dayTokens = source.toUpperCase().match(/\b(?:MON(?:DAY)?|TUE(?:SDAY)?|WED(?:NESDAY)?|THU(?:RSDAY)?|FRI(?:DAY)?|SAT(?:URDAY)?|SUN(?:DAY)?)\b/g) || [];
   const days = [...new Set(dayTokens.map((day) => SCHEDULE_DAY_NAMES[day] || day))];
-  if (days.length === 2 && days.includes('Monday') && days.includes('Thursday')) {
-    return 'Monday League';
+  if (days.includes('Monday') && !days.includes('Sunday')) {
+    return `Monday${tierLabel} League`;
   }
-  if (days.length) return `${days.join(' / ')} League`;
+  if (days.length) return `${days.join(' / ')}${tierLabel} League`;
   return `${source.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase())} League`;
 }
 

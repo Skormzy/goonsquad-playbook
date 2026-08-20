@@ -5,7 +5,7 @@ const workspace = readFileSync(new URL('./StatsWorkspace.jsx', import.meta.url),
 const panel = readFileSync(new URL('./GameStatCorrectionPanel.jsx', import.meta.url), 'utf8');
 const cloud = readFileSync(new URL('./statsCloud.js', import.meta.url), 'utf8');
 const migration = readFileSync(
-  new URL('../../supabase/migrations/20260731_team_game_stat_overrides.sql', import.meta.url),
+  new URL('../../supabase/migrations/202607310003_team_game_stat_overrides.sql', import.meta.url),
   'utf8',
 );
 

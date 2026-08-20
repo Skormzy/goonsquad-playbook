@@ -5,7 +5,7 @@ import { OFFICIAL_STATS_DATASET } from './statsSeed';
 
 const workspaceSource = readFileSync(new URL('./StatsWorkspace.jsx', import.meta.url), 'utf8');
 const headToHeadSource = readFileSync(new URL('./OpponentHeadToHead.jsx', import.meta.url), 'utf8');
-const migrationSource = readFileSync(new URL('../../supabase/migrations/20260722_team_accounts_and_statistics.sql', import.meta.url), 'utf8');
+const migrationSource = readFileSync(new URL('../../supabase/migrations/202607220001_team_accounts_and_statistics.sql', import.meta.url), 'utf8');
 const pushSource = readFileSync(new URL('../../scripts/push-york-central-stats-to-supabase.mjs', import.meta.url), 'utf8');
 const bridgeSource = readFileSync(new URL('../../scripts/build-supabase-statistics-bridge.mjs', import.meta.url), 'utf8');
 const mainSource = readFileSync(new URL('../main.jsx', import.meta.url), 'utf8');

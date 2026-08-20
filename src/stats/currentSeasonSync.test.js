@@ -1,9 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
+  currentSeasonNameFromHistory,
   divisionStandings,
   mergeCurrentSeasonSnapshot,
   parseSchedule,
+  resolveTeamIdentities,
 } from '../../scripts/sync-york-central-stats.mjs';
 
 const syncWorkflow = readFileSync(
@@ -86,6 +88,94 @@ describe('current-season statistics sync', () => {
         scheduledAt: '2026-07-30T19:00:00',
         status: 'scheduled',
       }),
+    ]);
+  });
+
+  it('discovers the newest official season from history instead of the anchor team page', () => {
+    expect(currentSeasonNameFromHistory([
+      { label: 'summer 2026 - MON/THU TIER 5' },
+      { label: 'winter 2025-2026 - MONDAY TIER 5' },
+      { label: 'fall 2026 - SUNDAY TIER 4' },
+      { label: 'fall 2026 - MON/WED TIER 5' },
+    ])).toBe('Fall 2026');
+
+    expect(currentSeasonNameFromHistory([
+      { label: 'fall 2026 - SUNDAY TIER 4' },
+      { label: 'winter 2026-2027 - SUNDAY TIER 4' },
+    ])).toBe('Winter 2026-2027');
+  });
+
+  it('keeps same-day Fall squads distinct by official tier', () => {
+    const teams = resolveTeamIdentities([
+      {
+        entry: { href: '/team/7272-goonsquad' },
+        teamHtml: '',
+        team: {
+          id: 'fall-2026-sunday',
+          seasonSlug: 'fall-2026',
+          scheduleLabel: 'SUNDAY',
+          division: 'SUNDAY TIER 4',
+        },
+      },
+      {
+        entry: { href: '/team/7278-goonsquad' },
+        teamHtml: '',
+        team: {
+          id: 'fall-2026-sunday',
+          seasonSlug: 'fall-2026',
+          scheduleLabel: 'SUNDAY',
+          division: 'SUNDAY TIER 5',
+        },
+      },
+      {
+        entry: { href: '/team/7288-goonsquad' },
+        teamHtml: '',
+        team: {
+          id: 'fall-2026-mon-wed',
+          seasonSlug: 'fall-2026',
+          scheduleLabel: 'MON/WED',
+          division: 'MON/WED TIER 5',
+        },
+      },
+    ]);
+
+    expect(teams.map(({ team }) => team.id)).toEqual([
+      'fall-2026-sunday-tier-4',
+      'fall-2026-sunday-tier-5',
+      'fall-2026-mon-wed',
+    ]);
+    expect(teams.map(({ disambiguated }) => disambiguated)).toEqual([true, true, false]);
+  });
+
+  it('falls back to the official team id when day and tier are both duplicated', () => {
+    const teams = resolveTeamIdentities([
+      {
+        entry: { href: '/team/7272-goonsquad' },
+        teamHtml: '',
+        team: {
+          id: 'fall-2026-sunday',
+          seasonSlug: 'fall-2026',
+          scheduleLabel: 'SUNDAY',
+          division: 'SUNDAY TIER 4',
+          providerExternalId: '7272',
+        },
+      },
+      {
+        entry: { href: '/team/7299-goonsquad' },
+        teamHtml: '',
+        team: {
+          id: 'fall-2026-sunday',
+          seasonSlug: 'fall-2026',
+          scheduleLabel: 'SUNDAY',
+          division: 'SUNDAY TIER 4',
+          providerExternalId: '7299',
+        },
+      },
+    ]);
+
+    expect(teams.map(({ team }) => team.id)).toEqual([
+      'fall-2026-sunday-tier-4-7272',
+      'fall-2026-sunday-tier-4-7299',
     ]);
   });
 

@@ -497,7 +497,7 @@ export default function TournamentAdminPanel({
         <Settings2 aria-hidden="true" />
         <span>ONE-TIME SETUP</span>
         <h2>Tournament control room is ready to activate</h2>
-        <p>Run <code>supabase/migrations/20260731_tournament_control_room.sql</code> once in the Supabase SQL editor. The public archive stays online while this admin database is being activated.</p>
+        <p>Run <code>supabase/migrations/202607310004_tournament_control_room.sql</code> once in the Supabase SQL editor. The public archive stays online while this admin database is being activated.</p>
         <button type="button" onClick={onClose}><ArrowLeft aria-hidden="true" /> Back to tournament</button>
       </section>
     );

@@ -206,7 +206,9 @@ describe('statistics model', () => {
   it('expands official schedule abbreviations without changing source identity', () => {
     expect(formatScheduleName({ scheduleLabel: 'MON/THU' })).toBe('Monday League');
     expect(formatScheduleName({ scheduleLabel: 'THURSDAY / MONDAY' })).toBe('Monday League');
-    expect(formatScheduleName({ scheduleLabel: 'MON/WED' })).toBe('Monday / Wednesday League');
+    expect(formatScheduleName({ scheduleLabel: 'MON/WED' })).toBe('Monday League');
     expect(formatScheduleName({ scheduleLabel: 'SUNDAY' })).toBe('Sunday League');
+    expect(formatScheduleName({ scheduleLabel: 'SUNDAY', name: 'Sunday Tier 4 Team' })).toBe('Sunday Tier 4 League');
+    expect(formatScheduleName({ scheduleLabel: 'SUNDAY', name: 'Sunday Tier 5 Team' })).toBe('Sunday Tier 5 League');
   });
 });
