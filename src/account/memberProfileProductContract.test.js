@@ -5,8 +5,8 @@ const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), '
 
 describe('member profile product contract', () => {
   it('supports member requests plus admin review and direct player assignment', () => {
-    const baseMigration = read('supabase/migrations/20260723_member_profiles.sql');
-    const migration = read('supabase/migrations/20260729_member_player_claim_approval.sql');
+    const baseMigration = read('supabase/migrations/202607230001_member_profiles.sql');
+    const migration = read('supabase/migrations/202607290001_member_player_claim_approval.sql');
     const profile = read('src/profile/ProfileWorkspace.jsx');
     const panel = read('src/account/AccountAdminPanel.jsx');
     const api = read('api/account-admin.js');
@@ -86,7 +86,7 @@ describe('member profile product contract', () => {
   });
 
   it('enforces unique normalized usernames at the database boundary', () => {
-    const migration = read('supabase/migrations/20260724_member_usernames.sql');
+    const migration = read('supabase/migrations/202607240001_member_usernames.sql');
     const cloud = read('src/account/accountCloud.js');
     expect(migration).toContain('profiles_username_lower_idx');
     expect(migration).toContain('check_username_available');

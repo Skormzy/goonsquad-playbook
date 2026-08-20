@@ -284,7 +284,7 @@ describe('public statistics projection', () => {
 
   it('revokes direct reads and omits private fields from the SQL projections', () => {
     const migration = readFileSync(
-      new URL('../../supabase/migrations/20260729_public_statistics_projection.sql', import.meta.url),
+      new URL('../../supabase/migrations/202607290002_public_statistics_projection.sql', import.meta.url),
       'utf8',
     );
     const gamesView = migration.match(

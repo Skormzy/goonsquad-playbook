@@ -39,6 +39,7 @@ const OUTPUT_PATH = path.resolve(
   SOURCE.outputFile,
 );
 const SEASON_PATTERN = /^(summer|spring|winter|fall)\s+\d{4}(?:-\d{4})?\s+-\s+/i;
+const SEASON_TERM_ORDER = Object.freeze({ Winter: 1, Spring: 2, Summer: 3, Fall: 4 });
 const MONTHS = Object.freeze({
   Jan: 1,
   Feb: 2,
@@ -80,9 +81,15 @@ function titleSeason(value) {
   return normalized ? `${normalized[0].toUpperCase()}${normalized.slice(1)}` : '';
 }
 
-function scheduleTeamName(value) {
-  const words = clean(value).toLowerCase().split(/([/\s-]+)/);
-  return `${words.map((part) => /^[a-z]/.test(part) ? `${part[0].toUpperCase()}${part.slice(1)}` : part).join('')} Team`;
+function scheduleTeamName(value, division = '', disambiguated = false) {
+  const schedule = clean(value).toUpperCase();
+  const day = /\bMON(?:DAY)?\b/.test(schedule)
+    ? 'Monday'
+    : /\bSUN(?:DAY)?\b/.test(schedule)
+      ? 'Sunday'
+      : clean(value).toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
+  const tier = clean(division).match(/\bTIER\s+([^\s(]+)/i)?.[1] ?? '';
+  return `${day}${disambiguated && tier ? ` Tier ${tier}` : ''} Team`;
 }
 
 function sourceExternalId(value) {
@@ -153,6 +160,56 @@ function teamHistoryLinks(html) {
     });
   });
   return [...new Map(links.map((link) => [link.href, link])).values()];
+}
+
+function seasonNameFromHistoryLabel(label) {
+  return titleSeason(clean(label).split(/\s+-\s+/)[0]);
+}
+
+function seasonSortValue(seasonName) {
+  const years = clean(seasonName).match(/\d{4}/g)?.map(Number) ?? [0];
+  const term = Object.keys(SEASON_TERM_ORDER).find((name) => clean(seasonName).startsWith(name));
+  return Math.max(...years) * 10 + (SEASON_TERM_ORDER[term] ?? 0);
+}
+
+function currentSeasonNameFromHistory(history) {
+  const names = [...new Set(history.map((entry) => seasonNameFromHistoryLabel(entry.label)).filter(Boolean))];
+  return names.sort((a, b) => seasonSortValue(b) - seasonSortValue(a))[0] ?? '';
+}
+
+function resolveTeamIdentities(entries) {
+  const scheduleCounts = new Map();
+  entries.forEach(({ team }) => {
+    const key = `${team.seasonSlug}|${slugify(team.scheduleLabel)}`;
+    scheduleCounts.set(key, (scheduleCounts.get(key) ?? 0) + 1);
+  });
+
+  const candidates = entries.map((entry) => {
+    const key = `${entry.team.seasonSlug}|${slugify(entry.team.scheduleLabel)}`;
+    const disambiguated = (scheduleCounts.get(key) ?? 0) > 1;
+    return {
+      ...entry,
+      disambiguated,
+      candidateId: disambiguated
+        ? `${entry.team.seasonSlug}-${slugify(entry.team.division)}`
+        : entry.team.id,
+    };
+  });
+
+  const candidateCounts = new Map();
+  candidates.forEach(({ candidateId }) => {
+    candidateCounts.set(candidateId, (candidateCounts.get(candidateId) ?? 0) + 1);
+  });
+
+  return candidates.map(({ candidateId, ...entry }) => ({
+    ...entry,
+    team: {
+      ...entry.team,
+      id: (candidateCounts.get(candidateId) ?? 0) > 1
+        ? `${candidateId}-${entry.team.providerExternalId}`
+        : candidateId,
+    },
+  }));
 }
 
 function teamMetadata(teamPath, html) {
@@ -628,6 +685,8 @@ function auditSnapshot(dataset) {
   const warnings = [];
   const teamIds = new Set(dataset.teams.map((team) => team.id));
   const playerIds = new Set(dataset.players.map((player) => player.id));
+  const duplicateTeamIds = dataset.teams.map((team) => team.id).filter((id, index, ids) => ids.indexOf(id) !== index);
+  if (duplicateTeamIds.length) warnings.push(`Duplicate team IDs: ${[...new Set(duplicateTeamIds)].join(', ')}`);
   const duplicateGameIds = dataset.games.map((game) => game.id).filter((id, index, ids) => ids.indexOf(id) !== index);
   if (duplicateGameIds.length) warnings.push(`Duplicate game IDs: ${[...new Set(duplicateGameIds)].join(', ')}`);
   dataset.teams.forEach((team) => {
@@ -742,11 +801,16 @@ async function buildSnapshot({ scope = 'all', existingSnapshot = null } = {}) {
   const startHtml = await fetchHtml(START_TEAM_PATH);
   const fullHistory = teamHistoryLinks(startHtml);
   if (!fullHistory.length) throw new Error('No Goonsquad team history links were found. The league page structure may have changed.');
-  const currentSeasonName = teamMetadata(START_TEAM_PATH, startHtml).seasonName;
+  const currentSeasonName = currentSeasonNameFromHistory(fullHistory);
   const history = scope === 'current'
-    ? fullHistory.filter((entry) => titleSeason(entry.label.split(' - ')[0]) === currentSeasonName)
+    ? fullHistory.filter((entry) => seasonNameFromHistoryLabel(entry.label) === currentSeasonName)
     : fullHistory;
   if (!history.length) throw new Error(`No ${currentSeasonName} Goonsquad schedules were found.`);
+
+  const teamEntries = resolveTeamIdentities(await mapWithConcurrency(history, 6, async (entry) => {
+    const teamHtml = entry.href === START_TEAM_PATH ? startHtml : await fetchHtml(entry.href);
+    return { entry, teamHtml, team: teamMetadata(entry.href, teamHtml) };
+  }));
 
   const seasons = new Map();
   const teams = [];
@@ -762,9 +826,7 @@ async function buildSnapshot({ scope = 'all', existingSnapshot = null } = {}) {
   const gameEvents = [];
   const standings = [];
 
-  for (const entry of history) {
-    const teamHtml = entry.href === START_TEAM_PATH ? startHtml : await fetchHtml(entry.href);
-    const team = teamMetadata(entry.href, teamHtml);
+  for (const { entry, teamHtml, team, disambiguated } of teamEntries) {
     const [regularScheduleHtml, playoffScheduleHtml, regularPlayersHtml, playoffPlayersHtml, regularGoaliesHtml, playoffGoaliesHtml, rosterHtml] = await Promise.all([
       fetchHtml(`/schedule/team/${team.providerExternalId}-goonsquad?id_stage=1&id_filter=1`),
       fetchHtml(`/schedule/team/${team.providerExternalId}-goonsquad?id_stage=2&id_filter=1`),
@@ -811,7 +873,7 @@ async function buildSnapshot({ scope = 'all', existingSnapshot = null } = {}) {
       externalId: team.externalId,
       providerExternalId: team.providerExternalId,
       seasonId: team.seasonSlug,
-      name: scheduleTeamName(team.scheduleLabel),
+      name: scheduleTeamName(team.scheduleLabel, team.division, disambiguated),
       scheduleLabel: team.scheduleLabel,
       division: team.division,
       leagueKey: team.leagueKey,
@@ -907,6 +969,7 @@ async function main() {
 export {
   auditSnapshot,
   buildSnapshot,
+  currentSeasonNameFromHistory,
   mergeCurrentSeasonSnapshot,
   parseGameDate,
   parseGameDetails,
@@ -915,6 +978,7 @@ export {
   parsePlayerLeaders,
   parseRoster,
   parseSchedule,
+  resolveTeamIdentities,
   teamHistoryLinks,
   teamMetadata,
 };
