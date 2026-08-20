@@ -183,7 +183,7 @@ export function OpponentHeadToHead({
   return (
     <section className="stats-game-page stats-matchup-page" aria-label={`Head-to-head comparison against ${matchup.name}`}>
       <div className="stats-game-page-toolbar">
-        <button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> All games</button>
+        <button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> Schedule</button>
         <div>
           <button type="button" onClick={onCopyLink}><Copy aria-hidden="true" /> {copied ? 'Link copied' : 'Copy matchup'}</button>
           {fixture?.sourceUrl && <a href={fixture.sourceUrl} target="_blank" rel="noreferrer">League fixture <ExternalLink aria-hidden="true" /></a>}

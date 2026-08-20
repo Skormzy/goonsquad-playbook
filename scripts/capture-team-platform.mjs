@@ -137,43 +137,60 @@ for (const viewport of viewports) {
   const sourceHref = await page.getByRole('link', { name: /Open official source for YCBHL · Monday Tier 5 League/u }).getAttribute('href');
   const documentOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
-  await page.getByRole('tab', { name: 'Games', exact: true }).click();
-  const detailButtons = page.locator('.stats-game-detail-button');
-  const detailButtonCount = await detailButtons.count();
-  if (detailButtonCount !== 24) throw new Error(`${viewport.id}: expected all 24 current-season games to have pages, received ${detailButtonCount}.`);
-  const finalGameRow = page.locator('.stats-table tbody tr').filter({ has: page.locator('.stats-result.is-w, .stats-result.is-l, .stats-result.is-t') }).first();
-  await finalGameRow.locator('.stats-game-detail-button').click();
-  const gamePage = page.locator('.stats-game-page');
-  await gamePage.waitFor({ state: 'visible' });
-  const gamePageHref = page.url();
-  const gameDetail = page.locator('.stats-game-detail');
-  const gameDetailText = (await gameDetail.innerText()).replace(/\s+/gu, ' ').trim();
-  const gameDetailSource = await gamePage.getByRole('link', { name: /Official game sheet/u }).getAttribute('href');
-  await page.evaluate(() => window.scrollTo(0, 0));
-  const gameToolbarRect = await page.locator('.stats-game-page-toolbar').boundingBox();
-  const gameDetailPath = path.join(outputDir, `${viewport.id}-game-detail-${viewport.width}x${viewport.height}.png`);
-  await page.screenshot({ path: gameDetailPath, fullPage: false });
-  await gameDetail.evaluate((element) => {
-    element.scrollIntoView({ block: 'start' });
-    window.scrollBy(0, -96);
-  });
-  const gameBoxScorePath = path.join(outputDir, `${viewport.id}-game-box-score-${viewport.width}x${viewport.height}.png`);
-  await page.screenshot({ path: gameBoxScorePath, fullPage: false });
-  await page.reload({ waitUntil: 'networkidle' });
-  await page.locator('.stats-game-page').waitFor({ state: 'visible' });
-  const deepLinkRestored = page.url() === gamePageHref && (await page.locator('.stats-game-detail').innerText()).includes('PLAYER BOX SCORE');
-  await page.getByRole('button', { name: 'All games', exact: true }).click();
-  await page.locator('.stats-game-page').waitFor({ state: 'hidden' });
-  const gameListHref = page.url();
-
-  const scheduledGameRow = page.locator('.stats-table tbody tr').filter({ has: page.locator('.stats-result.is-scheduled') }).first();
+  await page.getByRole('tab', { name: 'Schedule', exact: true }).click();
+  await page.locator('.stats-schedule-dashboard').waitFor({ state: 'visible' });
+  const scheduleSummary = (await page.locator('.stats-schedule-dashboard').innerText()).replace(/\s+/gu, ' ').trim();
+  const upcomingFixtureCount = await page.locator('.stats-fixture-row[data-kind="upcoming"]').count();
+  const awaitingFixtureCount = await page.locator('.stats-fixture-row[data-kind="awaiting"]').count();
+  const completedFixtureCount = await page.locator('.stats-table tbody tr').count();
+  if (upcomingFixtureCount + awaitingFixtureCount + completedFixtureCount === 0) {
+    throw new Error(`${viewport.id}: league schedule mounted without any fixtures.`);
+  }
+  const schedulePath = path.join(outputDir, `${viewport.id}-league-schedule-${viewport.width}x${viewport.height}.png`);
+  await page.screenshot({ path: schedulePath, fullPage: false });
+  const scheduledGameRow = page.locator('.stats-fixture-row[data-kind="upcoming"]').first();
   const scheduledGameCount = await scheduledGameRow.count();
   let scheduledPageText = '';
   if (scheduledGameCount > 0) {
-    await scheduledGameRow.locator('.stats-game-detail-button').click();
+    await scheduledGameRow.getByRole('button').click();
     scheduledPageText = (await page.locator('.stats-game-page').innerText()).replace(/\s+/gu, ' ').trim();
-    await page.getByRole('button', { name: 'All games', exact: true }).click();
+    await page.getByRole('button', { name: 'Schedule', exact: true }).click();
   }
+
+  await page.locator('.stats-season-controls select').selectOption('summer-2026');
+  await page.locator('.stats-table tbody tr').first().waitFor({ state: 'visible' });
+  const finalGameRow = page.locator('.stats-table tbody tr').filter({ has: page.locator('.stats-result.is-w, .stats-result.is-l, .stats-result.is-t') }).first();
+  const finalGameCount = await finalGameRow.count();
+  let gameDetailText = '';
+  let gameDetailSource = '';
+  let gameToolbarRect = null;
+  let deepLinkRestored = true;
+  let gamePageHref = '';
+  const gameDetailPath = path.join(outputDir, `${viewport.id}-game-detail-${viewport.width}x${viewport.height}.png`);
+  const gameBoxScorePath = path.join(outputDir, `${viewport.id}-game-box-score-${viewport.width}x${viewport.height}.png`);
+  if (finalGameCount > 0) {
+    await finalGameRow.locator('.stats-game-detail-button').click();
+    const gamePage = page.locator('.stats-game-page');
+    await gamePage.waitFor({ state: 'visible' });
+    gamePageHref = page.url();
+    const gameDetail = page.locator('.stats-game-detail');
+    gameDetailText = (await gameDetail.innerText()).replace(/\s+/gu, ' ').trim();
+    gameDetailSource = await gamePage.getByRole('link', { name: /Official game sheet/u }).getAttribute('href');
+    await page.evaluate(() => window.scrollTo(0, 0));
+    gameToolbarRect = await page.locator('.stats-game-page-toolbar').boundingBox();
+    await page.screenshot({ path: gameDetailPath, fullPage: false });
+    await gameDetail.evaluate((element) => {
+      element.scrollIntoView({ block: 'start' });
+      window.scrollBy(0, -96);
+    });
+    await page.screenshot({ path: gameBoxScorePath, fullPage: false });
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('.stats-game-page').waitFor({ state: 'visible' });
+    deepLinkRestored = page.url() === gamePageHref && (await page.locator('.stats-game-detail').innerText()).includes('PLAYER BOX SCORE');
+    await page.getByRole('button', { name: 'Schedule', exact: true }).click();
+    await page.locator('.stats-game-page').waitFor({ state: 'hidden' });
+  }
+  const gameListHref = page.url();
 
   await page.locator('.stats-season-controls select').selectOption('spring-2026');
   await page.getByRole('button', { name: /Sunday Tier 5 League\s+YCBHL/u }).click();
@@ -269,6 +286,10 @@ for (const viewport of viewports) {
     tournament2024Url: tournament2024Url.href,
     leaderCount,
     sourceHref,
+    scheduleSummary,
+    upcomingFixtureCount,
+    awaitingFixtureCount,
+    completedFixtureCount,
     gameDetailText,
     gameDetailSource,
     gamePageHref,
@@ -289,6 +310,7 @@ for (const viewport of viewports) {
       path.relative(root, youtubePlayerPath).replaceAll('\\', '/'),
       path.relative(root, tiktokPath).replaceAll('\\', '/'),
       path.relative(root, statsPath).replaceAll('\\', '/'),
+      path.relative(root, schedulePath).replaceAll('\\', '/'),
       path.relative(root, tournamentOverviewPath).replaceAll('\\', '/'),
       path.relative(root, tournamentStandingsPath).replaceAll('\\', '/'),
       path.relative(root, tournamentBracketPath).replaceAll('\\', '/'),
@@ -352,6 +374,7 @@ for (const viewport of viewports) {
   if (seasonOptions.length < 16) throw new Error(`${viewport.id}: historical season archive is incomplete (${seasonOptions.length}).`);
   if (leaderCount < 1) throw new Error(`${viewport.id}: official player leaders are missing.`);
   if (sourceHref !== 'https://www.yorkcentralbhl.com/team/7250-goonsquad') throw new Error(`${viewport.id}: official source provenance is incorrect.`);
+  if (!scheduleSummary.includes('SEASON SCHEDULE') || !scheduleSummary.includes('UPCOMING')) throw new Error(`${viewport.id}: league schedule summary is incomplete.`);
   if (!new URL(gamePageHref).searchParams.get('game')) throw new Error(`${viewport.id}: finalized game page is not deep-linked.`);
   if (new URL(gameListHref).searchParams.has('game')) throw new Error(`${viewport.id}: game-list return kept a stale game deep link.`);
   if (!deepLinkRestored) throw new Error(`${viewport.id}: game deep link did not survive reload.`);

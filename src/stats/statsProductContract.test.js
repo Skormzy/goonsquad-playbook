@@ -49,7 +49,7 @@ describe('team account and statistics product contract', () => {
     expect(migrationSource).toContain('protect_profile_role_before_update');
     expect(workspaceSource).toContain("{ id: 'overview', label: 'Overview' }");
     expect(workspaceSource).toContain("{ id: 'standings', label: 'Standings' }");
-    expect(workspaceSource).toContain("{ id: 'games', label: 'Games' }");
+    expect(workspaceSource).toContain("{ id: 'games', label: 'Schedule' }");
     expect(workspaceSource).toContain("{ id: 'players', label: 'Players' }");
     expect(workspaceSource).toContain('Every Goonsquad schedule');
     expect(workspaceSource).toContain("!scheduleComplete && <span className=\"stats-schedule-status\"");
@@ -57,6 +57,9 @@ describe('team account and statistics product contract', () => {
     expect(workspaceSource).not.toContain("scheduleComplete ? 'Complete'");
     expect(workspaceSource).toContain('TEAM STATISTICS');
     expect(workspaceSource).toContain('MatchdayCard');
+    expect(workspaceSource).toContain('LeagueScheduleView');
+    expect(workspaceSource).toContain('Upcoming fixtures');
+    expect(workspaceSource).toContain('Completed games');
     expect(workspaceSource).toContain('NEXT GAME');
     expect(workspaceSource).toContain('LATEST RESULT');
     expect(workspaceSource).toContain('ALL_SEASON_TEAMS_ID');
