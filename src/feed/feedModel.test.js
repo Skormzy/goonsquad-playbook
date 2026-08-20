@@ -11,6 +11,7 @@ import {
   feedTextParts,
   formatFeedTime,
   normalizeExternalUrl,
+  resolveFeedMemberPlayerRouteId,
   summarizeFeedReactions,
   threadFeedComments,
   validateFeedMedia,
@@ -118,6 +119,37 @@ describe('team feed model', () => {
     ]);
     expect(canOpenFeedMemberProfile(members[0])).toBe(true);
     expect(canOpenFeedMemberProfile(members[1])).toBe(false);
+  });
+
+  it('routes legacy feed authors through their published league player identity', () => {
+    const players = [
+      {
+        id: 'ycbhl-player-26133',
+        externalId: '26133',
+        displayName: 'Seymour Korman',
+        sourceUrl: 'https://www.yorkcentralbhl.com/player/7250-goonsquad/26133-seymour-korman',
+      },
+    ];
+    const legacyMember = {
+      id: 'account-user-id',
+      displayName: 'Skormzy',
+      playerId: '5754edff-efee-462a-accc-dd6ab41486ae',
+      playerExternalId: '26133',
+      playerName: 'Seymour Korman',
+    };
+
+    expect(resolveFeedMemberPlayerRouteId(legacyMember, players)).toBe('ycbhl-player-26133');
+  });
+
+  it('never sends an account UUID to the player directory', () => {
+    expect(resolveFeedMemberPlayerRouteId({
+      playerId: '5754edff-efee-462a-accc-dd6ab41486ae',
+      playerName: 'Unlinked Member',
+    }, [{
+      id: 'ycbhl-player-307',
+      externalId: '307',
+      displayName: 'Ryan Hunt',
+    }])).toBe('');
   });
 
   it('groups replies under their parent while keeping malformed replies visible', () => {

@@ -134,7 +134,48 @@ export function summarizeFeedReactions(reactions = []) {
 }
 
 export function canOpenFeedMemberProfile(member) {
-  return Boolean(String(member?.playerId || '').trim());
+  return Boolean(String(
+    member?.playerId
+    || member?.playerExternalId
+    || member?.playerSourceUrl
+    || '',
+  ).trim());
+}
+
+function normalizedIdentityValue(value) {
+  return String(value || '').trim().toLocaleLowerCase();
+}
+
+export function resolveFeedMemberPlayerRouteId(member, players = []) {
+  if (!member || !Array.isArray(players) || !players.length) return '';
+
+  const playerId = String(member.playerId || '').trim();
+  if (playerId && players.some((player) => String(player.id) === playerId)) {
+    return playerId;
+  }
+
+  const externalId = normalizedIdentityValue(member.playerExternalId);
+  if (externalId) {
+    const externalMatches = players.filter(
+      (player) => normalizedIdentityValue(player.externalId) === externalId,
+    );
+    if (externalMatches.length === 1) return String(externalMatches[0].id);
+  }
+
+  const sourceUrl = normalizedIdentityValue(member.playerSourceUrl);
+  if (sourceUrl) {
+    const sourceMatch = players.find(
+      (player) => normalizedIdentityValue(player.sourceUrl) === sourceUrl,
+    );
+    if (sourceMatch) return String(sourceMatch.id);
+  }
+
+  const playerName = normalizedIdentityValue(member.playerName);
+  if (!playerName) return '';
+  const nameMatches = players.filter(
+    (player) => normalizedIdentityValue(player.displayName) === playerName,
+  );
+  return nameMatches.length === 1 ? String(nameMatches[0].id) : '';
 }
 
 export function feedReactionDetails(reactions = [], members = []) {
