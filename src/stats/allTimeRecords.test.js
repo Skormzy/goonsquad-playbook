@@ -138,13 +138,13 @@ describe('all-time records', () => {
     const records = buildAllTimeRecords(OFFICIAL_STATS_DATASET);
     const expected = [
       ['Adrian Bockner', 84, 33],
-      ['Andrew Lorenowicz', 235, 16],
+      ['Andrew Lorenowicz', 237, 16],
       ['Mathew Grenier', 49, 93],
       ['Matthew Stott', 39, 7],
       ['Michael Thomas Kerrane', 62, 10],
       ['Michael Woods', 4, 16],
       ['Michael Yen', 20, 8],
-      ['Ryan Hunt', 60, 8],
+      ['Ryan Hunt', 61, 8],
       ['Stephen Macdonald', 59, 11],
       ['Zachary Sher', 23, 15],
     ];

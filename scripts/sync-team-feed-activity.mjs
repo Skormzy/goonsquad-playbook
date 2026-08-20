@@ -128,8 +128,13 @@ async function saveYoutubeActivityState(items, { channelHandle, channelId }) {
 
 function scheduleName(team) {
   const label = clean(team?.scheduleLabel || team?.name);
-  if (/MON|THU/iu.test(label)) return 'Monday League';
-  if (/SUN/iu.test(label)) return 'Sunday League';
+  const tierMatch = clean(team?.division || team?.name || team?.scheduleLabel)
+    .match(/\bTIER\s+([0-9]+(?:\/[0-9]+)?[A-Z]?)(?:\s+(WEST|EAST|NORTH|SOUTH))?/iu);
+  const tier = tierMatch
+    ? ` Tier ${tierMatch[1].toUpperCase()}${tierMatch[2] ? ` ${tierMatch[2][0].toUpperCase()}${tierMatch[2].slice(1).toLowerCase()}` : ''}`
+    : '';
+  if (/MON|THU/iu.test(label)) return `Monday${tier} League`;
+  if (/SUN/iu.test(label)) return `Sunday${tier} League`;
   return label || 'Goon Squad';
 }
 

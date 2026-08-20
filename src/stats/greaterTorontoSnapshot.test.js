@@ -33,10 +33,10 @@ describe('Greater Toronto league archive', () => {
 
   it('uses concise year, season, source league, and day labels', () => {
     const sundaySeason = greaterTorontoSnapshot.seasons.find((season) => season.id === 'gtbhl-summer-2024');
-    expect(formatScheduleName(greaterTorontoSnapshot.teams.find((team) => team.seasonId === sundaySeason.id))).toBe('Sunday League');
-    expect(formatSeasonSelectorLabel(sundaySeason, greaterTorontoSnapshot.teams)).toBe('2024 Summer · Greater Toronto Ball Hockey League · Sunday');
+    expect(formatScheduleName(greaterTorontoSnapshot.teams.find((team) => team.seasonId === sundaySeason.id))).toBe('Sunday Tier 5B West League');
+    expect(formatSeasonSelectorLabel(sundaySeason, greaterTorontoSnapshot.teams)).toBe('2024 Summer · Greater Toronto Ball Hockey League · Sunday Tier 5B West');
 
     const currentSeason = yorkCentralSnapshot.seasons.find((season) => season.id === 'summer-2026');
-    expect(formatSeasonSelectorLabel(currentSeason, yorkCentralSnapshot.teams)).toBe('2026 Summer · YCBHL · Monday + Sunday');
+    expect(formatSeasonSelectorLabel(currentSeason, yorkCentralSnapshot.teams)).toBe('2026 Summer · YCBHL · Monday Tier 5 + Sunday Tier 5');
   });
 });

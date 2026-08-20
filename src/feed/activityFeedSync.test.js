@@ -15,6 +15,7 @@ const dataset = {
     leagueKey: 'york-central',
     leagueName: 'York Central Ball Hockey League',
     scheduleLabel: 'MON/THU',
+    division: 'MON/THU TIER 5 (D/REC)',
   }],
   players: [{
     id: 'p1',
@@ -53,7 +54,7 @@ describe('automated Squad Live activity', () => {
     expect(item).toMatchObject({
       sourceKey: 'result:ycbhl-game-123',
       sourceType: 'result',
-      sourceLabel: 'Official result · YCBHL · Monday League',
+      sourceLabel: 'Official result · YCBHL · Monday Tier 5 League',
       sourceTitle: 'Goon Squad 4–2 VIPERZ',
       linkUrl: 'https://www.yorkcentralbhl.com/game/123-goonsquad-viperz',
       sourceMetadata: {
@@ -62,7 +63,7 @@ describe('automated Squad Live activity', () => {
         goalsAgainst: 2,
         shotsFor: 21,
         shotsAgainst: 14,
-        league: 'YCBHL · Monday League',
+        league: 'YCBHL · Monday Tier 5 League',
       },
     });
     expect(item.body).toContain('Shots: 21–14');
