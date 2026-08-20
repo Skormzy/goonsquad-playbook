@@ -629,20 +629,22 @@ for (const device of devices) {
     await settleInteraction(page, 120);
   }
 
-  await page.getByRole('tab', { name: 'Games', exact: true }).click();
+  await page.getByRole('tab', { name: 'Schedule', exact: true }).click();
   states.push(await capture(page, device, 'home-games'));
   if (device.full) {
     const finalGameRow = page.locator('.stats-table tbody tr').filter({ has: page.locator('.stats-result.is-w, .stats-result.is-l, .stats-result.is-t') }).first();
-    await finalGameRow.locator('.stats-game-detail-button').click();
-    await page.locator('.stats-game-page').waitFor({ state: 'visible' });
-    states.push(await capture(page, device, 'game-detail'));
-    await page.getByRole('button', { name: 'All games', exact: true }).click();
-    const upcomingMatchup = page.getByRole('button', { name: /Open head-to-head against/u }).first();
+    if (await finalGameRow.count()) {
+      await finalGameRow.locator('.stats-game-detail-button').click();
+      await page.locator('.stats-game-page').waitFor({ state: 'visible' });
+      states.push(await capture(page, device, 'game-detail'));
+      await page.getByRole('button', { name: 'Schedule', exact: true }).click();
+    }
+    const upcomingMatchup = page.getByRole('button', { name: /Open matchup against/u }).first();
     if (await upcomingMatchup.count()) {
       await upcomingMatchup.click();
       await page.locator('.stats-matchup-page').waitFor({ state: 'visible' });
       states.push(await capture(page, device, 'opponent-matchup'));
-      await page.getByRole('button', { name: 'All games', exact: true }).click();
+      await page.getByRole('button', { name: 'Schedule', exact: true }).click();
     }
   }
   await page.getByRole('tab', { name: 'Players', exact: true }).click();

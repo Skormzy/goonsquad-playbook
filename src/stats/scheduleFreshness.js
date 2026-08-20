@@ -28,3 +28,16 @@ export function upcomingGames(games, now = Date.now()) {
 export function nextUpcomingGame(games, now = Date.now()) {
   return upcomingGames(games, now)[0] ?? null;
 }
+
+export function scheduleSections(games, now = Date.now()) {
+  const items = Array.isArray(games) ? games : [];
+  return {
+    upcoming: upcomingGames(items, now),
+    awaiting: items
+      .filter((game) => isAwaitingResult(game, now))
+      .sort((a, b) => timestamp(b.scheduledAt) - timestamp(a.scheduledAt)),
+    completed: items
+      .filter((game) => game?.status === 'final')
+      .sort((a, b) => timestamp(b.scheduledAt) - timestamp(a.scheduledAt)),
+  };
+}

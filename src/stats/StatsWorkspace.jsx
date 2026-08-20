@@ -65,6 +65,7 @@ import {
 import {
   isAwaitingResult,
   nextUpcomingGame,
+  scheduleSections,
   STATS_REFRESH_INTERVAL_MS,
 } from './scheduleFreshness';
 import {
@@ -86,7 +87,7 @@ import { loadTournamentArchive } from './tournamentCloud';
 const TABS = Object.freeze([
   { id: 'overview', label: 'Overview' },
   { id: 'standings', label: 'Standings' },
-  { id: 'games', label: 'Games' },
+  { id: 'games', label: 'Schedule' },
   { id: 'players', label: 'Players' },
   { id: 'records', label: 'All-time' },
 ]);
@@ -320,6 +321,19 @@ function gameSiteLabel(game) {
   return 'Neutral';
 }
 
+function formatFixtureDate(value, options) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'TBD';
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Toronto',
+    ...options,
+  }).format(date);
+}
+
+function fixtureHeadline(game) {
+  return game?.venue === 'away' ? `at ${game.opponent}` : `vs ${game.opponent}`;
+}
+
 function gameQuickStats(details) {
   if (!details) return { shotsFor: null, shotsAgainst: null, penaltyMinutes: null };
   const penaltyMinutes = details.players.reduce((total, line) => (
@@ -434,6 +448,105 @@ function GamesTable({
   );
 }
 
+function ScheduleFixtureList({ games, kind, schedules, onOpenGame }) {
+  return (
+    <div className="stats-fixture-list">
+      {games.map((game, index) => {
+        const schedule = schedules.find((item) => item.id === game.seasonTeamId);
+        const awaiting = kind === 'awaiting';
+        return (
+          <article
+            className="stats-fixture-row"
+            data-kind={kind}
+            data-next={kind === 'upcoming' && index === 0 ? 'true' : undefined}
+            key={game.id}
+          >
+            <time dateTime={game.scheduledAt} className="stats-fixture-date">
+              <span>{formatFixtureDate(game.scheduledAt, { weekday: 'short' })}</span>
+              <strong>{formatFixtureDate(game.scheduledAt, { month: 'short', day: 'numeric' })}</strong>
+              <small>{formatFixtureDate(game.scheduledAt, { hour: 'numeric', minute: '2-digit' })}</small>
+            </time>
+            <div className="stats-fixture-copy">
+              <span>{kind === 'upcoming' && index === 0 ? 'NEXT UP' : awaiting ? 'RESULT PENDING' : 'UPCOMING'}</span>
+              <h3>{fixtureHeadline(game)}</h3>
+              <p>{formatLeagueScheduleName(schedule)} · {gameSiteLabel(game)}{game.location ? ` · ${game.location}` : ''}</p>
+            </div>
+            <span className="stats-fixture-stage">{game.stage === 'playoffs' ? 'Playoffs' : 'Regular'}</span>
+            <button
+              type="button"
+              onClick={() => onOpenGame(game.id)}
+              aria-label={`${awaiting ? 'Open result status' : 'Open matchup'} against ${game.opponent}`}
+            >
+              <span>{awaiting ? 'Status' : 'Matchup'}</span>
+              <ChevronRight aria-hidden="true" />
+            </button>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function LeagueScheduleView({
+  games,
+  detailsByGame,
+  isAggregate,
+  leagueLabel,
+  schedules,
+  showStage,
+  onOpenGame,
+  onOpenOpponent,
+}) {
+  const sections = scheduleSections(games);
+  const total = sections.upcoming.length + sections.awaiting.length + sections.completed.length;
+
+  return (
+    <div className="stats-schedule-view">
+      <section className="stats-schedule-dashboard" aria-label={`${leagueLabel} schedule summary`}>
+        <header>
+          <CalendarDays aria-hidden="true" />
+          <div>
+            <span>{leagueLabel.toUpperCase()}</span>
+            <h2>Season schedule</h2>
+            <p>Every fixture for this league, from next matchup to final result.</p>
+          </div>
+        </header>
+        <div className="stats-schedule-summary">
+          <div><span>Games</span><strong>{total}</strong></div>
+          <div><span>Played</span><strong>{sections.completed.length}</strong></div>
+          <div><span>Upcoming</span><strong>{sections.upcoming.length}</strong></div>
+          <div><span>Pending</span><strong>{sections.awaiting.length}</strong></div>
+        </div>
+      </section>
+
+      <section className="stats-band is-full stats-fixtures-band">
+        <header><CalendarClock aria-hidden="true" /><div><span>COMING UP</span><h2>Upcoming fixtures</h2><p>Open any matchup for the opponent comparison and game details.</p></div></header>
+        {sections.upcoming.length
+          ? <ScheduleFixtureList games={sections.upcoming} kind="upcoming" schedules={schedules} onOpenGame={onOpenGame} />
+          : <EmptyStats section="upcoming fixtures" />}
+      </section>
+
+      {sections.awaiting.length > 0 && <section className="stats-band is-full stats-fixtures-band is-awaiting">
+        <header><History aria-hidden="true" /><div><span>AWAITING RESULTS</span><h2>Played games</h2><p>These games have passed and will update when a result is published.</p></div></header>
+        <ScheduleFixtureList games={sections.awaiting} kind="awaiting" schedules={schedules} onOpenGame={onOpenGame} />
+      </section>}
+
+      {sections.completed.length > 0 && <section className="stats-band is-full">
+        <header><Trophy aria-hidden="true" /><div><span>GAMEBOOK</span><h2>Completed games</h2><p>Final scores, shots, penalty minutes, and full game sheets.</p></div></header>
+        <GamesTable
+          games={sections.completed}
+          detailsByGame={detailsByGame}
+          showSchedule={isAggregate}
+          schedules={schedules}
+          showStage={showStage}
+          onOpenGame={onOpenGame}
+          onOpenOpponent={onOpenOpponent}
+        />
+      </section>}
+    </div>
+  );
+}
+
 function formatClock(value) {
   if (!Number.isFinite(value)) return '';
   const minutes = Math.floor(value / 60);
@@ -492,7 +605,7 @@ function GameDetails({
   return (
     <section className="stats-game-page" aria-label={`Game page against ${game.opponent}`}>
       <div className="stats-game-page-toolbar">
-        <button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> All games</button>
+        <button type="button" onClick={onBack}><ArrowLeft aria-hidden="true" /> Schedule</button>
         <div>
           {canCorrect && <button type="button" className="stats-game-correct-button" onClick={() => setCorrectionOpen(true)}><Settings2 aria-hidden="true" /> {game.adminCorrection ? 'Edit correction' : 'Correct game'}</button>}
           <button type="button" onClick={onCopyLink}><Copy aria-hidden="true" /> {copied ? 'Link copied' : 'Copy link'}</button>
@@ -1361,7 +1474,16 @@ export default function StatsWorkspace() {
             )) : <EmptyStats section="league standings" />}
           </div>
         )}
-        {tab === 'games' && <div className="stats-game-view"><section className="stats-band is-full"><header><CalendarDays aria-hidden="true" /><div><span>{snapshot.isSeasonAggregate ? selectedSeasonLeagueLabel.toUpperCase() : formatLeagueScheduleName(snapshot.team).toUpperCase()}</span><h2>Schedule and results</h2><p>Score, shots, and penalty minutes from each published game sheet.</p></div></header><GamesTable games={snapshot.games} detailsByGame={snapshot.gameDetails} showSchedule={snapshot.isSeasonAggregate} schedules={snapshot.seasonTeams} showStage={snapshot.stage === 'all'} onOpenGame={openGame} onOpenOpponent={openOpponent} /></section></div>}
+        {tab === 'games' && <LeagueScheduleView
+          games={snapshot.games}
+          detailsByGame={snapshot.gameDetails}
+          isAggregate={snapshot.isSeasonAggregate}
+          leagueLabel={snapshot.isSeasonAggregate ? selectedSeasonLeagueLabel : formatLeagueScheduleName(snapshot.team)}
+          schedules={snapshot.seasonTeams}
+          showStage={snapshot.stage === 'all'}
+          onOpenGame={openGame}
+          onOpenOpponent={openOpponent}
+        />}
         {tab === 'players' && (
           <div className="stats-player-view">
             <PlayerTables fieldPlayers={snapshot.fieldPlayers} goalies={snapshot.goalies} onOpenPlayer={openPlayer} />
