@@ -51,6 +51,8 @@ import {
   formatGameDate,
   formatLeagueName,
   formatLeagueScheduleName,
+  formatLeagueTierSummary,
+  formatScheduleName,
   statsSnapshot,
 } from '../stats/statsModel';
 import {
@@ -224,7 +226,7 @@ const QA_POSTS = Object.freeze([
     mediaUrl: '',
     sourceType: 'result',
     sourceKey: 'result:ycbhl-game-53117',
-    sourceLabel: 'Final result · YCBHL · Sunday League',
+    sourceLabel: 'Final result · YCBHL · Sunday Tier 5 League',
     sourceTitle: 'Goonsquad 9–4 OG VIPERZ',
     sourceImageUrl: '',
     sourcePublishedAt: '2026-07-26T21:00:00Z',
@@ -233,7 +235,7 @@ const QA_POSTS = Object.freeze([
       goalsFor: 9,
       goalsAgainst: 4,
       opponent: 'OG VIPERZ',
-      league: 'YCBHL · Sunday League',
+      league: 'YCBHL · Sunday Tier 5 League',
     },
     pinnedAt: null,
     createdAt: '2026-07-26T21:00:00Z',
@@ -249,19 +251,19 @@ const QA_POSTS = Object.freeze([
     id: 'qa-youtube-1',
     authorId: null,
     author: null,
-    body: 'Full game replay from the YCBHL · Monday League.',
-    linkUrl: 'https://www.youtube.com/watch?v=JEnVPcwJiFU',
+    body: 'Full game replay from the YCBHL · Monday Tier 5 League.',
+    linkUrl: 'https://www.youtube.com/watch?v=6CS-I7In7bA',
     mediaPath: '',
     mediaKind: '',
     mediaUrl: '',
     sourceType: 'youtube',
-    sourceKey: 'youtube:JEnVPcwJiFU',
+    sourceKey: 'youtube:6CS-I7In7bA',
     sourceLabel: 'Goonsquad YouTube',
-    sourceTitle: 'Goonsquad vs Dew Lang Ducks (Away View) - Game 6',
-    sourceImageUrl: 'https://i.ytimg.com/vi/JEnVPcwJiFU/hqdefault.jpg',
+    sourceTitle: 'Goonsquad vs Donlands (Home View) - Game 6 | Spring 2026 - Tier 5 Mondays',
+    sourceImageUrl: 'https://i.ytimg.com/vi/6CS-I7In7bA/maxresdefault.jpg',
     sourcePublishedAt: '2026-07-30T03:59:10Z',
     sourceMetadata: {
-      videoId: 'JEnVPcwJiFU',
+      videoId: '6CS-I7In7bA',
     },
     pinnedAt: null,
     createdAt: '2026-07-30T03:59:10Z',
@@ -1262,7 +1264,7 @@ function TeamPulse({ dataset, member, onOpenGame, onOpenStats, snapshot }) {
   const latest = finals[0] || null;
   const next = nextUpcomingGame(visibleGames);
   const schedule = (game) => dataset.teams.find((team) => team.id === game?.seasonTeamId);
-  const leagueNames = [...new Set(snapshot.seasonTeams.map(formatLeagueName))].join(' + ');
+  const leagueTierSummary = formatLeagueTierSummary(snapshot.seasonTeams);
   const teamRecords = [...snapshot.seasonSchedules].sort((left, right) => {
     const rank = (label) => (/Sunday/iu.test(label) ? 0 : /Monday/iu.test(label) ? 1 : 2);
     return rank(left.label) - rank(right.label) || left.label.localeCompare(right.label);
@@ -1271,12 +1273,13 @@ function TeamPulse({ dataset, member, onOpenGame, onOpenStats, snapshot }) {
   return (
     <aside className="team-pulse" aria-label="Team performance pulse">
       <header>
-        <div><span>GAME PULSE · {leagueNames}</span><h2>{snapshot.season?.name || 'Goonsquad'}</h2></div>
+        <div><span>GAME PULSE · {leagueTierSummary}</span><h2>{snapshot.season?.name || 'Goonsquad'}</h2></div>
         <button type="button" onClick={() => onOpenStats()}>All stats <ChevronRight /></button>
       </header>
       <div className="team-pulse-team-records" aria-label={`${snapshot.season?.name || 'Current season'} team records`}>
         {teamRecords.map(({ team, label, summary }) => {
           const day = /Sunday/iu.test(label) ? 'Sunday' : /Monday/iu.test(label) ? 'Monday' : label;
+          const scheduleLabel = formatScheduleName(team).replace(/\s+League$/iu, '');
           const tone = day === 'Sunday' ? 'is-sunday' : day === 'Monday' ? 'is-monday' : '';
           const record = `${summary.wins}–${summary.losses}–${summary.ties}`;
           return (
@@ -1287,7 +1290,7 @@ function TeamPulse({ dataset, member, onOpenGame, onOpenStats, snapshot }) {
               aria-label={`Open ${label} stats. Record ${record}`}
               onClick={() => onOpenStats({ season: snapshot.season.id, team: team.id })}
             >
-              <span><Trophy /> {day.toUpperCase()} TEAM</span>
+              <span><Trophy /> {scheduleLabel.toUpperCase()}</span>
               <strong>{record}</strong>
               <small>{formatLeagueName(team)} · {summary.gamesPlayed} GP · {summary.goalsFor} GF · {summary.goalsAgainst} GA</small>
               <ChevronRight aria-hidden="true" />

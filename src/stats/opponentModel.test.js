@@ -14,8 +14,8 @@ const dataset = {
     { id: 's1', name: 'Spring 2026' },
   ],
   teams: [
-    { id: 'sun', seasonId: 's2', scheduleLabel: 'SUNDAY', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League' },
-    { id: 'mon', seasonId: 's1', scheduleLabel: 'MON/THU', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League' },
+    { id: 'sun', seasonId: 's2', scheduleLabel: 'SUNDAY', division: 'SUNDAY TIER 5', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League' },
+    { id: 'mon', seasonId: 's1', scheduleLabel: 'MON/THU', division: 'MON/THU TIER 5', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League' },
   ],
   games: [
     { id: 'future', seasonTeamId: 'sun', opponent: 'RED WOLVES', status: 'scheduled', scheduledAt: '2026-08-02T18:00:00', venue: 'home' },
@@ -53,7 +53,7 @@ describe('opponent matchup model', () => {
     expect(matchup.nextGame.id).toBe('future');
     expect(matchup.lastGame.id).toBe('latest');
     expect(matchup.seasons.map((season) => season.seasonName)).toEqual(['Summer 2026', 'Spring 2026']);
-    expect(matchup.seasons[0].scheduleNames).toEqual(['YCBHL · Sunday League']);
+    expect(matchup.seasons[0].scheduleNames).toEqual(['YCBHL · Sunday Tier 5 League']);
     expect(matchup.recentForm.map((item) => item.outcome)).toEqual(['win', 'loss']);
   });
 

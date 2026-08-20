@@ -20,9 +20,9 @@ const dataset = {
     { playerId: 'player-league-ep', seasonTeamId: 'sunday-old', active: false },
   ],
   teams: [
-    { id: 'monday', seasonId: 'summer-2026', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League', scheduleLabel: 'MONDAY' },
-    { id: 'sunday', seasonId: 'summer-2026', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League', scheduleLabel: 'SUNDAY' },
-    { id: 'sunday-old', seasonId: 'winter-2026', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League', scheduleLabel: 'SUNDAY' },
+    { id: 'monday', seasonId: 'summer-2026', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League', scheduleLabel: 'MONDAY', division: 'MONDAY TIER 5' },
+    { id: 'sunday', seasonId: 'summer-2026', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League', scheduleLabel: 'SUNDAY', division: 'SUNDAY TIER 5' },
+    { id: 'sunday-old', seasonId: 'winter-2026', leagueKey: 'york-central', leagueName: 'York Central Ball Hockey League', scheduleLabel: 'SUNDAY', division: 'SUNDAY TIER 5' },
   ],
   seasons: [
     { id: 'summer-2026', name: 'Summer 2026', current: true },
@@ -173,7 +173,7 @@ describe('fixture-scoped attendance', () => {
       jerseyNumber: '8',
       position: 'C',
       fixtureRostered: false,
-      rosterLabel: 'Winter 2026 · YCBHL · Sunday League',
+      rosterLabel: 'Winter 2026 · YCBHL · Sunday Tier 5 League',
     });
   });
 

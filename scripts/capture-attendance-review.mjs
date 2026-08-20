@@ -116,7 +116,7 @@ for (const viewport of viewports) {
   if (errors.length) throw new Error(`${viewport.id}: ${errors.join('; ')}`);
 
   const responseToken = signAttendanceToken({
-    competitionLabel: 'Monday League',
+    competitionLabel: 'Monday Tier 5 League',
     exp: Math.floor(Date.now() / 1000) + 3600,
     fixtureId: 'qa-fixture',
     opponent: 'Viperz',

@@ -25,6 +25,8 @@ function finalGames(games) {
 
 export const ALL_SEASON_TEAMS_ID = 'all';
 
+const TIER_PATTERN = /\bTIER\s+([0-9]+(?:\/[0-9]+)?[A-Z]?)(?:\s+(WEST|EAST|NORTH|SOUTH))?/i;
+
 const SCHEDULE_DAY_NAMES = Object.freeze({
   MON: 'Monday',
   MONDAY: 'Monday',
@@ -42,13 +44,26 @@ const SCHEDULE_DAY_NAMES = Object.freeze({
   SUNDAY: 'Sunday',
 });
 
+export function formatTierName(item) {
+  const sources = [item?.division, item?.name, item?.scheduleLabel];
+  for (const source of sources) {
+    const match = String(source || '').match(TIER_PATTERN);
+    if (!match) continue;
+    const direction = match[2]
+      ? ` ${match[2][0].toUpperCase()}${match[2].slice(1).toLowerCase()}`
+      : '';
+    return `Tier ${match[1].toUpperCase()}${direction}`;
+  }
+  return '';
+}
+
 export function formatScheduleName(team) {
   const source = String(team?.scheduleLabel || team?.name || '')
     .replace(/\s+Team$/i, '')
     .trim();
   if (!source) return 'League schedule';
-  const disambiguatingTier = String(team?.name || '').match(/\bTier\s+([^\s]+)/i)?.[1] || '';
-  const tierLabel = disambiguatingTier ? ` Tier ${disambiguatingTier}` : '';
+  const tier = formatTierName(team);
+  const tierLabel = tier ? ` ${tier}` : '';
   const dayTokens = source.toUpperCase().match(/\b(?:MON(?:DAY)?|TUE(?:SDAY)?|WED(?:NESDAY)?|THU(?:RSDAY)?|FRI(?:DAY)?|SAT(?:URDAY)?|SUN(?:DAY)?)\b/g) || [];
   const days = [...new Set(dayTokens.map((day) => SCHEDULE_DAY_NAMES[day] || day))];
   if (days.includes('Monday') && !days.includes('Sunday')) {
@@ -72,6 +87,17 @@ export function formatLeagueScheduleName(item) {
   if (league === 'League archive') return schedule;
   if (schedule === 'League schedule') return league;
   return `${league} · ${schedule}`;
+}
+
+export function formatLeagueTierSummary(items = []) {
+  const leagues = [...new Set(items
+    .map(formatLeagueName)
+    .filter((label) => label && label !== 'League archive'))];
+  const tiers = [...new Set(items.map(formatTierName).filter(Boolean))];
+  const tierSummary = tiers.length > 1
+    ? `Tiers ${tiers.map((tier) => tier.replace(/^Tier\s+/i, '')).join(' + ')}`
+    : tiers[0] || '';
+  return [leagues.join(' + '), tierSummary].filter(Boolean).join(' · ');
 }
 
 export function formatSeasonSelectorLabel(season, teams = []) {

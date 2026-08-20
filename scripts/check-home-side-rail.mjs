@@ -233,16 +233,17 @@ for (const viewport of viewports) {
   if (result.pulseClipBefore > 1 || result.pulseClipAfter > 1) {
     throw new Error(`${viewport.id}: Game Pulse content is clipped.`);
   }
-  if (result.teamRecordMetrics.length !== 2) {
-    throw new Error(`${viewport.id}: Game Pulse must show exactly one Sunday and one Monday team record.`);
+  const expectedSchedules = ['Sunday Tier 4 League', 'Sunday Tier 5 League', 'Monday Tier 5 League'];
+  if (result.teamRecordMetrics.length !== expectedSchedules.length) {
+    throw new Error(`${viewport.id}: Game Pulse must show all three current Fall schedules.`);
   }
-  for (const expectedDay of ['Sunday', 'Monday']) {
-    const teamRecord = result.teamRecordMetrics.find((item) => item.ariaLabel?.includes(`${expectedDay} League stats`));
+  for (const expectedSchedule of expectedSchedules) {
+    const teamRecord = result.teamRecordMetrics.find((item) => item.ariaLabel?.includes(`${expectedSchedule} stats`));
     if (!teamRecord) {
-      throw new Error(`${viewport.id}: ${expectedDay} League record is missing or not directly actionable.`);
+      throw new Error(`${viewport.id}: ${expectedSchedule} record is missing or not directly actionable.`);
     }
     if (teamRecord.scrollWidth - teamRecord.clientWidth > 1 || teamRecord.scrollHeight - teamRecord.clientHeight > 1) {
-      throw new Error(`${viewport.id}: ${expectedDay} League record content is clipped.`);
+      throw new Error(`${viewport.id}: ${expectedSchedule} record content is clipped.`);
     }
   }
   if (result.surfaceMetrics.home?.overflowY !== 'auto') {
@@ -312,20 +313,21 @@ for (const viewport of viewports) {
   if (viewport.id === 'desktop') {
     result.scopedTeamRoutes = [];
     for (const expected of [
-      { day: 'Sunday', team: 'summer-2026-sunday' },
-      { day: 'Monday', team: 'summer-2026-mon-thu' },
+      { schedule: 'Sunday Tier 4', team: 'fall-2026-sunday-tier-4' },
+      { schedule: 'Sunday Tier 5', team: 'fall-2026-sunday-tier-5' },
+      { schedule: 'Monday Tier 5', team: 'fall-2026-mon-wed' },
     ]) {
       const routePage = await context.newPage();
       await routePage.goto(url.href, { waitUntil: 'networkidle', timeout: 60_000 });
-      await routePage.getByRole('button', { name: new RegExp(`Open YCBHL · ${expected.day} League stats`, 'u') }).click();
+      await routePage.getByRole('button', { name: new RegExp(`Open YCBHL · ${expected.schedule} League stats`, 'u') }).click();
       await routePage.waitForFunction((team) => {
         const current = new URL(window.location.href);
         return current.searchParams.get('content') === 'stats'
-          && current.searchParams.get('season') === 'summer-2026'
+          && current.searchParams.get('season') === 'fall-2026'
           && current.searchParams.get('team') === team;
       }, expected.team);
       const destination = routePage.url();
-      result.scopedTeamRoutes.push({ day: expected.day, destination });
+      result.scopedTeamRoutes.push({ schedule: expected.schedule, destination });
       await routePage.close();
     }
   }

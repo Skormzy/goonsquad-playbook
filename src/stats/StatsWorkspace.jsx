@@ -42,6 +42,7 @@ import {
   formatGameDate,
   formatLeagueName,
   formatLeagueScheduleName,
+  formatLeagueTierSummary,
   formatSeasonSelectorLabel,
   formatPercentage,
   formatScheduleName,
@@ -926,8 +927,8 @@ export default function StatsWorkspace() {
     if (!snapshot) return [];
     const scheduleRank = (team) => {
       const label = formatScheduleName(team);
-      if (label === 'Monday League') return 0;
-      if (label === 'Sunday League') return 1;
+      if (/^Monday\b/iu.test(label)) return 0;
+      if (/^Sunday\b/iu.test(label)) return 1;
       return 2;
     };
     return [...snapshot.seasonTeams].sort((a, b) => (
@@ -946,10 +947,7 @@ export default function StatsWorkspace() {
   }, [dataset]);
   const selectedSeasonLeagueLabel = useMemo(() => {
     if (!snapshot) return archiveLeagueLabel;
-    const labels = [...new Set((snapshot.seasonTeams || [])
-      .map(formatLeagueName)
-      .filter((label) => label && label !== 'League archive'))];
-    return labels.join(' + ') || archiveLeagueLabel;
+    return formatLeagueTierSummary(snapshot.seasonTeams || []) || archiveLeagueLabel;
   }, [archiveLeagueLabel, snapshot]);
 
   const selectedGameContext = useMemo(() => {

@@ -606,7 +606,7 @@ for (const device of devices) {
     await page.locator('.stats-standings-view .stats-league-standings').first().waitFor({ state: 'visible' });
     states.push(await capture(page, device, 'home-full-standings'));
     await page.getByRole('tab', { name: 'Overview', exact: true }).click();
-    await page.locator('.stats-team-switcher').getByRole('button', { name: 'Sunday League', exact: true }).click();
+    await page.locator('.stats-team-switcher').getByRole('button', { name: /Sunday Tier \S+ League/u }).click();
     await page.locator('.stats-league-standings').waitFor({ state: 'visible' });
     states.push(await capture(page, device, 'home-sunday-standings'));
     const scopedViperz = page.getByRole('button', { name: 'Open OG VIPERZ head-to-head', exact: true });

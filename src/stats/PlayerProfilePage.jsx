@@ -96,7 +96,7 @@ function historyContext(row) {
   const parts = [];
   if (row.competition === 'tournaments') {
     parts.push('Tournament');
-  } else {
+  } else if (!row.schedules?.length) {
     const league = formatLeagueName(row.season);
     if (league && league !== 'League archive') parts.push(league);
   }
@@ -422,7 +422,7 @@ export default function PlayerProfilePage({
                   <span className={`profile-game-result is-${row.result.toLowerCase()}`}>{row.result}</span>
                   <span>
                     <strong>{row.game.opponent}</strong>
-                    <small>{formatGameDate(row.game.scheduledAt)} · {[row.season ? formatLeagueName(row.season) : null, row.team ? formatLeagueScheduleName(row.team) : null, row.game.stage === 'playoffs' ? 'Playoffs' : 'Regular season'].filter(Boolean).join(' · ')}</small>
+                    <small>{formatGameDate(row.game.scheduledAt)} · {[row.team ? formatLeagueScheduleName(row.team) : row.season ? formatLeagueName(row.season) : null, row.game.stage === 'playoffs' ? 'Playoffs' : 'Regular season'].filter(Boolean).join(' · ')}</small>
                   </span>
                   <span>
                     <b>{value.primary}</b>

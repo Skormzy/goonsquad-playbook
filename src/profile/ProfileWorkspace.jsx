@@ -86,7 +86,7 @@ function historyContext(row) {
   const parts = [];
   if (row.competition === 'tournaments') {
     parts.push('Tournament');
-  } else {
+  } else if (!row.schedules?.length) {
     const league = formatLeagueName(row.season);
     if (league && league !== 'League archive') parts.push(league);
   }
@@ -501,7 +501,7 @@ export default function ProfileWorkspace() {
             <div className="profile-game-rows">
               {scopeGames.slice(0, 8).map((row) => <button type="button" key={row.game.id} onClick={() => openLinkedGame(row.game.id)}>
                 <span className={`profile-game-result is-${row.result.toLowerCase()}`}>{row.result}</span>
-                <span><strong>{row.game.opponent}</strong><small>{formatGameDate(row.game.scheduledAt)} · {[row.season ? formatLeagueName(row.season) : null, row.team ? formatLeagueScheduleName(row.team) : null, row.game.stage === 'playoffs' ? 'Playoffs' : 'Regular season'].filter(Boolean).join(' · ')}</small></span>
+                <span><strong>{row.game.opponent}</strong><small>{formatGameDate(row.game.scheduledAt)} · {[row.team ? formatLeagueScheduleName(row.team) : row.season ? formatLeagueName(row.season) : null, row.game.stage === 'playoffs' ? 'Playoffs' : 'Regular season'].filter(Boolean).join(' · ')}</small></span>
                 <span>{row.field ? <><b>{row.points}</b><small>PTS</small></> : <><b>{formatPercentage(row.goalie?.savePercentage)}</b><small>SV%</small></>}</span>
                 <ChevronRight aria-hidden="true" />
               </button>)}

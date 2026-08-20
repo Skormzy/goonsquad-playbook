@@ -6,7 +6,9 @@ import {
   aggregatePlayerSeasonStats,
   ALL_SEASON_TEAMS_ID,
   calculateTeamRecord,
+  formatLeagueTierSummary,
   formatScheduleName,
+  formatTierName,
   statsSnapshot,
   teamSummary,
 } from './statsModel';
@@ -194,7 +196,7 @@ describe('statistics model', () => {
 
     const snapshot = statsSnapshot(dataset, 's1', ALL_SEASON_TEAMS_ID);
     expect(snapshot.isSeasonAggregate).toBe(true);
-    expect(snapshot.seasonSchedules.map((schedule) => schedule.label)).toEqual(['YCBHL · Monday League', 'YCBHL · Sunday League']);
+    expect(snapshot.seasonSchedules.map((schedule) => schedule.label)).toEqual(['YCBHL · Monday Tier 5 League', 'YCBHL · Sunday Tier 5 League']);
     expect(snapshot.games.map((game) => game.id)).toEqual(['m1', 's1']);
     expect(snapshot.summary).toMatchObject({ gamesPlayed: 2, wins: 1, losses: 1, points: 2, goalsFor: 5, goalsAgainst: 5 });
     expect(snapshot.fieldPlayers[0]).toMatchObject({ playerId: 'shared-player', gamesPlayed: 2, goals: 2, assists: 1, points: 3 });
@@ -210,5 +212,13 @@ describe('statistics model', () => {
     expect(formatScheduleName({ scheduleLabel: 'SUNDAY' })).toBe('Sunday League');
     expect(formatScheduleName({ scheduleLabel: 'SUNDAY', name: 'Sunday Tier 4 Team' })).toBe('Sunday Tier 4 League');
     expect(formatScheduleName({ scheduleLabel: 'SUNDAY', name: 'Sunday Tier 5 Team' })).toBe('Sunday Tier 5 League');
+    expect(formatScheduleName({ scheduleLabel: 'MON/WED', name: 'Monday Team', division: 'MON/WED TIER 5' })).toBe('Monday Tier 5 League');
+    expect(formatScheduleName({ scheduleLabel: 'SUNDAY', division: 'SUNDAY TIER 5B WEST (D)' })).toBe('Sunday Tier 5B West League');
+    expect(formatTierName({ division: 'WEDNESDAY TIER 4/5 WEST (D/E)' })).toBe('Tier 4/5 West');
+    expect(formatLeagueTierSummary([
+      { leagueKey: 'york-central', division: 'SUNDAY TIER 4' },
+      { leagueKey: 'york-central', division: 'SUNDAY TIER 5' },
+      { leagueKey: 'york-central', division: 'MON/WED TIER 5' },
+    ])).toBe('YCBHL · Tiers 4 + 5');
   });
 });

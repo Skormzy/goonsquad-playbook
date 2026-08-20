@@ -2464,6 +2464,10 @@
 
   .team-pulse-game em {
     font-size: 9px;
+    line-height: 1.15;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   .feed-locked {

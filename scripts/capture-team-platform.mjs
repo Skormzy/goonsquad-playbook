@@ -134,7 +134,7 @@ for (const viewport of viewports) {
   const scheduleRows = await page.locator('.stats-schedule-row').allTextContents();
   const seasonOptions = await page.locator('.stats-season-controls select option').allTextContents();
   const leaderCount = await page.locator('.stats-leaders-table tbody tr').count();
-  const sourceHref = await page.getByRole('link', { name: /Open official source for YCBHL · Monday League/u }).getAttribute('href');
+  const sourceHref = await page.getByRole('link', { name: /Open official source for YCBHL · Monday Tier 5 League/u }).getAttribute('href');
   const documentOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
   await page.getByRole('tab', { name: 'Games', exact: true }).click();
@@ -176,7 +176,7 @@ for (const viewport of viewports) {
   }
 
   await page.locator('.stats-season-controls select').selectOption('spring-2026');
-  await page.getByRole('button', { name: /Sunday League\s+YCBHL/u }).click();
+  await page.getByRole('button', { name: /Sunday Tier 5 League\s+YCBHL/u }).click();
   const stageLabels = await page.locator('.stats-stage-switcher button').allTextContents();
 
   await page.getByRole('button', { name: 'Tournaments', exact: true }).click();
@@ -320,7 +320,7 @@ for (const viewport of viewports) {
   ) {
     throw new Error(`${viewport.id}: YouTube feed card is incomplete.`);
   }
-  if (!youtubePlayerSource?.startsWith('https://www.youtube-nocookie.com/embed/JEnVPcwJiFU?')) {
+  if (!youtubePlayerSource?.startsWith('https://www.youtube-nocookie.com/embed/6CS-I7In7bA?')) {
     throw new Error(`${viewport.id}: YouTube video did not open in the feed.`);
   }
   if (!youtubePlayerLoaded) throw new Error(`${viewport.id}: YouTube player document did not finish loading.`);
@@ -334,8 +334,21 @@ for (const viewport of viewports) {
   if (!/\d+–\d+–\d+/u.test(summary) || !/\d+ games · YCBHL/u.test(summary)) {
     throw new Error(`${viewport.id}: combined current-season record is missing.`);
   }
-  if (teamLabels.map((label) => label.replace(/\s+/gu, '')).join('|') !== 'Allteams|MondayLeagueYCBHL|SundayLeagueYCBHL|Tournaments') throw new Error(`${viewport.id}: current competition navigation is incorrect.`);
-  if (scheduleRows.length !== 2 || !scheduleRows.some((row) => row.includes('MON/THU TIER 5')) || !scheduleRows.some((row) => row.includes('SUNDAY TIER 5'))) throw new Error(`${viewport.id}: current league coverage is incomplete.`);
+  const normalizedTeamLabels = teamLabels.map((label) => label.replace(/\s+/gu, ''));
+  const expectedTeamLabels = [
+    'Allteams',
+    'MondayTier5LeagueYCBHL',
+    'SundayTier4LeagueYCBHL',
+    'SundayTier5LeagueYCBHL',
+    'Tournaments',
+  ];
+  if (expectedTeamLabels.some((label) => !normalizedTeamLabels.includes(label))) throw new Error(`${viewport.id}: current competition navigation is incorrect.`);
+  if (
+    scheduleRows.length !== 3
+    || !scheduleRows.some((row) => row.includes('MON/WED TIER 5'))
+    || !scheduleRows.some((row) => row.includes('SUNDAY TIER 4'))
+    || !scheduleRows.some((row) => row.includes('SUNDAY TIER 5'))
+  ) throw new Error(`${viewport.id}: current league coverage is incomplete.`);
   if (seasonOptions.length < 16) throw new Error(`${viewport.id}: historical season archive is incomplete (${seasonOptions.length}).`);
   if (leaderCount < 1) throw new Error(`${viewport.id}: official player leaders are missing.`);
   if (sourceHref !== 'https://www.yorkcentralbhl.com/team/7250-goonsquad') throw new Error(`${viewport.id}: official source provenance is incorrect.`);

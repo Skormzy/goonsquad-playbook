@@ -21,11 +21,11 @@ describe('York Central Goonsquad statistics snapshot', () => {
   });
 
   it('contains the complete verified game-sheet import without fabricated box-score fields', () => {
-    expect(snapshot.detailImport).toEqual({ requestedGames: 281, importedGames: 281, errors: [] });
-    expect(snapshot.teamGameStats).toHaveLength(277);
-    expect(snapshot.playerGameStats).toHaveLength(3405);
-    expect(snapshot.goalieGameStats).toHaveLength(280);
-    expect(snapshot.gameEvents).toHaveLength(2768);
+    expect(snapshot.detailImport).toEqual({ requestedGames: 286, importedGames: 286, errors: [] });
+    expect(snapshot.teamGameStats).toHaveLength(282);
+    expect(snapshot.playerGameStats).toHaveLength(3458);
+    expect(snapshot.goalieGameStats).toHaveLength(285);
+    expect(snapshot.gameEvents).toHaveLength(2819);
     expect(snapshot.playerGameStats.some((line) => line.shots === null && line.plusMinus === null)).toBe(true);
     expect(snapshot.teamGameStats.some((line) => line.powerPlayGoals === null && line.faceoffWins === null)).toBe(true);
   });
@@ -54,8 +54,8 @@ describe('York Central Goonsquad statistics snapshot', () => {
       'summer-2026-sunday',
     ]);
     expect(combined.seasonSchedules.map((schedule) => schedule.label)).toEqual([
-      'YCBHL · Monday League',
-      'YCBHL · Sunday League',
+      'YCBHL · Monday Tier 5 League',
+      'YCBHL · Sunday Tier 5 League',
     ]);
     expect(combined.games).toHaveLength(24);
     expect(combined.summary).toMatchObject({ gamesPlayed: 24, wins: 4, losses: 18, ties: 2, points: 10 });
