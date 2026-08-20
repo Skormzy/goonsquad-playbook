@@ -175,12 +175,12 @@ describe('member profile model', () => {
 
   it.each([
     ['Adrian Bockner', 'ycbhl-player-25232', 84, 12, 21, 33, 2],
-    ['Andrew Lorenowicz', 'ycbhl-player-308', 235, 0, 16, 16, 2],
+    ['Andrew Lorenowicz', 'ycbhl-player-308', 237, 0, 16, 16, 2],
     ['Matthew Stott', 'ycbhl-player-25348', 39, 3, 4, 7, 1],
     ['Michael Thomas Kerrane', 'ycbhl-player-25741', 62, 5, 5, 10, 2],
     ['Michael Woods', 'ycbhl-player-25796', 4, 5, 11, 16, 2],
     ['Michael Yen', 'ycbhl-player-26046', 20, 3, 5, 8, 2],
-    ['Ryan Hunt', 'ycbhl-player-307', 59, 4, 4, 8, 2],
+    ['Ryan Hunt', 'ycbhl-player-307', 61, 4, 4, 8, 2],
     ['Stephen Macdonald', 'ycbhl-player-25733', 59, 5, 6, 11, 2],
     ['Zachary Sher', 'ycbhl-player-25559', 23, 6, 9, 15, 2],
   ])('combines every reviewed archive identity for %s', (
