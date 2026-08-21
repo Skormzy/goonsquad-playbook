@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-20T19:27:28.046Z",
+  "capturedAt": "2026-08-21T23:51:09.332Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1141,9 +1141,9 @@
       "id": "ycbhl-player-13781",
       "externalId": "13781",
       "displayName": "Emad Mansour",
-      "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/13781-emad-mansour",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/13781-emad-mansour",
       "persisted": false
     },
     {
@@ -1159,9 +1159,9 @@
       "id": "ycbhl-player-26293",
       "externalId": "26293",
       "displayName": "Evan Rassos",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/26293-evan-rassos",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26293-evan-rassos",
       "persisted": false
     },
     {
@@ -1258,9 +1258,9 @@
       "id": "ycbhl-player-25888",
       "externalId": "25888",
       "displayName": "Ilias Sippis",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/25888-ilias-sippis",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/25888-ilias-sippis",
       "persisted": false
     },
     {
@@ -1279,6 +1279,15 @@
       "active": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/player/7117-goonsquad/25937-jacob-roach",
       "primaryPosition": null,
+      "persisted": false
+    },
+    {
+      "id": "ycbhl-player-25347",
+      "externalId": "25347",
+      "displayName": "Jared Goetz",
+      "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/25347-jared-goetz",
       "persisted": false
     },
     {
@@ -1402,9 +1411,9 @@
       "id": "ycbhl-player-24604",
       "externalId": "24604",
       "displayName": "John Burnett",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/24604-john-burnett",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/24604-john-burnett",
       "persisted": false
     },
     {
@@ -1510,9 +1519,9 @@
       "id": "ycbhl-player-24783",
       "externalId": "24783",
       "displayName": "Kyle Brooks",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6751-goonsquad/24783-kyle-brooks",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/24783-kyle-brooks",
       "persisted": false
     },
     {
@@ -1606,6 +1615,15 @@
       "persisted": false
     },
     {
+      "id": "ycbhl-player-26362",
+      "externalId": "26362",
+      "displayName": "Matt Crossley",
+      "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26362-matt-crossley",
+      "persisted": false
+    },
+    {
       "id": "ycbhl-player-25470",
       "externalId": "25470",
       "displayName": "Matt Stott",
@@ -1675,6 +1693,15 @@
       "primaryPosition": null,
       "active": true,
       "sourceUrl": "https://www.yorkcentralbhl.com/player/7191-goonsquad/26123-matthew-wright",
+      "persisted": false
+    },
+    {
+      "id": "ycbhl-player-26363",
+      "externalId": "26363",
+      "displayName": "Maxim Golovan",
+      "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26363-maxim-golovan",
       "persisted": false
     },
     {
@@ -1807,9 +1834,9 @@
       "id": "ycbhl-player-25022",
       "externalId": "25022",
       "displayName": "Muzammil Alam",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25022-muzammil-alam",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/25022-muzammil-alam",
       "persisted": false
     },
     {
@@ -2068,9 +2095,9 @@
       "id": "ycbhl-player-307",
       "externalId": "307",
       "displayName": "Ryan Hunt",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/307-ryan-hunt",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/307-ryan-hunt",
       "persisted": false
     },
     {
@@ -2167,9 +2194,9 @@
       "id": "ycbhl-player-26133",
       "externalId": "26133",
       "displayName": "Seymour Korman",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/26133-seymour-korman",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26133-seymour-korman",
       "persisted": false
     },
     {
@@ -2562,9 +2589,119 @@
       "persisted": false
     },
     {
+      "id": "fall-2026-mon-wed-ycbhl-player-25022",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-25022",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
       "id": "fall-2026-mon-wed-ycbhl-player-26057",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-26057",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-24783",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-24783",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-24604",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-24604",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-26362",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-26362",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-25347",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-25347",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-26363",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-26363",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-307",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-307",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-26133",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-26133",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-13781",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-13781",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-26293",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-26293",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-25888",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-25888",
       "jerseyNumber": null,
       "position": null,
       "active": true,
