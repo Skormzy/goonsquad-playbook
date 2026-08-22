@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-21T23:51:09.332Z",
+  "capturedAt": "2026-08-22T01:22:53.896Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -829,6 +829,15 @@
       "active": true,
       "sourceUrl": "https://www.yorkcentralbhl.com/player/7009-goonsquad/17803-anthony-polito",
       "primaryPosition": null,
+      "persisted": false
+    },
+    {
+      "id": "ycbhl-player-24966",
+      "externalId": "24966",
+      "displayName": "Arham Shakoor",
+      "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/24966-arham-shakoor",
       "persisted": false
     },
     {
@@ -2692,6 +2701,16 @@
       "id": "fall-2026-mon-wed-ycbhl-player-26293",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-26293",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-24966",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-24966",
       "jerseyNumber": null,
       "position": null,
       "active": true,
