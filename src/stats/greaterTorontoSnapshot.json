@@ -3,7 +3,7 @@
   "sourceKey": "greater-toronto",
   "sourceName": "Greater Toronto Ball Hockey League",
   "sourceUrl": "https://www.greatertorontobhl.com/team/3878-goonsquad",
-  "capturedAt": "2026-08-22T15:24:33.440Z",
+  "capturedAt": "2026-08-22T16:53:26.390Z",
   "seasons": [
     {
       "id": "gtbhl-fall-2024",
@@ -31227,6 +31227,21 @@
       "source": "league"
     },
     {
+      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-85166-field",
+      "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
+      "stage": "regular",
+      "playerId": "gtbhl-player-85166",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
       "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-81784-field",
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "regular",
@@ -31302,10 +31317,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-85166-field",
+      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-84130-field",
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "regular",
-      "playerId": "gtbhl-player-85166",
+      "playerId": "gtbhl-player-84130",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -31381,21 +31396,6 @@
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "regular",
       "playerId": "gtbhl-player-87982",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "gtbhl-spring-2024-downsview-sunday-regular-gtbhl-player-84130-field",
-      "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
-      "stage": "regular",
-      "playerId": "gtbhl-player-84130",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
