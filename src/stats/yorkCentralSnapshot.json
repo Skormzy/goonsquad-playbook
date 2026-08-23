@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-23T21:25:00.916Z",
+  "capturedAt": "2026-08-23T21:47:58.076Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -158566,7 +158566,7 @@
       "shutouts": 0,
       "shotsAgainst": 0,
       "goalsAgainst": 0,
-      "minutesPlayed": 0,
+      "minutesPlayed": 30,
       "goalsAgainstAverage": 0,
       "savePercentage": 0,
       "goals": 0,
