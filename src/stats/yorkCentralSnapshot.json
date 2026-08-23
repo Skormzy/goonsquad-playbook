@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-23T03:05:47.688Z",
+  "capturedAt": "2026-08-23T14:26:45.549Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1219,6 +1219,15 @@
       "persisted": false
     },
     {
+      "id": "ycbhl-player-26366",
+      "externalId": "26366",
+      "displayName": "Gavin Palleschi-Pentland",
+      "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26366-gavin-palleschi-pentland",
+      "persisted": false
+    },
+    {
       "id": "ycbhl-player-25576",
       "externalId": "25576",
       "displayName": "Giancarlo Ciasca",
@@ -1554,10 +1563,10 @@
     {
       "id": "ycbhl-player-26032",
       "externalId": "26032",
-      "displayName": "Kyle Palleschi",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/26032-kyle-palleschi",
+      "displayName": "Kyle Palleschi-Pentland",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26032-kyle-palleschi-pentland",
       "persisted": false
     },
     {
@@ -2620,6 +2629,26 @@
       "id": "fall-2026-sunday-tier-5-ycbhl-player-26291",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "playerId": "ycbhl-player-26291",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-ycbhl-player-26366",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "playerId": "ycbhl-player-26366",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-ycbhl-player-26032",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "playerId": "ycbhl-player-26032",
       "jerseyNumber": null,
       "position": null,
       "active": true,
