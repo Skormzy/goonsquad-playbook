@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-23T16:29:32.389Z",
+  "capturedAt": "2026-08-23T20:27:05.440Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1485,7 +1485,7 @@
       "displayName": "Julien Arseneau",
       "primaryPosition": null,
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7250-goonsquad/25731-julien-arseneau",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25731-julien-arseneau",
       "persisted": false
     },
     {
@@ -2529,6 +2529,16 @@
       "id": "fall-2026-sunday-tier-4-ycbhl-player-26181",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "playerId": "ycbhl-player-26181",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-4-ycbhl-player-25731",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "playerId": "ycbhl-player-25731",
       "jerseyNumber": null,
       "position": null,
       "active": true,
