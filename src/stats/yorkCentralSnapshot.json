@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-23T14:26:45.549Z",
+  "capturedAt": "2026-08-23T16:29:32.389Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -2374,9 +2374,9 @@
       "id": "ycbhl-player-25980",
       "externalId": "25980",
       "displayName": "Tyler Flach",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7156-goonsquad/25980-tyler-flach",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25980-tyler-flach",
       "persisted": false
     },
     {
@@ -2589,6 +2589,16 @@
       "id": "fall-2026-sunday-tier-5-ycbhl-player-25138",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "playerId": "ycbhl-player-25138",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-ycbhl-player-25980",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "playerId": "ycbhl-player-25980",
       "jerseyNumber": null,
       "position": null,
       "active": true,
