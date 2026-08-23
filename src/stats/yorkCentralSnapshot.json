@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-23T21:47:58.076Z",
+  "capturedAt": "2026-08-23T22:25:20.545Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -953,7 +953,7 @@
       "externalId": "26180",
       "displayName": "Cameron Loken",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26180-cameron-loken",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26180-cameron-loken",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1727,7 +1727,7 @@
       "externalId": "26363",
       "displayName": "Maxim Golovan",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26363-maxim-golovan",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26363-maxim-golovan",
       "primaryPosition": null,
       "persisted": false
     },
@@ -7646,9 +7646,9 @@
       "opponent": "FRESH MEAT",
       "venue": "home",
       "location": "Scarborough - Stephen Leacock",
-      "status": "scheduled",
-      "goalsFor": null,
-      "goalsAgainst": null,
+      "status": "final",
+      "goalsFor": 0,
+      "goalsAgainst": 5,
       "overtime": false,
       "notes": "",
       "sourceUrl": "https://www.yorkcentralbhl.com/game/53246-goonsquad-fresh-meat",
@@ -13188,6 +13188,21 @@
   ],
   "teamGameStats": [
     {
+      "gameId": "ycbhl-game-53246",
+      "shotsFor": 7,
+      "shotsAgainst": 18,
+      "powerPlayGoals": null,
+      "powerPlayOpportunities": null,
+      "penaltyKillGoalsAgainst": null,
+      "timesShorthanded": null,
+      "faceoffWins": null,
+      "faceoffAttempts": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "source": "league"
+    },
+    {
       "gameId": "ycbhl-game-52992",
       "shotsFor": 5,
       "shotsAgainst": 25,
@@ -17419,6 +17434,132 @@
     }
   ],
   "playerGameStats": [
+    {
+      "id": "ycbhl-game-53246-ycbhl-player-25731-field",
+      "gameId": "ycbhl-game-53246",
+      "playerId": "ycbhl-player-25731",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-ycbhl-player-26363-field",
+      "gameId": "ycbhl-game-53246",
+      "playerId": "ycbhl-player-26363",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-ycbhl-player-26086-field",
+      "gameId": "ycbhl-game-53246",
+      "playerId": "ycbhl-player-26086",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-ycbhl-player-25892-field",
+      "gameId": "ycbhl-game-53246",
+      "playerId": "ycbhl-player-25892",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-ycbhl-player-26180-field",
+      "gameId": "ycbhl-game-53246",
+      "playerId": "ycbhl-player-26180",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-ycbhl-player-24770-field",
+      "gameId": "ycbhl-game-53246",
+      "playerId": "ycbhl-player-24770",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-ycbhl-player-25191-field",
+      "gameId": "ycbhl-game-53246",
+      "playerId": "ycbhl-player-25191",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
     {
       "id": "ycbhl-game-52992-ycbhl-player-25636-field",
       "gameId": "ycbhl-game-52992",
@@ -79666,6 +79807,21 @@
   ],
   "goalieGameStats": [
     {
+      "id": "ycbhl-game-53246-ycbhl-player-25734-goalie",
+      "gameId": "ycbhl-game-53246",
+      "playerId": "ycbhl-player-25734",
+      "gamesPlayed": 1,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "goalsAgainst": 5,
+      "shotsAgainst": 18,
+      "saves": 13,
+      "shutouts": 0,
+      "minutesPlayed": 30,
+      "source": "league"
+    },
+    {
       "id": "ycbhl-game-52992-ycbhl-player-10252-goalie",
       "gameId": "ycbhl-game-52992",
       "playerId": "ycbhl-player-10252",
@@ -83942,6 +84098,136 @@
     }
   ],
   "gameEvents": [
+    {
+      "id": "ycbhl-game-53246-goal-1-145-2",
+      "gameId": "ycbhl-game-53246",
+      "period": 1,
+      "clockSeconds": 145,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Justin Warford",
+        "assists": [
+          "Richard Burke",
+          "Jason Widdifield"
+        ],
+        "strength": "ESG",
+        "score": [
+          0,
+          1
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-goal-2-84-5",
+      "gameId": "ycbhl-game-53246",
+      "period": 2,
+      "clockSeconds": 84,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "William McIntosh",
+        "assists": [
+          "Richard Burke",
+          "Justin Warford"
+        ],
+        "strength": "ESG",
+        "score": [
+          0,
+          2
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-goal-2-183-6",
+      "gameId": "ycbhl-game-53246",
+      "period": 2,
+      "clockSeconds": 183,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Justin Warford",
+        "assists": [
+          "Jason Widdifield",
+          "Zack Davidson"
+        ],
+        "strength": "ESG",
+        "score": [
+          0,
+          3
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-goal-2-225-7",
+      "gameId": "ycbhl-game-53246",
+      "period": 2,
+      "clockSeconds": 225,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Jason Widdifield",
+        "assists": [
+          "Mickey Kennedy",
+          "Julianna Gallenero"
+        ],
+        "strength": "ESG",
+        "score": [
+          0,
+          4
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-goal-3-419-10",
+      "gameId": "ycbhl-game-53246",
+      "period": 3,
+      "clockSeconds": 419,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Othonas Agourias",
+        "assists": [
+          "Brad Holmes"
+        ],
+        "strength": "ESG",
+        "score": [
+          0,
+          5
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53246-penalty-3-201-6",
+      "gameId": "ycbhl-game-53246",
+      "period": 3,
+      "clockSeconds": 201,
+      "eventType": "penalty",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "player": "Othonas Agourias",
+        "minutes": 2,
+        "penalty": "Tripping"
+      },
+      "source": "league"
+    },
     {
       "id": "ycbhl-game-52992-goal-1-140-2",
       "gameId": "ycbhl-game-52992",
@@ -142875,9 +143161,9 @@
   "teamSeasonSummaries": [
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
-      "gamesPlayed": 0,
+      "gamesPlayed": 1,
       "wins": 0,
-      "losses": 0,
+      "losses": 1,
       "ties": 0,
       "points": 0,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7272-goonsquad"
@@ -143112,6 +143398,19 @@
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "rank": 1,
+      "teamName": "FRESH MEAT",
+      "teamExternalId": "7273",
+      "gamesPlayed": 1,
+      "wins": 1,
+      "losses": 0,
+      "ties": 0,
+      "points": 2,
+      "isGoonSquad": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7273-fresh-meat"
+    },
+    {
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "rank": 2,
       "teamName": "TORONTO HEAT",
       "teamExternalId": "7274",
       "gamesPlayed": 1,
@@ -143124,7 +143423,7 @@
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
-      "rank": 2,
+      "rank": 3,
       "teamName": "ICE HOLES",
       "teamExternalId": "7275",
       "gamesPlayed": 1,
@@ -143137,12 +143436,12 @@
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
-      "rank": 3,
+      "rank": 4,
       "teamName": "GOONSQUAD",
       "teamExternalId": "7272",
-      "gamesPlayed": 0,
+      "gamesPlayed": 1,
       "wins": 0,
-      "losses": 0,
+      "losses": 1,
       "ties": 0,
       "points": 0,
       "isGoonSquad": true,
@@ -143150,7 +143449,7 @@
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
-      "rank": 4,
+      "rank": 5,
       "teamName": "DANFORTH KNIGHTS MASTERS",
       "teamExternalId": "7268",
       "gamesPlayed": 0,
@@ -143160,19 +143459,6 @@
       "points": 0,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7268-danforth-knights-masters"
-    },
-    {
-      "seasonTeamId": "fall-2026-sunday-tier-4",
-      "rank": 5,
-      "teamName": "FRESH MEAT",
-      "teamExternalId": "7273",
-      "gamesPlayed": 0,
-      "wins": 0,
-      "losses": 0,
-      "ties": 0,
-      "points": 0,
-      "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7273-fresh-meat"
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
@@ -158561,14 +158847,14 @@
       "playerId": "ycbhl-player-25734",
       "gamesPlayed": 1,
       "wins": 0,
-      "losses": 0,
+      "losses": 1,
       "ties": 0,
       "shutouts": 0,
-      "shotsAgainst": 0,
-      "goalsAgainst": 0,
+      "shotsAgainst": 18,
+      "goalsAgainst": 5,
       "minutesPlayed": 30,
-      "goalsAgainstAverage": 0,
-      "savePercentage": 0,
+      "goalsAgainstAverage": 7.5,
+      "savePercentage": 0.722,
       "goals": 0,
       "assists": 0,
       "penaltyMinutes": 0,
@@ -160276,8 +160562,8 @@
     }
   ],
   "detailImport": {
-    "requestedGames": 286,
-    "importedGames": 286,
+    "requestedGames": 287,
+    "importedGames": 287,
     "errors": []
   }
 }
