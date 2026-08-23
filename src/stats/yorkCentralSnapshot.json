@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-23T22:25:20.545Z",
+  "capturedAt": "2026-08-23T22:50:05.705Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -953,7 +953,7 @@
       "externalId": "26180",
       "displayName": "Cameron Loken",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26180-cameron-loken",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26180-cameron-loken",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1727,7 +1727,7 @@
       "externalId": "26363",
       "displayName": "Maxim Golovan",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26363-maxim-golovan",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26363-maxim-golovan",
       "primaryPosition": null,
       "persisted": false
     },
