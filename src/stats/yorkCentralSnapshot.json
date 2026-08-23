@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-23T20:27:05.440Z",
+  "capturedAt": "2026-08-23T20:51:56.330Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1348,9 +1348,9 @@
       "id": "ycbhl-player-25892",
       "externalId": "25892",
       "displayName": "Jason Huang",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25892-jason-huang",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25892-jason-huang",
       "persisted": false
     },
     {
@@ -2553,6 +2553,26 @@
       "position": null,
       "active": true,
       "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-4-ycbhl-player-25892",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "playerId": "ycbhl-player-25892",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-4-ycbhl-player-26180",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "playerId": "ycbhl-player-26180",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
       "persisted": false
     },
     {
