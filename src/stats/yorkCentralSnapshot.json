@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-24T04:53:53.378Z",
+  "capturedAt": "2026-08-24T16:41:35.674Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -2119,6 +2119,15 @@
       "persisted": false
     },
     {
+      "id": "ycbhl-player-26372",
+      "externalId": "26372",
+      "displayName": "Ryan Grant",
+      "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26372-ryan-grant",
+      "persisted": false
+    },
+    {
       "id": "ycbhl-player-307",
       "externalId": "307",
       "displayName": "Ryan Hunt",
@@ -2789,6 +2798,16 @@
       "id": "fall-2026-mon-wed-ycbhl-player-26363",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-26363",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-26372",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-26372",
       "jerseyNumber": null,
       "position": null,
       "active": true,
