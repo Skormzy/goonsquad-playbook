@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-24T22:29:41.336Z",
+  "capturedAt": "2026-08-25T02:40:59.047Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -144065,28 +144065,28 @@
     {
       "seasonTeamId": "fall-2026-mon-wed",
       "rank": 1,
-      "teamName": "MALVERN REAPERS",
-      "teamExternalId": "7282",
-      "gamesPlayed": 0,
-      "wins": 0,
+      "teamName": "HOMENETMEN",
+      "teamExternalId": "7283",
+      "gamesPlayed": 1,
+      "wins": 1,
       "losses": 0,
       "ties": 0,
-      "points": 0,
+      "points": 2,
       "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7282-malvern-reapers"
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7283-homenetmen"
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
       "rank": 2,
-      "teamName": "HOMENETMEN",
-      "teamExternalId": "7283",
-      "gamesPlayed": 0,
+      "teamName": "MALVERN REAPERS",
+      "teamExternalId": "7282",
+      "gamesPlayed": 1,
       "wins": 0,
-      "losses": 0,
+      "losses": 1,
       "ties": 0,
       "points": 0,
       "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7283-homenetmen"
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7282-malvern-reapers"
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
