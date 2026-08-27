@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-25T02:40:59.047Z",
+  "capturedAt": "2026-08-27T11:00:40.370Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1321,9 +1321,9 @@
       "id": "ycbhl-player-26275",
       "externalId": "26275",
       "displayName": "Jarrid Ward",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/26275-jarrid-ward",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26275-jarrid-ward",
       "persisted": false
     },
     {
@@ -1404,7 +1404,7 @@
       "displayName": "Jeremy De simone",
       "primaryPosition": null,
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/6124-jeremy-de-simone",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/6124-jeremy-de-simone",
       "persisted": false
     },
     {
@@ -1474,9 +1474,9 @@
       "id": "ycbhl-player-25184",
       "externalId": "25184",
       "displayName": "Joseph Marino",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6965-goonsquad/25184-joseph-marino",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/25184-joseph-marino",
       "persisted": false
     },
     {
@@ -2555,6 +2555,16 @@
       "persisted": false
     },
     {
+      "id": "fall-2026-sunday-tier-4-ycbhl-player-6124",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "playerId": "ycbhl-player-6124",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
       "id": "fall-2026-sunday-tier-4-ycbhl-player-26363",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "playerId": "ycbhl-player-26363",
@@ -2725,6 +2735,16 @@
       "persisted": false
     },
     {
+      "id": "fall-2026-sunday-tier-5-ycbhl-player-26275",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "playerId": "ycbhl-player-26275",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
       "id": "fall-2026-mon-wed-ycbhl-player-25022",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-25022",
@@ -2838,6 +2858,16 @@
       "id": "fall-2026-mon-wed-ycbhl-player-13781",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-13781",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-25184",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-25184",
       "jerseyNumber": null,
       "position": null,
       "active": true,
