@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-29T01:50:29.363Z",
+  "capturedAt": "2026-08-29T08:46:31.030Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -7958,10 +7958,10 @@
       "externalId": "53261",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "scheduledAt": "2026-08-31T20:30:00",
+      "scheduledAt": "2026-08-31T20:00:00",
       "opponent": "DURHAM DAGGERS",
       "venue": "home",
-      "location": "Markham - Clatworthy Arena",
+      "location": "Scarborough - Stephen Leacock",
       "status": "scheduled",
       "goalsFor": null,
       "goalsAgainst": null,
