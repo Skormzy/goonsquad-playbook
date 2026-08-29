@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-27T11:00:40.370Z",
+  "capturedAt": "2026-08-29T01:50:29.363Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -2176,9 +2176,27 @@
       "id": "ycbhl-player-26330",
       "externalId": "26330",
       "displayName": "Saif Jaffery",
-      "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/26330-saif-jaffery",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26330-saif-jaffery",
+      "persisted": false
+    },
+    {
+      "id": "ycbhl-player-26380",
+      "externalId": "26380",
+      "displayName": "Sajjad Jaffery",
+      "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26380-sajjad-jaffery",
+      "persisted": false
+    },
+    {
+      "id": "ycbhl-player-26381",
+      "externalId": "26381",
+      "displayName": "Sajjad Jaffery",
+      "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26381-sajjad-jaffery",
       "persisted": false
     },
     {
@@ -2678,6 +2696,36 @@
       "id": "fall-2026-sunday-tier-5-ycbhl-player-26364",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "playerId": "ycbhl-player-26364",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-ycbhl-player-26330",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "playerId": "ycbhl-player-26330",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-ycbhl-player-26380",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "playerId": "ycbhl-player-26380",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-ycbhl-player-26381",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "playerId": "ycbhl-player-26381",
       "jerseyNumber": null,
       "position": null,
       "active": true,
@@ -159368,7 +159416,7 @@
       "shotsAgainst": 18,
       "goalsAgainst": 5,
       "minutesPlayed": 30,
-      "goalsAgainstAverage": 7.5,
+      "goalsAgainstAverage": 5,
       "savePercentage": 0.722,
       "goals": 0,
       "assists": 0,
