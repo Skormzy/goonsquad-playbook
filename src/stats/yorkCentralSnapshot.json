@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-30T20:57:55.004Z",
+  "capturedAt": "2026-08-30T23:23:25.594Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -646,9 +646,9 @@
       "id": "ycbhl-player-26165",
       "externalId": "26165",
       "displayName": "Alexandro Tedesco",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7202-goonsquad/26165-alexandro-tedesco",
       "primaryPosition": null,
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26165-alexandro-tedesco",
       "persisted": false
     },
     {
@@ -737,7 +737,7 @@
       "externalId": "26086",
       "displayName": "Andrew Harlow",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26086-andrew-harlow",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26086-andrew-harlow",
       "primaryPosition": null,
       "persisted": false
     },
@@ -2721,6 +2721,16 @@
       "persisted": false
     },
     {
+      "id": "fall-2026-sunday-tier-4-ycbhl-player-26165",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "playerId": "ycbhl-player-26165",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
+      "persisted": false
+    },
+    {
       "id": "fall-2026-sunday-tier-5-ycbhl-player-25022",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "playerId": "ycbhl-player-25022",
@@ -2774,6 +2784,16 @@
       "id": "fall-2026-sunday-tier-5-ycbhl-player-26372",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "playerId": "ycbhl-player-26372",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-ycbhl-player-26086",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "playerId": "ycbhl-player-26086",
       "jerseyNumber": null,
       "position": null,
       "active": false,
