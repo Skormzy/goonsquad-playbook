@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-08-29T08:46:31.030Z",
+  "capturedAt": "2026-08-30T01:31:09.063Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -2491,9 +2491,9 @@
       "id": "ycbhl-player-25960",
       "externalId": "25960",
       "displayName": "Yusuf Sadozi",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25960-yusuf-sadozi",
       "primaryPosition": null,
+      "active": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25960-yusuf-sadozi",
       "persisted": false
     },
     {
@@ -2663,9 +2663,29 @@
       "persisted": false
     },
     {
+      "id": "fall-2026-sunday-tier-4-ycbhl-player-25960",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "playerId": "ycbhl-player-25960",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
       "id": "fall-2026-sunday-tier-4-ycbhl-player-25997",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "playerId": "ycbhl-player-25997",
+      "jerseyNumber": null,
+      "position": null,
+      "active": true,
+      "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-ycbhl-player-25022",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "playerId": "ycbhl-player-25022",
       "jerseyNumber": null,
       "position": null,
       "active": true,
