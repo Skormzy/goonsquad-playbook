@@ -3,7 +3,7 @@
   "sourceKey": "greater-toronto",
   "sourceName": "Greater Toronto Ball Hockey League",
   "sourceUrl": "https://www.greatertorontobhl.com/team/3878-goonsquad",
-  "capturedAt": "2026-08-31T08:21:12.556Z",
+  "capturedAt": "2026-09-01T01:05:51.545Z",
   "seasons": [
     {
       "id": "gtbhl-fall-2024",
@@ -31512,6 +31512,21 @@
       "source": "league"
     },
     {
+      "id": "gtbhl-spring-2024-downsview-sunday-playoffs-gtbhl-player-84486-field",
+      "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
+      "stage": "playoffs",
+      "playerId": "gtbhl-player-84486",
+      "gamesPlayed": 2,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
       "id": "gtbhl-spring-2024-downsview-sunday-playoffs-gtbhl-player-88577-field",
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "playoffs",
@@ -31542,21 +31557,6 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-spring-2024-downsview-sunday-playoffs-gtbhl-player-84486-field",
-      "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
-      "stage": "playoffs",
-      "playerId": "gtbhl-player-84486",
-      "gamesPlayed": 2,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "gtbhl-spring-2024-downsview-sunday-playoffs-gtbhl-player-87765-field",
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "playoffs",
@@ -31572,10 +31572,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-spring-2024-downsview-sunday-playoffs-gtbhl-player-87980-field",
+      "id": "gtbhl-spring-2024-downsview-sunday-playoffs-gtbhl-player-87985-field",
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "playoffs",
-      "playerId": "gtbhl-player-87980",
+      "playerId": "gtbhl-player-87985",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -31587,10 +31587,10 @@
       "source": "league"
     },
     {
-      "id": "gtbhl-spring-2024-downsview-sunday-playoffs-gtbhl-player-87985-field",
+      "id": "gtbhl-spring-2024-downsview-sunday-playoffs-gtbhl-player-87980-field",
       "seasonTeamId": "gtbhl-spring-2024-downsview-sunday",
       "stage": "playoffs",
-      "playerId": "gtbhl-player-87985",
+      "playerId": "gtbhl-player-87980",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
