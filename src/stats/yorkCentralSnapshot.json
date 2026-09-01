@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-01T12:26:25.592Z",
+  "capturedAt": "2026-09-01T16:51:14.585Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1709,7 +1709,7 @@
       "externalId": "26386",
       "displayName": "Matteo Crossley",
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26386-matteo-crossley",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26386-kyle-palleschi-pentland",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1907,7 +1907,7 @@
       "externalId": "25022",
       "displayName": "Muzammil Alam",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/25022-muzammil-alam",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25022-muzammil-alam",
       "primaryPosition": null,
       "persisted": false
     },
@@ -2663,8 +2663,8 @@
       "playerId": "ycbhl-player-26363",
       "jerseyNumber": null,
       "position": null,
-      "active": false,
-      "notes": "EP",
+      "active": true,
+      "notes": "",
       "persisted": false
     },
     {
@@ -8119,7 +8119,7 @@
       "venue": "away",
       "location": "Scarborough - Stephen Leacock",
       "status": "final",
-      "goalsFor": 4,
+      "goalsFor": 1,
       "goalsAgainst": 7,
       "overtime": false,
       "notes": "",
@@ -13956,9 +13956,9 @@
       "source": "league"
     },
     {
-      "gameId": "ycbhl-game-53259",
-      "shotsFor": 4,
-      "shotsAgainst": 26,
+      "gameId": "ycbhl-game-53261",
+      "shotsFor": 10,
+      "shotsAgainst": 21,
       "powerPlayGoals": null,
       "powerPlayOpportunities": null,
       "penaltyKillGoalsAgainst": null,
@@ -13971,9 +13971,9 @@
       "source": "league"
     },
     {
-      "gameId": "ycbhl-game-53261",
-      "shotsFor": 10,
-      "shotsAgainst": 21,
+      "gameId": "ycbhl-game-53259",
+      "shotsFor": 4,
+      "shotsAgainst": 26,
       "powerPlayGoals": null,
       "powerPlayOpportunities": null,
       "penaltyKillGoalsAgainst": null,
@@ -18560,204 +18560,6 @@
       "source": "league"
     },
     {
-      "id": "ycbhl-game-53259-ycbhl-player-25022-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-25022",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-ycbhl-player-26386-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-26386",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 1,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-ycbhl-player-25138-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-25138",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-ycbhl-player-26086-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-26086",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-ycbhl-player-25892-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-25892",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-ycbhl-player-26330-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-26330",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-ycbhl-player-26380-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-26380",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-ycbhl-player-26180-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-26180",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-ycbhl-player-26291-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-26291",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-ycbhl-player-26366-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-26366",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-ycbhl-player-26032-field",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-26032",
-      "gamesPlayed": 1,
-      "goals": 1,
-      "assists": 0,
-      "shots": null,
-      "penaltyMinutes": 0,
-      "plusMinus": null,
-      "blocks": null,
-      "takeaways": null,
-      "turnovers": null,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "ycbhl-game-53261-ycbhl-player-25022-field",
       "gameId": "ycbhl-game-53261",
       "playerId": "ycbhl-player-25022",
@@ -18941,6 +18743,204 @@
       "id": "ycbhl-game-53261-ycbhl-player-26275-field",
       "gameId": "ycbhl-game-53261",
       "playerId": "ycbhl-player-26275",
+      "gamesPlayed": 1,
+      "goals": 1,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-25022-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-25022",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-26386-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-26386",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 1,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-25138-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-25138",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-26086-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-26086",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-25892-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-25892",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-26330-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-26330",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-26380-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-26380",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-26180-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-26180",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-26291-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-26291",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-26366-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-26366",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-26032-field",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-26032",
       "gamesPlayed": 1,
       "goals": 1,
       "assists": 0,
@@ -81232,21 +81232,6 @@
       "source": "league"
     },
     {
-      "id": "ycbhl-game-53259-ycbhl-player-24353-goalie",
-      "gameId": "ycbhl-game-53259",
-      "playerId": "ycbhl-player-24353",
-      "gamesPlayed": 1,
-      "wins": 0,
-      "losses": 1,
-      "ties": 0,
-      "goalsAgainst": 4,
-      "shotsAgainst": 26,
-      "saves": 22,
-      "shutouts": 0,
-      "minutesPlayed": 30,
-      "source": "league"
-    },
-    {
       "id": "ycbhl-game-53261-ycbhl-player-24353-goalie",
       "gameId": "ycbhl-game-53261",
       "playerId": "ycbhl-player-24353",
@@ -81257,6 +81242,21 @@
       "goalsAgainst": 8,
       "shotsAgainst": 21,
       "saves": 13,
+      "shutouts": 0,
+      "minutesPlayed": 30,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-ycbhl-player-24353-goalie",
+      "gameId": "ycbhl-game-53259",
+      "playerId": "ycbhl-player-24353",
+      "gamesPlayed": 1,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "goalsAgainst": 4,
+      "shotsAgainst": 26,
+      "saves": 22,
       "shutouts": 0,
       "minutesPlayed": 30,
       "source": "league"
@@ -85961,182 +85961,6 @@
       "source": "league"
     },
     {
-      "id": "ycbhl-game-53259-goal-1-144-2",
-      "gameId": "ycbhl-game-53259",
-      "period": 1,
-      "clockSeconds": 144,
-      "eventType": "goal",
-      "teamSide": "opponent",
-      "primaryPlayerId": null,
-      "secondaryPlayerId": null,
-      "detail": {
-        "scorer": "Shakir Sufi",
-        "assists": [
-          "Zia Nakhuda"
-        ],
-        "strength": "ESG",
-        "score": [
-          1,
-          0
-        ]
-      },
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-goal-1-187-3",
-      "gameId": "ycbhl-game-53259",
-      "period": 1,
-      "clockSeconds": 187,
-      "eventType": "goal",
-      "teamSide": "opponent",
-      "primaryPlayerId": null,
-      "secondaryPlayerId": null,
-      "detail": {
-        "scorer": "Shakir Sufi",
-        "assists": [
-          "Zia Nakhuda"
-        ],
-        "strength": "ESG",
-        "score": [
-          2,
-          0
-        ]
-      },
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-goal-1-234-4",
-      "gameId": "ycbhl-game-53259",
-      "period": 1,
-      "clockSeconds": 234,
-      "eventType": "goal",
-      "teamSide": "opponent",
-      "primaryPlayerId": null,
-      "secondaryPlayerId": null,
-      "detail": {
-        "scorer": "Hud Khan",
-        "assists": [
-          "Zayd Qadri"
-        ],
-        "strength": "ESG",
-        "score": [
-          3,
-          0
-        ]
-      },
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-goal-1-455-5",
-      "gameId": "ycbhl-game-53259",
-      "period": 1,
-      "clockSeconds": 455,
-      "eventType": "goal",
-      "teamSide": "opponent",
-      "primaryPlayerId": null,
-      "secondaryPlayerId": null,
-      "detail": {
-        "scorer": "Zayd Qadri",
-        "assists": [
-          "Hud Khan",
-          "Shakir Sufi"
-        ],
-        "strength": "ESG",
-        "score": [
-          4,
-          0
-        ]
-      },
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-goal-2-367-8",
-      "gameId": "ycbhl-game-53259",
-      "period": 2,
-      "clockSeconds": 367,
-      "eventType": "goal",
-      "teamSide": "opponent",
-      "primaryPlayerId": null,
-      "secondaryPlayerId": null,
-      "detail": {
-        "scorer": "Akbar Omar",
-        "assists": [
-          "Yusuf Abdur-rahim Syed",
-          "Hadi Junsani"
-        ],
-        "strength": "ESG",
-        "score": [
-          5,
-          0
-        ]
-      },
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-goal-3-191-11",
-      "gameId": "ycbhl-game-53259",
-      "period": 3,
-      "clockSeconds": 191,
-      "eventType": "goal",
-      "teamSide": "opponent",
-      "primaryPlayerId": null,
-      "secondaryPlayerId": null,
-      "detail": {
-        "scorer": "Yasir Patel",
-        "assists": [
-          "Shakir Sufi"
-        ],
-        "strength": "ESG",
-        "score": [
-          6,
-          0
-        ]
-      },
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-goal-3-473-12",
-      "gameId": "ycbhl-game-53259",
-      "period": 3,
-      "clockSeconds": 473,
-      "eventType": "goal",
-      "teamSide": "us",
-      "primaryPlayerId": "ycbhl-player-26032",
-      "secondaryPlayerId": "ycbhl-player-26386",
-      "detail": {
-        "scorer": "Kyle Palleschi-Pentland",
-        "assists": [
-          "Matteo Crossley"
-        ],
-        "strength": "ESG",
-        "score": [
-          6,
-          1
-        ]
-      },
-      "source": "league"
-    },
-    {
-      "id": "ycbhl-game-53259-goal-3-529-13",
-      "gameId": "ycbhl-game-53259",
-      "period": 3,
-      "clockSeconds": 529,
-      "eventType": "goal",
-      "teamSide": "opponent",
-      "primaryPlayerId": null,
-      "secondaryPlayerId": null,
-      "detail": {
-        "scorer": "Akbar Omar",
-        "assists": [],
-        "strength": "ESG",
-        "score": [
-          7,
-          1
-        ]
-      },
-      "source": "league"
-    },
-    {
       "id": "ycbhl-game-53261-goal-1-171-2",
       "gameId": "ycbhl-game-53261",
       "period": 1,
@@ -86383,6 +86207,182 @@
         "player": "Hud Khan",
         "minutes": 2,
         "penalty": "Body Contact"
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-goal-1-144-2",
+      "gameId": "ycbhl-game-53259",
+      "period": 1,
+      "clockSeconds": 144,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Shakir Sufi",
+        "assists": [
+          "Zia Nakhuda"
+        ],
+        "strength": "ESG",
+        "score": [
+          1,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-goal-1-187-3",
+      "gameId": "ycbhl-game-53259",
+      "period": 1,
+      "clockSeconds": 187,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Shakir Sufi",
+        "assists": [
+          "Zia Nakhuda"
+        ],
+        "strength": "ESG",
+        "score": [
+          2,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-goal-1-234-4",
+      "gameId": "ycbhl-game-53259",
+      "period": 1,
+      "clockSeconds": 234,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Hud Khan",
+        "assists": [
+          "Zayd Qadri"
+        ],
+        "strength": "ESG",
+        "score": [
+          3,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-goal-1-455-5",
+      "gameId": "ycbhl-game-53259",
+      "period": 1,
+      "clockSeconds": 455,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Zayd Qadri",
+        "assists": [
+          "Hud Khan",
+          "Shakir Sufi"
+        ],
+        "strength": "ESG",
+        "score": [
+          4,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-goal-2-367-8",
+      "gameId": "ycbhl-game-53259",
+      "period": 2,
+      "clockSeconds": 367,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Akbar Omar",
+        "assists": [
+          "Yusuf Abdur-rahim Syed",
+          "Hadi Junsani"
+        ],
+        "strength": "ESG",
+        "score": [
+          5,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-goal-3-191-11",
+      "gameId": "ycbhl-game-53259",
+      "period": 3,
+      "clockSeconds": 191,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Yasir Patel",
+        "assists": [
+          "Shakir Sufi"
+        ],
+        "strength": "ESG",
+        "score": [
+          6,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-goal-3-473-12",
+      "gameId": "ycbhl-game-53259",
+      "period": 3,
+      "clockSeconds": 473,
+      "eventType": "goal",
+      "teamSide": "us",
+      "primaryPlayerId": "ycbhl-player-26032",
+      "secondaryPlayerId": "ycbhl-player-26386",
+      "detail": {
+        "scorer": "Kyle Palleschi-Pentland",
+        "assists": [
+          "Matteo Crossley"
+        ],
+        "strength": "ESG",
+        "score": [
+          6,
+          1
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53259-goal-3-529-13",
+      "gameId": "ycbhl-game-53259",
+      "period": 3,
+      "clockSeconds": 529,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Akbar Omar",
+        "assists": [],
+        "strength": "ESG",
+        "score": [
+          7,
+          1
+        ]
       },
       "source": "league"
     },
@@ -145699,19 +145699,6 @@
     {
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "rank": 4,
-      "teamName": "GOONSQUAD",
-      "teamExternalId": "7278",
-      "gamesPlayed": 2,
-      "wins": 0,
-      "losses": 2,
-      "ties": 0,
-      "points": 0,
-      "isGoonSquad": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7278-goonsquad"
-    },
-    {
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "rank": 5,
       "teamName": "PALACE",
       "teamExternalId": "7304",
       "gamesPlayed": 3,
@@ -145721,6 +145708,19 @@
       "points": 0,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7304-palace"
+    },
+    {
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "rank": 5,
+      "teamName": "GOONSQUAD",
+      "teamExternalId": "7278",
+      "gamesPlayed": 2,
+      "wins": 0,
+      "losses": 2,
+      "ties": 0,
+      "points": 0,
+      "isGoonSquad": true,
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7278-goonsquad"
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-5",
