@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-01T16:51:14.585Z",
+  "capturedAt": "2026-09-01T19:46:51.419Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1709,7 +1709,7 @@
       "externalId": "26386",
       "displayName": "Matteo Crossley",
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26386-kyle-palleschi-pentland",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26386-matteo-crossley",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1907,7 +1907,7 @@
       "externalId": "25022",
       "displayName": "Muzammil Alam",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25022-muzammil-alam",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/25022-muzammil-alam",
       "primaryPosition": null,
       "persisted": false
     },
