@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-06T15:40:41.102Z",
+  "capturedAt": "2026-09-08T22:54:51.869Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -8331,7 +8331,7 @@
       "goalsFor": null,
       "goalsAgainst": null,
       "overtime": false,
-      "notes": "",
+      "notes": "League status: POST",
       "sourceUrl": "https://www.yorkcentralbhl.com/game/53278-goonsquad-bomb-squad",
       "source": "league",
       "persisted": false,
