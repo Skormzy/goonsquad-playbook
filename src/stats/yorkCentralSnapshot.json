@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-10T08:47:53.599Z",
+  "capturedAt": "2026-09-11T20:41:53.039Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -8152,7 +8152,7 @@
       "externalId": "53348",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "scheduledAt": "2026-09-13T20:00:00",
+      "scheduledAt": "2026-09-13T19:55:00",
       "opponent": "OG VIPERZ",
       "venue": "away",
       "location": "Scarborough - Stephen Leacock",
