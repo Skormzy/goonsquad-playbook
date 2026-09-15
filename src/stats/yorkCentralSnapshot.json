@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-14T22:21:34.765Z",
+  "capturedAt": "2026-09-15T00:49:31.199Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -148792,6 +148792,21 @@
       "source": "league"
     },
     {
+      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25191-field",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "stage": "regular",
+      "playerId": "ycbhl-player-25191",
+      "gamesPlayed": 2,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
       "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25997-field",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
@@ -148807,11 +148822,11 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25191-field",
+      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-26180-field",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
-      "playerId": "ycbhl-player-25191",
-      "gamesPlayed": 2,
+      "playerId": "ycbhl-player-26180",
+      "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
       "points": 0,
@@ -148841,21 +148856,6 @@
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
       "playerId": "ycbhl-player-96",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-26180-field",
-      "seasonTeamId": "fall-2026-sunday-tier-4",
-      "stage": "regular",
-      "playerId": "ycbhl-player-26180",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
