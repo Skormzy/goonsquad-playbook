@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-15T05:57:26.488Z",
+  "capturedAt": "2026-09-15T20:04:24.584Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -790,9 +790,9 @@
       "id": "ycbhl-player-25970",
       "externalId": "25970",
       "displayName": "Angelo Drakos",
+      "primaryPosition": null,
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7240-goonsquad/25970-angelo-drakos",
-      "primaryPosition": "G",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/25970-angelo-drakos",
       "persisted": false
     },
     {
@@ -3015,6 +3015,16 @@
       "position": null,
       "active": true,
       "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-25970",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-25970",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
       "persisted": false
     },
     {
