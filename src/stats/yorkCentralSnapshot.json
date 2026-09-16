@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-15T20:04:24.584Z",
+  "capturedAt": "2026-09-16T01:33:52.713Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -146533,6 +146533,19 @@
     {
       "seasonTeamId": "fall-2026-mon-wed",
       "rank": 1,
+      "teamName": "GONGSHOW",
+      "teamExternalId": "7285",
+      "gamesPlayed": 2,
+      "wins": 2,
+      "losses": 0,
+      "ties": 0,
+      "points": 4,
+      "isGoonSquad": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7285-gongshow"
+    },
+    {
+      "seasonTeamId": "fall-2026-mon-wed",
+      "rank": 2,
       "teamName": "DANFORTH KNIGHTS EYM",
       "teamExternalId": "7284",
       "gamesPlayed": 2,
@@ -146545,7 +146558,7 @@
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
-      "rank": 2,
+      "rank": 3,
       "teamName": "HOMENETMEN",
       "teamExternalId": "7283",
       "gamesPlayed": 3,
@@ -146555,19 +146568,6 @@
       "points": 4,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7283-homenetmen"
-    },
-    {
-      "seasonTeamId": "fall-2026-mon-wed",
-      "rank": 3,
-      "teamName": "GONGSHOW",
-      "teamExternalId": "7285",
-      "gamesPlayed": 1,
-      "wins": 1,
-      "losses": 0,
-      "ties": 0,
-      "points": 2,
-      "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7285-gongshow"
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
@@ -146600,9 +146600,9 @@
       "rank": 6,
       "teamName": "MALVERN REAPERS",
       "teamExternalId": "7282",
-      "gamesPlayed": 2,
+      "gamesPlayed": 3,
       "wins": 0,
-      "losses": 2,
+      "losses": 3,
       "ties": 0,
       "points": 0,
       "isGoonSquad": false,
