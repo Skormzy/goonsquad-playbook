@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-16T01:33:52.713Z",
+  "capturedAt": "2026-09-16T07:25:17.333Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -8038,7 +8038,7 @@
       "externalId": "53331",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
-      "scheduledAt": "2026-10-04T20:50:00",
+      "scheduledAt": "2026-10-04T19:55:00",
       "opponent": "TORONTO HEAT",
       "venue": "home",
       "location": "Scarborough - Stephen Leacock",
