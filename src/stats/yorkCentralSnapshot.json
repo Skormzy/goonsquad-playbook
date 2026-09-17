@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-17T04:08:23.783Z",
+  "capturedAt": "2026-09-17T21:57:59.521Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -149548,10 +149548,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26086-field",
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26372-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "playerId": "ycbhl-player-26086",
+      "playerId": "ycbhl-player-26372",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -149563,10 +149563,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26372-field",
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26086-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "playerId": "ycbhl-player-26372",
+      "playerId": "ycbhl-player-26086",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
