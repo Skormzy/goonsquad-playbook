@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-18T00:04:33.957Z",
+  "capturedAt": "2026-09-18T17:48:17.571Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -2861,8 +2861,8 @@
       "playerId": "ycbhl-player-26086",
       "jerseyNumber": null,
       "position": null,
-      "active": false,
-      "notes": "EP",
+      "active": true,
+      "notes": "",
       "persisted": false
     },
     {
