@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-21T06:53:24.991Z",
+  "capturedAt": "2026-09-21T19:08:52.389Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -147535,6 +147535,19 @@
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "rank": 3,
+      "teamName": "TORONTO HEAT",
+      "teamExternalId": "7274",
+      "gamesPlayed": 5,
+      "wins": 3,
+      "losses": 2,
+      "ties": 0,
+      "points": 6,
+      "isGoonSquad": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7274-toronto-heat"
+    },
+    {
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "rank": 4,
       "teamName": "FRESH MEAT",
       "teamExternalId": "7273",
       "gamesPlayed": 5,
@@ -147544,19 +147557,6 @@
       "points": 4,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7273-fresh-meat"
-    },
-    {
-      "seasonTeamId": "fall-2026-sunday-tier-4",
-      "rank": 4,
-      "teamName": "TORONTO HEAT",
-      "teamExternalId": "7274",
-      "gamesPlayed": 4,
-      "wins": 2,
-      "losses": 2,
-      "ties": 0,
-      "points": 4,
-      "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7274-toronto-heat"
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
@@ -147576,9 +147576,9 @@
       "rank": 6,
       "teamName": "VIPERZ",
       "teamExternalId": "7270",
-      "gamesPlayed": 2,
+      "gamesPlayed": 3,
       "wins": 1,
-      "losses": 1,
+      "losses": 2,
       "ties": 0,
       "points": 2,
       "isGoonSquad": false,
@@ -149930,10 +149930,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-26386-field",
+      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25875-field",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
-      "playerId": "ycbhl-player-26386",
+      "playerId": "ycbhl-player-25875",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 1,
@@ -149945,10 +149945,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25875-field",
+      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-26386-field",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
-      "playerId": "ycbhl-player-25875",
+      "playerId": "ycbhl-player-26386",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 1,
@@ -150020,21 +150020,6 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25980-field",
-      "seasonTeamId": "fall-2026-sunday-tier-4",
-      "stage": "regular",
-      "playerId": "ycbhl-player-25980",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-26180-field",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
@@ -150054,6 +150039,21 @@
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
       "playerId": "ycbhl-player-26181",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25980-field",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "stage": "regular",
+      "playerId": "ycbhl-player-25980",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
