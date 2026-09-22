@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-22T01:30:03.071Z",
+  "capturedAt": "2026-09-22T06:44:45.650Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -148126,15 +148126,15 @@
     {
       "seasonTeamId": "fall-2026-mon-wed",
       "rank": 2,
-      "teamName": "GONGSHOW",
-      "teamExternalId": "7285",
+      "teamName": "SMASH BROS",
+      "teamExternalId": "7290",
       "gamesPlayed": 2,
       "wins": 2,
       "losses": 0,
       "ties": 0,
       "points": 4,
       "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7285-gongshow"
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7290-smash-bros"
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
@@ -148152,19 +148152,32 @@
     {
       "seasonTeamId": "fall-2026-mon-wed",
       "rank": 4,
-      "teamName": "SMASH BROS",
-      "teamExternalId": "7290",
-      "gamesPlayed": 1,
-      "wins": 1,
-      "losses": 0,
+      "teamName": "GONGSHOW",
+      "teamExternalId": "7285",
+      "gamesPlayed": 3,
+      "wins": 2,
+      "losses": 1,
       "ties": 0,
-      "points": 2,
+      "points": 4,
       "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7290-smash-bros"
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7285-gongshow"
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
       "rank": 5,
+      "teamName": "DEW LANG DUCKS",
+      "teamExternalId": "7286",
+      "gamesPlayed": 2,
+      "wins": 1,
+      "losses": 1,
+      "ties": 0,
+      "points": 2,
+      "isGoonSquad": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7286-dew-lang-ducks"
+    },
+    {
+      "seasonTeamId": "fall-2026-mon-wed",
+      "rank": 6,
       "teamName": "VIPERZ",
       "teamExternalId": "7287",
       "gamesPlayed": 1,
@@ -148177,7 +148190,7 @@
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
-      "rank": 6,
+      "rank": 7,
       "teamName": "BOMB SQUAD",
       "teamExternalId": "7289",
       "gamesPlayed": 1,
@@ -148190,25 +148203,12 @@
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
-      "rank": 7,
-      "teamName": "DEW LANG DUCKS",
-      "teamExternalId": "7286",
-      "gamesPlayed": 1,
-      "wins": 0,
-      "losses": 1,
-      "ties": 0,
-      "points": 0,
-      "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7286-dew-lang-ducks"
-    },
-    {
-      "seasonTeamId": "fall-2026-mon-wed",
       "rank": 8,
       "teamName": "MALVERN REAPERS",
       "teamExternalId": "7282",
-      "gamesPlayed": 3,
+      "gamesPlayed": 4,
       "wins": 0,
-      "losses": 3,
+      "losses": 4,
       "ties": 0,
       "points": 0,
       "isGoonSquad": false,
