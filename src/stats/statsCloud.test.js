@@ -43,6 +43,28 @@ afterEach(() => {
 });
 
 describe('public player number assignments', () => {
+  it('loads directed merges from public metadata when serving the bundled statistics snapshot', async () => {
+    const source = dataset({
+      players: [{ id: 'static-player', externalId: '10', displayName: 'Incorrect name', source: 'league' }],
+      playerSeasonStats: [{ id: 'line', playerId: 'static-player', seasonTeamId: 't1', gamesPlayed: 3, goals: 2, assists: 4, points: 6 }],
+    });
+    cloudState.client = {
+      rpc: vi.fn(async (name) => ({
+        data: name === 'list_public_player_avatars' ? [
+          { player_id: 'cloud-old', external_id: '10', display_name: 'Incorrect name', merged_into_player_id: 'cloud-correct' },
+          { player_id: 'cloud-correct', display_name: 'Correct name', canonical_display_name: 'Correct name', merged_into_player_id: null },
+        ] : [],
+        error: null,
+      })),
+    };
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => source })));
+    const result = await loadStatisticsDataset({ useCloudProjection: false });
+    expect(statsSnapshot(result, 's1', 't1').fieldPlayers[0]).toMatchObject({
+      playerId: 'cloud-correct', displayName: 'Correct name', gamesPlayed: 3, goals: 2, assists: 4,
+    });
+    expect(publicPlayerProfileSnapshot(result, 'cloud-old').primaryPlayer.id).toBe('cloud-correct');
+  });
+
   const source = dataset({
     players: [
       { id: 'ycbhl-player-307', externalId: '307', displayName: 'Ryan Hunt', jerseyNumber: '19' },

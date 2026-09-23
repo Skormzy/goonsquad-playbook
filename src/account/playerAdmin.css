@@ -75,6 +75,66 @@
 .player-admin-number-editor select { min-width: 170px; max-width: 100%; min-height: 44px; padding: 6px 10px; border: 1px solid var(--account-border); border-radius: 4px; background: var(--account-surface); color: var(--account-text); font-size: 14px; }
 .player-admin-number-editor p { flex-basis: 100%; margin: 0; }
 .player-admin .player-admin-primary { color: var(--account-accent); border-color: var(--account-accent); background: var(--account-surface); }
+.player-admin-identity-actions { display: grid; justify-items: start; }
+.player-admin-table .player-admin-merge-action { min-height: 30px; gap: 5px; padding: 3px 6px 3px 0; border: 0; background: transparent; color: var(--account-muted); font-size: 10px; font-weight: 600; }
+.player-admin-merge-action svg { width: 12px; height: 12px; }
+.player-merge-modal { width: min(790px, calc(100% - 32px)); max-height: min(92dvh, 1000px); margin: auto; padding: 0; overflow: hidden; border: 1px solid var(--account-border); border-radius: 9px; background: var(--account-surface); color: var(--account-text); box-shadow: 0 24px 90px #0005; }
+.player-merge-modal::backdrop { background: #07121bc2; backdrop-filter: blur(3px); }
+.player-merge-modal > form { display: flex; flex-direction: column; max-height: min(92dvh, 1000px); }
+.player-merge-header { display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0; gap: 20px; padding: 22px 26px 20px; border-bottom: 1px solid var(--account-border); background: var(--account-panel); }
+.player-merge-header .player-admin-kicker { margin: 0; }
+.player-merge-header h3 { margin: 6px 0 7px; font-family: var(--font-display); font-size: 34px; line-height: 1; }
+.player-merge-header p { margin: 0; max-width: 540px; color: var(--account-muted); font-size: 12px; line-height: 1.6; }
+.player-merge-header > button { padding: 8px; min-width: 44px; }
+.player-merge-content { overflow-y: auto; overscroll-behavior: contain; min-height: 0; padding: 22px 26px; }
+.player-merge-source { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; padding: 12px 15px; border-left: 3px solid var(--account-muted); background: var(--account-panel); }
+.player-merge-source span { display: grid; gap: 4px; font-size: 11px; color: var(--account-muted); }
+.player-merge-source strong { font-size: 15px; color: var(--account-text); }
+.player-merge-search-help { margin: 10px 0; font-size: 11px; color: var(--account-muted); line-height: 1.5; }
+.player-merge-targets { list-style: none; padding: 0; margin: 0; border: 1px solid var(--account-border); border-radius: 5px; overflow: hidden; }
+.player-merge-targets li + li { border-top: 1px solid var(--account-border); }
+.player-merge-targets li button { width: 100%; padding: 13px 15px; justify-content: space-between; border: 0; border-radius: 0; text-align: left; }
+.player-merge-targets li button:hover:not(:disabled) { background: var(--account-accent-bg); }
+.player-merge-targets button > span { display: grid; gap: 4px; min-width: 0; flex: 1; }
+.player-merge-targets strong { color: var(--account-text); font-size: 13px; }
+.player-merge-targets small { color: var(--account-muted); font-size: 10px; font-weight: 400; line-height: 1.5; overflow-wrap: anywhere; }
+.player-merge-targets small:last-child { font-size: 9px; opacity: .8; }
+.player-merge-targets em { color: var(--account-accent); font-size: 9px; font-weight: 600; font-style: normal; white-space: nowrap; }
+.player-merge-direction { display: grid; grid-template-columns: 1fr 20px 1fr; gap: 12px; align-items: center; }
+.player-merge-direction > svg { color: var(--account-muted); }
+.player-merge-identity { display: grid; align-content: start; gap: 7px; align-self: stretch; min-width: 0; padding: 17px; border: 1px solid var(--account-border); border-radius: 5px; background: var(--account-panel); }
+.player-merge-identity > span { display: flex; align-items: center; gap: 7px; color: var(--account-muted); font-size: 10px; font-weight: 700; }
+.player-merge-identity h4 { margin: 4px 0 0; font-family: var(--font-display); font-size: 27px; font-weight: 700; line-height: 1.1; overflow-wrap: anywhere; }
+.player-merge-identity p, .player-merge-identity small { margin: 0; color: var(--account-muted); font-size: 11px; line-height: 1.5; }
+.player-merge-identity > strong { margin-top: 4px; font-size: 10px; }
+.player-merge-identity[data-retained="true"] { border-color: var(--account-accent); background: var(--account-accent-bg); box-shadow: inset 0 3px var(--account-accent); }
+.player-merge-identity[data-retained="true"] > span, .player-merge-identity[data-retained="true"] > strong { color: var(--account-accent); }
+.player-merge-outcome { display: flex; align-items: flex-start; gap: 10px; margin: 19px 0 15px; }
+.player-merge-outcome > svg { margin-top: 2px; color: var(--account-accent); }
+.player-merge-outcome p { margin: 0; color: var(--account-muted); font-size: 12px; line-height: 1.65; }
+.player-merge-outcome strong { display: block; color: var(--account-text); }
+.player-merge-counts { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0 0 22px; padding: 0; gap: 1px; border: 1px solid var(--account-border); border-radius: 4px; overflow: hidden; background: var(--account-border); }
+.player-merge-counts > div { display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 4px; padding: 12px; background: var(--account-panel); }
+.player-merge-counts dt { color: var(--account-muted); font-size: 10px; }
+.player-merge-counts dd { margin: 0; font-family: var(--font-display); font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
+.player-merge-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; margin: 0; padding: 16px; border: 1px solid var(--account-border); border-radius: 5px; }
+.player-merge-fields legend { padding: 0 5px; font-size: 12px; font-weight: 700; }
+.player-merge-fields > p { grid-column: 1 / -1; margin: 0; color: var(--account-muted); font-size: 11px; line-height: 1.6; }
+.player-merge-fields label { display: grid; align-content: start; gap: 7px; font-size: 11px; font-weight: 700; }
+.player-merge-fields label > span { display: grid; gap: 4px; }
+.player-merge-fields label small { color: var(--account-muted); font-size: 10px; line-height: 1.6; font-weight: 400; }
+.player-merge-fields label > span small { color: var(--account-accent); font-weight: 600; }
+.player-merge-fields select { width: 100%; min-width: 0; min-height: 44px; padding: 9px; border: 1px solid var(--account-border); border-radius: 4px; background: var(--account-surface); color: var(--account-text); }
+.player-merge-warning { margin-top: 15px; padding: 13px; border-left: 3px solid #b77912; background: color-mix(in srgb, #b77912 9%, var(--account-surface)); font-size: 12px; line-height: 1.6; }
+.player-merge-warning[data-blocked="true"] { border-color: #dc2626; background: color-mix(in srgb, #dc2626 8%, var(--account-surface)); }
+.player-merge-warning p { margin: 0; }
+.player-merge-warning ul { padding-left: 18px; margin: 7px 0 0; }
+.player-merge-confirm { display: flex; align-items: flex-start; gap: 10px; margin: 20px 0 10px; font-size: 12px; line-height: 1.65; cursor: pointer; }
+.player-merge-confirm input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; accent-color: var(--account-accent); }
+.player-merge-audit-note { margin: 12px 0 0; color: var(--account-muted); font-size: 10px; line-height: 1.6; }
+.player-merge-footer { display: flex; flex-shrink: 0; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--account-border); background: var(--account-panel); }
+.player-merge-footer .player-merge-submit { margin-left: auto; color: var(--account-accent); border-color: var(--account-accent); background: var(--account-accent-bg); }
+.player-merge-empty { margin: 30px 0; font-size: 12px; color: var(--account-muted); }
 .player-admin-spin { animation: player-admin-spin 1s linear infinite; }
 @keyframes player-admin-spin { to { transform: rotate(360deg); } }
 @media (max-width: 800px) {
@@ -94,3 +154,18 @@
   .player-admin-table-scroll { max-height: 65dvh; }
 }
 @media (prefers-reduced-motion: reduce) { .player-admin-spin { animation: none; } }
+@media (max-width: 560px) {
+  .player-merge-modal { width: calc(100% - 16px); max-height: 95dvh; }
+  .player-merge-modal > form { max-height: 95dvh; }
+  .player-merge-header, .player-merge-content, .player-merge-footer { padding: 16px; }
+  .player-merge-header h3 { font-size: 29px; }
+  .player-merge-direction { grid-template-columns: 1fr; gap: 8px; }
+  .player-merge-direction > svg { justify-self: center; transform: rotate(90deg); }
+  .player-merge-identity { padding: 14px; gap: 5px; }
+  .player-merge-identity h4 { font-size: 25px; }
+  .player-merge-counts { grid-template-columns: repeat(2, 1fr); }
+  .player-merge-fields { grid-template-columns: 1fr; }
+  .player-merge-footer { gap: 8px; }
+  .player-merge-footer .player-merge-submit { flex-basis: 100%; }
+  .player-merge-targets em { display: none; }
+}

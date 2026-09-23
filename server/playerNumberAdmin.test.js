@@ -84,6 +84,137 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllEnvs());
 
+describe('admin directed player merges', () => {
+  const fingerprint = 'abc123abc123abc123abc123abc123ab';
+  const preview = {
+    fingerprint,
+    counts: { combined: { players: 2, memberships: 3, fieldAppearances: 7, goalieAppearances: 2, seasonRows: 4, approvedClaims: 1 } },
+    fields: {
+      jerseyNumber: { source: '12', target: '19', suggested: '19', conflict: true },
+      primaryPosition: { source: 'W', target: 'C', suggested: 'C', conflict: true },
+    },
+    blockers: [],
+    canMerge: true,
+  };
+  const mergeBody = {
+    action: 'merge-players', sourcePlayerId: playerId, targetPlayerId: otherPlayerId,
+    previewToken: fingerprint, jerseyNumber: '19', position: 'C',
+  };
+
+  function mergeClient() {
+    const result = databaseClient();
+    result.client.rpc.mockImplementation(async (name) => ({
+      data: name === 'preview_player_merge' ? preview
+        : name === 'merge_players' ? { merged: true }
+          : result.tables.players.map((player) => ({ player_id: player.id })),
+      error: null,
+    }));
+    return result;
+  }
+
+  it.each(['member', 'stat_manager'])('denies %s preview and merge access', async (role) => {
+    const { client, writes } = databaseClient(role);
+    for (const action of ['preview-player-merge', 'merge-players']) {
+      const response = await request({ ...mergeBody, action });
+      expect(response.statusCode).toBe(403);
+    }
+    expect(client.rpc).not.toHaveBeenCalled();
+    expect(writes).toEqual([]);
+  });
+
+  it('requires an authenticated session before previewing or merging', async () => {
+    const { client } = mergeClient();
+    expect((await request(mergeBody, '')).statusCode).toBe(401);
+    expect(client.rpc).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { sourcePlayerId: 'not-a-player' },
+    { targetPlayerId: playerId },
+    { sourcePlayerId: null },
+  ])('rejects invalid player choices %j', async (change) => {
+    const { client } = mergeClient();
+    const response = await request({ ...mergeBody, action: 'preview-player-merge', ...change });
+    expect(response.statusCode).toBe(400);
+    expect(client.rpc).not.toHaveBeenCalledWith('preview_player_merge', expect.anything());
+  });
+
+  it('returns the exact source and survivor plus authoritative counts and conflicts', async () => {
+    const { client, writes } = mergeClient();
+    const response = await request({ ...mergeBody, action: 'preview-player-merge' });
+    expect(response.statusCode).toBe(200);
+    expect(response.body.preview).toMatchObject({
+      source: { id: playerId, displayName: 'Player One', jerseyNumber: '12', position: 'W' },
+      target: { id: otherPlayerId, displayName: 'Player Two', jerseyNumber: '19', position: 'C' },
+      counts: { playerRecords: 2, gameStats: 7, goalieStats: 2, memberships: 3, accounts: 1, seasonRecords: 4 },
+      defaults: { jerseyNumber: '19', position: 'C' },
+      conflicts: { jerseyNumber: true, position: true },
+      previewToken: fingerprint,
+    });
+    expect(client.rpc).not.toHaveBeenCalledWith('merge_players', expect.anything());
+    expect(writes).toEqual([]);
+  });
+
+  it('expands reviewed aliases on the server and ignores browser-supplied identity sets', async () => {
+    const { client, tables } = mergeClient();
+    Object.assign(tables.players[0], { external_id: '307', source_url: 'https://www.yorkcentralbhl.com/player/307', display_name: 'Ryan Hunt' });
+    const aliasId = '12345678-1234-1234-1234-123456789014';
+    tables.players.push({ id: aliasId, external_id: 'gtbhl:84495', display_name: 'Ryan Hunt' });
+    await request({ ...mergeBody, action: 'preview-player-merge', sourceIds: [otherPlayerId], targetIds: [playerId], targetName: 'Forged name' });
+    expect(client.rpc).toHaveBeenCalledWith('preview_player_merge', {
+      p_actor_id: 'coach', p_source_ids: [playerId, aliasId], p_target_ids: [otherPlayerId],
+      p_target_id: otherPlayerId, p_target_display_name: 'Player Two',
+    });
+    const sameIdentity = await request({ ...mergeBody, action: 'preview-player-merge', targetPlayerId: aliasId });
+    expect(sameIdentity.statusCode).toBe(400);
+    expect(sameIdentity.body.error).toContain('already belong to the same player');
+  });
+
+  it('reports missing players instead of submitting an empty identity', async () => {
+    mergeClient();
+    const response = await request({ ...mergeBody, targetPlayerId: '12345678-1234-1234-1234-123456789099' });
+    expect(response.statusCode).toBe(404);
+  });
+
+  it.each([
+    { previewToken: undefined }, { previewToken: 'tampered' },
+    { jerseyNumber: undefined }, { jerseyNumber: '1000' },
+    { position: undefined }, { position: 'FORWARD' },
+  ])('requires a preview and valid explicit field choices %j', async (change) => {
+    const { client } = mergeClient();
+    expect((await request({ ...mergeBody, ...change })).statusCode).toBe(400);
+    expect(client.rpc).not.toHaveBeenCalledWith('merge_players', expect.anything());
+  });
+
+  it('submits the chosen survivor and deliberate clears to one atomic RPC', async () => {
+    const { client, writes } = mergeClient();
+    const response = await request({ ...mergeBody, jerseyNumber: null, position: null });
+    expect(response.statusCode).toBe(200);
+    expect(response.body.ok).toBe(true);
+    expect(client.rpc).toHaveBeenCalledWith('merge_players', {
+      p_actor_id: 'coach', p_source_ids: [playerId], p_target_ids: [otherPlayerId],
+      p_target_id: otherPlayerId, p_target_display_name: 'Player Two',
+      p_preview_fingerprint: fingerprint, p_jersey_number: null, p_primary_position: null,
+    });
+    expect(writes).toEqual([]);
+  });
+
+  it('keeps database blockers visible and propagates stale-preview failures', async () => {
+    const { client } = mergeClient();
+    const previous = client.rpc.getMockImplementation();
+    client.rpc.mockImplementation(async (name, args) => {
+      if (name === 'preview_player_merge') return { data: { ...preview, canMerge: false, blockers: [{ code: 'overlapping-games', message: 'Both players appear in the same game.' }] }, error: null };
+      if (name === 'merge_players') return { data: null, error: { message: 'Player information changed. Review a fresh preview.' } };
+      return previous(name, args);
+    });
+    const response = await request({ ...mergeBody, action: 'preview-player-merge' });
+    expect(response.body.preview.blockers).toEqual(['Both players appear in the same game.']);
+    const commit = await request(mergeBody);
+    expect(commit.statusCode).toBe(400);
+    expect(commit.body.error).toContain('Review a fresh preview');
+  });
+});
+
 describe('admin player profile visibility', () => {
   it('preserves distinct public visibility for a hidden canonical record and its visible alias', async () => {
     const { client, tables, writes } = databaseClient('admin', { publicPlayerIds: [otherPlayerId] });

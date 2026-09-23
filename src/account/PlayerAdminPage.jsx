@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, Check, Columns3, Download, Hash, LoaderCircle, Pencil, RefreshCcw, Search, Users, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, Check, Columns3, Download, GitMerge, Hash, LoaderCircle, Pencil, RefreshCcw, Search, Users, X } from 'lucide-react';
 import { useAccount } from './AccountContext';
-import { loadManagedAccounts, updateManagedPlayerNumber, updateManagedPlayerPosition } from './accountAdmin';
+import { loadManagedAccounts, mergeManagedPlayers, previewManagedPlayerMerge, updateManagedPlayerNumber, updateManagedPlayerPosition } from './accountAdmin';
 import { buildPlayerAdminRows, DEFAULT_PLAYER_COLUMNS, hasPlayerNumber, PLAYER_ADMIN_COLUMNS, playerAdminCsv, selectPlayerAdminRows } from './playerAdminModel';
+import PlayerMergeDialog from './PlayerMergeDialog';
 import './playerAdmin.css';
 
 const POSITION_OPTIONS = [
@@ -21,13 +22,15 @@ function downloadRows(rows, columns) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function PlayerAdminDirectory({ snapshot = {}, loading = false, working = false, error = '', status = '', onRefresh, onSaveNumber, onSavePosition, onClose, onOpenMembers, onOpenPlayer }) {
+export function PlayerAdminDirectory({ snapshot = {}, loading = false, working = false, error = '', status = '', onRefresh, onSaveNumber, onSavePosition, onPreviewMerge, onMerge, onClose, onOpenMembers, onOpenPlayer }) {
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState({});
   const [quickFilter, setQuickFilter] = useState('all');
   const [sort, setSort] = useState({ key: 'displayName', direction: 'asc' });
   const [columnKeys, setColumnKeys] = useState(DEFAULT_PLAYER_COLUMNS);
   const [editor, setEditor] = useState(null);
+  const [mergeSource, setMergeSource] = useState(null);
+  const restoreMergedFocusRef = useRef(false);
   const [openingId, setOpeningId] = useState('');
   const [navigationError, setNavigationError] = useState('');
   const rows = useMemo(() => buildPlayerAdminRows(snapshot), [snapshot]);
@@ -38,6 +41,12 @@ export function PlayerAdminDirectory({ snapshot = {}, loading = false, working =
   const unnumbered = rows.filter((row) => !hasPlayerNumber(row.jerseyNumber)).length;
   const shared = rows.filter((row) => row.sharedNumber).length;
   const busy = loading || working || Boolean(openingId);
+  useEffect(() => {
+    if (!mergeSource && restoreMergedFocusRef.current) {
+      restoreMergedFocusRef.current = false;
+      document.getElementById('player-admin-title')?.focus();
+    }
+  }, [mergeSource]);
   const openPlayer = async (row) => {
     setOpeningId(row.id); setNavigationError('');
     try { await onOpenPlayer(row); }
@@ -55,6 +64,13 @@ export function PlayerAdminDirectory({ snapshot = {}, loading = false, working =
     const save = editor.kind === 'position' ? onSavePosition : onSaveNumber;
     if (await save(editor.id, editor.value.trim() || null)) setEditor(null);
   };
+  const completeMerge = async (request, preview) => {
+    const result = await onMerge(request, preview);
+    // The source row disappears after a successful merge, so return keyboard
+    // focus to the directory heading instead of a removed row action.
+    restoreMergedFocusRef.current = true;
+    return result;
+  };
 
   return (
     <section className="player-admin" aria-labelledby="player-admin-title">
@@ -62,7 +78,7 @@ export function PlayerAdminDirectory({ snapshot = {}, loading = false, working =
         <div>
           <button type="button" className="player-admin-back" onClick={onClose} disabled={working}><ArrowLeft aria-hidden="true" /> Account</button>
           <span className="player-admin-kicker">SQUAD OPERATIONS</span>
-          <h2 id="player-admin-title">Player administration</h2>
+          <h2 id="player-admin-title" tabIndex={-1}>Player administration</h2>
           <p>Your roster, numbers, positions, and account links in one place.</p>
         </div>
         <div className="player-admin-actions">
@@ -116,7 +132,7 @@ export function PlayerAdminDirectory({ snapshot = {}, loading = false, working =
           </thead>
           <tbody>
             {visibleRows.map((row) => <tr key={row.id} data-editing={editor?.id === row.id}>{columns.map(({ key }) => <td key={key}>
-              {key === 'displayName' ? <button type="button" className="player-admin-name" onClick={() => openPlayer(row)} disabled={busy}>{openingId === row.id && <LoaderCircle className="player-admin-spin" aria-hidden="true" />}{row.displayName}</button>
+              {key === 'displayName' ? <div className="player-admin-identity-actions"><button type="button" className="player-admin-name" onClick={() => openPlayer(row)} disabled={busy}>{openingId === row.id && <LoaderCircle className="player-admin-spin" aria-hidden="true" />}{row.displayName}</button>{onPreviewMerge && onMerge && <button type="button" className="player-admin-merge-action" aria-label={`Merge ${row.displayName} to another player`} disabled={busy || Boolean(editor)} onClick={() => setMergeSource(row)}><GitMerge aria-hidden="true" /> Merge to…</button>}</div>
                 : key === 'jerseyNumber' ? <button type="button" className="player-admin-number" aria-label={`Edit number for ${row.displayName}`} disabled={busy} onClick={() => { setEditor({ kind: 'number', id: row.id, identityId: row.identityId, name: row.displayName, value: row.jerseyNumber, original: row.jerseyNumber }); }}><strong>{hasPlayerNumber(row.jerseyNumber) ? `#${row.jerseyNumber}` : 'Assign'}</strong><Pencil aria-hidden="true" />{row.sharedNumber && <small>Shared</small>}</button>
                   : key === 'position' ? <button type="button" className="player-admin-number" aria-label={`Edit position for ${row.displayName}`} disabled={busy} onClick={() => setEditor({ kind: 'position', id: row.id, name: row.displayName, value: row.position || '', original: row.position || '' })}><strong>{row.position || 'Assign'}</strong><Pencil aria-hidden="true" /></button>
                   : key === 'rosterStatus' || key === 'linkStatus' ? <span className="player-admin-badge" data-positive={row[key] === 'Active' || row[key] === 'Linked'}>{row[key]}</span>
@@ -126,7 +142,8 @@ export function PlayerAdminDirectory({ snapshot = {}, loading = false, working =
           </tbody>
         </table>
       </div>
-      <p className="player-admin-footnote">Each player appears once with their linked league history combined. Numbers and positions appear on statistics and individual profiles. Historical roster details stay in the season records.</p>
+      <p className="player-admin-footnote">Each player appears once with their linked league history combined. Use “Merge to…” on a misspelled duplicate, then select the correctly named player. Numbers and positions appear on statistics and individual profiles. Historical roster details stay in the season records.</p>
+      {mergeSource && <PlayerMergeDialog source={mergeSource} rows={rows} onPreview={onPreviewMerge} onMerge={completeMerge} onClose={() => setMergeSource(null)} />}
     </section>
   );
 }
@@ -171,7 +188,17 @@ function AuthorizedPlayerAdmin(props) {
     } catch (requestError) { setError(requestError.message); return false; }
     finally { setWorking(false); }
   };
-  return <PlayerAdminDirectory {...props} snapshot={snapshot} loading={loading} working={working} error={error} status={status} onRefresh={refresh} onSaveNumber={saveNumber} onSavePosition={savePosition} />;
+  const mergePlayers = async (request, preview) => {
+    setWorking(true); setError(''); setStatus('');
+    try {
+      const result = await mergeManagedPlayers(request);
+      setSnapshot(result);
+      setStatus(`${preview.source.displayName} was merged into ${preview.target.displayName}. ${preview.target.displayName} remains, with both players’ statistics and history.`);
+      window.dispatchEvent(new CustomEvent('player-identities-updated'));
+      return result;
+    } finally { setWorking(false); }
+  };
+  return <PlayerAdminDirectory {...props} snapshot={snapshot} loading={loading} working={working} error={error} status={status} onRefresh={refresh} onSaveNumber={saveNumber} onSavePosition={savePosition} onPreviewMerge={previewManagedPlayerMerge} onMerge={mergePlayers} />;
 }
 
 export default function PlayerAdminPage(props) {

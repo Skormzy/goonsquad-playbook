@@ -33,7 +33,7 @@ function playerIdsForClaims(dataset, claims) {
   const directIds = new Set(claims.map((claim) => claim.playerId).filter(Boolean));
   const externalIds = new Set(claims.map((claim) => claim.player?.externalId).filter(Boolean));
   const matchedIds = new Set(dataset.players
-    .filter((player) => directIds.has(player.id) || externalIds.has(player.externalId))
+    .filter((player) => directIds.has(player.id) || directIds.has(player.cloudPlayerId) || externalIds.has(player.externalId))
     .map((player) => player.id));
   return expandPlayerIdentityIds(buildPlayerIdentityIndex(dataset.players), matchedIds);
 }
@@ -100,7 +100,7 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
       const searchText = [displayName, player.displayName, position, jerseyNumber, ...schedules, ...seasons.map((season) => season.name)].filter(Boolean).join(' ').toLowerCase();
       return {
         id: player.id,
-        cloudPlayerId: player.persisted === false ? null : player.id,
+        cloudPlayerId: player.cloudPlayerId || (player.persisted === false ? null : player.id),
         externalId: player.externalId,
         displayName,
         avatarUrl: player.avatarUrl || null,
@@ -456,7 +456,8 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now(), { tourn
   const identityIndex = buildPlayerIdentityIndex(dataset.players);
   const claimedPlayer = dataset.players.find((player) => (
     player.id === primaryClaim?.playerId
-    || player.externalId === primaryClaim?.player?.externalId
+    || (player.cloudPlayerId && player.cloudPlayerId === primaryClaim?.playerId)
+    || (primaryClaim?.player?.externalId && player.externalId === primaryClaim.player.externalId)
   )) ?? null;
   const canonicalPrimaryId = claimedPlayer
     ? canonicalPlayerIdentityId(identityIndex, claimedPlayer.id)
@@ -464,7 +465,7 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now(), { tourn
   const primaryPlayer = players.find((player) => player.id === canonicalPrimaryId)
     ?? players.find((player) => (
       player.id === primaryClaim?.playerId
-      || player.externalId === primaryClaim?.player?.externalId
+      || (primaryClaim?.player?.externalId && player.externalId === primaryClaim.player.externalId)
     ))
     ?? players[0]
     ?? null;
@@ -538,7 +539,9 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now(), { tourn
 }
 
 export function publicPlayerProfileSnapshot(dataset, playerId, now = Date.now(), options = {}) {
-  const player = dataset?.players?.find((candidate) => candidate.id === playerId) ?? null;
+  const player = dataset?.players?.find((candidate) => (
+    candidate.id === playerId || (candidate.cloudPlayerId && candidate.cloudPlayerId === playerId)
+  )) ?? null;
   if (!player) return null;
   return memberProfileSnapshot(dataset, [{
     playerId: player.id,

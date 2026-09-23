@@ -61,3 +61,11 @@ export function updateManagedPlayerNumber(playerId, jerseyNumber) {
 export function updateManagedPlayerPosition(playerId, position) {
   return adminRequest('update-player-position', { playerId, position });
 }
+
+export function previewManagedPlayerMerge(sourcePlayerId, targetPlayerId) {
+  return adminRequest('preview-player-merge', { sourcePlayerId, targetPlayerId });
+}
+
+export function mergeManagedPlayers({ sourcePlayerId, targetPlayerId, previewToken, jerseyNumber, position }) {
+  return adminRequest('merge-players', { sourcePlayerId, targetPlayerId, previewToken, jerseyNumber, position });
+}

@@ -203,6 +203,106 @@ function linkIdentityPlayers(
   playerIdsByCanonicalId.set(canonical.id, orderedPlayerIds);
 }
 
+// Stored merges are directed: the administrator's selected record survives,
+// even when a reviewed/automatic group would normally prefer another ID.
+// Resolve against complete identity groups so every older alias follows along.
+function applyManualIdentityLinks(playersById, canonicalIdByPlayerId, playerIdsByCanonicalId) {
+  const originalCanonicalIds = new Map(canonicalIdByPlayerId);
+  const originalGroups = new Map(playerIdsByCanonicalId);
+  const invalidGroups = new Set();
+  const targetsByGroup = new Map();
+
+  playersById.forEach((player) => {
+    if (!player.mergedIntoPlayerId && !player.mergedIntoExternalId) return;
+    let target = playersById.get(player.mergedIntoPlayerId);
+    if (!target && player.mergedIntoExternalId) {
+      const targetSource = playerIdentitySource({
+        externalId: player.mergedIntoExternalId,
+        sourceUrl: player.mergedIntoSourceUrl,
+      });
+      const matches = [...playersById.values()].filter((candidate) => (
+        String(candidate.externalId) === String(player.mergedIntoExternalId)
+        && (!targetSource || playerIdentitySource(candidate) === targetSource)
+      ));
+      if (matches.length === 1) [target] = matches;
+    }
+    const groupId = originalCanonicalIds.get(player.id);
+    if (!target || target.id === player.id) {
+      invalidGroups.add(groupId);
+      return;
+    }
+    const targets = targetsByGroup.get(groupId) ?? [];
+    targets.push({ sourceId: player.id, targetId: target.id });
+    targetsByGroup.set(groupId, targets);
+  });
+
+  const directTargets = new Map([...targetsByGroup.values()].flat().map(({ sourceId, targetId }) => [sourceId, targetId]));
+  directTargets.forEach((_, sourceId) => {
+    const seen = new Set();
+    let currentId = sourceId;
+    while (directTargets.has(currentId)) {
+      if (seen.has(currentId)) {
+        seen.forEach((id) => invalidGroups.add(originalCanonicalIds.get(id)));
+        break;
+      }
+      seen.add(currentId);
+      currentId = directTargets.get(currentId);
+    }
+  });
+
+  function resolveGroup(groupId, visited = new Set()) {
+    if (invalidGroups.has(groupId) || visited.has(groupId)) return null;
+    const targets = targetsByGroup.get(groupId) ?? [];
+    const outgoing = targets.filter(({ targetId }) => originalCanonicalIds.get(targetId) !== groupId);
+    if (outgoing.length) {
+      const nextVisited = new Set([...visited, groupId]);
+      const destinations = outgoing.map(({ targetId }) => {
+        const destination = resolveGroup(originalCanonicalIds.get(targetId), nextVisited);
+        return destination && { ...destination, preferredId: destination.preferredId || targetId };
+      });
+      if (destinations.some((destination) => !destination)) return null;
+      if (new Set(destinations.map(({ groupId: id, preferredId }) => `${id}:${preferredId}`)).size !== 1) return null;
+      return destinations[0];
+    }
+
+    const internalTargets = new Map(targets.map(({ sourceId, targetId }) => [sourceId, targetId]));
+    const survivors = new Set();
+    for (const targetId of internalTargets.values()) {
+      let terminal = targetId;
+      const seen = new Set();
+      while (internalTargets.has(terminal)) {
+        if (seen.has(terminal)) return null;
+        seen.add(terminal);
+        terminal = internalTargets.get(terminal);
+      }
+      survivors.add(terminal);
+    }
+    if (survivors.size > 1) return null;
+    return { groupId, preferredId: [...survivors][0] || null };
+  }
+
+  const linkedGroups = new Map();
+  originalGroups.forEach((_, groupId) => {
+    const destination = resolveGroup(groupId);
+    if (!destination) return;
+    const linked = linkedGroups.get(destination.groupId) ?? [];
+    linked.push({ groupId, preferredId: destination.preferredId });
+    linkedGroups.set(destination.groupId, linked);
+  });
+  const manualCanonicalIds = new Set();
+  linkedGroups.forEach((groups) => {
+    const selectedIds = new Set(groups.map(({ preferredId }) => preferredId).filter(Boolean));
+    if (selectedIds.size !== 1) return;
+    const [selectedId] = selectedIds;
+    const memberIds = groups.flatMap(({ groupId }) => originalGroups.get(groupId));
+    groups.forEach(({ groupId }) => playerIdsByCanonicalId.delete(groupId));
+    memberIds.forEach((id) => canonicalIdByPlayerId.set(id, selectedId));
+    playerIdsByCanonicalId.set(selectedId, [selectedId, ...memberIds.filter((id) => id !== selectedId)]);
+    manualCanonicalIds.add(selectedId);
+  });
+  return manualCanonicalIds;
+}
+
 export function buildPlayerIdentityIndex(players = []) {
   const canonicalIdByPlayerId = new Map();
   const playerIdsByCanonicalId = new Map();
@@ -254,6 +354,8 @@ export function buildPlayerIdentityIndex(players = []) {
     );
   });
 
+  const manualCanonicalIds = applyManualIdentityLinks(playersById, canonicalIdByPlayerId, playerIdsByCanonicalId);
+
   const displayNameByCanonicalId = new Map();
   playerIdsByCanonicalId.forEach((_, canonicalId) => {
     displayNameByCanonicalId.set(canonicalId, playersById.get(canonicalId)?.displayName);
@@ -268,11 +370,18 @@ export function buildPlayerIdentityIndex(players = []) {
       displayNameByCanonicalId.set(canonicalId, group.displayName);
     });
   });
+  playerIdsByCanonicalId.forEach((_, canonicalId) => {
+    const selectedPlayer = playersById.get(canonicalId);
+    if (selectedPlayer?.canonicalDisplayName || manualCanonicalIds.has(canonicalId)) {
+      displayNameByCanonicalId.set(canonicalId, selectedPlayer.canonicalDisplayName || selectedPlayer.displayName);
+    }
+  });
 
   return {
     canonicalIdByPlayerId,
     playerIdsByCanonicalId,
     displayNameByCanonicalId,
+    manualCanonicalIds,
   };
 }
 

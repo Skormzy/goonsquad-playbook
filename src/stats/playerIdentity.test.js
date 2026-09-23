@@ -13,6 +13,64 @@ function player(id, displayName, sourceUrl) {
 }
 
 describe('verified cross-league player identity', () => {
+  it('keeps the explicitly selected survivor and its spelling across both existing identity groups', () => {
+    const players = [
+      { id: 'ycbhl-player-1', displayName: 'Incorrect Name', mergedIntoPlayerId: 'gtbhl-player-99' },
+      { id: 'gtbhl-player-2', displayName: 'Incorrect Name', mergedIntoPlayerId: 'gtbhl-player-99' },
+      { id: 'ycbhl-player-3', displayName: 'Correct Name', mergedIntoPlayerId: 'gtbhl-player-99' },
+      { id: 'gtbhl-player-99', displayName: 'Correct Name', canonicalDisplayName: 'Chosen Correct Name' },
+      { id: 'local-other', displayName: 'Incorrect Name' },
+    ];
+    const index = buildPlayerIdentityIndex(players);
+    expect([...expandPlayerIdentityIds(index, new Set(['ycbhl-player-1']))].sort()).toEqual(players.slice(0, 4).map(({ id }) => id).sort());
+    players.slice(0, 4).forEach(({ id }) => {
+      expect(canonicalPlayerIdentityId(index, id)).toBe('gtbhl-player-99');
+      expect(playerIdentityDisplayName(index, id)).toBe('Chosen Correct Name');
+    });
+    expect(canonicalPlayerIdentityId(index, 'local-other')).toBe('local-other');
+  });
+
+  it('resolves manual chains and prefers their terminal record over reviewed spellings', () => {
+    const index = buildPlayerIdentityIndex([
+      { id: 'ycbhl-player-25962', displayName: 'Abraham Saodzi', mergedIntoPlayerId: 'middle' },
+      { id: 'middle', displayName: 'Middle', mergedIntoPlayerId: 'correct' },
+      { id: 'correct', displayName: 'Administrator Selected Name' },
+    ]);
+    expect(canonicalPlayerIdentityId(index, 'ycbhl-player-25962')).toBe('correct');
+    expect(playerIdentityDisplayName(index, 'middle')).toBe('Administrator Selected Name');
+  });
+
+  it.each([
+    [{ id: 'a', mergedIntoPlayerId: 'b' }, { id: 'b', mergedIntoPlayerId: 'a' }],
+    [{ id: 'a', mergedIntoPlayerId: 'a' }, { id: 'b' }],
+    [{ id: 'a', mergedIntoPlayerId: 'missing' }, { id: 'b' }],
+    [{ id: 'a', mergedIntoPlayerId: 'b' }, { id: 'b', mergedIntoPlayerId: 'missing' }],
+  ].map((players) => [players]))('fails closed for cyclic and missing manual destinations (%j)', (players) => {
+    const index = buildPlayerIdentityIndex(players);
+    players.forEach(({ id }) => expect(canonicalPlayerIdentityId(index, id)).toBe(id));
+  });
+
+  it('fails closed for conflicting destinations inside an existing identity group', () => {
+    const players = [
+      { id: 'ycbhl-player-1', displayName: 'Same Person', mergedIntoPlayerId: 'a' },
+      { id: 'gtbhl-player-2', displayName: 'Same Person', mergedIntoPlayerId: 'b' },
+      { id: 'a' },
+      { id: 'b' },
+    ];
+    const index = buildPlayerIdentityIndex(players);
+    expect(canonicalPlayerIdentityId(index, 'gtbhl-player-2')).toBe('ycbhl-player-1');
+    expect(canonicalPlayerIdentityId(index, 'a')).toBe('a');
+    expect(canonicalPlayerIdentityId(index, 'b')).toBe('b');
+  });
+
+  it('can resolve an exact unique public external destination without a cloud UUID match', () => {
+    const index = buildPlayerIdentityIndex([
+      { id: 'ycbhl-player-1', externalId: '1', mergedIntoPlayerId: 'cloud-target', mergedIntoExternalId: 'gtbhl:99' },
+      { id: 'gtbhl-player-99', externalId: 'gtbhl:99', displayName: 'Correct' },
+    ]);
+    expect(canonicalPlayerIdentityId(index, 'ycbhl-player-1')).toBe('gtbhl-player-99');
+  });
+
   it('links a unique exact name across YCBHL and Greater Toronto', () => {
     const players = [
       player('ycbhl-player-1', 'Alex Member', 'https://www.yorkcentralbhl.com/player/1'),

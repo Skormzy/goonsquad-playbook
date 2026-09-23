@@ -2,6 +2,12 @@ import { normalizeUsername, usernameValidationMessage } from '../src/account/use
 import { resolvePlayerNumberAssignments } from '../src/stats/publicPlayerDetails.js';
 import { resolvePlayerPosition } from '../src/stats/playerPosition.js';
 import {
+  buildPlayerIdentityIndex,
+  canonicalPlayerIdentityId,
+  playerIdentityDisplayName,
+  playerIdsForIdentity,
+} from '../src/stats/playerIdentity.js';
+import {
   parseJsonBody,
   publicAppUrl,
   requireAccountAdmin,
@@ -136,7 +142,7 @@ async function loadPlayerLinkDirectory(admin, accounts) {
   const [playerResult, membershipResult, teamResult, seasonResult, publicPlayerResult] = await Promise.all([
     admin
       .from('players')
-      .select('id, external_id, display_name, jersey_number, jersey_number_updated_at, primary_position, primary_position_updated_at, active, source_url')
+      .select('id, external_id, display_name, jersey_number, jersey_number_updated_at, primary_position, primary_position_updated_at, active, source_url, merged_into_player_id, canonical_display_name')
       .order('active', { ascending: false })
       .order('display_name', { ascending: true }),
     admin
@@ -158,6 +164,8 @@ async function loadPlayerLinkDirectory(admin, accounts) {
   if (!Array.isArray(publicPlayerResult.data)) throw new Error('Player profile visibility is temporarily unavailable.');
 
   const accountById = new Map(accounts.map((account) => [account.id, account]));
+  const sourcePlayersById = new Map((playerResult.data || []).map((player) => [player.id, player]));
+  const publicDetailsById = new Map(publicPlayerResult.data.map((player) => [player.player_id, player]));
   const publicPlayerIds = new Set(publicPlayerResult.data.map((player) => player.player_id));
   const teamById = new Map((teamResult.data || []).map((team) => [team.id, team]));
   const seasonById = new Map((seasonResult.data || []).map((season) => [season.id, season]));
@@ -187,10 +195,17 @@ async function loadPlayerLinkDirectory(admin, accounts) {
     if (!player) return null;
     const roster = rosterByPlayer.get(player.id) || [];
     const currentRoster = roster[0];
+    const mergeTarget = sourcePlayersById.get(player.merged_into_player_id);
     return {
       id: player.id,
       externalId: player.external_id,
       displayName: player.display_name,
+      canonicalDisplayName: player.canonical_display_name ?? null,
+      mergedIntoPlayerId: player.merged_into_player_id ?? null,
+      mergedIntoExternalId: mergeTarget?.external_id ?? null,
+      mergedIntoDisplayName: mergeTarget?.canonical_display_name || mergeTarget?.display_name || null,
+      mergedIntoSourceUrl: mergeTarget?.source_url ?? null,
+      avatarUrl: publicDetailsById.get(player.id)?.avatar_url || null,
       jerseyNumber: player.jersey_number ?? null,
       jerseyNumberUpdatedAt: player.jersey_number_updated_at ?? null,
       primaryPosition: player.primary_position ?? null,
@@ -206,6 +221,7 @@ async function loadPlayerLinkDirectory(admin, accounts) {
   const normalizedPlayers = resolvePlayerNumberAssignments((playerResult.data || []).map(playerSummary))
     .map((player) => ({ ...player, position: resolvePlayerPosition(player, player.primaryPosition, player.position) }));
   const playerById = new Map(normalizedPlayers.map((player) => [player.id, player]));
+  const identityIndex = buildPlayerIdentityIndex(normalizedPlayers);
 
   const claims = claimRows.map((claim) => {
     const account = accountById.get(claim.user_id);
@@ -222,7 +238,7 @@ async function loadPlayerLinkDirectory(admin, accounts) {
         username: account.username,
         email: account.email,
       } : null,
-      player: player || null,
+      player: player ? { ...player, displayName: playerIdentityDisplayName(identityIndex, player.id, player.displayName) } : null,
     };
   });
   const linkedPlayerIds = new Set(
@@ -388,6 +404,116 @@ async function updatePlayerPosition(admin, body) {
   }
 }
 
+async function managedMergeContext(admin, body) {
+  const sourceId = typeof body.sourcePlayerId === 'string' ? body.sourcePlayerId.trim() : '';
+  const targetId = typeof body.targetPlayerId === 'string' ? body.targetPlayerId.trim() : '';
+  if (!PLAYER_ID_PATTERN.test(sourceId) || !PLAYER_ID_PATTERN.test(targetId)) {
+    throw new Error('Choose the incorrect player and the player that should remain.');
+  }
+  if (sourceId === targetId) throw new Error('Choose two different players to merge.');
+
+  // Resolve the complete identities on the server. The browser cannot choose
+  // a subset of aliases or silently strand statistics on a hidden record.
+  const { players } = await loadPlayerLinkDirectory(admin, []);
+  const source = players.find((player) => player.id === sourceId);
+  const target = players.find((player) => player.id === targetId);
+  if (!source || !target) {
+    const error = new Error('A selected player no longer exists. Refresh the directory.');
+    error.statusCode = 404;
+    throw error;
+  }
+  const index = buildPlayerIdentityIndex(players);
+  if (canonicalPlayerIdentityId(index, sourceId) === canonicalPlayerIdentityId(index, targetId)) {
+    throw new Error('These records already belong to the same player. Refresh the directory.');
+  }
+  const sourceIds = playerIdsForIdentity(index, sourceId).slice().sort();
+  const targetIds = playerIdsForIdentity(index, targetId).slice().sort();
+  const summarizeIdentity = (player, ids) => ({
+    ...player,
+    displayName: playerIdentityDisplayName(index, player.id, player.displayName),
+    roster: players.filter((candidate) => ids.includes(candidate.id)).flatMap((candidate) => candidate.roster),
+  });
+  return {
+    source: summarizeIdentity(source, sourceIds),
+    target: summarizeIdentity(target, targetIds),
+    sourceIds,
+    targetIds,
+  };
+}
+
+function mergeRpcArgs(actor, context) {
+  return {
+    p_actor_id: actor.id,
+    p_source_ids: context.sourceIds,
+    p_target_ids: context.targetIds,
+    p_target_id: context.target.id,
+    p_target_display_name: context.target.displayName,
+  };
+}
+
+function mergePreviewForClient(context, preview) {
+  if (!preview || typeof preview.fingerprint !== 'string' || !preview.counts?.combined
+    || !preview.fields?.jerseyNumber || !preview.fields?.primaryPosition
+    || typeof preview.canMerge !== 'boolean' || !Array.isArray(preview.blockers)
+    || (!preview.canMerge && !preview.blockers.length)) {
+    throw new Error('The merge preview is unavailable. Refresh and try again.');
+  }
+  const compactPlayer = (player, side) => ({
+    id: player.id,
+    displayName: player.displayName,
+    jerseyNumber: preview.fields.jerseyNumber?.[side] ?? null,
+    position: preview.fields.primaryPosition?.[side] ?? null,
+    seasons: [...new Set(player.roster.map((entry) => entry.season).filter(Boolean))].join(' · '),
+    teams: [...new Set(player.roster.map((entry) => entry.schedule).filter(Boolean))].join(' · '),
+  });
+  const combined = preview.counts.combined;
+  return {
+    source: compactPlayer(context.source, 'source'),
+    target: compactPlayer(context.target, 'target'),
+    counts: {
+      playerRecords: combined.players,
+      memberships: combined.memberships,
+      gameStats: combined.fieldAppearances,
+      goalieStats: combined.goalieAppearances,
+      seasonRecords: combined.seasonRows,
+      accounts: combined.approvedClaims,
+    },
+    blockers: (preview.blockers || []).map((blocker) => typeof blocker === 'string' ? blocker : blocker.message),
+    defaults: {
+      jerseyNumber: preview.fields.jerseyNumber?.suggested ?? null,
+      position: preview.fields.primaryPosition?.suggested ?? null,
+    },
+    conflicts: {
+      jerseyNumber: Boolean(preview.fields.jerseyNumber?.conflict),
+      position: Boolean(preview.fields.primaryPosition?.conflict),
+    },
+    previewToken: preview.fingerprint,
+  };
+}
+
+async function previewManagedMerge(admin, actor, body) {
+  const context = await managedMergeContext(admin, body);
+  const { data, error } = await admin.rpc('preview_player_merge', mergeRpcArgs(actor, context));
+  if (error) throw error;
+  return mergePreviewForClient(context, data);
+}
+
+async function mergeManagedPlayers(admin, actor, body) {
+  if (typeof body.previewToken !== 'string' || !/^[a-f0-9]{32,64}$/iu.test(body.previewToken)) {
+    throw new Error('Review the merge confirmation before merging these players.');
+  }
+  const jerseyNumber = normalizeManagedPlayerNumber(body.jerseyNumber);
+  const position = normalizeManagedPlayerPosition(body.position);
+  const context = await managedMergeContext(admin, body);
+  const { error } = await admin.rpc('merge_players', {
+    ...mergeRpcArgs(actor, context),
+    p_preview_fingerprint: body.previewToken,
+    p_jersey_number: jerseyNumber,
+    p_primary_position: position,
+  });
+  if (error) throw error;
+}
+
 export default async function handler(request, response) {
   setPrivateResponseHeaders(response);
   if (request.method !== 'POST') {
@@ -403,6 +529,10 @@ export default async function handler(request, response) {
 
     if (body.action === 'list') {
       response.status(200).json(await loadAdminSnapshot(admin, actor));
+      return;
+    }
+    if (body.action === 'preview-player-merge') {
+      response.status(200).json({ preview: await previewManagedMerge(admin, actor, body) });
       return;
     }
     if (body.action === 'update') {
@@ -423,6 +553,8 @@ export default async function handler(request, response) {
       await updatePlayerNumber(admin, body);
     } else if (body.action === 'update-player-position') {
       await updatePlayerPosition(admin, body);
+    } else if (body.action === 'merge-players') {
+      await mergeManagedPlayers(admin, actor, body);
     } else {
       response.status(400).json({ error: 'Unknown admin action.' });
       return;
