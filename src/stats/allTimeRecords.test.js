@@ -176,7 +176,8 @@ describe('all-time records', () => {
       ['Michael Thomas Kerrane', 62, 10],
       ['Michael Woods', 4, 16],
       ['Michael Yen', 20, 8],
-      ['Ryan Hunt', 61, 8],
+      ['Ryan Hunt', 62, 8],
+      ['Mathew Wallenburg', 45, 82],
       ['Stephen Macdonald', 59, 11],
       ['Zachary Sher', 23, 15],
     ];

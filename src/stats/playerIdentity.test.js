@@ -3,6 +3,7 @@ import {
   buildPlayerIdentityIndex,
   canonicalPlayerIdentityId,
   expandPlayerIdentityIds,
+  playerIdentityDisplayName,
   REVIEWED_PLAYER_IDENTITY_GROUPS,
 } from './playerIdentity';
 import { OFFICIAL_STATS_DATASET } from './statsSeed';
@@ -122,7 +123,7 @@ describe('verified cross-league player identity', () => {
   it('never merges two reviewed IDs that appeared in the same official game', () => {
     REVIEWED_PLAYER_IDENTITY_GROUPS.forEach((group) => {
       const gameIdsByPlayer = group.playerIds.map((playerId) => new Set(
-        OFFICIAL_STATS_DATASET.playerGameStats
+        [...OFFICIAL_STATS_DATASET.playerGameStats, ...OFFICIAL_STATS_DATASET.goalieGameStats]
           .filter((line) => line.playerId === playerId && Number(line.gamesPlayed ?? 1) > 0)
           .map((line) => line.gameId),
       ));
@@ -135,6 +136,34 @@ describe('verified cross-league player identity', () => {
           expect(sharedGames, group.displayName).toEqual([]);
         }
       }
+    });
+  });
+
+  it('uses the reviewed spelling for each alias, including an alias-only cloud dataset', () => {
+    const player = {
+      id: 'cloud-old-spelling',
+      externalId: '25962',
+      displayName: 'Abraham Saodzi',
+      sourceUrl: 'https://www.yorkcentralbhl.com/player/7117-goonsquad/25962-abraham-saodzi',
+    };
+    const index = buildPlayerIdentityIndex([player]);
+    expect(playerIdentityDisplayName(index, player.id, player.displayName)).toBe('Abraham Sadozi');
+    expect(player.displayName).toBe('Abraham Saodzi');
+    expect(playerIdentityDisplayName(index, 'unknown', 'Another player')).toBe('Another player');
+  });
+
+  it('keeps unconfirmed similar names and known separate teammates distinct', () => {
+    const index = buildPlayerIdentityIndex(OFFICIAL_STATS_DATASET.players);
+    [
+      ['25980', '8079', '26108'], // Tyler Flach / Flack / Glach: unconfirmed.
+      ['26132', '26364'], // John / Johnathan Gianopoulos: unconfirmed.
+      ['26362', '26386'], // Matt / Matteo Crossley: unconfirmed.
+      ['25314', '25244'], // Lee / Lorry Brown played together.
+      ['24599', '24598'], // Al-Rahim / Amyn Gangani played together.
+      ['26330', '26380'], // Saif / Sajjad Jaffery played together.
+    ].forEach((ids) => {
+      const canonicalIds = ids.map((id) => canonicalPlayerIdentityId(index, `ycbhl-player-${id}`));
+      expect(new Set(canonicalIds)).toHaveLength(ids.length);
     });
   });
 

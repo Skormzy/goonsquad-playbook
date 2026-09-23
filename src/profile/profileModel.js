@@ -10,6 +10,7 @@ import {
   canonicalPlayerIdentityId,
   expandPlayerIdentityIds,
   normalizePlayerIdentityName,
+  playerIdentityDisplayName,
   playerIdentitySource,
   playerIdentitySourceLabel,
 } from '../stats/playerIdentity';
@@ -95,12 +96,13 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
       const jerseyNumber = resolvePlayerNumber(player,
         ...currentMemberships.map((membership) => membership.jerseyNumber),
         latestMembership?.membership.jerseyNumber);
-      const searchText = [player.displayName, position, jerseyNumber, ...schedules, ...seasons.map((season) => season.name)].filter(Boolean).join(' ').toLowerCase();
+      const displayName = playerIdentityDisplayName(identityIndex, player.id, player.displayName);
+      const searchText = [displayName, player.displayName, position, jerseyNumber, ...schedules, ...seasons.map((season) => season.name)].filter(Boolean).join(' ').toLowerCase();
       return {
         id: player.id,
         cloudPlayerId: player.persisted === false ? null : player.id,
         externalId: player.externalId,
-        displayName: player.displayName,
+        displayName,
         avatarUrl: player.avatarUrl || null,
         sourceUrl: player.sourceUrl,
         position,
@@ -116,7 +118,7 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
         seasonIds: seasons.map((season) => season.id),
         seasonCount: seasons.length,
         searchText,
-        identitySearchText: normalizePlayerIdentityName(player.displayName),
+        identitySearchText: `${normalizePlayerIdentityName(displayName)} ${normalizePlayerIdentityName(player.displayName)}`,
       };
     })
     .filter(Boolean);
@@ -124,13 +126,12 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
   const combinedCandidates = new Map();
   candidates.forEach((candidate) => {
     const canonicalId = canonicalPlayerIdentityId(identityIndex, candidate.id);
-    const canonicalPlayer = dataset.players.find((player) => player.id === canonicalId) ?? null;
     const existing = combinedCandidates.get(canonicalId);
     if (!existing) {
       combinedCandidates.set(canonicalId, {
         ...candidate,
         id: canonicalId,
-        displayName: canonicalPlayer?.displayName ?? candidate.displayName,
+        displayName: playerIdentityDisplayName(identityIndex, canonicalId, candidate.displayName),
         identityPlayerIds: [...(identityIndex.playerIdsByCanonicalId.get(canonicalId) ?? [candidate.id])],
       });
       return;
@@ -140,7 +141,7 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
     combinedCandidates.set(canonicalId, {
       ...preferred,
       id: canonicalId,
-      displayName: canonicalPlayer?.displayName ?? preferred.displayName,
+      displayName: playerIdentityDisplayName(identityIndex, canonicalId, preferred.displayName),
       cloudPlayerId: existing.cloudPlayerId || candidate.cloudPlayerId || null,
       current: existing.current || candidate.current,
       active: existing.active || candidate.active,
@@ -512,7 +513,10 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now(), { tourn
 
   return {
     players,
-    primaryPlayer,
+    primaryPlayer: {
+      ...primaryPlayer,
+      displayName: playerIdentityDisplayName(identityIndex, primaryPlayer.id, primaryPlayer.displayName),
+    },
     officialProfiles: officialProfilesForPlayers(players, primaryPlayer),
     linkStatus: 'linked',
     claims,

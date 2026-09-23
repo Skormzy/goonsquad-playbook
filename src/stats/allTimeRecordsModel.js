@@ -58,7 +58,7 @@ function decorate(lines, metadata, events, extraMetadata = new Map()) {
     const eventIds = [...(events.get(line.playerId) ?? [])];
     return {
       ...line,
-      displayName: line.displayName || player?.displayName || 'Goonsquad player',
+      displayName: player?.displayName || line.displayName || 'Goonsquad player',
       avatarUrl: player?.avatarUrl ?? null,
       jerseyNumber: resolvePlayerNumber(player, line.jerseyNumber),
       position: resolvePlayerPosition(player, line.position, player?.position),

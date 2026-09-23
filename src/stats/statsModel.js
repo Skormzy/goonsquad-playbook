@@ -1,4 +1,10 @@
 import { resolvePlayerNumber } from './playerNumber';
+import {
+  buildPlayerIdentityIndex,
+  canonicalPlayerIdentityId,
+  playerIdentityDisplayName,
+  playerIdsForIdentity,
+} from './playerIdentity';
 
 function publishedNumber(value) {
   if (value === null || value === undefined || value === '') return null;
@@ -174,20 +180,28 @@ export function teamSummaryFromRecord(record) {
   };
 }
 
-function playerDetails(players, playerId) {
-  const player = players.find((candidate) => candidate.id === playerId);
-  return {
-    displayName: player?.displayName ?? 'Unknown player',
-    jerseyNumber: resolvePlayerNumber(player),
+function playerDetailsResolver(players) {
+  const identityIndex = buildPlayerIdentityIndex(players);
+  const playersById = new Map(players.map((player) => [player.id, player]));
+  return (playerId) => {
+    const canonicalId = canonicalPlayerIdentityId(identityIndex, playerId);
+    const player = playersById.get(canonicalId) ?? playersById.get(playerId);
+    return {
+      playerId: canonicalId,
+      displayName: playerIdentityDisplayName(identityIndex, playerId, player?.displayName ?? 'Unknown player'),
+      jerseyNumber: resolvePlayerNumber(player, ...playerIdsForIdentity(identityIndex, playerId)
+        .map((identityPlayerId) => playersById.get(identityPlayerId)?.jerseyNumber)),
+    };
   };
 }
 
 export function aggregatePlayerStats(lines, players) {
   const aggregate = new Map();
+  const playerDetails = playerDetailsResolver(players);
   lines.forEach((line) => {
-    const current = aggregate.get(line.playerId) ?? {
-      playerId: line.playerId,
-      ...playerDetails(players, line.playerId),
+    const details = playerDetails(line.playerId);
+    const current = aggregate.get(details.playerId) ?? {
+      ...details,
       gamesPlayed: 0,
       goals: 0,
       assists: 0,
@@ -205,7 +219,7 @@ export function aggregatePlayerStats(lines, players) {
     current.shots = addPublished(current.shots, line.shots);
     current.penaltyMinutes = addPublished(current.penaltyMinutes, line.penaltyMinutes);
     current.plusMinus = addPublished(current.plusMinus, line.plusMinus);
-    aggregate.set(line.playerId, current);
+    aggregate.set(details.playerId, current);
   });
   return [...aggregate.values()]
     .map((line) => ({
@@ -218,10 +232,11 @@ export function aggregatePlayerStats(lines, players) {
 
 export function aggregateGoalieStats(lines, players) {
   const aggregate = new Map();
+  const playerDetails = playerDetailsResolver(players);
   lines.forEach((line) => {
-    const current = aggregate.get(line.playerId) ?? {
-      playerId: line.playerId,
-      ...playerDetails(players, line.playerId),
+    const details = playerDetails(line.playerId);
+    const current = aggregate.get(details.playerId) ?? {
+      ...details,
       gamesPlayed: 0,
       wins: 0,
       losses: 0,
@@ -241,7 +256,7 @@ export function aggregateGoalieStats(lines, players) {
     current.saves = addPublished(current.saves, line.saves);
     current.shutouts = addPublished(current.shutouts, line.shutouts);
     current.minutesPlayed = addPublished(current.minutesPlayed, line.minutesPlayed);
-    aggregate.set(line.playerId, current);
+    aggregate.set(details.playerId, current);
   });
   return [...aggregate.values()]
     .map((line) => ({
@@ -254,10 +269,11 @@ export function aggregateGoalieStats(lines, players) {
 
 export function aggregatePlayerSeasonStats(lines, players) {
   const aggregate = new Map();
+  const playerDetails = playerDetailsResolver(players);
   lines.forEach((line) => {
-    const current = aggregate.get(line.playerId) ?? {
-      playerId: line.playerId,
-      ...playerDetails(players, line.playerId),
+    const details = playerDetails(line.playerId);
+    const current = aggregate.get(details.playerId) ?? {
+      ...details,
       gamesPlayed: 0,
       goals: 0,
       assists: 0,
@@ -280,7 +296,7 @@ export function aggregatePlayerSeasonStats(lines, players) {
     current.powerPlayGoals = addPublished(current.powerPlayGoals, line.powerPlayGoals);
     current.shortHandedGoals = addPublished(current.shortHandedGoals, line.shortHandedGoals);
     current.emptyNetGoals = addPublished(current.emptyNetGoals, line.emptyNetGoals);
-    aggregate.set(line.playerId, current);
+    aggregate.set(details.playerId, current);
   });
   return [...aggregate.values()]
     .map((line) => ({
@@ -295,10 +311,11 @@ export function aggregatePlayerSeasonStats(lines, players) {
 
 export function aggregateGoalieSeasonStats(lines, players) {
   const aggregate = new Map();
+  const playerDetails = playerDetailsResolver(players);
   lines.forEach((line) => {
-    const current = aggregate.get(line.playerId) ?? {
-      playerId: line.playerId,
-      ...playerDetails(players, line.playerId),
+    const details = playerDetails(line.playerId);
+    const current = aggregate.get(details.playerId) ?? {
+      ...details,
       gamesPlayed: 0,
       wins: 0,
       losses: 0,
@@ -317,7 +334,7 @@ export function aggregateGoalieSeasonStats(lines, players) {
     current.shotsAgainst = addPublished(current.shotsAgainst, line.shotsAgainst);
     current.goalsAgainst = addPublished(current.goalsAgainst, line.goalsAgainst);
     current.minutesPlayed = addPublished(current.minutesPlayed, line.minutesPlayed);
-    aggregate.set(line.playerId, current);
+    aggregate.set(details.playerId, current);
   });
   return [...aggregate.values()]
     .map((line) => {
@@ -370,6 +387,7 @@ export function statsSnapshot(dataset, seasonId, teamId, stage = 'regular') {
       .filter((membership) => membership.playerId === player.id)
       .map((membership) => membership.jerseyNumber)),
   }));
+  const playerDetails = playerDetailsResolver(players);
   const seasonPlayerLines = (dataset.playerSeasonStats || []).filter((line) => selectedTeamIds.has(line.seasonTeamId) && includesStage(line, stage));
   const seasonGoalieLines = (dataset.goalieSeasonStats || []).filter((line) => selectedTeamIds.has(line.seasonTeamId) && includesStage(line, stage));
   const teamItems = [
@@ -436,14 +454,16 @@ export function statsSnapshot(dataset, seasonId, teamId, stage = 'regular') {
       team: teamGameLines.find((line) => (line.gameId ?? line.game_id) === game.id) ?? null,
       players: playerLines.filter((line) => line.gameId === game.id).map((line) => ({
         ...line,
-        ...playerDetails(players, line.playerId),
+        ...playerDetails(line.playerId),
+        playerId: line.playerId,
         points: publishedNumber(line.goals) !== null && publishedNumber(line.assists) !== null
           ? publishedNumber(line.goals) + publishedNumber(line.assists)
           : null,
       })),
       goalies: goalieLines.filter((line) => line.gameId === game.id).map((line) => ({
         ...line,
-        ...playerDetails(players, line.playerId),
+        ...playerDetails(line.playerId),
+        playerId: line.playerId,
         savePercentage: publishedRate(publishedNumber(line.saves), publishedNumber(line.shotsAgainst)),
       })),
       events: gameEvents.filter((event) => event.gameId === game.id),

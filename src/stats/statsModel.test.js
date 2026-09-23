@@ -52,6 +52,79 @@ describe('statistics model', () => {
     });
   });
 
+  it.each([aggregatePlayerStats, aggregatePlayerSeasonStats])('combines reviewed field-player aliases in %s without losing unknown statistics', (aggregate) => {
+    const players = [
+      { id: 'ycbhl-player-25650', displayName: 'Mathew Grenier', jerseyNumber: '7' },
+      { id: 'gtbhl-player-88577', displayName: 'Matt Grenier', jerseyNumber: '7' },
+      { id: 'unreviewed-matt', displayName: 'Matt Grenier' },
+    ];
+    const rows = aggregate([
+      { playerId: 'ycbhl-player-25650', gamesPlayed: 2, goals: 2, assists: 1, points: 3, shots: 6, penaltyMinutes: 0 },
+      { playerId: 'gtbhl-player-88577', gamesPlayed: 1, goals: 1, assists: 3, points: 4, shots: null, penaltyMinutes: null },
+      { playerId: 'unreviewed-matt', gamesPlayed: 1, goals: 0, assists: 0, points: 0 },
+    ], players);
+
+    expect(rows).toHaveLength(2);
+    expect(rows.find((row) => row.playerId === 'ycbhl-player-25650')).toMatchObject({
+      displayName: 'Mathew Grenier', jerseyNumber: '7', gamesPlayed: 3,
+      goals: 3, assists: 4, points: 7, penaltyMinutes: null, shots: null,
+      pointsPerGame: 7 / 3,
+    });
+    expect(rows.find((row) => row.playerId === 'unreviewed-matt').gamesPlayed).toBe(1);
+  });
+
+  it.each([aggregateGoalieStats, aggregateGoalieSeasonStats])('combines misspelled goalie aliases in %s and recalculates rates from their totals', (aggregate) => {
+    const players = [
+      { id: 'ycbhl-player-25735', displayName: 'Abraham Sadozi', jerseyNumber: '30' },
+      { id: 'ycbhl-player-25962', displayName: 'Abraham Saodzi', jerseyNumber: '30' },
+    ];
+    const rows = aggregate([
+      { playerId: 'ycbhl-player-25735', gamesPlayed: 2, wins: 2, losses: 0, ties: 0, goalsAgainst: 6, shotsAgainst: 32, saves: 26, minutesPlayed: 60, shutouts: 0, savePercentage: 0.813 },
+      { playerId: 'ycbhl-player-25962', gamesPlayed: 1, wins: 0, losses: 1, ties: 0, goalsAgainst: 7, shotsAgainst: 24, saves: 17, minutesPlayed: 30, shutouts: 0, savePercentage: 0.708 },
+    ], players);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      playerId: 'ycbhl-player-25735', displayName: 'Abraham Sadozi', jerseyNumber: '30',
+      gamesPlayed: 3, wins: 2, losses: 1, ties: 0, goalsAgainst: 13,
+      shotsAgainst: 56, saves: 43, minutesPlayed: 90, shutouts: 0,
+    });
+    expect(rows[0].savePercentage).toBeCloseTo(43 / 56);
+    expect(rows[0].goalsAgainstAverage).toBeCloseTo(13 / 3);
+  });
+
+  it('uses the reviewed name in season and game views while preserving the source game-line identity', () => {
+    const misspelledId = 'ycbhl-player-25962';
+    const snapshot = statsSnapshot({
+      seasons: [{ id: 's1', name: 'Summer 2025' }],
+      teams: [{ id: 't1', seasonId: 's1', name: 'Sunday Team' }],
+      players: [
+        { id: 'ycbhl-player-25735', displayName: 'Abraham Sadozi' },
+        { id: misspelledId, displayName: 'Abraham Saodzi' },
+      ],
+      memberships: [{ playerId: misspelledId, seasonTeamId: 't1', jerseyNumber: '30' }],
+      games: [games[0]],
+      teamGameStats: [],
+      playerGameStats: [{ id: 'original-field-line', gameId: 'g1', playerId: misspelledId, gamesPlayed: 1, goals: 0, assists: 0 }],
+      goalieGameStats: [{ id: 'original-goalie-line', gameId: 'g1', playerId: misspelledId, gamesPlayed: 1, goalsAgainst: 7, shotsAgainst: 24, saves: 17, minutesPlayed: 30 }],
+    }, 's1', 't1');
+
+    expect(snapshot.fieldPlayers[0]).toMatchObject({ playerId: 'ycbhl-player-25735', displayName: 'Abraham Sadozi', jerseyNumber: '30' });
+    expect(snapshot.goalies[0]).toMatchObject({ playerId: 'ycbhl-player-25735', displayName: 'Abraham Sadozi', jerseyNumber: '30' });
+    expect(snapshot.gameDetails.g1.players[0]).toMatchObject({ id: 'original-field-line', playerId: misspelledId, displayName: 'Abraham Sadozi' });
+    expect(snapshot.gameDetails.g1.goalies[0]).toMatchObject({ id: 'original-goalie-line', playerId: misspelledId, displayName: 'Abraham Sadozi' });
+  });
+
+  it('preserves an explicit number clear when combining aliases with historical numbers', () => {
+    const rows = aggregateGoalieStats([
+      { playerId: 'ycbhl-player-25962', gamesPlayed: 1 },
+    ], [
+      { id: 'ycbhl-player-25735', displayName: 'Abraham Sadozi', jerseyNumber: null, jerseyNumberAuthoritative: true },
+      { id: 'ycbhl-player-25962', displayName: 'Abraham Saodzi', jerseyNumber: '30' },
+    ]);
+    expect(rows[0].jerseyNumber).toBeNull();
+  });
+
   it('keeps unavailable game-line statistics null while preserving published zeroes', () => {
     const players = [
       { id: 'unknown', displayName: 'Unknown totals' },

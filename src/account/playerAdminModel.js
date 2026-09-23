@@ -1,4 +1,4 @@
-import { buildPlayerIdentityIndex, canonicalPlayerIdentityId } from '../stats/playerIdentity';
+import { buildPlayerIdentityIndex, canonicalPlayerIdentityId, playerIdentityDisplayName } from '../stats/playerIdentity';
 import { resolvePlayerNumberAssignments } from '../stats/publicPlayerDetails';
 import { resolvePlayerPosition } from '../stats/playerPosition';
 
@@ -49,6 +49,7 @@ export function buildPlayerAdminRows({ players = [], accounts = [], claims = [] 
     return {
       ...player,
       id: editablePlayer.id,
+      displayName: playerIdentityDisplayName(identityIndex, identityId, player.displayName),
       identityId,
       sourcePlayers,
       roster,

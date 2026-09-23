@@ -10,6 +10,16 @@ const REVIEWED_NAME_ALIASES = new Map([
 // against the source rosters and game logs; IDs in one group never appear as
 // separate players in the same game.
 export const REVIEWED_PLAYER_IDENTITY_GROUPS = Object.freeze([
+  // Summer 2025 used a transposed surname for the same Goonsquad goalie.
+  // https://www.yorkcentralbhl.com/player/7022-goonsquad/25735-abraham-sadozi
+  // https://www.yorkcentralbhl.com/game/52142-goonsquad-viperz
+  Object.freeze({
+    displayName: 'Abraham Sadozi',
+    playerIds: Object.freeze([
+      'ycbhl-player-25735',
+      'ycbhl-player-25962',
+    ]),
+  }),
   Object.freeze({
     displayName: 'Adrian Bockner',
     playerIds: Object.freeze([
@@ -31,6 +41,17 @@ export const REVIEWED_PLAYER_IDENTITY_GROUPS = Object.freeze([
     playerIds: Object.freeze([
       'ycbhl-player-25650',
       'gtbhl-player-88577',
+    ]),
+  }),
+  // The April 2026 fill-in record misspells both names. The established
+  // YCBHL profile and independent GTBHL profile use Mathew Wallenburg.
+  // https://www.yorkcentralbhl.com/player/7064-goonsquad/25816-mathew-wallenburg
+  // https://www.greatertorontoballhockeyleague.com/player/3188-bullets/85384-mathew-wallenburg
+  Object.freeze({
+    displayName: 'Mathew Wallenburg',
+    playerIds: Object.freeze([
+      'ycbhl-player-25816',
+      'ycbhl-player-26163',
     ]),
   }),
   Object.freeze({
@@ -233,14 +254,35 @@ export function buildPlayerIdentityIndex(players = []) {
     );
   });
 
+  const displayNameByCanonicalId = new Map();
+  playerIdsByCanonicalId.forEach((_, canonicalId) => {
+    displayNameByCanonicalId.set(canonicalId, playersById.get(canonicalId)?.displayName);
+  });
+  // The reviewed spelling is stable even when only an old alias is present
+  // in a filtered/public dataset. Raw source names remain available for search.
+  REVIEWED_PLAYER_IDENTITY_GROUPS.forEach((group) => {
+    group.playerIds.forEach((archiveId) => {
+      const matches = playersByArchiveId.get(archiveId) ?? [];
+      if (matches.length !== 1) return;
+      const canonicalId = canonicalIdByPlayerId.get(matches[0].id);
+      displayNameByCanonicalId.set(canonicalId, group.displayName);
+    });
+  });
+
   return {
     canonicalIdByPlayerId,
     playerIdsByCanonicalId,
+    displayNameByCanonicalId,
   };
 }
 
 export function canonicalPlayerIdentityId(identityIndex, playerId) {
   return identityIndex.canonicalIdByPlayerId.get(playerId) ?? playerId;
+}
+
+export function playerIdentityDisplayName(identityIndex, playerId, fallback) {
+  const canonicalId = canonicalPlayerIdentityId(identityIndex, playerId);
+  return identityIndex.displayNameByCanonicalId.get(canonicalId) || fallback;
 }
 
 export function playerIdsForIdentity(identityIndex, playerId) {
