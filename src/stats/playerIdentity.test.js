@@ -60,6 +60,38 @@ describe('verified cross-league player identity', () => {
     expect(canonicalPlayerIdentityId(index, 'local-2')).toBe('local-2');
   });
 
+  it('keeps Sajjad Jaffery on the populated source record and links only the reviewed retired ID', () => {
+    const populatedId = 'ycbhl-player-26380';
+    const retiredId = 'ycbhl-player-26381';
+    const unrelatedId = 'ycbhl-player-99999';
+    const players = [
+      ...OFFICIAL_STATS_DATASET.players.filter(({ id }) => [populatedId, retiredId].includes(id)),
+      player(unrelatedId, 'Sajjad Jaffery', 'https://www.yorkcentralbhl.com/player/99999'),
+    ];
+    const index = buildPlayerIdentityIndex(players);
+
+    expect(players).toHaveLength(3);
+    expect(OFFICIAL_STATS_DATASET.memberships.some(({ playerId }) => playerId === populatedId)).toBe(true);
+    expect(OFFICIAL_STATS_DATASET.playerGameStats.some(({ playerId }) => playerId === populatedId)).toBe(true);
+    expect(OFFICIAL_STATS_DATASET.memberships.some(({ playerId }) => playerId === retiredId)).toBe(false);
+    expect(OFFICIAL_STATS_DATASET.playerGameStats.some(({ playerId }) => playerId === retiredId)).toBe(false);
+    expect(canonicalPlayerIdentityId(index, retiredId)).toBe(populatedId);
+    expect([...expandPlayerIdentityIds(index, new Set([retiredId]))]).toEqual([populatedId, retiredId]);
+    expect(canonicalPlayerIdentityId(index, unrelatedId)).toBe(unrelatedId);
+  });
+
+  it('keeps the populated Sajjad source canonical after cloud UUID replacement', () => {
+    const index = buildPlayerIdentityIndex([
+      { id: 'cloud-retired', externalId: '26381', displayName: 'Sajjad Jaffery', sourceUrl: 'https://www.yorkcentralbhl.com/player/7278-goonsquad/26381-sajjad-jaffery' },
+      { id: 'cloud-populated', externalId: '26380', displayName: 'Sajjad Jaffery', sourceUrl: 'https://www.yorkcentralbhl.com/player/7278-goonsquad/26380-sajjad-jaffery' },
+    ]);
+
+    expect(canonicalPlayerIdentityId(index, 'cloud-retired')).toBe('cloud-populated');
+    expect(new Set(expandPlayerIdentityIds(index, new Set(['cloud-populated'])))).toEqual(
+      new Set(['cloud-populated', 'cloud-retired']),
+    );
+  });
+
   it('consolidates every reviewed historical ID into one player identity', () => {
     const index = buildPlayerIdentityIndex(OFFICIAL_STATS_DATASET.players);
 

@@ -49,7 +49,66 @@ describe('player administration directory', () => {
       { id: 'ycbhl-player-307', displayName: 'Ryan Hunt', jerseyNumber: '12', active: true },
       { id: 'gtbhl-player-84495', displayName: 'Ryan Hunt', jerseyNumber: '12', active: true },
     ] });
+    expect(aliases).toHaveLength(1);
     expect(aliases.every((row) => !row.sharedNumber)).toBe(true);
+  });
+  it('combines verified aliases into one editable player with all roster and account details', () => {
+    const players = [
+      { id: 'cloud-york', externalId: 'ycbhl:308', displayName: 'Andrew Lorenowicz', jerseyNumber: '72', primaryPosition: 'D', active: false, roster: [{ season: 'Winter 2024', schedule: 'Monday' }] },
+      { id: 'cloud-toronto', externalId: 'gtbhl:87769', displayName: 'Andy Lorenowicz', jerseyNumber: '9', jerseyNumberUpdatedAt: '2026-09-23T12:00:00Z', primaryPosition: 'C', primaryPositionUpdatedAt: '2026-09-23T12:00:00Z', active: true, roster: [{ season: 'Fall 2026', schedule: 'Sunday', jerseyNumber: '12' }] },
+    ];
+    const grouped = buildPlayerAdminRows({ players, accounts: snapshot.accounts, claims: [
+      { playerId: 'cloud-toronto', userId: 'user', status: 'approved' },
+      { playerId: 'cloud-york', userId: 'user', status: 'approved' },
+    ] });
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]).toMatchObject({
+      id: 'cloud-york', identityId: 'cloud-york', displayName: 'Andrew Lorenowicz',
+      jerseyNumber: '9', position: 'C', active: true, rosterStatus: 'Active', linkStatus: 'Linked',
+      seasons: 'Winter 2024 · Fall 2026', teams: 'Monday · Sunday',
+      emails: 'em@example.test', memberNames: 'Em Jones', externalId: 'ycbhl:308 · gtbhl:87769',
+    });
+    expect(grouped[0].sourcePlayers.map((player) => player.id)).toEqual(['cloud-york', 'cloud-toronto']);
+    expect(selectPlayerAdminRows(grouped, { query: 'Andy Sunday #9' })).toHaveLength(1);
+    expect(selectPlayerAdminRows(grouped, { filters: { externalId: 'gtbhl:87769', teams: 'Sunday' } })).toHaveLength(1);
+    expect(selectPlayerAdminRows(grouped, { query: 'cloud-toronto' })).toHaveLength(1);
+    expect(playerAdminCsv(grouped).split('\r\n')).toHaveLength(2);
+  });
+  it('keeps the latest explicit clears when combining league history', () => {
+    const grouped = buildPlayerAdminRows({ players: [
+      { id: 'ycbhl-player-307', displayName: 'Ryan Hunt', jerseyNumber: '12', primaryPosition: 'D', position: 'D', active: true },
+      { id: 'gtbhl-player-84495', displayName: 'Ryan Hunt', jerseyNumber: null, jerseyNumberUpdatedAt: '2026-09-23T12:00:00Z', primaryPosition: null, primaryPositionUpdatedAt: '2026-09-23T12:00:00Z', position: 'W', active: false },
+    ] });
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]).toMatchObject({ jerseyNumber: '', position: null, active: true, sharedNumber: false });
+    expect(selectPlayerAdminRows(grouped, { quickFilter: 'unnumbered' })).toHaveLength(1);
+  });
+  it('targets an available public record when the canonical league record is retired', () => {
+    const grouped = buildPlayerAdminRows({ players: [
+      { id: 'cloud-retired', externalId: 'ycbhl:25559', displayName: 'Zachary Sher', publicProfile: false, active: false },
+      { id: 'cloud-public', externalId: 'gtbhl:88214', displayName: 'Zack Sher', publicProfile: true, active: true },
+    ] });
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]).toMatchObject({ id: 'cloud-public', identityId: 'cloud-retired', displayName: 'Zachary Sher' });
+    expect(grouped[0].sourcePlayers.map((player) => player.id)).toEqual(['cloud-retired', 'cloud-public']);
+  });
+  it('retains pending claims and alias search terms on the combined row', () => {
+    const grouped = buildPlayerAdminRows({ players: [
+      { id: 'ycbhl-player-308', displayName: 'Andrew Lorenowicz', active: false },
+      { id: 'gtbhl-player-87769', displayName: 'Andy Lorenowicz', active: false },
+    ], claims: [{ playerId: 'gtbhl-player-87769', userId: 'pending', status: 'pending', member: { email: 'andy@example.test' } }] });
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]).toMatchObject({ linkStatus: 'Pending', rosterStatus: 'Inactive' });
+    expect(selectPlayerAdminRows(grouped, { query: 'andy@example.test' })).toHaveLength(1);
+  });
+  it('does not merge unverified people just because their names match', () => {
+    const separate = buildPlayerAdminRows({ players: [
+      { id: 'team-one', displayName: 'Alex Smith', active: true },
+      { id: 'team-two', displayName: 'Alex Smith', active: true },
+      { id: 'ycbhl-player-90001', displayName: 'Taylor Jones', active: true },
+      { id: 'ycbhl-player-90002', displayName: 'Taylor Jones', active: true },
+    ] });
+    expect(separate).toHaveLength(4);
   });
   it.each(PLAYER_ADMIN_COLUMNS)('supports sorting and filtering the $label column', ({ key }) => {
     const value = String(rows[0][key] || '');

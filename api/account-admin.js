@@ -133,7 +133,7 @@ async function loadPlayerClaimRows(admin) {
 
 async function loadPlayerLinkDirectory(admin, accounts) {
   const claimRows = await loadPlayerClaimRows(admin);
-  const [playerResult, membershipResult, teamResult, seasonResult] = await Promise.all([
+  const [playerResult, membershipResult, teamResult, seasonResult, publicPlayerResult] = await Promise.all([
     admin
       .from('players')
       .select('id, external_id, display_name, jersey_number, jersey_number_updated_at, primary_position, primary_position_updated_at, active, source_url')
@@ -148,13 +148,17 @@ async function loadPlayerLinkDirectory(admin, accounts) {
     admin
       .from('seasons')
       .select('id, name, is_current'),
+    admin.rpc('list_public_player_avatars'),
   ]);
   if (playerResult.error) throw playerResult.error;
   if (membershipResult.error) throw membershipResult.error;
   if (teamResult.error) throw teamResult.error;
   if (seasonResult.error) throw seasonResult.error;
+  if (publicPlayerResult.error) throw publicPlayerResult.error;
+  if (!Array.isArray(publicPlayerResult.data)) throw new Error('Player profile visibility is temporarily unavailable.');
 
   const accountById = new Map(accounts.map((account) => [account.id, account]));
+  const publicPlayerIds = new Set(publicPlayerResult.data.map((player) => player.player_id));
   const teamById = new Map((teamResult.data || []).map((team) => [team.id, team]));
   const seasonById = new Map((seasonResult.data || []).map((season) => [season.id, season]));
   const rosterByPlayer = new Map();
@@ -193,6 +197,7 @@ async function loadPlayerLinkDirectory(admin, accounts) {
       primaryPositionUpdatedAt: player.primary_position_updated_at ?? null,
       position: currentRoster?.position || null,
       active: Boolean(player.active),
+      publicProfile: publicPlayerIds.has(player.id),
       sourceUrl: player.source_url,
       roster,
       rosterLabel: currentRoster?.label || '',

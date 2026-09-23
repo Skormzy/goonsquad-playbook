@@ -39,6 +39,60 @@ describe('player administration profile navigation', () => {
     expect(resolvePlayerAdminProfileId({ id: 'two', externalId: '17' }, dataset)).toBe('two');
   });
 
+  it('prefers the grouped canonical record when it is present in the dataset', () => {
+    const dataset = { players: [{ id: 'alias', externalId: '17' }, { id: 'canonical', externalId: 'gtbhl:42' }] };
+    const player = {
+      id: 'canonical',
+      externalId: '17, gtbhl:42',
+      sourcePlayers: [{ id: 'alias', externalId: '17' }, { id: 'canonical', externalId: 'gtbhl:42' }],
+    };
+    expect(resolvePlayerAdminProfileId(player, dataset)).toBe('canonical');
+  });
+
+  it('uses an existing source record ID before another source external ID', () => {
+    const dataset = { players: [{ id: 'archive-player', externalId: '17' }, { id: 'cloud-alias', externalId: 'gtbhl:42' }] };
+    const player = {
+      id: 'unpublished-canonical',
+      sourcePlayers: [{ id: 'cloud-primary', externalId: '17' }, { id: 'cloud-alias', externalId: 'gtbhl:42' }],
+    };
+    expect(resolvePlayerAdminProfileId(player, dataset)).toBe('cloud-alias');
+  });
+
+  it('resolves grouped cloud records through an available archive alias', () => {
+    const player = {
+      id: 'unpublished-canonical',
+      externalId: 'missing, gtbhl:84064',
+      externalIds: 'missing, gtbhl:84064',
+      sourcePlayers: [{ id: 'cloud-primary', externalId: 'missing' }, { id: 'cloud-alias', externalId: 'gtbhl:84064' }],
+    };
+    const playerId = resolvePlayerAdminProfileId(player, OFFICIAL_STATS_DATASET);
+    expect(playerId).toBe('gtbhl-player-84064');
+    expect(publicPlayerProfileSnapshot(OFFICIAL_STATS_DATASET, playerId)).not.toBeNull();
+  });
+
+  it('skips ambiguous source identifiers and resolves a unique alias', () => {
+    const dataset = { players: [{ id: 'one', externalId: '17' }, { id: 'two', externalId: '17' }, { id: 'alias', externalId: 'gtbhl:42' }] };
+    const player = {
+      id: 'unpublished-canonical',
+      sourcePlayers: [{ id: 'cloud-primary', externalId: '17' }, { id: 'cloud-alias', externalId: 'gtbhl:42' }],
+    };
+    expect(resolvePlayerAdminProfileId(player, dataset)).toBe('alias');
+    expect(resolvePlayerAdminProfileId({ ...player, sourcePlayers: player.sourcePlayers.slice(0, 1) }, dataset)).toBeNull();
+  });
+
+  it('never uses a grouped display identifier or matching name as an identity', () => {
+    const dataset = { players: [{ id: 'other', displayName: 'Same Name', externalId: '17, 42' }] };
+    const player = {
+      id: 'unpublished-canonical',
+      displayName: 'Same Name',
+      externalId: '17, 42',
+      sourcePlayers: [{ id: 'cloud-primary', externalId: '17' }, { id: 'cloud-alias', externalId: '42' }],
+    };
+    expect(resolvePlayerAdminProfileId(player, dataset)).toBeNull();
+    expect(resolvePlayerAdminProfileId({ ...player, sourcePlayers: [] }, dataset)).toBeNull();
+    expect(resolvePlayerAdminProfileId({ ...player, sourcePlayers: [null, {}] }, dataset)).toBeNull();
+  });
+
   it('builds the individual statistics route and removes stale admin or competition state', () => {
     const original = new URL('https://goonsquad.app/?content=account&mode=3d&panel=players&auth=signin&game=old&opponent=old&fixture=old&competition=tournaments&tournament=old&tournamentGame=old&season=old&team=old&stage=playoffs#section');
     const url = playerAdminProfileUrl(original, { id: 'cloud-player-uuid', externalId: '25970' }, OFFICIAL_STATS_DATASET);

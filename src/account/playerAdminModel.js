@@ -1,3 +1,7 @@
+import { buildPlayerIdentityIndex, canonicalPlayerIdentityId } from '../stats/playerIdentity';
+import { resolvePlayerNumberAssignments } from '../stats/publicPlayerDetails';
+import { resolvePlayerPosition } from '../stats/playerPosition';
+
 export const PLAYER_ADMIN_COLUMNS = [
   { key: 'displayName', label: 'Player' },
   { key: 'jerseyNumber', label: 'Number', numeric: true },
@@ -24,25 +28,45 @@ export const hasPlayerNumber = (value) => value !== null && value !== undefined 
 export function buildPlayerAdminRows({ players = [], accounts = [], claims = [] } = {}) {
   const identityIndex = buildPlayerIdentityIndex(players);
   const accountsById = new Map(accounts.map((account) => [account.id, account]));
-  const rows = players.map((player) => {
-    const playerClaims = claims.filter((claim) => claim.playerId === player.id);
+  const playersByIdentity = new Map();
+  resolvePlayerNumberAssignments(players).forEach((player) => {
+    const identityId = canonicalPlayerIdentityId(identityIndex, player.id);
+    const group = playersByIdentity.get(identityId) || [];
+    group.push(player);
+    playersByIdentity.set(identityId, group);
+  });
+  const rows = [...playersByIdentity].map(([identityId, sourcePlayers]) => {
+    const player = sourcePlayers.find((candidate) => candidate.id === identityId) || sourcePlayers[0];
+    // Keep edits on a published record so public statistics receive the
+    // assignment even when the canonical league record has been retired.
+    const editablePlayer = player.publicProfile ? player : sourcePlayers.find((candidate) => candidate.publicProfile) || player;
+    const sourcePlayerIds = new Set(sourcePlayers.map((candidate) => candidate.id));
+    const playerClaims = claims.filter((claim) => sourcePlayerIds.has(claim.playerId));
     const linkedClaims = playerClaims.filter((claim) => claim.status === 'approved');
-    const members = linkedClaims.map((claim) => accountsById.get(claim.userId) || claim.member).filter(Boolean);
-    const roster = player.roster || [];
+    const members = [...new Map(linkedClaims.map((claim) => [claim.userId, accountsById.get(claim.userId) || claim.member])).values()].filter(Boolean);
+    const roster = sourcePlayers.flatMap((candidate) => candidate.roster || []);
+    const active = sourcePlayers.some((candidate) => candidate.active);
     return {
       ...player,
-      identityId: canonicalPlayerIdentityId(identityIndex, player.id),
+      id: editablePlayer.id,
+      identityId,
+      sourcePlayers,
+      roster,
+      active,
+      externalId: uniqueText(sourcePlayers.map((candidate) => candidate.externalId)),
+      sourceUrl: uniqueText(sourcePlayers.map((candidate) => candidate.sourceUrl)),
       jerseyNumber: hasPlayerNumber(player.jerseyNumber) ? String(player.jerseyNumber) : '',
-      rosterStatus: player.active ? 'Active' : 'Inactive',
+      position: resolvePlayerPosition(player, player.position, ...sourcePlayers.map((candidate) => candidate.position)),
+      rosterStatus: active ? 'Active' : 'Inactive',
       seasons: uniqueText(roster.map((entry) => entry.season)),
       teams: uniqueText(roster.map((entry) => entry.schedule)),
-      linkStatus: linkedClaims.length || player.linked ? 'Linked' : playerClaims.some((claim) => claim.status === 'pending') ? 'Pending' : 'Unlinked',
+      linkStatus: linkedClaims.length || sourcePlayers.some((candidate) => candidate.linked) ? 'Linked' : playerClaims.some((claim) => claim.status === 'pending') ? 'Pending' : 'Unlinked',
       memberNames: uniqueText(members.map((member) => member.displayName)),
       usernames: uniqueText(members.map((member) => member.username)),
       emails: uniqueText(members.map((member) => member.email)),
       roles: uniqueText(members.map((member) => member.isOwner ? 'Owner' : ({ admin: 'Admin', stat_manager: 'Stats manager', member: 'Member' })[member.role])),
       accountStatus: uniqueText(members.map((member) => member.suspended ? 'Suspended' : member.emailConfirmed ? 'Active' : 'Email pending')),
-      searchExtra: [player.id, ...roster.map((entry) => [entry.position, entry.jerseyNumber, entry.label].join(' ')), ...playerClaims.map((claim) => [claim.status, claim.member?.displayName, claim.member?.username, claim.member?.email].join(' '))].join(' '),
+      searchExtra: [...sourcePlayers.map((candidate) => [candidate.id, candidate.displayName].join(' ')), ...roster.map((entry) => [entry.position, entry.jerseyNumber, entry.label].join(' ')), ...playerClaims.map((claim) => [claim.status, claim.member?.displayName, claim.member?.username, claim.member?.email].join(' '))].join(' '),
     };
   });
   const counts = new Map();
@@ -89,4 +113,3 @@ export function playerAdminCsv(rows, columns = PLAYER_ADMIN_COLUMNS) {
   };
   return [columns.map(({ label }) => cell(label)).join(','), ...rows.map((row) => columns.map(({ key }) => cell(row[key])).join(','))].join('\r\n');
 }
-import { buildPlayerIdentityIndex, canonicalPlayerIdentityId } from '../stats/playerIdentity';

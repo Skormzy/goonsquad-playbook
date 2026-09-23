@@ -7,7 +7,7 @@ vi.mock('@supabase/supabase-js', () => ({ createClient: vi.fn() }));
 const playerId = '12345678-1234-1234-1234-123456789012';
 const otherPlayerId = '12345678-1234-1234-1234-123456789013';
 
-function databaseClient(role = 'admin', { mutationError = null } = {}) {
+function databaseClient(role = 'admin', { mutationError = null, publicPlayerIds = null, publicProfileError = null } = {}) {
   const user = { id: 'coach', email: 'coach@example.test', user_metadata: {} };
   const tables = {
     profiles: [{ id: user.id, display_name: 'Coach', username: 'coach', role }],
@@ -22,6 +22,10 @@ function databaseClient(role = 'admin', { mutationError = null } = {}) {
   };
   const writes = [];
   const client = {
+    rpc: vi.fn(async () => ({
+      data: publicProfileError ? null : (publicPlayerIds ?? tables.players.map((player) => player.id)).map((id) => ({ player_id: id })),
+      error: publicProfileError,
+    })),
     auth: {
       getUser: vi.fn(async (token) => ({
         data: { user: token === 'admin-session' ? user : null },
@@ -79,6 +83,53 @@ beforeEach(() => {
 });
 
 afterEach(() => vi.unstubAllEnvs());
+
+describe('admin player profile visibility', () => {
+  it('preserves distinct public visibility for a hidden canonical record and its visible alias', async () => {
+    const { client, tables, writes } = databaseClient('admin', { publicPlayerIds: [otherPlayerId] });
+    Object.assign(tables.players[0], {
+      external_id: '307', display_name: 'Ryan Hunt',
+      source_url: 'https://www.yorkcentralbhl.com/player/307',
+    });
+    Object.assign(tables.players[1], {
+      external_id: 'gtbhl:84495', display_name: 'Ryan Hunt',
+      source_url: 'https://www.greatertorontobhl.com/player/84495',
+    });
+    const response = await request({ action: 'list' });
+    expect(response.statusCode).toBe(200);
+    expect(client.rpc).toHaveBeenCalledWith('list_public_player_avatars');
+    expect(response.body.players.map(({ id, publicProfile }) => ({ id, publicProfile }))).toEqual([
+      { id: playerId, publicProfile: false },
+      { id: otherPlayerId, publicProfile: true },
+    ]);
+    expect(writes).toEqual([]);
+  });
+
+  it('keeps all players in the admin directory when no profiles are public', async () => {
+    databaseClient('admin', { publicPlayerIds: [] });
+    const response = await request({ action: 'list' });
+    expect(response.statusCode).toBe(200);
+    expect(response.body.players).toHaveLength(2);
+    expect(response.body.players.every((player) => player.publicProfile === false)).toBe(true);
+  });
+
+  it('fails the directory request if public visibility cannot be loaded', async () => {
+    const { writes } = databaseClient('admin', { publicProfileError: { message: 'Public profile lookup failed.' } });
+    const response = await request({ action: 'list' });
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({ error: 'Public profile lookup failed.' });
+    expect(writes).toEqual([]);
+  });
+
+  it('fails the directory request instead of interpreting an invalid response as hidden profiles', async () => {
+    const { client, writes } = databaseClient();
+    client.rpc.mockResolvedValue({ data: null, error: null });
+    const response = await request({ action: 'list' });
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({ error: 'Player profile visibility is temporarily unavailable.' });
+    expect(writes).toEqual([]);
+  });
+});
 
 describe('managed player number validation', () => {
   it.each([

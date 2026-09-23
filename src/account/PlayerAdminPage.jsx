@@ -126,7 +126,7 @@ export function PlayerAdminDirectory({ snapshot = {}, loading = false, working =
           </tbody>
         </table>
       </div>
-      <p className="player-admin-footnote">Numbers and positions appear on player statistics and individual profiles. Historical roster details stay in the season records. “Sharing a number” counts active player records.</p>
+      <p className="player-admin-footnote">Each player appears once with their linked league history combined. Numbers and positions appear on statistics and individual profiles. Historical roster details stay in the season records.</p>
     </section>
   );
 }

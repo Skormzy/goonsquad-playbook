@@ -71,6 +71,15 @@ export const REVIEWED_PLAYER_IDENTITY_GROUPS = Object.freeze([
       'gtbhl-player-87157',
     ]),
   }),
+  // The league retired /player/7278-goonsquad/26381-sajjad-jaffery;
+  // 26380 retains the roster membership and appearances, while 26381 is empty.
+  Object.freeze({
+    displayName: 'Sajjad Jaffery',
+    playerIds: Object.freeze([
+      'ycbhl-player-26380',
+      'ycbhl-player-26381',
+    ]),
+  }),
   Object.freeze({
     displayName: 'Stephen Macdonald',
     playerIds: Object.freeze([
