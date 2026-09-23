@@ -1,4 +1,5 @@
 import { playerRosterCandidates } from '../profile/profileModel';
+import { resolvePlayerNumber } from './playerNumber';
 import {
   aggregateGoalieSeasonStats,
   aggregatePlayerSeasonStats,
@@ -58,7 +59,7 @@ function decorate(lines, metadata, events, extraMetadata = new Map()) {
       ...line,
       displayName: line.displayName || player?.displayName || 'Goonsquad player',
       avatarUrl: player?.avatarUrl ?? null,
-      jerseyNumber: line.jerseyNumber ?? player?.jerseyNumber ?? null,
+      jerseyNumber: resolvePlayerNumber(player, line.jerseyNumber),
       position: line.position ?? player?.position ?? null,
       profilePlayerId: player?.id && !String(player.id).startsWith('tournament-player:')
         ? line.playerId

@@ -74,6 +74,19 @@ describe('verified cross-league player identity', () => {
     });
   });
 
+  it('resolves reviewed aliases from verified external IDs after cloud UUID replacement', () => {
+    const players = [
+      { id: 'cloud-a', externalId: '307', displayName: 'Ryan Hunt', sourceUrl: 'https://www.yorkcentralbhl.com/player/307' },
+      { id: 'cloud-b', externalId: 'gtbhl:84495', displayName: 'Ryan Hunt' },
+      { id: 'cloud-c', externalId: 'gtbhl:87157', displayName: 'Ryan Hunt' },
+      { id: 'local', externalId: '307', displayName: 'Unrelated member' },
+    ];
+    const index = buildPlayerIdentityIndex(players);
+    expect(canonicalPlayerIdentityId(index, 'cloud-b')).toBe('cloud-a');
+    expect(canonicalPlayerIdentityId(index, 'cloud-c')).toBe('cloud-a');
+    expect(canonicalPlayerIdentityId(index, 'local')).toBe('local');
+  });
+
   it('never merges two reviewed IDs that appeared in the same official game', () => {
     REVIEWED_PLAYER_IDENTITY_GROUPS.forEach((group) => {
       const gameIdsByPlayer = group.playerIds.map((playerId) => new Set(

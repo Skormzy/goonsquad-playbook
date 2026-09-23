@@ -1,4 +1,7 @@
 import { getPlaymakerCloudClient, playmakerCloudConfigured } from '../playmaker/playmakerCloud';
+import { applyPublicPlayerDetails } from './publicPlayerDetails.js';
+export { applyPublicPlayerDetails } from './publicPlayerDetails.js';
+import { normalizePlayerNumber } from './playerNumber';
 import {
   applyGameStatOverrides,
   mapGameStatOverrideRow,
@@ -110,31 +113,7 @@ async function enrichPublicPlayerAvatars(dataset, cloud) {
   try {
     const { data, error } = await cloud.rpc('list_public_player_avatars');
     if (error || !Array.isArray(data) || !data.length) return dataset;
-    const byPlayerId = new Map();
-    const byExternalId = new Map();
-    data.forEach((row) => {
-      const details = {
-        avatarUrl: row.avatar_url || null,
-        jerseyNumber: row.jersey_number || null,
-        primaryPosition: row.primary_position || null,
-      };
-      if (row.player_id) byPlayerId.set(String(row.player_id), details);
-      if (row.external_id) byExternalId.set(String(row.external_id), details);
-    });
-    return {
-      ...dataset,
-      players: dataset.players.map((player) => {
-        const details = byPlayerId.get(String(player.id))
-          || byExternalId.get(String(player.externalId))
-          || {};
-        return {
-          ...player,
-          avatarUrl: details.avatarUrl || player.avatarUrl || null,
-          jerseyNumber: details.jerseyNumber || player.jerseyNumber || null,
-          primaryPosition: details.primaryPosition || player.primaryPosition || null,
-        };
-      }),
-    };
+    return applyPublicPlayerDetails(dataset, data);
   } catch {
     return dataset;
   }
@@ -500,7 +479,7 @@ export async function addRosterPlayer({ seasonTeamId, displayName, jerseyNumber,
   const { data, error } = await cloud.rpc('add_roster_player', {
     p_season_team_id: seasonTeamId,
     p_display_name: displayName,
-    p_jersey_number: jerseyNumber || null,
+    p_jersey_number: normalizePlayerNumber(jerseyNumber),
     p_position: position || null,
   });
   if (error) throw error;

@@ -53,3 +53,7 @@ export function assignManagedPlayer(userId, playerId) {
 export function unlinkManagedPlayer(userId, playerId) {
   return adminRequest('unlink-player', { userId, playerId });
 }
+
+export function updateManagedPlayerNumber(playerId, jerseyNumber) {
+  return adminRequest('update-player-number', { playerId, jerseyNumber });
+}

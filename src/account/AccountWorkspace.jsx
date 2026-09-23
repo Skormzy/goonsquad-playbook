@@ -21,6 +21,9 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { getPlaymakerAuthPersistence } from '../playmaker/playmakerCloud';
 import AccountAdminPanel from './AccountAdminPanel';
+import PlayerAdminPage from './PlayerAdminPage';
+import { playerAdminProfileUrl } from './playerAdminNavigation';
+import { loadStatisticsDataset } from '../stats/statsCloud';
 import { useAccount } from './AccountContext';
 import UsernameField from './UsernameField';
 import { isValidUsername, normalizeUsername } from './username';
@@ -46,16 +49,17 @@ function updateAuthModeInUrl(mode) {
 
 function initialAdminPanel() {
   try {
-    return new URL(window.location.href).searchParams.get('panel') === 'admin';
+    const panel = new URL(window.location.href).searchParams.get('panel');
+    return ['admin', 'players'].includes(panel) ? panel : '';
   } catch {
-    return false;
+    return '';
   }
 }
 
-function updateAdminPanelInUrl(open) {
+function updateAdminPanelInUrl(panel) {
   try {
     const url = new URL(window.location.href);
-    if (open) url.searchParams.set('panel', 'admin');
+    if (panel) url.searchParams.set('panel', panel);
     else url.searchParams.delete('panel');
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
   } catch { /* URL state is non-critical. */ }
@@ -71,7 +75,7 @@ function AccountValue({ children, title, text }) {
   );
 }
 
-function SignedInAccount({ account, onOpenAdmin, setActiveView }) {
+function SignedInAccount({ account, onOpenAdmin, onOpenPlayers, setActiveView }) {
   const [profileName, setProfileName] = useState(account.displayName === 'Guest' ? '' : account.displayName);
   const [profileUsername, setProfileUsername] = useState(account.username || normalizeUsername(account.displayName));
   const [verifiedUsername, setVerifiedUsername] = useState('');
@@ -112,7 +116,10 @@ function SignedInAccount({ account, onOpenAdmin, setActiveView }) {
       <div className="account-workspace-session-actions">
         <button type="button" onClick={() => setActiveView('profile')}><UserRoundCheck aria-hidden="true" /> Open player profile</button>
         {account.profile?.role === 'admin' && (
-          <button type="button" onClick={onOpenAdmin}><Users aria-hidden="true" /> Manage members</button>
+          <>
+            <button type="button" onClick={onOpenPlayers}><Users aria-hidden="true" /> Manage players</button>
+            <button type="button" onClick={onOpenAdmin}><Users aria-hidden="true" /> Manage members</button>
+          </>
         )}
         <button type="button" onClick={() => account.signOut().catch(() => {})} disabled={account.busy}><LogOut aria-hidden="true" /> Sign out</button>
       </div>
@@ -194,13 +201,18 @@ export default function AccountWorkspace() {
   };
 
   const openAdmin = () => {
-    setAdminOpen(true);
-    updateAdminPanelInUrl(true);
+    setAdminOpen('admin');
+    updateAdminPanelInUrl('admin');
+  };
+
+  const openPlayers = () => {
+    setAdminOpen('players');
+    updateAdminPanelInUrl('players');
   };
 
   const closeAdmin = () => {
-    setAdminOpen(false);
-    updateAdminPanelInUrl(false);
+    setAdminOpen('');
+    updateAdminPanelInUrl('');
   };
 
   return (
@@ -219,7 +231,7 @@ export default function AccountWorkspace() {
         '--account-brand': t.br,
       }}
     >
-      <div className={`account-workspace-frame ${account.user && account.profile?.role === 'admin' && adminOpen ? 'is-admin' : ''}`}>
+      <div className={`account-workspace-frame ${account.user && account.profile?.role === 'admin' && adminOpen ? `is-admin ${adminOpen === 'players' ? 'is-player-admin' : ''}` : ''}`}>
         <aside className="account-workspace-identity">
           <div className="account-workspace-kicker"><span /> GOONSQUAD ID</div>
           <h1>{account.user ? 'Your team identity.' : 'Goon with the squad.'}</h1>
@@ -234,7 +246,7 @@ export default function AccountWorkspace() {
 
         <section
           className={`account-workspace-panel ${account.user && account.profile?.role === 'admin' && adminOpen ? 'is-admin' : ''}`}
-          aria-labelledby={account.user && account.profile?.role === 'admin' && adminOpen ? 'account-admin-title' : 'account-workspace-title'}
+          aria-labelledby={account.user && account.profile?.role === 'admin' && adminOpen ? adminOpen === 'players' ? 'player-admin-title' : 'account-admin-title' : 'account-workspace-title'}
         >
           {!account.configured ? (
             <div className="account-workspace-unavailable">
@@ -253,12 +265,22 @@ export default function AccountWorkspace() {
               <button type="submit" className="account-workspace-primary" disabled={account.busy || newPassword.length < 8}>Update password <ArrowRight aria-hidden="true" /></button>
             </form>
           ) : account.user && account.profile?.role === 'admin' && adminOpen ? (
-            <AccountAdminPanel onClose={closeAdmin} />
+            adminOpen === 'players' ? <PlayerAdminPage onClose={closeAdmin} onOpenMembers={openAdmin} onOpenPlayer={async (player) => {
+              const dataset = await loadStatisticsDataset();
+              const url = playerAdminProfileUrl(window.location.href, player, dataset);
+              if (!url) throw new Error('This player does not have a published statistics profile yet.');
+              window.history.pushState(null, '', `${url.pathname}${url.search}${url.hash}`);
+              setActiveView('stats');
+            }} /> : <>
+              <button type="button" className="account-player-admin-entry" onClick={openPlayers}><Users aria-hidden="true" /> Open player administration</button>
+              <AccountAdminPanel onClose={closeAdmin} />
+            </>
           ) : account.user ? (
             <SignedInAccount
               key={`${account.user.id}:${account.profile?.updated_at || 'new'}`}
               account={account}
               onOpenAdmin={openAdmin}
+              onOpenPlayers={openPlayers}
               setActiveView={setActiveView}
             />
           ) : (

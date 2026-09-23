@@ -1,0 +1,95 @@
+.account-workspace-frame.is-player-admin { width: min(1680px, 100%); display: block; }
+.account-workspace-frame.is-player-admin > .account-workspace-identity { display: none; }
+.account-workspace-frame.is-player-admin > .account-workspace-panel { display: block; padding: 28px; min-width: 0; align-content: start; justify-items: stretch; }
+.player-admin { width: 100%; max-width: 100%; min-width: 0; color: var(--account-text); }
+.account-player-admin-entry { display: flex; align-items: center; gap: 8px; justify-self: end; min-height: 44px; margin-bottom: 16px; padding: 8px 12px; border: 1px solid var(--account-border); border-radius: 5px; background: var(--account-accent-bg); color: var(--account-accent); font-size: 12px; font-weight: 700; cursor: pointer; }
+.account-player-admin-entry svg { width: 16px; height: 16px; }
+.player-admin button, .player-admin input, .player-admin select, .player-admin summary { font: inherit; }
+.player-admin button, .player-admin summary { cursor: pointer; }
+.player-admin button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--account-border); border-radius: 5px; color: var(--account-text); background: var(--account-surface); font-size: 12px; font-weight: 700; }
+.player-admin button:hover:not(:disabled) { border-color: var(--account-accent); color: var(--account-accent); }
+.player-admin button:disabled { cursor: default; opacity: .5; }
+.player-admin :is(button, input, select, summary, [tabindex]):focus-visible { outline: 2px solid var(--account-accent); outline-offset: 3px; }
+.player-admin svg { width: 16px; height: 16px; flex-shrink: 0; }
+.player-admin-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 22px; }
+.player-admin-header .player-admin-back { display: flex; width: fit-content; padding-left: 0; border: 0; background: transparent; color: var(--account-muted); }
+.player-admin-kicker { display: block; margin-top: 12px; color: var(--account-accent); font-size: 10px; font-weight: 800; letter-spacing: .15em; }
+.player-admin-header h2 { margin: 5px 0 7px; font-family: var(--font-display); font-size: clamp(30px, 4vw, 42px); line-height: 1; }
+.player-admin-header p { margin: 0; color: var(--account-muted); font-size: 13px; }
+.player-admin-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.player-admin-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--account-border); border-radius: 6px; overflow: hidden; margin-bottom: 22px; }
+.player-admin-summary button { display: flex; align-items: baseline; justify-content: flex-start; flex-wrap: wrap; gap: 8px 12px; min-height: 82px; padding: 16px 20px; border: 0; border-radius: 0; background: var(--account-panel); text-align: left; }
+.player-admin-summary button + button { border-left: 1px solid var(--account-border); }
+.player-admin-summary button[aria-pressed="true"] { box-shadow: inset 0 -3px var(--account-accent); background: var(--account-accent-bg); }
+.player-admin-summary strong { font-family: var(--font-display); font-size: 34px; font-variant-numeric: tabular-nums; line-height: 1; }
+.player-admin-summary span { color: var(--account-muted); font-size: 11px; }
+.player-admin-toolbar { display: flex; align-items: center; gap: 10px; }
+.player-admin-search { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 0 12px; border: 1px solid var(--account-border); border-radius: 5px; color: var(--account-muted); background: var(--account-panel); }
+.player-admin input { min-width: 0; color: var(--account-text); }
+.player-admin-search input { width: 100%; height: 46px; border: 0; outline: 0; background: transparent; font-size: 13px; }
+.player-admin-search:focus-within { outline: 2px solid var(--account-accent); outline-offset: 2px; }
+.player-admin-columns { position: relative; }
+.player-admin-columns summary { display: flex; align-items: center; gap: 7px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--account-border); border-radius: 5px; list-style: none; font-size: 12px; font-weight: 700; }
+.player-admin-columns summary::-webkit-details-marker { display: none; }
+.player-admin-columns summary span { color: var(--account-muted); }
+.player-admin-columns > div { position: absolute; top: calc(100% + 6px); right: 0; width: 235px; max-height: 400px; overflow: auto; padding: 8px; z-index: 5; border: 1px solid var(--account-border); border-radius: 6px; background: var(--account-surface); box-shadow: 0 10px 30px #0003; }
+.player-admin-columns label { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 6px; font-size: 12px; }
+.player-admin-columns label input { accent-color: var(--account-accent); }
+.player-admin-columns small { margin-left: auto; color: var(--account-accent); }
+.player-admin-results { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; min-height: 52px; color: var(--account-muted); font-size: 12px; }
+.player-admin-results > small { margin-left: auto; }
+.player-admin-results button { min-height: 36px; border: 0; color: var(--account-accent); background: transparent; }
+.player-admin-results strong { color: var(--account-text); }
+.player-admin-table-scroll { max-width: 100%; max-height: 64dvh; overflow: auto; border: 1px solid var(--account-border); border-radius: 6px; scrollbar-gutter: stable; }
+.player-admin-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; font-size: 12px; }
+.player-admin-table th { position: sticky; top: 0; z-index: 2; min-width: 170px; padding: 0 10px 10px; border-bottom: 1px solid var(--account-border); background: var(--account-panel); vertical-align: top; }
+.player-admin-table th:first-child { min-width: 215px; }
+.player-admin-table th:nth-child(2) { min-width: 140px; }
+.player-admin-table th button { width: 100%; padding: 0; justify-content: space-between; border: 0; background: transparent; }
+.player-admin-table th[aria-sort="ascending"] button, .player-admin-table th[aria-sort="descending"] button { color: var(--account-accent); }
+.player-admin-table th input, .player-admin-table th select { width: 100%; height: 34px; padding: 6px 8px; border: 1px solid var(--account-border); border-radius: 4px; background: var(--account-surface); color: var(--account-text); font-size: 11px; font-weight: 400; }
+.player-admin-table td { max-width: 300px; padding: 9px 10px; border-bottom: 1px solid var(--account-border); color: var(--account-muted); line-height: 1.5; overflow-wrap: anywhere; background: var(--account-surface); }
+.player-admin-table tbody tr:last-child td { border-bottom: 0; }
+.player-admin-table tbody tr:nth-child(even) td { background: var(--account-panel); }
+.player-admin-table tr[data-editing="true"] td { background: var(--account-accent-bg); }
+.player-admin-table th:first-child, .player-admin-table td:first-child { position: sticky; left: 0; border-right: 1px solid var(--account-border); z-index: 1; }
+.player-admin-table th:first-child { z-index: 3; }
+.player-admin-table .player-admin-name { text-align: left; justify-content: flex-start; padding: 0; border: 0; background: transparent; color: var(--account-text); }
+.player-admin-table .player-admin-number { justify-content: flex-start; flex-wrap: wrap; width: 100%; padding: 5px 8px; background: transparent; border-color: transparent; }
+.player-admin-number strong { font-variant-numeric: tabular-nums; color: var(--account-accent); }
+.player-admin-number svg { width: 12px; color: var(--account-muted); }
+.player-admin-number small { color: var(--account-muted); font-size: 9px; }
+.player-admin-badge { display: inline-flex; padding: 3px 7px; border: 1px solid var(--account-border); border-radius: 4px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.player-admin-badge[data-positive="true"] { color: var(--account-accent); background: var(--account-accent-bg); border-color: color-mix(in srgb, var(--account-accent) 25%, var(--account-border)); }
+.player-admin-empty-value { color: var(--account-dim); }
+.player-admin-table .player-admin-empty { position: static; padding: 40px 20px; text-align: left; }
+.player-admin-footnote { margin: 12px 0 0; font-size: 11px; line-height: 1.6; color: var(--account-muted); }
+.player-admin-notice { padding: 12px 14px; border-left: 3px solid var(--account-accent); background: var(--account-accent-bg); font-size: 13px; }
+.player-admin-notice[data-tone="error"] { border-color: #dc2626; background: color-mix(in srgb, #dc2626 9%, var(--account-surface)); }
+.player-admin-number-editor { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0 0 16px; padding: 16px; border: 1px solid var(--account-accent); border-radius: 6px; background: var(--account-accent-bg); }
+.player-admin-number-editor > div { flex: 1; min-width: 190px; display: grid; gap: 4px; }
+.player-admin-number-editor strong { font-size: 14px; }
+.player-admin-number-editor small, .player-admin-number-editor p { font-size: 11px; color: var(--account-muted); }
+.player-admin-number-editor label { display: grid; gap: 3px; font-size: 10px; font-weight: 700; }
+.player-admin-number-editor input { width: 95px; height: 40px; padding: 6px 10px; border: 1px solid var(--account-border); border-radius: 4px; background: var(--account-surface); font-size: 18px; font-weight: 800; }
+.player-admin-number-editor p { flex-basis: 100%; margin: 0; }
+.player-admin .player-admin-primary { color: var(--account-accent); border-color: var(--account-accent); background: var(--account-surface); }
+.player-admin-spin { animation: player-admin-spin 1s linear infinite; }
+@keyframes player-admin-spin { to { transform: rotate(360deg); } }
+@media (max-width: 800px) {
+  .account-workspace-frame.is-player-admin > .account-workspace-panel { padding: 18px; }
+  .player-admin-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .player-admin-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .player-admin-summary button { min-height: 72px; padding: 14px; }
+  .player-admin-summary button:nth-child(3) { border-left: 0; }
+  .player-admin-summary button:nth-child(n+3) { border-top: 1px solid var(--account-border); }
+  .player-admin-toolbar { flex-wrap: wrap; }
+  .player-admin-search { flex-basis: 100%; }
+  .player-admin-columns > div { left: 0; right: auto; }
+  .player-admin-results > small { flex-basis: 100%; margin: -4px 0 10px; }
+  .player-admin-table th:first-child { min-width: 165px; }
+  .player-admin-table th:first-child input { width: 145px; }
+  .player-admin-table td:first-child { max-width: 165px; }
+  .player-admin-table-scroll { max-height: 65dvh; }
+}
+@media (prefers-reduced-motion: reduce) { .player-admin-spin { animation: none; } }

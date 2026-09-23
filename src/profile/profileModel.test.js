@@ -56,6 +56,21 @@ describe('member profile model', () => {
     expect(history.map((candidate) => candidate.id)).toEqual(['current-id', 'different-sam', 'history-id']);
   });
 
+  it.each([0, '00', '87', null])('uses a saved number %s ahead of historical roster and claim details', (jerseyNumber) => {
+    const assignedDataset = {
+      ...dataset,
+      players: dataset.players.map((player) => player.id === 'current-id'
+        ? { ...player, jerseyNumber, jerseyNumberAuthoritative: true }
+        : player),
+    };
+    const expected = jerseyNumber === null ? null : String(jerseyNumber);
+    expect(playerRosterCandidates(assignedDataset).find((player) => player.id === 'current-id').jerseyNumber).toBe(expected);
+    expect(publicPlayerProfileSnapshot(assignedDataset, 'current-id').jerseyNumber).toBe(expected);
+    expect(memberProfileSnapshot(assignedDataset, [{
+      playerId: 'current-id', primary: true, player: { jerseyNumber: 'old-number' },
+    }]).jerseyNumber).toBe(expected);
+  });
+
   it('aggregates only the league identities explicitly linked to the member', () => {
     const claims = [
       { playerId: 'cloud-current', player: { externalId: '101' }, status: 'linked', primary: true },

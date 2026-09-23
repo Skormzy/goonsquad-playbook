@@ -73,6 +73,7 @@ import {
   publicPlayerProfileSnapshot,
 } from '../profile/profileModel';
 import PlayerProfilePage from './PlayerProfilePage';
+import PlayerName from './PlayerName';
 import TournamentWorkspace from './TournamentWorkspace';
 import AllTimeRecords from './AllTimeRecords';
 import GameStatCorrectionPanel from './GameStatCorrectionPanel';
@@ -97,7 +98,7 @@ function initialQueryValue(key) {
   try { return new URL(window.location.href).searchParams.get(key) || ''; } catch { return ''; }
 }
 
-// Exported for direct deep-link regression tests; the component remains the only UI export.
+// Exported for direct deep-link regression tests.
 // eslint-disable-next-line react-refresh/only-export-components
 export function resolvePlayerDetailState(dataset, playerId, tournaments = []) {
   const requestedPlayerId = String(playerId || '').trim();
@@ -294,7 +295,7 @@ function LeadersTable({ players, onOpenPlayer }) {
                   onClick={() => onOpenPlayer(line.playerId)}
                   aria-label={`Open player profile for ${line.displayName}`}
                 >
-                  {line.displayName}
+                  <PlayerName displayName={line.displayName} jerseyNumber={line.jerseyNumber} />
                 </button>
               </td>
               <td className="stats-leaders-number" data-active={sort.key === 'goals'}>{line.goals}</td>
@@ -642,8 +643,8 @@ function GameDetails({
           </section>
           <section>
             <header><span>PLAYER BOX SCORE</span><strong>Goonsquad game sheet</strong></header>
-            {details.players.length ? <div className="stats-table-scroll"><table className="stats-table is-game-players"><thead><tr><th>Player</th><th>G</th><th>A</th><th>PTS</th><th>PIM</th><th>PPG</th><th>SHG</th><th>ENG</th></tr></thead><tbody>{details.players.map((line) => <tr key={line.id}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}>{line.displayName}</button></td><td>{line.goals}</td><td>{line.assists}</td><td><b>{line.points}</b></td><td>{line.penaltyMinutes}</td><td>{line.powerPlayGoals}</td><td>{line.shortHandedGoals}</td><td>{line.emptyNetGoals}</td></tr>)}</tbody></table></div> : <p className="stats-game-detail-empty">No field-player lines were published for this game.</p>}
-            {details.goalies.length > 0 && <div className="stats-detail-goalies"><header><span>GOALTENDING</span><strong>Complete game line</strong></header><div className="stats-table-scroll"><table className="stats-table"><thead><tr><th>Goalie</th><th>Result</th><th>SA</th><th>SV</th><th>GA</th><th>SV%</th><th>MIN</th><th>SO</th></tr></thead><tbody>{details.goalies.map((line) => <tr key={line.id}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}>{line.displayName}</button></td><td>{goalieResult(line)}</td><td>{line.shotsAgainst}</td><td>{line.saves}</td><td>{line.goalsAgainst}</td><td>{formatPercentage(line.savePercentage)}</td><td>{line.minutesPlayed}</td><td>{line.shutouts}</td></tr>)}</tbody></table></div></div>}
+            {details.players.length ? <div className="stats-table-scroll"><table className="stats-table is-game-players"><thead><tr><th>Player</th><th>G</th><th>A</th><th>PTS</th><th>PIM</th><th>PPG</th><th>SHG</th><th>ENG</th></tr></thead><tbody>{details.players.map((line) => <tr key={line.id}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}><PlayerName displayName={line.displayName} jerseyNumber={line.jerseyNumber} /></button></td><td>{line.goals}</td><td>{line.assists}</td><td><b>{line.points}</b></td><td>{line.penaltyMinutes}</td><td>{line.powerPlayGoals}</td><td>{line.shortHandedGoals}</td><td>{line.emptyNetGoals}</td></tr>)}</tbody></table></div> : <p className="stats-game-detail-empty">No field-player lines were published for this game.</p>}
+            {details.goalies.length > 0 && <div className="stats-detail-goalies"><header><span>GOALTENDING</span><strong>Complete game line</strong></header><div className="stats-table-scroll"><table className="stats-table"><thead><tr><th>Goalie</th><th>Result</th><th>SA</th><th>SV</th><th>GA</th><th>SV%</th><th>MIN</th><th>SO</th></tr></thead><tbody>{details.goalies.map((line) => <tr key={line.id}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}><PlayerName displayName={line.displayName} jerseyNumber={line.jerseyNumber} /></button></td><td>{goalieResult(line)}</td><td>{line.shotsAgainst}</td><td>{line.saves}</td><td>{line.goalsAgainst}</td><td>{formatPercentage(line.savePercentage)}</td><td>{line.minutesPlayed}</td><td>{line.shutouts}</td></tr>)}</tbody></table></div></div>}
           </section>
         </div>}
       </article>
@@ -652,7 +653,7 @@ function GameDetails({
   );
 }
 
-function PlayerTables({ fieldPlayers, goalies, onOpenPlayer }) {
+export function PlayerTables({ fieldPlayers, goalies, onOpenPlayer }) {
   if (!fieldPlayers.length && !goalies.length) return <EmptyStats section="player statistics" />;
   const leagueTotals = fieldPlayers.some((line) => line.source === 'league');
   return (
@@ -664,7 +665,7 @@ function PlayerTables({ fieldPlayers, goalies, onOpenPlayer }) {
             <table className="stats-table is-players">
               <thead><tr><th>Player</th><th>GP</th><th>G</th><th>A</th><th>PTS</th><th>PTS/GP</th>{leagueTotals ? <><th>PIM</th><th>PPG</th><th>SHG</th></> : <><th>SH</th><th>SH%</th><th>PIM</th><th>+/−</th></>}</tr></thead>
               <tbody>{fieldPlayers.map((line) => (
-                <tr key={line.playerId}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}>{line.displayName}</button></td><td>{line.gamesPlayed}</td><td>{line.goals}</td><td>{line.assists}</td><td><b>{line.points}</b></td><td>{line.pointsPerGame.toFixed(2)}</td>{leagueTotals ? <><td>{line.penaltyMinutes}</td><td>{line.powerPlayGoals}</td><td>{line.shortHandedGoals}</td></> : <><td>{line.shots}</td><td>{formatPercentage(line.shootingPercentage)}</td><td>{line.penaltyMinutes}</td><td>{line.plusMinus > 0 ? `+${line.plusMinus}` : line.plusMinus}</td></>}</tr>
+                <tr key={line.playerId}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}><PlayerName displayName={line.displayName} jerseyNumber={line.jerseyNumber} /></button></td><td>{line.gamesPlayed}</td><td>{line.goals}</td><td>{line.assists}</td><td><b>{line.points}</b></td><td>{line.pointsPerGame.toFixed(2)}</td>{leagueTotals ? <><td>{line.penaltyMinutes}</td><td>{line.powerPlayGoals}</td><td>{line.shortHandedGoals}</td></> : <><td>{line.shots}</td><td>{formatPercentage(line.shootingPercentage)}</td><td>{line.penaltyMinutes}</td><td>{line.plusMinus > 0 ? `+${line.plusMinus}` : line.plusMinus}</td></>}</tr>
               ))}</tbody>
             </table>
           </div>
@@ -677,7 +678,7 @@ function PlayerTables({ fieldPlayers, goalies, onOpenPlayer }) {
             <table className="stats-table is-players">
               <thead><tr><th>Player</th><th>GP</th><th>W</th><th>L</th><th>T</th><th>SA</th><th>GA</th><th>SV%</th><th>GAA</th><th>SO</th></tr></thead>
               <tbody>{goalies.map((line) => (
-                <tr key={line.playerId}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}>{line.displayName}</button></td><td>{line.gamesPlayed}</td><td>{line.wins}</td><td>{line.losses}</td><td>{line.ties}</td><td>{line.shotsAgainst}</td><td>{line.goalsAgainst}</td><td>{formatPercentage(line.savePercentage)}</td><td>{line.goalsAgainstAverage.toFixed(2)}</td><td>{line.shutouts}</td></tr>
+                <tr key={line.playerId}><td><button type="button" className="stats-player-link" onClick={() => onOpenPlayer(line.playerId)} aria-label={`Open player profile for ${line.displayName}`}><PlayerName displayName={line.displayName} jerseyNumber={line.jerseyNumber} /></button></td><td>{line.gamesPlayed}</td><td>{line.wins}</td><td>{line.losses}</td><td>{line.ties}</td><td>{line.shotsAgainst}</td><td>{line.goalsAgainst}</td><td>{formatPercentage(line.savePercentage)}</td><td>{line.goalsAgainstAverage.toFixed(2)}</td><td>{line.shutouts}</td></tr>
               ))}</tbody>
             </table>
           </div>
@@ -695,7 +696,7 @@ function playerPositionLabel(position) {
   return 'Position not published';
 }
 
-function PlayerDirectory({ dataset, onOpenPlayer }) {
+export function PlayerDirectory({ dataset, onOpenPlayer }) {
   const [query, setQuery] = useState('');
   const allPlayers = useMemo(
     () => playerRosterCandidates(dataset, { includeHistory: true }),
@@ -739,7 +740,7 @@ function PlayerDirectory({ dataset, onOpenPlayer }) {
             aria-label={`Open player profile for ${candidate.displayName}`}
           >
             <span className="stats-player-directory-number">
-              {candidate.jerseyNumber ? `#${candidate.jerseyNumber}` : candidate.displayName.slice(0, 1)}
+              {String(candidate.jerseyNumber ?? '').trim() !== '' ? `#${candidate.jerseyNumber}` : candidate.displayName.slice(0, 1)}
             </span>
             <span>
               <strong>{candidate.displayName}</strong>

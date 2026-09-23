@@ -1,4 +1,5 @@
 import { normalizeUsername, usernameValidationMessage } from '../src/account/username.js';
+import { resolvePlayerNumberAssignments } from '../src/stats/publicPlayerDetails.js';
 import {
   parseJsonBody,
   publicAppUrl,
@@ -8,6 +9,20 @@ import {
 } from '../server/supabaseAdmin.js';
 
 const MANAGED_ROLES = new Set(['member', 'stat_manager', 'admin']);
+const PLAYER_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
+
+export function normalizeManagedPlayerNumber(value) {
+  if (value === null) return null;
+  if (typeof value !== 'string' && typeof value !== 'number') {
+    throw new Error('Use up to three digits for the player number, or leave it blank.');
+  }
+  const number = String(value).trim();
+  if (!number) return null;
+  if (!/^\d{1,3}$/u.test(number)) {
+    throw new Error('Use up to three digits for the player number, or leave it blank.');
+  }
+  return number;
+}
 
 function isFutureDate(value) {
   const time = Date.parse(value || '');
@@ -107,7 +122,7 @@ async function loadPlayerLinkDirectory(admin, accounts) {
   const [playerResult, membershipResult, teamResult, seasonResult] = await Promise.all([
     admin
       .from('players')
-      .select('id, external_id, display_name, jersey_number, primary_position, active, source_url')
+      .select('id, external_id, display_name, jersey_number, jersey_number_updated_at, primary_position, active, source_url')
       .order('active', { ascending: false })
       .order('display_name', { ascending: true }),
     admin
@@ -126,7 +141,6 @@ async function loadPlayerLinkDirectory(admin, accounts) {
   if (seasonResult.error) throw seasonResult.error;
 
   const accountById = new Map(accounts.map((account) => [account.id, account]));
-  const playerById = new Map((playerResult.data || []).map((player) => [player.id, player]));
   const teamById = new Map((teamResult.data || []).map((team) => [team.id, team]));
   const seasonById = new Map((seasonResult.data || []).map((season) => [season.id, season]));
   const rosterByPlayer = new Map();
@@ -159,7 +173,8 @@ async function loadPlayerLinkDirectory(admin, accounts) {
       id: player.id,
       externalId: player.external_id,
       displayName: player.display_name,
-      jerseyNumber: player.jersey_number || currentRoster?.jerseyNumber || null,
+      jerseyNumber: player.jersey_number ?? null,
+      jerseyNumberUpdatedAt: player.jersey_number_updated_at ?? null,
       position: player.primary_position || currentRoster?.position || null,
       active: Boolean(player.active),
       sourceUrl: player.source_url,
@@ -167,6 +182,8 @@ async function loadPlayerLinkDirectory(admin, accounts) {
       rosterLabel: currentRoster?.label || '',
     };
   };
+  const normalizedPlayers = resolvePlayerNumberAssignments((playerResult.data || []).map(playerSummary));
+  const playerById = new Map(normalizedPlayers.map((player) => [player.id, player]));
 
   const claims = claimRows.map((claim) => {
     const account = accountById.get(claim.user_id);
@@ -183,14 +200,14 @@ async function loadPlayerLinkDirectory(admin, accounts) {
         username: account.username,
         email: account.email,
       } : null,
-      player: playerSummary(player),
+      player: player || null,
     };
   });
   const linkedPlayerIds = new Set(
     claims.filter((claim) => claim.status === 'approved').map((claim) => claim.playerId),
   );
-  const players = (playerResult.data || []).map((player) => ({
-    ...playerSummary(player),
+  const players = normalizedPlayers.map((player) => ({
+    ...player,
     linked: linkedPlayerIds.has(player.id),
   }));
 
@@ -307,6 +324,27 @@ async function unlinkPlayer(admin, actor, body) {
   if (error) throw error;
 }
 
+async function updatePlayerNumber(admin, body) {
+  const playerId = typeof body.playerId === 'string' ? body.playerId.trim() : '';
+  if (!PLAYER_ID_PATTERN.test(playerId)) throw new Error('Choose a valid player profile.');
+  const jerseyNumber = normalizeManagedPlayerNumber(body.jerseyNumber);
+  const { data, error } = await admin
+    .from('players')
+    .update({
+      jersey_number: jerseyNumber,
+      jersey_number_updated_at: new Date().toISOString(),
+    })
+    .eq('id', playerId)
+    .select('id')
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) {
+    const missingPlayer = new Error('That player profile no longer exists.');
+    missingPlayer.statusCode = 404;
+    throw missingPlayer;
+  }
+}
+
 export default async function handler(request, response) {
   setPrivateResponseHeaders(response);
   if (request.method !== 'POST') {
@@ -338,6 +376,8 @@ export default async function handler(request, response) {
       await assignPlayer(admin, actor, body);
     } else if (body.action === 'unlink-player') {
       await unlinkPlayer(admin, actor, body);
+    } else if (body.action === 'update-player-number') {
+      await updatePlayerNumber(admin, body);
     } else {
       response.status(400).json({ error: 'Unknown admin action.' });
       return;

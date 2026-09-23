@@ -120,11 +120,18 @@ export function playerIdentitySourceLabel(player) {
   return 'League';
 }
 
+function archiveIdentityId(player) {
+  if (/^(ycbhl|gtbhl)-player-\d+$/.test(String(player?.id))) return player.id;
+  const source = playerIdentitySource(player);
+  const externalId = String(player?.externalId || '').replace(/^(ycbhl|gtbhl):/, '');
+  return source && /^\d+$/.test(externalId) ? `${source}-player-${externalId}` : player?.id;
+}
+
 function canonicalPlayer(players) {
   return players.slice().sort((a, b) => {
     const aRank = VERIFIED_SOURCE_ORDER.indexOf(playerIdentitySource(a));
     const bRank = VERIFIED_SOURCE_ORDER.indexOf(playerIdentitySource(b));
-    return aRank - bRank || String(a.id).localeCompare(String(b.id));
+    return aRank - bRank || String(archiveIdentityId(a)).localeCompare(String(archiveIdentityId(b)));
   })[0];
 }
 
@@ -171,10 +178,15 @@ export function buildPlayerIdentityIndex(players = []) {
   const playerIdsByCanonicalId = new Map();
   const groupedByName = new Map();
   const playersById = new Map();
+  const playersByArchiveId = new Map();
 
   players.forEach((player) => {
     if (!player?.id) return;
     playersById.set(player.id, player);
+    const archiveId = archiveIdentityId(player);
+    const archivePlayers = playersByArchiveId.get(archiveId) ?? [];
+    archivePlayers.push(player);
+    playersByArchiveId.set(archiveId, archivePlayers);
     canonicalIdByPlayerId.set(player.id, player.id);
     playerIdsByCanonicalId.set(player.id, [player.id]);
 
@@ -202,7 +214,10 @@ export function buildPlayerIdentityIndex(players = []) {
 
   REVIEWED_PLAYER_IDENTITY_GROUPS.forEach((group) => {
     linkIdentityPlayers(
-      group.playerIds.map((playerId) => playersById.get(playerId)).filter(Boolean),
+      group.playerIds.map((playerId) => {
+        const matches = playersByArchiveId.get(playerId) ?? [];
+        return matches.length === 1 ? matches[0] : null;
+      }).filter(Boolean),
       playersById,
       canonicalIdByPlayerId,
       playerIdsByCanonicalId,

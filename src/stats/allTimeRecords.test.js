@@ -77,6 +77,22 @@ describe('all-time records', () => {
     ))).toBe(true);
   });
 
+  it.each(['0', null])('uses the saved number %s in tournament and combined records', (jerseyNumber) => {
+    const assignedDataset = {
+      ...dataset,
+      players: dataset.players.map((player) => player.id === 'p1'
+        ? { ...player, jerseyNumber, jerseyNumberAuthoritative: true }
+        : player),
+    };
+    const records = buildAllTimeRecords(assignedDataset, [{
+      id: 'cup',
+      playerStats: [{ name: 'Alpha', number: '99', gamesPlayed: 1, goals: 1, assists: 0 }],
+    }]);
+    ['regular', 'tournaments', 'all'].forEach((scope) => {
+      expect(records.scopes[scope].skaters.find((player) => player.playerId === 'p1').jerseyNumber).toBe(jerseyNumber);
+    });
+  });
+
   it('keeps regular season, playoffs, and tournaments separate before building combined totals', () => {
     const scopedDataset = {
       ...dataset,

@@ -9,11 +9,14 @@ vi.mock('../playmaker/playmakerCloud', () => ({
 }));
 
 import {
+  applyPublicPlayerDetails,
   loadStatisticsDataset,
   mergeStatisticsDatasets,
   PUBLIC_STATISTICS_QUERIES,
   readAllPages,
 } from './statsCloud';
+import { statsSnapshot } from './statsModel';
+import { publicPlayerProfileSnapshot } from '../profile/profileModel';
 
 function dataset(overrides = {}) {
   return {
@@ -37,6 +40,82 @@ function dataset(overrides = {}) {
 afterEach(() => {
   cloudState.client = null;
   vi.unstubAllGlobals();
+});
+
+describe('public player number assignments', () => {
+  const source = dataset({
+    players: [
+      { id: 'ycbhl-player-307', externalId: '307', displayName: 'Ryan Hunt', jerseyNumber: '19' },
+      { id: 'gtbhl-player-84495', externalId: 'gtbhl:84495', displayName: 'Ryan Hunt', jerseyNumber: '9' },
+      { id: 'separate-player', displayName: 'Ryan Hunt', jerseyNumber: '4' },
+    ],
+    memberships: [{ id: 'm1', playerId: 'ycbhl-player-307', seasonTeamId: 't1', jerseyNumber: '19' }],
+    playerSeasonStats: [{ id: 'line', playerId: 'ycbhl-player-307', seasonTeamId: 't1', gamesPlayed: 1, goals: 1, assists: 0 }],
+  });
+
+  it.each([0, '00', '87'])('shows saved number %s in statistics and the player profile', async (number) => {
+    cloudState.client = {
+      rpc: vi.fn(async (name) => ({
+        data: name === 'list_public_player_avatars' ? [{
+          player_id: 'cloud-uuid',
+          external_id: 'gtbhl:84495',
+          jersey_number: number,
+          jersey_number_updated_at: '2026-09-23T10:00:00Z',
+        }] : [],
+        error: null,
+      })),
+    };
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => source })));
+
+    const result = await loadStatisticsDataset({ useCloudProjection: false });
+
+    expect(result.players.slice(0, 2).map((player) => player.jerseyNumber)).toEqual([String(number), String(number)]);
+    expect(result.players[2].jerseyNumber).toBe('4');
+    expect(statsSnapshot(result, 's1', 't1').fieldPlayers[0].jerseyNumber).toBe(String(number));
+    expect(publicPlayerProfileSnapshot(result, 'ycbhl-player-307').jerseyNumber).toBe(String(number));
+    expect(source.players[0].jerseyNumber).toBe('19');
+  });
+
+  it('keeps a newer clear authoritative across aliases, old rosters, and a stale snapshot', () => {
+    const result = applyPublicPlayerDetails(source, [
+      { player_id: 'one', external_id: '307', jersey_number: '22', jersey_number_updated_at: '2026-09-22T10:00:00Z' },
+      { player_id: 'two', external_id: 'gtbhl:84495', jersey_number: null, jersey_number_updated_at: '2026-09-23T10:00:00Z' },
+    ]);
+    expect(result.players[0]).toMatchObject({ jerseyNumber: null, jerseyNumberAuthoritative: true });
+    expect(result.players[1]).toMatchObject({ jerseyNumber: null, jerseyNumberAuthoritative: true });
+    expect(statsSnapshot(result, 's1', 't1').fieldPlayers[0].jerseyNumber).toBeNull();
+    expect(publicPlayerProfileSnapshot(result, 'ycbhl-player-307').jerseyNumber).toBeNull();
+    expect(result.memberships[0].jerseyNumber).toBe('19');
+  });
+
+  it('ignores unassigned alias rows and supports metadata from the previous migration', () => {
+    const result = applyPublicPlayerDetails(source, [
+      { player_id: 'one', external_id: '307', jersey_number: null },
+      { player_id: 'two', external_id: 'gtbhl:84495', jersey_number: '0', avatar_url: 'https://example.com/avatar.jpg' },
+    ]);
+    expect(result.players[0].jerseyNumber).toBe('0');
+    expect(result.players[1].avatarUrl).toBe('https://example.com/avatar.jpg');
+  });
+
+  it('still loads current number assignments when cloud statistic projections fail', async () => {
+    const failedQuery = {
+      select: () => failedQuery,
+      order: () => failedQuery,
+      range: async () => ({ data: null, error: new Error('Projection unavailable') }),
+    };
+    cloudState.client = {
+      from: () => failedQuery,
+      rpc: async (name) => ({
+        data: name === 'list_public_player_avatars' ? [{
+          external_id: '307', jersey_number: null, jersey_number_updated_at: '2026-09-23T10:00:00Z',
+        }] : [],
+        error: null,
+      }),
+    };
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, json: async () => source })));
+    const result = await loadStatisticsDataset({ useCloudProjection: true });
+    expect(result.players[0]).toMatchObject({ jerseyNumber: null, jerseyNumberAuthoritative: true });
+  });
 });
 
 describe('statistics cloud merge', () => {

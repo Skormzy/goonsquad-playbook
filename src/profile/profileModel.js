@@ -1,4 +1,5 @@
 import { nextUpcomingGame } from '../stats/scheduleFreshness';
+import { resolvePlayerNumber } from '../stats/playerNumber';
 import {
   formatLeagueName,
   formatLeagueScheduleName,
@@ -91,10 +92,9 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
         || latestMembership?.membership.position
         || player.primaryPosition
         || null;
-      const jerseyNumber = currentMemberships.find((membership) => membership.jerseyNumber)?.jerseyNumber
-        || latestMembership?.membership.jerseyNumber
-        || player.jerseyNumber
-        || null;
+      const jerseyNumber = resolvePlayerNumber(player,
+        ...currentMemberships.map((membership) => membership.jerseyNumber),
+        latestMembership?.membership.jerseyNumber);
       const searchText = [player.displayName, position, jerseyNumber, ...schedules, ...seasons.map((season) => season.name)].filter(Boolean).join(' ').toLowerCase();
       return {
         id: player.id,
@@ -105,6 +105,7 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
         sourceUrl: player.sourceUrl,
         position,
         jerseyNumber,
+        jerseyNumberAuthoritative: Boolean(player.jerseyNumberAuthoritative || player.jerseyNumberUpdatedAt),
         current: currentMemberships.length > 0,
         active: player.active !== false,
         latestSeason: latestTeam?.season?.name ?? 'Team history',
@@ -524,7 +525,7 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now(), { tourn
     recentGames,
     nextGame,
     currentTeams: currentMemberships.map((membership) => teamsById.get(membership.seasonTeamId)).filter(Boolean),
-    jerseyNumber: primaryClaim?.player?.jerseyNumber || latestMembership?.jerseyNumber || primaryPlayer.jerseyNumber || null,
+    jerseyNumber: resolvePlayerNumber(primaryPlayer, primaryClaim?.player?.jerseyNumber, latestMembership?.jerseyNumber),
     position: primaryClaim?.player?.primaryPosition || latestMembership?.position || primaryPlayer.primaryPosition || null,
   };
 }

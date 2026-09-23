@@ -43,6 +43,15 @@ describe('statistics model', () => {
     ], players)[0]).toMatchObject({ gamesPlayed: 1, wins: 1, savePercentage: 0.9, goalsAgainstAverage: 2 });
   });
 
+  it.each([0, '00', '42', null])('carries number %s through every player and goalie aggregation', (jerseyNumber) => {
+    const players = [{ id: 'p1', displayName: 'Alex', jerseyNumber }];
+    const lines = [{ playerId: 'p1', gamesPlayed: 1 }];
+    const expectedNumber = jerseyNumber === null ? null : String(jerseyNumber);
+    [aggregatePlayerStats, aggregateGoalieStats, aggregatePlayerSeasonStats, aggregateGoalieSeasonStats].forEach((aggregate) => {
+      expect(aggregate(lines, players)[0]).toMatchObject({ displayName: 'Alex', jerseyNumber: expectedNumber });
+    });
+  });
+
   it('keeps unavailable game-line statistics null while preserving published zeroes', () => {
     const players = [
       { id: 'unknown', displayName: 'Unknown totals' },

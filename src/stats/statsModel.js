@@ -1,3 +1,5 @@
+import { resolvePlayerNumber } from './playerNumber';
+
 function publishedNumber(value) {
   if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
@@ -172,8 +174,12 @@ export function teamSummaryFromRecord(record) {
   };
 }
 
-function playerName(players, playerId) {
-  return players.find((player) => player.id === playerId)?.displayName ?? 'Unknown player';
+function playerDetails(players, playerId) {
+  const player = players.find((candidate) => candidate.id === playerId);
+  return {
+    displayName: player?.displayName ?? 'Unknown player',
+    jerseyNumber: resolvePlayerNumber(player),
+  };
 }
 
 export function aggregatePlayerStats(lines, players) {
@@ -181,7 +187,7 @@ export function aggregatePlayerStats(lines, players) {
   lines.forEach((line) => {
     const current = aggregate.get(line.playerId) ?? {
       playerId: line.playerId,
-      displayName: playerName(players, line.playerId),
+      ...playerDetails(players, line.playerId),
       gamesPlayed: 0,
       goals: 0,
       assists: 0,
@@ -215,7 +221,7 @@ export function aggregateGoalieStats(lines, players) {
   lines.forEach((line) => {
     const current = aggregate.get(line.playerId) ?? {
       playerId: line.playerId,
-      displayName: playerName(players, line.playerId),
+      ...playerDetails(players, line.playerId),
       gamesPlayed: 0,
       wins: 0,
       losses: 0,
@@ -251,7 +257,7 @@ export function aggregatePlayerSeasonStats(lines, players) {
   lines.forEach((line) => {
     const current = aggregate.get(line.playerId) ?? {
       playerId: line.playerId,
-      displayName: playerName(players, line.playerId),
+      ...playerDetails(players, line.playerId),
       gamesPlayed: 0,
       goals: 0,
       assists: 0,
@@ -292,7 +298,7 @@ export function aggregateGoalieSeasonStats(lines, players) {
   lines.forEach((line) => {
     const current = aggregate.get(line.playerId) ?? {
       playerId: line.playerId,
-      displayName: playerName(players, line.playerId),
+      ...playerDetails(players, line.playerId),
       gamesPlayed: 0,
       wins: 0,
       losses: 0,
@@ -358,6 +364,12 @@ export function statsSnapshot(dataset, seasonId, teamId, stage = 'regular') {
   const teamGameLines = dataset.teamGameStats.filter((line) => gameIds.has(line.gameId ?? line.game_id));
   const gameEvents = (dataset.gameEvents || []).filter((event) => gameIds.has(event.gameId));
   const memberships = dataset.memberships.filter((membership) => selectedTeamIds.has(membership.seasonTeamId));
+  const players = dataset.players.map((player) => ({
+    ...player,
+    jerseyNumber: resolvePlayerNumber(player, ...memberships
+      .filter((membership) => membership.playerId === player.id)
+      .map((membership) => membership.jerseyNumber)),
+  }));
   const seasonPlayerLines = (dataset.playerSeasonStats || []).filter((line) => selectedTeamIds.has(line.seasonTeamId) && includesStage(line, stage));
   const seasonGoalieLines = (dataset.goalieSeasonStats || []).filter((line) => selectedTeamIds.has(line.seasonTeamId) && includesStage(line, stage));
   const teamItems = [
@@ -412,11 +424,11 @@ export function statsSnapshot(dataset, seasonId, teamId, stage = 'regular') {
     summary,
     officialRecord,
     fieldPlayers: seasonPlayerLines.length
-      ? aggregatePlayerSeasonStats(seasonPlayerLines, dataset.players)
-      : aggregatePlayerStats(playerLines, dataset.players),
+      ? aggregatePlayerSeasonStats(seasonPlayerLines, players)
+      : aggregatePlayerStats(playerLines, players),
     goalies: seasonGoalieLines.length
-      ? aggregateGoalieSeasonStats(seasonGoalieLines, dataset.players)
-      : aggregateGoalieStats(goalieLines, dataset.players),
+      ? aggregateGoalieSeasonStats(seasonGoalieLines, players)
+      : aggregateGoalieStats(goalieLines, players),
     statSource: seasonPlayerLines.length || seasonGoalieLines.length ? 'league' : 'team',
     scheduleComplete: !officialRecord || officialRecord.gamesPlayed === calculatedRecord.gamesPlayed,
     gameDetails: Object.fromEntries(games.map((game) => [game.id, {
@@ -424,14 +436,14 @@ export function statsSnapshot(dataset, seasonId, teamId, stage = 'regular') {
       team: teamGameLines.find((line) => (line.gameId ?? line.game_id) === game.id) ?? null,
       players: playerLines.filter((line) => line.gameId === game.id).map((line) => ({
         ...line,
-        displayName: playerName(dataset.players, line.playerId),
+        ...playerDetails(players, line.playerId),
         points: publishedNumber(line.goals) !== null && publishedNumber(line.assists) !== null
           ? publishedNumber(line.goals) + publishedNumber(line.assists)
           : null,
       })),
       goalies: goalieLines.filter((line) => line.gameId === game.id).map((line) => ({
         ...line,
-        displayName: playerName(dataset.players, line.playerId),
+        ...playerDetails(players, line.playerId),
         savePercentage: publishedRate(publishedNumber(line.saves), publishedNumber(line.shotsAgainst)),
       })),
       events: gameEvents.filter((event) => event.gameId === game.id),

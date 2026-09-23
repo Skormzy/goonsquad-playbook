@@ -177,7 +177,8 @@ export default function PlayerSpotlight3D({
   const [cameraAngle, setCameraAngle] = useState(DEFAULT_CAMERA_ANGLE);
   const controlsRef = useRef(null);
   const instructionsId = useId();
-  const number = jerseyNumber ? String(jerseyNumber) : displayName
+  const assignedNumber = String(jerseyNumber ?? '').trim();
+  const number = assignedNumber !== '' ? assignedNumber : displayName
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
@@ -260,7 +261,7 @@ export default function PlayerSpotlight3D({
         </button>
       </div>
       <div className="player-profile-3d-label">
-        <span>{jerseyNumber ? `#${jerseyNumber}` : 'GOONSQUAD'}</span>
+        <span>{assignedNumber !== '' ? `#${assignedNumber}` : 'GOONSQUAD'}</span>
         <small>INTERACTIVE PLAYER VIEW</small>
       </div>
     </div>

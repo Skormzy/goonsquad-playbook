@@ -31,6 +31,7 @@ import {
   COMPETITION_SCOPE_ORDER,
 } from './competitionScopeModel';
 import PlayerSpotlightErrorBoundary from './PlayerSpotlightErrorBoundary';
+import PlayerName from './PlayerName';
 import OfficialSocialLinks from '../brand/OfficialSocialLinks';
 import './playerProfilePage.css';
 
@@ -252,10 +253,9 @@ export default function PlayerProfilePage({
             <Sparkles aria-hidden="true" />
             GOONSQUAD PLAYER
           </span>
-          <h1>{player.displayName}</h1>
+          <h1><PlayerName displayName={player.displayName} jerseyNumber={profile.jerseyNumber} /></h1>
           <p>
             {[
-              profile.jerseyNumber ? `#${profile.jerseyNumber}` : null,
               positionLabel(profile.position),
               currentSchedule || null,
             ].filter(Boolean).join(' · ')}
