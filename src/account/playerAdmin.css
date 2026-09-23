@@ -48,14 +48,16 @@
 .player-admin-table th button { width: 100%; padding: 0; justify-content: space-between; border: 0; background: transparent; }
 .player-admin-table th[aria-sort="ascending"] button, .player-admin-table th[aria-sort="descending"] button { color: var(--account-accent); }
 .player-admin-table th input, .player-admin-table th select { width: 100%; height: 34px; padding: 6px 8px; border: 1px solid var(--account-border); border-radius: 4px; background: var(--account-surface); color: var(--account-text); font-size: 11px; font-weight: 400; }
-.player-admin-table td { max-width: 300px; padding: 9px 10px; border-bottom: 1px solid var(--account-border); color: var(--account-muted); line-height: 1.5; overflow-wrap: anywhere; background: var(--account-surface); }
+.player-admin-table td { max-width: 300px; padding: 3px 10px; border-bottom: 1px solid var(--account-border); color: var(--account-muted); line-height: 1.4; white-space: nowrap; background: var(--account-surface); }
+.player-admin-table tbody button { min-height: 28px; }
+.player-admin-cell-text { display: block; min-width: 0; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .player-admin-table tbody tr:last-child td { border-bottom: 0; }
 .player-admin-table tbody tr:nth-child(even) td { background: var(--account-panel); }
 .player-admin-table tr[data-editing="true"] td { background: var(--account-accent-bg); }
 .player-admin-table th:first-child, .player-admin-table td:first-child { position: sticky; left: 0; border-right: 1px solid var(--account-border); z-index: 1; }
 .player-admin-table th:first-child { z-index: 3; }
-.player-admin-table .player-admin-name { text-align: left; justify-content: flex-start; padding: 0; border: 0; background: transparent; color: var(--account-text); }
-.player-admin-table .player-admin-number { justify-content: flex-start; flex-wrap: wrap; width: 100%; padding: 5px 8px; background: transparent; border-color: transparent; }
+.player-admin-table .player-admin-name { max-width: 100%; text-align: left; justify-content: flex-start; padding: 0; border: 0; background: transparent; color: var(--account-text); }
+.player-admin-table .player-admin-number { justify-content: flex-start; flex-wrap: nowrap; width: 100%; padding: 2px 6px; background: transparent; border-color: transparent; }
 .player-admin-number strong { font-variant-numeric: tabular-nums; color: var(--account-accent); }
 .player-admin-number svg { width: 12px; color: var(--account-muted); }
 .player-admin-number small { color: var(--account-muted); font-size: 9px; }
@@ -75,8 +77,9 @@
 .player-admin-number-editor select { min-width: 170px; max-width: 100%; min-height: 44px; padding: 6px 10px; border: 1px solid var(--account-border); border-radius: 4px; background: var(--account-surface); color: var(--account-text); font-size: 14px; }
 .player-admin-number-editor p { flex-basis: 100%; margin: 0; }
 .player-admin .player-admin-primary { color: var(--account-accent); border-color: var(--account-accent); background: var(--account-surface); }
-.player-admin-identity-actions { display: grid; justify-items: start; }
-.player-admin-table .player-admin-merge-action { min-height: 30px; gap: 5px; padding: 3px 6px 3px 0; border: 0; background: transparent; color: var(--account-muted); font-size: 10px; font-weight: 600; }
+.player-admin-table .player-admin-row-actions { min-width: 105px; width: 105px; white-space: nowrap; }
+.player-admin-table th.player-admin-row-actions > span { display: flex; align-items: center; min-height: 44px; }
+.player-admin-table .player-admin-merge-action { min-height: 28px; gap: 5px; padding: 2px 6px; border: 0; background: transparent; color: var(--account-muted); font-size: 11px; font-weight: 600; }
 .player-admin-merge-action svg { width: 12px; height: 12px; }
 .player-merge-modal { width: min(790px, calc(100% - 32px)); max-height: min(92dvh, 1000px); margin: auto; padding: 0; overflow: hidden; border: 1px solid var(--account-border); border-radius: 9px; background: var(--account-surface); color: var(--account-text); box-shadow: 0 24px 90px #0005; }
 .player-merge-modal::backdrop { background: #07121bc2; backdrop-filter: blur(3px); }
