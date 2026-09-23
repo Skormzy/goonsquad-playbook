@@ -57,3 +57,7 @@ export function unlinkManagedPlayer(userId, playerId) {
 export function updateManagedPlayerNumber(playerId, jerseyNumber) {
   return adminRequest('update-player-number', { playerId, jerseyNumber });
 }
+
+export function updateManagedPlayerPosition(playerId, position) {
+  return adminRequest('update-player-position', { playerId, position });
+}

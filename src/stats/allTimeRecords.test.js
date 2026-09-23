@@ -93,6 +93,22 @@ describe('all-time records', () => {
     });
   });
 
+  it.each(['D', null])('uses the saved position %s in tournament and combined records', (primaryPosition) => {
+    const assignedDataset = {
+      ...dataset,
+      players: dataset.players.map((player) => player.id === 'p1'
+        ? { ...player, primaryPosition, primaryPositionUpdatedAt: '2026-09-23T12:00:00Z' }
+        : player),
+    };
+    const records = buildAllTimeRecords(assignedDataset, [{
+      id: 'cup',
+      playerStats: [{ name: 'Alpha', gamesPlayed: 1, goals: 1, assists: 0 }],
+    }]);
+    ['regular', 'tournaments', 'all'].forEach((scope) => {
+      expect(records.scopes[scope].skaters.find((player) => player.playerId === 'p1').position).toBe(primaryPosition);
+    });
+  });
+
   it('keeps regular season, playoffs, and tournaments separate before building combined totals', () => {
     const scopedDataset = {
       ...dataset,

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
-import handler, { normalizeManagedPlayerNumber } from '../api/account-admin.js';
+import handler, { normalizeManagedPlayerNumber, normalizeManagedPlayerPosition } from '../api/account-admin.js';
 
 vi.mock('@supabase/supabase-js', () => ({ createClient: vi.fn() }));
 
@@ -194,6 +194,149 @@ describe('admin player number endpoint', () => {
     expect(response.statusCode).toBe(400);
     expect(response.body).toEqual({ error: 'Unable to save player number.' });
     expect(tables.players[0].jersey_number).toBe('12');
+    expect(writes).toEqual([]);
+  });
+});
+
+describe('managed player position validation', () => {
+  it.each([
+    [' g ', 'G'], ['D', 'D'], ['c', 'C'], ['W', 'W'], ['', null], ['  ', null], [null, null],
+  ])('normalizes %j to %j', (value, expected) => {
+    expect(normalizeManagedPlayerPosition(value)).toBe(expected);
+  });
+
+  it.each([undefined, false, [], ['G'], {}, 0, 'LW', 'RW', 'Goalie', 'D/C'])('rejects %j', (value) => {
+    expect(() => normalizeManagedPlayerPosition(value)).toThrow('Choose goalie, defense, center, or wing');
+  });
+});
+
+describe('admin player position endpoint', () => {
+  it('keeps the existing primary position ahead of roster history before an explicit edit', async () => {
+    const { tables, writes } = databaseClient();
+    tables.players[0].primary_position = 'D';
+    tables.roster_memberships[0].position = 'W';
+
+    const response = await request({ action: 'list' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.players.find((player) => player.id === playerId)).toMatchObject({
+      primaryPosition: 'D', position: 'D', primaryPositionUpdatedAt: null,
+      roster: [{ position: 'W' }],
+    });
+    expect(writes).toEqual([]);
+  });
+
+  it.each(['member', 'stat_manager'])('denies %s access before reading or updating players', async (role) => {
+    const { client, writes } = databaseClient(role);
+    const response = await request({ action: 'update-player-position', playerId, position: 'C' });
+    expect(response.statusCode).toBe(403);
+    expect(response.body.error).toBe('Admin access is required.');
+    expect(client.from).not.toHaveBeenCalledWith('players');
+    expect(writes).toEqual([]);
+  });
+
+  it.each(['', 'expired-session'])('denies an unauthenticated session %j', async (token) => {
+    const { writes } = databaseClient();
+    const response = await request({ action: 'update-player-position', playerId, position: 'C' }, token);
+    expect(response.statusCode).toBe(401);
+    expect(writes).toEqual([]);
+  });
+
+  it('persists a position for a delegated admin without changing the number or roster history', async () => {
+    vi.stubEnv('ACCOUNT_OWNER_EMAIL', 'owner@example.test');
+    const { tables, writes } = databaseClient();
+    tables.roster_memberships[0].position = 'D';
+    const response = await request({ action: 'update-player-position', playerId, position: ' c ' });
+    expect(response.statusCode).toBe(200);
+    expect(response.body.permissions.isOwner).toBe(false);
+    expect(response.body.players.find((player) => player.id === playerId)).toMatchObject({
+      primaryPosition: 'C', position: 'C', primaryPositionUpdatedAt: expect.any(String),
+      jerseyNumber: '12', jerseyNumberUpdatedAt: null, roster: [{ position: 'D' }],
+    });
+    expect(writes).toEqual([{
+      table: 'players', id: playerId,
+      patch: { primary_position: 'C', primary_position_updated_at: expect.any(String) },
+    }]);
+    expect(Number.isNaN(Date.parse(writes[0].patch.primary_position_updated_at))).toBe(false);
+    expect(tables.players[0].jersey_number).toBe('12');
+    expect(tables.players[1].primary_position).toBeUndefined();
+    expect(tables.roster_memberships[0].position).toBe('D');
+
+    const reload = await request({ action: 'list' });
+    expect(reload.body.players.find((player) => player.id === playerId).position).toBe('C');
+  });
+
+  it('uses historical position only until a position is explicitly cleared', async () => {
+    const { tables } = databaseClient();
+    tables.roster_memberships[0].position = 'D';
+    const before = await request({ action: 'list' });
+    expect(before.body.players.find((player) => player.id === playerId).position).toBe('D');
+
+    const cleared = await request({ action: 'update-player-position', playerId, position: '' });
+    expect(cleared.statusCode).toBe(200);
+    expect(cleared.body.players.find((player) => player.id === playerId)).toMatchObject({
+      primaryPosition: null, position: null, primaryPositionUpdatedAt: expect.any(String),
+      roster: [{ position: 'D' }],
+    });
+    expect(tables.players[0].primary_position).toBeNull();
+    expect(tables.players[0].jersey_number_updated_at).toBeUndefined();
+  });
+
+  it('returns the same effective position and clear for reviewed source aliases and account links', async () => {
+    const { tables } = databaseClient();
+    Object.assign(tables.players[0], {
+      external_id: '307',
+      display_name: 'Ryan Hunt',
+      primary_position: 'D',
+      source_url: 'https://www.yorkcentralbhl.com/player/307',
+    });
+    Object.assign(tables.players[1], {
+      external_id: 'gtbhl:84495',
+      display_name: 'Ryan Hunt',
+      source_url: 'https://www.greatertorontobhl.com/player/84495',
+    });
+    tables.member_player_claims.push({ user_id: 'coach', player_id: playerId, status: 'approved' });
+
+    const assigned = await request({ action: 'update-player-position', playerId: otherPlayerId, position: 'W' });
+    expect(assigned.statusCode).toBe(200);
+    expect(assigned.body.players.map((player) => player.position)).toEqual(['W', 'W']);
+    expect(assigned.body.claims[0].player.position).toBe('W');
+    expect(tables.players[0].primary_position).toBe('D');
+
+    const cleared = await request({ action: 'update-player-position', playerId: otherPlayerId, position: null });
+    expect(cleared.statusCode).toBe(200);
+    expect(cleared.body.players.map((player) => player.position)).toEqual([null, null]);
+    expect(cleared.body.claims[0].player.position).toBeNull();
+    expect(tables.players.map((player) => player.jersey_number)).toEqual(['12', '19']);
+  });
+
+  it.each([
+    { playerId: 'invalid', position: 'G' },
+    { playerId, position: 'Left Wing' },
+    { playerId, position: ['G'] },
+    { playerId },
+  ])('rejects invalid input without writes: %j', async (payload) => {
+    const { writes } = databaseClient();
+    const response = await request({ action: 'update-player-position', ...payload });
+    expect(response.statusCode).toBe(400);
+    expect(writes).toEqual([]);
+  });
+
+  it('reports a deleted player instead of returning success', async () => {
+    const { tables, writes } = databaseClient();
+    tables.players = [];
+    const response = await request({ action: 'update-player-position', playerId, position: 'G' });
+    expect(response.statusCode).toBe(404);
+    expect(response.body.error).toBe('That player profile no longer exists.');
+    expect(writes).toEqual([]);
+  });
+
+  it('surfaces a failed save without reporting success or changing player data', async () => {
+    const { tables, writes } = databaseClient('admin', { mutationError: { message: 'Unable to save player position.' } });
+    const response = await request({ action: 'update-player-position', playerId, position: 'G' });
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({ error: 'Unable to save player position.' });
+    expect(tables.players[0].primary_position).toBeUndefined();
     expect(writes).toEqual([]);
   });
 });

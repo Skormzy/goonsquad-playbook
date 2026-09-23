@@ -1,5 +1,6 @@
 import { normalizeUsername, usernameValidationMessage } from '../src/account/username.js';
 import { resolvePlayerNumberAssignments } from '../src/stats/publicPlayerDetails.js';
+import { resolvePlayerPosition } from '../src/stats/playerPosition.js';
 import {
   parseJsonBody,
   publicAppUrl,
@@ -22,6 +23,19 @@ export function normalizeManagedPlayerNumber(value) {
     throw new Error('Use up to three digits for the player number, or leave it blank.');
   }
   return number;
+}
+
+export function normalizeManagedPlayerPosition(value) {
+  if (value === null) return null;
+  if (typeof value !== 'string') {
+    throw new Error('Choose goalie, defense, center, or wing, or leave the position blank.');
+  }
+  const position = value.trim().toUpperCase();
+  if (!position) return null;
+  if (!['G', 'D', 'C', 'W'].includes(position)) {
+    throw new Error('Choose goalie, defense, center, or wing, or leave the position blank.');
+  }
+  return position;
 }
 
 function isFutureDate(value) {
@@ -122,7 +136,7 @@ async function loadPlayerLinkDirectory(admin, accounts) {
   const [playerResult, membershipResult, teamResult, seasonResult] = await Promise.all([
     admin
       .from('players')
-      .select('id, external_id, display_name, jersey_number, jersey_number_updated_at, primary_position, active, source_url')
+      .select('id, external_id, display_name, jersey_number, jersey_number_updated_at, primary_position, primary_position_updated_at, active, source_url')
       .order('active', { ascending: false })
       .order('display_name', { ascending: true }),
     admin
@@ -175,14 +189,17 @@ async function loadPlayerLinkDirectory(admin, accounts) {
       displayName: player.display_name,
       jerseyNumber: player.jersey_number ?? null,
       jerseyNumberUpdatedAt: player.jersey_number_updated_at ?? null,
-      position: player.primary_position || currentRoster?.position || null,
+      primaryPosition: player.primary_position ?? null,
+      primaryPositionUpdatedAt: player.primary_position_updated_at ?? null,
+      position: currentRoster?.position || null,
       active: Boolean(player.active),
       sourceUrl: player.source_url,
       roster,
       rosterLabel: currentRoster?.label || '',
     };
   };
-  const normalizedPlayers = resolvePlayerNumberAssignments((playerResult.data || []).map(playerSummary));
+  const normalizedPlayers = resolvePlayerNumberAssignments((playerResult.data || []).map(playerSummary))
+    .map((player) => ({ ...player, position: resolvePlayerPosition(player, player.primaryPosition, player.position) }));
   const playerById = new Map(normalizedPlayers.map((player) => [player.id, player]));
 
   const claims = claimRows.map((claim) => {
@@ -345,6 +362,27 @@ async function updatePlayerNumber(admin, body) {
   }
 }
 
+async function updatePlayerPosition(admin, body) {
+  const playerId = typeof body.playerId === 'string' ? body.playerId.trim() : '';
+  if (!PLAYER_ID_PATTERN.test(playerId)) throw new Error('Choose a valid player profile.');
+  const primaryPosition = normalizeManagedPlayerPosition(body.position);
+  const { data, error } = await admin
+    .from('players')
+    .update({
+      primary_position: primaryPosition,
+      primary_position_updated_at: new Date().toISOString(),
+    })
+    .eq('id', playerId)
+    .select('id')
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) {
+    const missingPlayer = new Error('That player profile no longer exists.');
+    missingPlayer.statusCode = 404;
+    throw missingPlayer;
+  }
+}
+
 export default async function handler(request, response) {
   setPrivateResponseHeaders(response);
   if (request.method !== 'POST') {
@@ -378,6 +416,8 @@ export default async function handler(request, response) {
       await unlinkPlayer(admin, actor, body);
     } else if (body.action === 'update-player-number') {
       await updatePlayerNumber(admin, body);
+    } else if (body.action === 'update-player-position') {
+      await updatePlayerPosition(admin, body);
     } else {
       response.status(400).json({ error: 'Unknown admin action.' });
       return;

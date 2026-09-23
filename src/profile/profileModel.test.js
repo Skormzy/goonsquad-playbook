@@ -71,6 +71,33 @@ describe('member profile model', () => {
     }]).jerseyNumber).toBe(expected);
   });
 
+  it.each(['G', 'D', 'C', 'W', null])('uses a saved position %s ahead of historical roster and claim details', (primaryPosition) => {
+    const assignedDataset = {
+      ...dataset,
+      players: dataset.players.map((player) => player.id === 'current-id'
+        ? { ...player, primaryPosition, primaryPositionUpdatedAt: '2026-09-23T12:00:00Z' }
+        : player),
+    };
+    expect(playerRosterCandidates(assignedDataset).find((player) => player.id === 'current-id').position).toBe(primaryPosition);
+    expect(publicPlayerProfileSnapshot(assignedDataset, 'current-id').position).toBe(primaryPosition);
+    expect(memberProfileSnapshot(assignedDataset, [{
+      playerId: 'current-id', primary: true, player: { primaryPosition: 'old-position' },
+    }]).position).toBe(primaryPosition);
+  });
+
+  it('preserves current roster and claim position precedence before an admin edit', () => {
+    const importedDataset = {
+      ...dataset,
+      players: dataset.players.map((player) => player.id === 'current-id'
+        ? { ...player, primaryPosition: 'C' }
+        : player),
+    };
+    expect(playerRosterCandidates(importedDataset).find((player) => player.id === 'current-id').position).toBe('W');
+    expect(memberProfileSnapshot(importedDataset, [{
+      playerId: 'current-id', primary: true, player: { primaryPosition: 'D' },
+    }]).position).toBe('D');
+  });
+
   it('aggregates only the league identities explicitly linked to the member', () => {
     const claims = [
       { playerId: 'cloud-current', player: { externalId: '101' }, status: 'linked', primary: true },

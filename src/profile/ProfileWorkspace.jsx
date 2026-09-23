@@ -222,6 +222,7 @@ export default function ProfileWorkspace() {
   const [primaryPosition, setPrimaryPosition] = useState('');
   const [rosterStatus, setRosterStatus] = useState('');
   const photoInputRef = useRef(null);
+  const initialRosterDetailsRef = useRef({ jerseyNumber: '', position: '' });
   const t = themes[theme];
 
   useEffect(() => {
@@ -264,12 +265,21 @@ export default function ProfileWorkspace() {
     event.preventDefault();
     if (!primaryClaim?.playerId) return;
     setRosterStatus('');
+    const updateJerseyNumber = jerseyNumber !== initialRosterDetailsRef.current.jerseyNumber;
+    const updatePrimaryPosition = primaryPosition !== initialRosterDetailsRef.current.position;
+    if (!updateJerseyNumber && !updatePrimaryPosition) {
+      setRosterEditorOpen(false);
+      return;
+    }
     try {
       await account.savePlayerDetails(primaryClaim.playerId, {
         jerseyNumber,
         position: primaryPosition,
+        updateJerseyNumber,
+        updatePrimaryPosition,
       });
       setRosterEditorOpen(false);
+      setDataset(await loadStatisticsDataset());
       setRosterStatus('Roster card updated.');
     } catch (error) {
       setRosterStatus(error instanceof Error ? error.message : 'Roster details could not be saved.');
@@ -375,8 +385,13 @@ export default function ProfileWorkspace() {
               onClick={() => {
                 setRosterStatus('');
                 if (!rosterEditorOpen) {
-                  setJerseyNumber(profile.jerseyNumber || '');
-                  setPrimaryPosition(profile.position || '');
+                  const initialDetails = {
+                    jerseyNumber: String(profile.jerseyNumber ?? ''),
+                    position: profile.position || '',
+                  };
+                  initialRosterDetailsRef.current = initialDetails;
+                  setJerseyNumber(initialDetails.jerseyNumber);
+                  setPrimaryPosition(initialDetails.position);
                 }
                 setRosterEditorOpen((open) => !open);
               }}

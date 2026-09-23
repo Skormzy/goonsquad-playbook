@@ -68,14 +68,16 @@ export async function updateAccountProfile(userId, updates) {
 export async function updateLinkedPlayerDetails(playerId, {
   jerseyNumber = '',
   position = '',
+  updateJerseyNumber = true,
+  updatePrimaryPosition = true,
 } = {}) {
   if (!playerId) throw new Error('Link a player profile before adding roster details.');
-  const normalizedNumber = String(jerseyNumber || '').trim();
+  const normalizedNumber = String(jerseyNumber ?? '').trim();
   const normalizedPosition = String(position || '').trim().toUpperCase();
-  if (normalizedNumber && !/^\d{1,3}$/u.test(normalizedNumber)) {
+  if (updateJerseyNumber && normalizedNumber && !/^\d{1,3}$/u.test(normalizedNumber)) {
     throw new Error('Use up to three digits for the player number.');
   }
-  if (normalizedPosition && !['G', 'D', 'C', 'W'].includes(normalizedPosition)) {
+  if (updatePrimaryPosition && normalizedPosition && !['G', 'D', 'C', 'W'].includes(normalizedPosition)) {
     throw new Error('Choose Goalie, Defence, Center, or Winger.');
   }
   const cloud = requireCloud();
@@ -83,6 +85,8 @@ export async function updateLinkedPlayerDetails(playerId, {
     p_jersey_number: normalizedNumber || null,
     p_player_id: playerId,
     p_primary_position: normalizedPosition || null,
+    p_update_jersey_number: updateJerseyNumber,
+    p_update_primary_position: updatePrimaryPosition,
   });
   if (error) throw error;
 }

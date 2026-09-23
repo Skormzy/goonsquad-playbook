@@ -1,5 +1,6 @@
 import { nextUpcomingGame } from '../stats/scheduleFreshness';
 import { resolvePlayerNumber } from '../stats/playerNumber';
+import { resolvePlayerPosition } from '../stats/playerPosition';
 import {
   formatLeagueName,
   formatLeagueScheduleName,
@@ -88,10 +89,9 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
       const latestTeam = teamDetails[0] ?? null;
       const seasons = [...new Map(teamDetails.filter((item) => item.season).map((item) => [item.season.id, item.season])).values()];
       const schedules = [...new Set(teamDetails.filter((item) => item.team).map((item) => formatLeagueScheduleName(item.team)))];
-      const position = currentMemberships.find((membership) => membership.position)?.position
-        || latestMembership?.membership.position
-        || player.primaryPosition
-        || null;
+      const position = resolvePlayerPosition(player,
+        currentMemberships.find((membership) => membership.position)?.position,
+        latestMembership?.membership.position);
       const jerseyNumber = resolvePlayerNumber(player,
         ...currentMemberships.map((membership) => membership.jerseyNumber),
         latestMembership?.membership.jerseyNumber);
@@ -104,6 +104,9 @@ export function playerRosterCandidates(dataset, { includeHistory = false, query 
         avatarUrl: player.avatarUrl || null,
         sourceUrl: player.sourceUrl,
         position,
+        primaryPosition: player.primaryPosition,
+        primaryPositionUpdatedAt: player.primaryPositionUpdatedAt,
+        primaryPositionAuthoritative: Boolean(player.primaryPositionAuthoritative),
         jerseyNumber,
         jerseyNumberAuthoritative: Boolean(player.jerseyNumberAuthoritative || player.jerseyNumberUpdatedAt),
         current: currentMemberships.length > 0,
@@ -526,7 +529,7 @@ export function memberProfileSnapshot(dataset, claims, now = Date.now(), { tourn
     nextGame,
     currentTeams: currentMemberships.map((membership) => teamsById.get(membership.seasonTeamId)).filter(Boolean),
     jerseyNumber: resolvePlayerNumber(primaryPlayer, primaryClaim?.player?.jerseyNumber, latestMembership?.jerseyNumber),
-    position: primaryClaim?.player?.primaryPosition || latestMembership?.position || primaryPlayer.primaryPosition || null,
+    position: resolvePlayerPosition(primaryPlayer, primaryClaim?.player?.primaryPosition, latestMembership?.position),
   };
 }
 

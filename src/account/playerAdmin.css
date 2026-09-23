@@ -72,6 +72,7 @@
 .player-admin-number-editor small, .player-admin-number-editor p { font-size: 11px; color: var(--account-muted); }
 .player-admin-number-editor label { display: grid; gap: 3px; font-size: 10px; font-weight: 700; }
 .player-admin-number-editor input { width: 95px; height: 40px; padding: 6px 10px; border: 1px solid var(--account-border); border-radius: 4px; background: var(--account-surface); font-size: 18px; font-weight: 800; }
+.player-admin-number-editor select { min-width: 170px; max-width: 100%; min-height: 44px; padding: 6px 10px; border: 1px solid var(--account-border); border-radius: 4px; background: var(--account-surface); color: var(--account-text); font-size: 14px; }
 .player-admin-number-editor p { flex-basis: 100%; margin: 0; }
 .player-admin .player-admin-primary { color: var(--account-accent); border-color: var(--account-accent); background: var(--account-surface); }
 .player-admin-spin { animation: player-admin-spin 1s linear infinite; }

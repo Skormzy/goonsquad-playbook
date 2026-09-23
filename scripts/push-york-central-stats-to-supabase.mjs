@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import greaterTorontoSnapshot from '../src/stats/greaterTorontoSnapshot.json' with { type: 'json' };
 import yorkCentralSnapshot from '../src/stats/yorkCentralSnapshot.json' with { type: 'json' };
 import { mergeLeagueSnapshots } from '../src/stats/leagueSnapshotMerge.js';
+import { importLeaguePlayers } from './import-league-players.mjs';
 
 const snapshot = mergeLeagueSnapshots(yorkCentralSnapshot, greaterTorontoSnapshot);
 
@@ -101,14 +102,7 @@ async function importSnapshot() {
   })), 'id');
 
   const leaguePlayers = snapshot.players.filter((player) => player.externalId);
-  await upsert('players', leaguePlayers.map((player) => ({
-    display_name: player.displayName,
-    primary_position: player.primaryPosition,
-    active: player.active,
-    source: 'league',
-    external_id: player.externalId,
-    source_url: player.sourceUrl,
-  })), 'source,external_id');
+  await importLeaguePlayers(cloud, leaguePlayers, upsert);
 
   const { data: playerRows, error: playerError } = await cloud
     .from('players')

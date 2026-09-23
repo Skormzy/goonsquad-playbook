@@ -1,9 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, Check, Columns3, Download, Hash, LoaderCircle, Pencil, RefreshCcw, Search, Users, X } from 'lucide-react';
 import { useAccount } from './AccountContext';
-import { loadManagedAccounts, updateManagedPlayerNumber } from './accountAdmin';
+import { loadManagedAccounts, updateManagedPlayerNumber, updateManagedPlayerPosition } from './accountAdmin';
 import { buildPlayerAdminRows, DEFAULT_PLAYER_COLUMNS, hasPlayerNumber, PLAYER_ADMIN_COLUMNS, playerAdminCsv, selectPlayerAdminRows } from './playerAdminModel';
 import './playerAdmin.css';
+
+const POSITION_OPTIONS = [
+  { value: 'C', label: 'Center (C)' },
+  { value: 'W', label: 'Winger (W)' },
+  { value: 'D', label: 'Defence (D)' },
+  { value: 'G', label: 'Goalie (G)' },
+];
 
 function downloadRows(rows, columns) {
   const url = URL.createObjectURL(new Blob(['\uFEFF', playerAdminCsv(rows, columns)], { type: 'text/csv;charset=utf-8;' }));
@@ -14,7 +21,7 @@ function downloadRows(rows, columns) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function PlayerAdminDirectory({ snapshot = {}, loading = false, working = false, error = '', status = '', onRefresh, onSaveNumber, onClose, onOpenMembers, onOpenPlayer }) {
+export function PlayerAdminDirectory({ snapshot = {}, loading = false, working = false, error = '', status = '', onRefresh, onSaveNumber, onSavePosition, onClose, onOpenMembers, onOpenPlayer }) {
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState({});
   const [quickFilter, setQuickFilter] = useState('all');
@@ -39,10 +46,14 @@ export function PlayerAdminDirectory({ snapshot = {}, loading = false, working =
   };
   const resetFilters = () => { setQuery(''); setFilters({}); setQuickFilter('all'); };
   const changeSort = (key) => setSort((current) => ({ key, direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc' }));
-  const saveNumber = async (event) => {
+  const editorValueValid = editor?.kind === 'position'
+    ? editor.value === '' || POSITION_OPTIONS.some(({ value }) => value === editor.value)
+    : Boolean(editor && /^\d{0,3}$/.test(editor.value.trim()));
+  const saveEditor = async (event) => {
     event.preventDefault();
-    if (!editor || busy || !/^\d{0,3}$/.test(editor.value.trim())) return;
-    if (await onSaveNumber(editor.id, editor.value.trim() || null)) setEditor(null);
+    if (!editor || busy || !editorValueValid) return;
+    const save = editor.kind === 'position' ? onSavePosition : onSaveNumber;
+    if (await save(editor.id, editor.value.trim() || null)) setEditor(null);
   };
 
   return (
@@ -52,7 +63,7 @@ export function PlayerAdminDirectory({ snapshot = {}, loading = false, working =
           <button type="button" className="player-admin-back" onClick={onClose} disabled={working}><ArrowLeft aria-hidden="true" /> Account</button>
           <span className="player-admin-kicker">SQUAD OPERATIONS</span>
           <h2 id="player-admin-title">Player administration</h2>
-          <p>Your roster, numbers, and account links in one place.</p>
+          <p>Your roster, numbers, positions, and account links in one place.</p>
         </div>
         <div className="player-admin-actions">
           <button type="button" onClick={onOpenMembers} disabled={working}><Users aria-hidden="true" /> Manage members</button>
@@ -87,25 +98,27 @@ export function PlayerAdminDirectory({ snapshot = {}, loading = false, working =
       {navigationError && <p className="player-admin-notice" data-tone="error" role="alert">{navigationError}</p>}
       {status && <p className="player-admin-notice" role="status">{status}</p>}
 
-      {editor && <form className="player-admin-number-editor" onSubmit={saveNumber}>
-        <Hash aria-hidden="true" />
-        <div><strong>{editor.name}</strong><small>Assign 0–999. Leave blank to remove the number.</small></div>
-        <label><span>Player number</span><input autoFocus aria-label={`Number for ${editor.name}`} type="text" inputMode="numeric" maxLength={3} pattern="[0-9]{0,3}" value={editor.value} disabled={working} onChange={(event) => setEditor({ ...editor, value: event.target.value })} /></label>
-        <button type="submit" className="player-admin-primary" disabled={busy || !/^\d{0,3}$/.test(editor.value.trim()) || editor.value.trim() === editor.original}>{working ? <LoaderCircle className="player-admin-spin" aria-hidden="true" /> : <Check aria-hidden="true" />} Save number</button>
+      {editor && <form className="player-admin-number-editor" onSubmit={saveEditor} data-editor={editor.kind}>
+        {editor.kind === 'position' ? <Users aria-hidden="true" /> : <Hash aria-hidden="true" />}
+        <div><strong>{editor.name}</strong><small>{editor.kind === 'position' ? 'Choose a primary position, or Unassigned to clear it.' : 'Assign 0–999. Leave blank to remove the number.'}</small></div>
+        {editor.kind === 'position' ? <label><span>Primary position</span><select autoFocus aria-label={`Position for ${editor.name}`} value={editor.value} disabled={working} onChange={(event) => setEditor({ ...editor, value: event.target.value })}><option value="">Unassigned</option>{editor.original && !POSITION_OPTIONS.some(({ value }) => value === editor.original) && <option value={editor.original} disabled>{editor.original} (current)</option>}{POSITION_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}</select></label>
+          : <label><span>Player number</span><input autoFocus aria-label={`Number for ${editor.name}`} type="text" inputMode="numeric" maxLength={3} pattern="[0-9]{0,3}" value={editor.value} disabled={working} onChange={(event) => setEditor({ ...editor, value: event.target.value })} /></label>}
+        <button type="submit" className="player-admin-primary" disabled={busy || !editorValueValid || editor.value.trim() === editor.original}>{working ? <LoaderCircle className="player-admin-spin" aria-hidden="true" /> : <Check aria-hidden="true" />} Save {editor.kind === 'position' ? 'position' : 'number'}</button>
         <button type="button" disabled={working} onClick={() => setEditor(null)}>Cancel</button>
-        {rows.some((row) => row.identityId !== editor.identityId && row.active && hasPlayerNumber(row.jerseyNumber) && hasPlayerNumber(editor.value) && Number(row.jerseyNumber) === Number(editor.value)) && <p role="status">Another active player has this number. Shared numbers are allowed; check the roster before saving.</p>}
+        {editor.kind === 'number' && rows.some((row) => row.identityId !== editor.identityId && row.active && hasPlayerNumber(row.jerseyNumber) && hasPlayerNumber(editor.value) && Number(row.jerseyNumber) === Number(editor.value)) && <p role="status">Another active player has this number. Shared numbers are allowed; check the roster before saving.</p>}
       </form>}
 
       <div className="player-admin-table-scroll" role="region" aria-label="Player directory table, scroll horizontally for more columns" tabIndex={0} aria-busy={loading}>
         <table className="player-admin-table">
-          <caption className="sr-only">Player directory. Each column can be sorted and filtered. Edit a number to assign it to a player.</caption>
+          <caption className="sr-only">Player directory. Each column can be sorted and filtered. Edit a number or position to assign it to a player.</caption>
           <thead>
             <tr>{columns.map(({ key, label }) => <th key={key} scope="col" aria-sort={sort.key === key ? sort.direction === 'asc' ? 'ascending' : 'descending' : 'none'}><button type="button" onClick={() => changeSort(key)} aria-label={`Sort by ${label}`}><span>{label}</span>{sort.key === key ? sort.direction === 'asc' ? <ArrowUp aria-hidden="true" /> : <ArrowDown aria-hidden="true" /> : <ArrowUpDown aria-hidden="true" />}</button>{columnOptions[key] ? <select aria-label={`Filter ${label}`} value={filters[key] || ''} onChange={(event) => setFilters({ ...filters, [key]: event.target.value })}><option value="">All {label.toLowerCase()}</option>{columnOptions[key].map((value) => <option key={value}>{value}</option>)}</select> : <input type="search" aria-label={`Filter ${label}`} placeholder={key === 'jerseyNumber' ? '# or unassigned' : `Filter ${label.toLowerCase()}`} value={filters[key] || ''} onChange={(event) => setFilters({ ...filters, [key]: event.target.value })} />}</th>)}</tr>
           </thead>
           <tbody>
             {visibleRows.map((row) => <tr key={row.id} data-editing={editor?.id === row.id}>{columns.map(({ key }) => <td key={key}>
               {key === 'displayName' ? <button type="button" className="player-admin-name" onClick={() => openPlayer(row)} disabled={busy}>{openingId === row.id && <LoaderCircle className="player-admin-spin" aria-hidden="true" />}{row.displayName}</button>
-                : key === 'jerseyNumber' ? <button type="button" className="player-admin-number" aria-label={`Edit number for ${row.displayName}`} disabled={busy} onClick={() => { setEditor({ id: row.id, identityId: row.identityId, name: row.displayName, value: row.jerseyNumber, original: row.jerseyNumber }); }}><strong>{hasPlayerNumber(row.jerseyNumber) ? `#${row.jerseyNumber}` : 'Assign'}</strong><Pencil aria-hidden="true" />{row.sharedNumber && <small>Shared</small>}</button>
+                : key === 'jerseyNumber' ? <button type="button" className="player-admin-number" aria-label={`Edit number for ${row.displayName}`} disabled={busy} onClick={() => { setEditor({ kind: 'number', id: row.id, identityId: row.identityId, name: row.displayName, value: row.jerseyNumber, original: row.jerseyNumber }); }}><strong>{hasPlayerNumber(row.jerseyNumber) ? `#${row.jerseyNumber}` : 'Assign'}</strong><Pencil aria-hidden="true" />{row.sharedNumber && <small>Shared</small>}</button>
+                  : key === 'position' ? <button type="button" className="player-admin-number" aria-label={`Edit position for ${row.displayName}`} disabled={busy} onClick={() => setEditor({ kind: 'position', id: row.id, name: row.displayName, value: row.position || '', original: row.position || '' })}><strong>{row.position || 'Assign'}</strong><Pencil aria-hidden="true" /></button>
                   : key === 'rosterStatus' || key === 'linkStatus' ? <span className="player-admin-badge" data-positive={row[key] === 'Active' || row[key] === 'Linked'}>{row[key]}</span>
                     : row[key] || <span className="player-admin-empty-value">—</span>}
             </td>)}</tr>)}
@@ -113,7 +126,7 @@ export function PlayerAdminDirectory({ snapshot = {}, loading = false, working =
           </tbody>
         </table>
       </div>
-      <p className="player-admin-footnote">Numbers appear on player statistics and individual profiles. Historical roster numbers stay in the season records. “Sharing a number” counts active player records.</p>
+      <p className="player-admin-footnote">Numbers and positions appear on player statistics and individual profiles. Historical roster details stay in the season records. “Sharing a number” counts active player records.</p>
     </section>
   );
 }
@@ -146,7 +159,19 @@ function AuthorizedPlayerAdmin(props) {
     } catch (requestError) { setError(requestError.message); return false; }
     finally { setWorking(false); }
   };
-  return <PlayerAdminDirectory {...props} snapshot={snapshot} loading={loading} working={working} error={error} status={status} onRefresh={refresh} onSaveNumber={saveNumber} />;
+  const savePosition = async (playerId, position) => {
+    setWorking(true); setError(''); setStatus('');
+    try {
+      const result = await updateManagedPlayerPosition(playerId, position);
+      setSnapshot(result);
+      const name = result.players?.find((player) => player.id === playerId)?.displayName || 'Player';
+      const label = POSITION_OPTIONS.find(({ value }) => value === position)?.label;
+      setStatus(position === null ? `${name}’s position was cleared.` : `${name}’s position is now ${label}.`);
+      return true;
+    } catch (requestError) { setError(requestError.message); return false; }
+    finally { setWorking(false); }
+  };
+  return <PlayerAdminDirectory {...props} snapshot={snapshot} loading={loading} working={working} error={error} status={status} onRefresh={refresh} onSaveNumber={saveNumber} onSavePosition={savePosition} />;
 }
 
 export default function PlayerAdminPage(props) {
