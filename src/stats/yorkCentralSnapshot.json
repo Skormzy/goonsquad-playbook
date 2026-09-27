@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-26T19:36:38.340Z",
+  "capturedAt": "2026-09-27T21:05:39.002Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1135,6 +1135,15 @@
       "active": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25103-darryl-irwin",
       "primaryPosition": null,
+      "persisted": false
+    },
+    {
+      "id": "ycbhl-player-24197",
+      "externalId": "24197",
+      "displayName": "Dave Ametrano",
+      "primaryPosition": null,
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/24197-dave-ametrano",
       "persisted": false
     },
     {
@@ -2632,6 +2641,16 @@
       "position": null,
       "active": true,
       "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-4-ycbhl-player-24197",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "playerId": "ycbhl-player-24197",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
       "persisted": false
     },
     {
