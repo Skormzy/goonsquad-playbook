@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-09-28T04:29:23.242Z",
+  "capturedAt": "2026-09-28T11:11:11.363Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -665,7 +665,7 @@
       "externalId": "26165",
       "displayName": "Alexandro Tedesco",
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26165-maxim-golovan",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26165-alexandro-tedesco",
       "primaryPosition": null,
       "persisted": false
     },
@@ -755,7 +755,7 @@
       "externalId": "26086",
       "displayName": "Andrew Harlow",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26086-andrew-harlow",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26086-andrew-harlow",
       "primaryPosition": null,
       "persisted": false
     },
@@ -827,7 +827,7 @@
       "externalId": "24770",
       "displayName": "Anthony Munna",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/24770-anthony-munna",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/24770-anthony-munna",
       "primaryPosition": null,
       "persisted": false
     },
@@ -944,7 +944,7 @@
       "externalId": "25191",
       "displayName": "Brendan Rotz",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25191-brendan-rotz",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25191-brendan-rotz",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1412,7 +1412,7 @@
       "externalId": "25892",
       "displayName": "Jason Huang",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25892-jason-huang",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25892-jason-huang",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1439,7 +1439,7 @@
       "externalId": "26291",
       "displayName": "Jayce McGarrigle",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26291-jayce-mcgarrigle",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26291-jayce-mcgarrigle",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1799,7 +1799,7 @@
       "externalId": "26363",
       "displayName": "Maxim Golovan",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26363-maxim-golovan",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26363-maxim-golovan",
       "primaryPosition": null,
       "persisted": false
     },
@@ -151810,10 +151810,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25103-field",
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26298-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "playerId": "ycbhl-player-25103",
+      "playerId": "ycbhl-player-26298",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -151825,10 +151825,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26298-field",
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25103-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "playerId": "ycbhl-player-26298",
+      "playerId": "ycbhl-player-25103",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
