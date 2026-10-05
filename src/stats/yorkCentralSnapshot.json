@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-05T07:31:34.029Z",
+  "capturedAt": "2026-10-05T16:56:43.488Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -755,7 +755,7 @@
       "externalId": "26086",
       "displayName": "Andrew Harlow",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26086-andrew-harlow",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26086-andrew-harlow",
       "primaryPosition": null,
       "persisted": false
     },
@@ -827,7 +827,7 @@
       "externalId": "24770",
       "displayName": "Anthony Munna",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/24770-anthony-munna",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/24770-anthony-munna",
       "primaryPosition": null,
       "persisted": false
     },
@@ -944,7 +944,7 @@
       "externalId": "25191",
       "displayName": "Brendan Rotz",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25191-brendan-rotz",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25191-brendan-rotz",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1421,7 +1421,7 @@
       "externalId": "25892",
       "displayName": "Jason Huang",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25892-jason-huang",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25892-jason-huang",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1745,7 +1745,7 @@
       "externalId": "26386",
       "displayName": "Matteo Crossley",
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26386-matteo-crossley",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26386-matteo-crossley",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1808,7 +1808,7 @@
       "externalId": "26363",
       "displayName": "Maxim Golovan",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26363-maxim-golovan",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26363-maxim-golovan",
       "primaryPosition": null,
       "persisted": false
     },
@@ -150907,11 +150907,11 @@
       "rank": 4,
       "teamName": "FRESH MEAT",
       "teamExternalId": "7273",
-      "gamesPlayed": 6,
+      "gamesPlayed": 7,
       "wins": 3,
       "losses": 3,
-      "ties": 0,
-      "points": 6,
+      "ties": 1,
+      "points": 7,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7273-fresh-meat"
     },
@@ -150946,11 +150946,11 @@
       "rank": 7,
       "teamName": "ICE HOLES",
       "teamExternalId": "7275",
-      "gamesPlayed": 6,
+      "gamesPlayed": 7,
       "wins": 1,
       "losses": 4,
-      "ties": 1,
-      "points": 3,
+      "ties": 2,
+      "points": 4,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7275-ice-holes"
     },
