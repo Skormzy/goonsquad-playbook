@@ -1106,6 +1106,84 @@
       "sourceMetadata": {
         "videoId": "v6zd2smXL_0"
       }
+    },
+    {
+      "sourceKey": "youtube:Xl-XcdYFOdY",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Toronto Heat (Away View) - Game 7 | 2026 Fall - Sunday Tier 4",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=Xl-XcdYFOdY",
+      "sourceImageUrl": "https://i.ytimg.com/vi/Xl-XcdYFOdY/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhMIF8oZTAP&rs=AOn4CLCuXT7O3eZ_hef6oj349est_uW_4A",
+      "sourcePublishedAt": "2026-10-06T03:14:04.836Z",
+      "sourceMetadata": {
+        "videoId": "Xl-XcdYFOdY"
+      }
+    },
+    {
+      "sourceKey": "youtube:1MvdI_j0FlY",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Toronto Heat (Home View) - Game 7 | 2026 Fall - Sunday Tier 4",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=1MvdI_j0FlY",
+      "sourceImageUrl": "https://i.ytimg.com/vi/1MvdI_j0FlY/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARg2IFsoZTAP&rs=AOn4CLCUidaWe3W_ChRqL8w33JzIdCq-kA",
+      "sourcePublishedAt": "2026-10-06T03:14:04.913Z",
+      "sourceMetadata": {
+        "videoId": "1MvdI_j0FlY"
+      }
+    },
+    {
+      "sourceKey": "youtube:W1T5a_B5zN4",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Danforth Knights Masters (Away View) - Game 4 | 2026 Fall - Sunday Tier 4",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=W1T5a_B5zN4",
+      "sourceImageUrl": "https://i.ytimg.com/vi/W1T5a_B5zN4/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIGAoVTAP&rs=AOn4CLBxoFOmvSzNOs0b_KByqMVWmmGXRA",
+      "sourcePublishedAt": "2026-10-06T03:14:04.918Z",
+      "sourceMetadata": {
+        "videoId": "W1T5a_B5zN4"
+      }
+    },
+    {
+      "sourceKey": "youtube:CEtapXVAI_0",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Danforth Knights Masters (Home View) - Game 4 | 2026 Fall - Sunday Tier 4",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=CEtapXVAI_0",
+      "sourceImageUrl": "https://i.ytimg.com/vi/CEtapXVAI_0/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARg4IFwoZTAP&rs=AOn4CLCMfvDYZJ1C84HTjf0DrJvtnb4gFQ",
+      "sourcePublishedAt": "2026-10-06T03:14:04.968Z",
+      "sourceMetadata": {
+        "videoId": "CEtapXVAI_0"
+      }
+    },
+    {
+      "sourceKey": "youtube:gKwb82dTZmQ",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Bloodhounds (Away View) - Game 4 | 2026 Fall - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=gKwb82dTZmQ",
+      "sourceImageUrl": "https://i.ytimg.com/vi/gKwb82dTZmQ/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhFIF4oZTAP&rs=AOn4CLBL0JqVbZ8pskQBa4JyFcYn6RFh6A",
+      "sourcePublishedAt": "2026-10-06T03:14:05.029Z",
+      "sourceMetadata": {
+        "videoId": "gKwb82dTZmQ"
+      }
+    },
+    {
+      "sourceKey": "youtube:mzCiJfUnx_M",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Bloodhounds (Home View) - Game 4 | 2026 Fall - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=mzCiJfUnx_M",
+      "sourceImageUrl": "https://i.ytimg.com/vi/mzCiJfUnx_M/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhLIGAoZTAP&rs=AOn4CLBItwFoaEg5TA4Ha6DpgMxO0em6EQ",
+      "sourcePublishedAt": "2026-10-06T03:14:05.032Z",
+      "sourceMetadata": {
+        "videoId": "mzCiJfUnx_M"
+      }
     }
   ]
 }
