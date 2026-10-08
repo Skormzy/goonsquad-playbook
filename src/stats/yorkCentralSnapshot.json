@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-08T07:07:30.083Z",
+  "capturedAt": "2026-10-08T14:47:54.088Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1385,7 +1385,7 @@
       "externalId": "25347",
       "displayName": "Jared Goetz",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/25347-matt-crossley",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/25347-jared-goetz",
       "primaryPosition": null,
       "persisted": false
     },
