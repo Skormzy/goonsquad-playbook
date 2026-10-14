@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-14T05:55:42.736Z",
+  "capturedAt": "2026-10-14T11:28:45.264Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -764,7 +764,7 @@
       "externalId": "26086",
       "displayName": "Andrew Harlow",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26086-andrew-harlow",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26086-andrew-harlow",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1394,7 +1394,7 @@
       "externalId": "26061",
       "displayName": "Jarratt Daoust",
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26061-taso-agelopoulos",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26061-jarratt-daoust",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1835,7 +1835,7 @@
       "externalId": "26363",
       "displayName": "Maxim Golovan",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26363-maxim-golovan",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26363-maxim-golovan",
       "primaryPosition": null,
       "persisted": false
     },
@@ -2528,7 +2528,7 @@
       "externalId": "25529",
       "displayName": "Trenten White",
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25529-aiden-anderson",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25529-trenten-white",
       "primaryPosition": null,
       "persisted": false
     },
@@ -155414,21 +155414,6 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-24770-field",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "stage": "regular",
-      "playerId": "ycbhl-player-24770",
-      "gamesPlayed": 1,
-      "goals": 1,
-      "assists": 0,
-      "points": 1,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25875-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
@@ -155448,6 +155433,21 @@
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
       "playerId": "ycbhl-player-25960",
+      "gamesPlayed": 1,
+      "goals": 1,
+      "assists": 0,
+      "points": 1,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-24770-field",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "stage": "regular",
+      "playerId": "ycbhl-player-24770",
       "gamesPlayed": 1,
       "goals": 1,
       "assists": 0,
@@ -155639,10 +155639,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25244-field",
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25137-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "playerId": "ycbhl-player-25244",
+      "playerId": "ycbhl-player-25137",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -155654,10 +155654,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25137-field",
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25244-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "playerId": "ycbhl-player-25137",
+      "playerId": "ycbhl-player-25244",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
