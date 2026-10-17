@@ -1197,6 +1197,19 @@
       "sourceMetadata": {
         "videoId": "3uIj2hwl6Ug"
       }
+    },
+    {
+      "sourceKey": "youtube:7yFX006NSmY",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Blazers (Home View) - Game 7 | 2026 Fall - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=7yFX006NSmY",
+      "sourceImageUrl": "https://i.ytimg.com/vi/7yFX006NSmY/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARg8IGQocjAP&rs=AOn4CLCCA8DhFQaLHEOagtBuwSluf4Y8lw",
+      "sourcePublishedAt": "2026-10-17T06:02:55.907Z",
+      "sourceMetadata": {
+        "videoId": "7yFX006NSmY"
+      }
     }
   ]
 }
