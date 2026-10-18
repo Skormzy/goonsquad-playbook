@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-18T13:29:52.916Z",
+  "capturedAt": "2026-10-18T21:42:42.756Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1547,8 +1547,8 @@
       "externalId": "419",
       "displayName": "Jose Aviles",
       "primaryPosition": null,
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7202-goonsquad/419-jose-aviles",
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/419-jose-aviles",
       "persisted": false
     },
     {
@@ -2744,6 +2744,16 @@
       "position": null,
       "active": true,
       "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-4-ycbhl-player-419",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "playerId": "ycbhl-player-419",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
       "persisted": false
     },
     {
@@ -152633,28 +152643,28 @@
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "rank": 1,
-      "teamName": "DANFORTH KNIGHTS MASTERS",
-      "teamExternalId": "7268",
-      "gamesPlayed": 6,
-      "wins": 5,
+      "teamName": "SCARBOROUGH STINGERS",
+      "teamExternalId": "7269",
+      "gamesPlayed": 7,
+      "wins": 6,
       "losses": 0,
       "ties": 1,
-      "points": 11,
+      "points": 13,
       "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7268-danforth-knights-masters"
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7269-scarborough-stingers"
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "rank": 2,
-      "teamName": "SCARBOROUGH STINGERS",
-      "teamExternalId": "7269",
-      "gamesPlayed": 6,
+      "teamName": "DANFORTH KNIGHTS MASTERS",
+      "teamExternalId": "7268",
+      "gamesPlayed": 7,
       "wins": 5,
-      "losses": 0,
+      "losses": 1,
       "ties": 1,
       "points": 11,
       "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7269-scarborough-stingers"
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7268-danforth-knights-masters"
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
@@ -155069,10 +155079,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25731-field",
+      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25997-field",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
-      "playerId": "ycbhl-player-25731",
+      "playerId": "ycbhl-player-25997",
       "gamesPlayed": 6,
       "goals": 0,
       "assists": 1,
@@ -155084,10 +155094,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25997-field",
+      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-25731-field",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
-      "playerId": "ycbhl-player-25997",
+      "playerId": "ycbhl-player-25731",
       "gamesPlayed": 6,
       "goals": 0,
       "assists": 1,
@@ -155189,21 +155199,6 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-26180-field",
-      "seasonTeamId": "fall-2026-sunday-tier-4",
-      "stage": "regular",
-      "playerId": "ycbhl-player-26180",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-24197-field",
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
@@ -155223,6 +155218,21 @@
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "stage": "regular",
       "playerId": "ycbhl-player-26405",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-sunday-tier-4-regular-ycbhl-player-26180-field",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "stage": "regular",
+      "playerId": "ycbhl-player-26180",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
