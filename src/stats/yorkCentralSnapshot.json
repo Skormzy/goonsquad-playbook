@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-19T04:28:11.332Z",
+  "capturedAt": "2026-10-19T10:12:32.509Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -647,7 +647,7 @@
       "externalId": "25875",
       "displayName": "Aiden Anderson",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25875-jeremy-de-simone",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25875-aiden-anderson",
       "primaryPosition": null,
       "persisted": false
     },
@@ -764,7 +764,7 @@
       "externalId": "26086",
       "displayName": "Andrew Harlow",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26086-andrew-harlow",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26086-andrew-harlow",
       "primaryPosition": null,
       "persisted": false
     },
@@ -836,7 +836,7 @@
       "externalId": "24770",
       "displayName": "Anthony Munna",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/24770-anthony-munna",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/24770-anthony-munna",
       "primaryPosition": null,
       "persisted": false
     },
@@ -953,7 +953,7 @@
       "externalId": "25191",
       "displayName": "Brendan Rotz",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25191-brendan-rotz",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25191-brendan-rotz",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1025,7 +1025,7 @@
       "externalId": "26298",
       "displayName": "Christian Comire",
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26298-christian-comire",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26298-christian-comire",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1430,7 +1430,7 @@
       "externalId": "25892",
       "displayName": "Jason Huang",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25892-jason-huang",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25892-jason-huang",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1772,7 +1772,7 @@
       "externalId": "26386",
       "displayName": "Matteo Crossley",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26386-matteo-crossley",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/26386-matteo-crossley",
       "primaryPosition": null,
       "persisted": false
     },
@@ -1835,7 +1835,7 @@
       "externalId": "26363",
       "displayName": "Maxim Golovan",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26363-hamza-abdullahi",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26363-maxim-golovan",
       "primaryPosition": null,
       "persisted": false
     },
@@ -2636,7 +2636,7 @@
       "externalId": "25960",
       "displayName": "Yusuf Sadozi",
       "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/25960-yusuf-sadozi",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7278-goonsquad/25960-yusuf-sadozi",
       "primaryPosition": null,
       "persisted": false
     },
@@ -156814,21 +156814,6 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-mon-wed-regular-ycbhl-player-26293-field",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "stage": "regular",
-      "playerId": "ycbhl-player-26293",
-      "gamesPlayed": 4,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 2,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "fall-2026-mon-wed-regular-ycbhl-player-25022-field",
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
@@ -156848,6 +156833,21 @@
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
       "playerId": "ycbhl-player-307",
+      "gamesPlayed": 4,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 2,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-mon-wed-regular-ycbhl-player-26293-field",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "stage": "regular",
+      "playerId": "ycbhl-player-26293",
       "gamesPlayed": 4,
       "goals": 0,
       "assists": 0,
@@ -156979,36 +156979,6 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-mon-wed-regular-ycbhl-player-26291-field",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "stage": "regular",
-      "playerId": "ycbhl-player-26291",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "fall-2026-mon-wed-regular-ycbhl-player-26406-field",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "stage": "regular",
-      "playerId": "ycbhl-player-26406",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "fall-2026-mon-wed-regular-ycbhl-player-26086-field",
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
@@ -157028,6 +156998,36 @@
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
       "playerId": "ycbhl-player-26400",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-mon-wed-regular-ycbhl-player-26291-field",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "stage": "regular",
+      "playerId": "ycbhl-player-26291",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-mon-wed-regular-ycbhl-player-26406-field",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "stage": "regular",
+      "playerId": "ycbhl-player-26406",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
