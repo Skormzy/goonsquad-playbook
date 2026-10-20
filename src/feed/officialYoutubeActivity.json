@@ -1210,6 +1210,58 @@
       "sourceMetadata": {
         "videoId": "7yFX006NSmY"
       }
+    },
+    {
+      "sourceKey": "youtube:G4eiyDF5MEY",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Viperz (Away View) - Game 8 | 2026 Fall - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=G4eiyDF5MEY",
+      "sourceImageUrl": "https://i.ytimg.com/vi/G4eiyDF5MEY/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhPIGAoZTAP&rs=AOn4CLD1LJeMHS7Km_EZNxRtSgPrA1BqlA",
+      "sourcePublishedAt": "2026-10-20T00:57:57.485Z",
+      "sourceMetadata": {
+        "videoId": "G4eiyDF5MEY"
+      }
+    },
+    {
+      "sourceKey": "youtube:0jH80jdeojQ",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Fresh Meat (Away View) - Game 8 | 2026 Fall - Sunday Tier 4",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=0jH80jdeojQ",
+      "sourceImageUrl": "https://i.ytimg.com/vi/0jH80jdeojQ/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhSIGUoZTAP&rs=AOn4CLABrZnnOqcXZtrNh32KMjSxs2DoOw",
+      "sourcePublishedAt": "2026-10-20T00:57:57.514Z",
+      "sourceMetadata": {
+        "videoId": "0jH80jdeojQ"
+      }
+    },
+    {
+      "sourceKey": "youtube:tgvHSUO55i8",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Viperz (Home View) - Game 8 | 2026 Fall - Sunday Tier 5",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=tgvHSUO55i8",
+      "sourceImageUrl": "https://i.ytimg.com/vi/tgvHSUO55i8/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhPIF4oZTAP&rs=AOn4CLCpz704Ni21PTWQ7ULwqBRZe-xsQA",
+      "sourcePublishedAt": "2026-10-20T00:57:57.718Z",
+      "sourceMetadata": {
+        "videoId": "tgvHSUO55i8"
+      }
+    },
+    {
+      "sourceKey": "youtube:vvt0QOlg1BM",
+      "sourceType": "youtube",
+      "sourceLabel": "Goon Squad YouTube",
+      "sourceTitle": "Goonsquad vs Fresh Meat (Home View) - Game 8 | 2026 Fall - Sunday Tier 4",
+      "body": "",
+      "linkUrl": "https://www.youtube.com/watch?v=vvt0QOlg1BM",
+      "sourceImageUrl": "https://i.ytimg.com/vi/vvt0QOlg1BM/hq720.jpg?sqp=-oaymwE2CNAFEJQDSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhPIF0oZTAP&rs=AOn4CLAIBCqurefAQJpU1WYV_yeqCGVlpw",
+      "sourcePublishedAt": "2026-10-20T00:57:57.740Z",
+      "sourceMetadata": {
+        "videoId": "vvt0QOlg1BM"
+      }
     }
   ]
 }
