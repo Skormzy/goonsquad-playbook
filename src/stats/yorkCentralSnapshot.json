@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-20T05:53:25.719Z",
+  "capturedAt": "2026-10-20T19:54:41.366Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -157019,21 +157019,6 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-24770-field",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "stage": "regular",
-      "playerId": "ycbhl-player-24770",
-      "gamesPlayed": 1,
-      "goals": 1,
-      "assists": 0,
-      "points": 1,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25875-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
@@ -157053,6 +157038,21 @@
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
       "playerId": "ycbhl-player-25960",
+      "gamesPlayed": 1,
+      "goals": 1,
+      "assists": 0,
+      "points": 1,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-24770-field",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "stage": "regular",
+      "playerId": "ycbhl-player-24770",
       "gamesPlayed": 1,
       "goals": 1,
       "assists": 0,
@@ -157244,21 +157244,6 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25244-field",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "stage": "regular",
-      "playerId": "ycbhl-player-25244",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
       "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25137-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
@@ -157278,6 +157263,21 @@
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
       "playerId": "ycbhl-player-26406",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25244-field",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "stage": "regular",
+      "playerId": "ycbhl-player-25244",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
