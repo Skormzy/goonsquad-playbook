@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-21T07:16:51.133Z",
+  "capturedAt": "2026-10-22T00:29:41.412Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -154816,6 +154816,19 @@
     {
       "seasonTeamId": "fall-2026-mon-wed",
       "rank": 2,
+      "teamName": "HOMENETMEN",
+      "teamExternalId": "7283",
+      "gamesPlayed": 8,
+      "wins": 6,
+      "losses": 2,
+      "ties": 0,
+      "points": 12,
+      "isGoonSquad": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7283-homenetmen"
+    },
+    {
+      "seasonTeamId": "fall-2026-mon-wed",
+      "rank": 3,
       "teamName": "SMASH BROS",
       "teamExternalId": "7290",
       "gamesPlayed": 6,
@@ -154828,7 +154841,7 @@
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
-      "rank": 3,
+      "rank": 4,
       "teamName": "GONGSHOW",
       "teamExternalId": "7285",
       "gamesPlayed": 8,
@@ -154838,19 +154851,6 @@
       "points": 10,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7285-gongshow"
-    },
-    {
-      "seasonTeamId": "fall-2026-mon-wed",
-      "rank": 4,
-      "teamName": "HOMENETMEN",
-      "teamExternalId": "7283",
-      "gamesPlayed": 7,
-      "wins": 5,
-      "losses": 2,
-      "ties": 0,
-      "points": 10,
-      "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7283-homenetmen"
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
@@ -154883,9 +154883,9 @@
       "rank": 7,
       "teamName": "MALVERN REAPERS",
       "teamExternalId": "7282",
-      "gamesPlayed": 8,
+      "gamesPlayed": 9,
       "wins": 2,
-      "losses": 6,
+      "losses": 7,
       "ties": 0,
       "points": 4,
       "isGoonSquad": false,
