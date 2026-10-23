@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-22T23:03:50.341Z",
+  "capturedAt": "2026-10-23T01:46:45.066Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1321,9 +1321,9 @@
       "id": "ycbhl-player-113",
       "externalId": "113",
       "displayName": "Hagop Haddad",
+      "primaryPosition": null,
       "active": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7191-goonsquad/113-hagop-haddad",
-      "primaryPosition": "G",
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/113-hagop-haddad",
       "persisted": false
     },
     {
@@ -2814,6 +2814,16 @@
       "position": null,
       "active": true,
       "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-sunday-tier-4-ycbhl-player-113",
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "playerId": "ycbhl-player-113",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
       "persisted": false
     },
     {
