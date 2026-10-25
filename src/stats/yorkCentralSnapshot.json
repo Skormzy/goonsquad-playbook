@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-25T18:14:38.843Z",
+  "capturedAt": "2026-10-25T21:06:58.024Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1951,7 +1951,7 @@
       "id": "ycbhl-player-26405",
       "externalId": "26405",
       "displayName": "Mitchell Keen",
-      "active": false,
+      "active": true,
       "sourceUrl": "https://www.yorkcentralbhl.com/player/7272-goonsquad/26405-mitchell-keen",
       "primaryPosition": null,
       "persisted": false
@@ -2852,8 +2852,8 @@
       "playerId": "ycbhl-player-26405",
       "jerseyNumber": null,
       "position": null,
-      "active": false,
-      "notes": "EP",
+      "active": true,
+      "notes": "",
       "persisted": false
     },
     {
