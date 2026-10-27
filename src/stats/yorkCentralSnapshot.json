@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-27T00:00:36.649Z",
+  "capturedAt": "2026-10-27T05:25:12.237Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -2967,16 +2967,6 @@
       "persisted": false
     },
     {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-306",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-306",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "fall-2026-sunday-tier-5-ycbhl-player-25022",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "playerId": "ycbhl-player-25022",
@@ -2984,66 +2974,6 @@
       "position": null,
       "active": true,
       "notes": "",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-25875",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-25875",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-25137",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-25137",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-25244",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-25244",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-26298",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-26298",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-26386",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-26386",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-26061",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-26061",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
       "persisted": false
     },
     {
@@ -3077,26 +3007,6 @@
       "persisted": false
     },
     {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-26363",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-26363",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-26372",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-26372",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "fall-2026-sunday-tier-5-ycbhl-player-26086",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "playerId": "ycbhl-player-26086",
@@ -3117,16 +3027,6 @@
       "persisted": false
     },
     {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-25103",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-25103",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "fall-2026-sunday-tier-5-ycbhl-player-26330",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "playerId": "ycbhl-player-26330",
@@ -3144,16 +3044,6 @@
       "position": null,
       "active": true,
       "notes": "",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-26406",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-26406",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
       "persisted": false
     },
     {
@@ -3187,16 +3077,6 @@
       "persisted": false
     },
     {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-24770",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-24770",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "fall-2026-sunday-tier-5-ycbhl-player-26366",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "playerId": "ycbhl-player-26366",
@@ -3227,16 +3107,6 @@
       "persisted": false
     },
     {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-25960",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-25960",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "fall-2026-sunday-tier-5-ycbhl-player-26275",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "playerId": "ycbhl-player-26275",
@@ -3244,16 +3114,6 @@
       "position": null,
       "active": true,
       "notes": "",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-sunday-tier-5-ycbhl-player-25529",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "playerId": "ycbhl-player-25529",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
       "persisted": false
     },
     {
@@ -155542,11 +155402,24 @@
     {
       "seasonTeamId": "fall-2026-mon-wed",
       "rank": 3,
+      "teamName": "DANFORTH KNIGHTS EYM",
+      "teamExternalId": "7284",
+      "gamesPlayed": 9,
+      "wins": 5,
+      "losses": 3,
+      "ties": 1,
+      "points": 11,
+      "isGoonSquad": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7284-danforth-knights-eym"
+    },
+    {
+      "seasonTeamId": "fall-2026-mon-wed",
+      "rank": 4,
       "teamName": "SMASH BROS",
       "teamExternalId": "7290",
-      "gamesPlayed": 7,
+      "gamesPlayed": 8,
       "wins": 5,
-      "losses": 1,
+      "losses": 2,
       "ties": 1,
       "points": 11,
       "isGoonSquad": false,
@@ -155554,12 +155427,12 @@
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
-      "rank": 4,
+      "rank": 5,
       "teamName": "GONGSHOW",
       "teamExternalId": "7285",
-      "gamesPlayed": 8,
+      "gamesPlayed": 9,
       "wins": 5,
-      "losses": 3,
+      "losses": 4,
       "ties": 0,
       "points": 10,
       "isGoonSquad": false,
@@ -155567,27 +155440,14 @@
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
-      "rank": 5,
-      "teamName": "DANFORTH KNIGHTS EYM",
-      "teamExternalId": "7284",
-      "gamesPlayed": 8,
-      "wins": 4,
-      "losses": 3,
-      "ties": 1,
-      "points": 9,
-      "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7284-danforth-knights-eym"
-    },
-    {
-      "seasonTeamId": "fall-2026-mon-wed",
       "rank": 6,
       "teamName": "DEW LANG DUCKS",
       "teamExternalId": "7286",
-      "gamesPlayed": 7,
-      "wins": 3,
+      "gamesPlayed": 8,
+      "wins": 4,
       "losses": 4,
       "ties": 0,
-      "points": 6,
+      "points": 8,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7286-dew-lang-ducks"
     },
@@ -155596,11 +155456,11 @@
       "rank": 7,
       "teamName": "MALVERN REAPERS",
       "teamExternalId": "7282",
-      "gamesPlayed": 9,
-      "wins": 2,
+      "gamesPlayed": 10,
+      "wins": 3,
       "losses": 7,
       "ties": 0,
-      "points": 4,
+      "points": 6,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7282-malvern-reapers"
     },
@@ -155609,9 +155469,9 @@
       "rank": 8,
       "teamName": "VIPERZ",
       "teamExternalId": "7287",
-      "gamesPlayed": 8,
+      "gamesPlayed": 9,
       "wins": 2,
-      "losses": 6,
+      "losses": 7,
       "ties": 0,
       "points": 4,
       "isGoonSquad": false,
