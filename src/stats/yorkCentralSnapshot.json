@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-28T00:18:54.206Z",
+  "capturedAt": "2026-10-28T06:05:47.078Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1519,8 +1519,8 @@
       "id": "ycbhl-player-300",
       "externalId": "300",
       "displayName": "John Daley",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6965-goonsquad/300-john-daley",
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/300-john-daley",
       "primaryPosition": null,
       "persisted": false
     },
@@ -3204,6 +3204,16 @@
       "position": null,
       "active": true,
       "notes": "",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-300",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-300",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
       "persisted": false
     },
     {
@@ -8730,9 +8740,9 @@
       "opponent": "HOMENETMEN",
       "venue": "away",
       "location": "Scarborough - Stephen Leacock",
-      "status": "scheduled",
-      "goalsFor": null,
-      "goalsAgainst": null,
+      "status": "final",
+      "goalsFor": 0,
+      "goalsAgainst": 8,
       "overtime": false,
       "notes": "",
       "sourceUrl": "https://www.yorkcentralbhl.com/game/53315-homenetmen-goonsquad",
@@ -14563,6 +14573,21 @@
       "gameId": "ycbhl-game-53340",
       "shotsFor": 20,
       "shotsAgainst": 25,
+      "powerPlayGoals": null,
+      "powerPlayOpportunities": null,
+      "penaltyKillGoalsAgainst": null,
+      "timesShorthanded": null,
+      "faceoffWins": null,
+      "faceoffAttempts": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "source": "league"
+    },
+    {
+      "gameId": "ycbhl-game-53315",
+      "shotsFor": 2,
+      "shotsAgainst": 19,
       "powerPlayGoals": null,
       "powerPlayOpportunities": null,
       "penaltyKillGoalsAgainst": null,
@@ -23904,6 +23929,150 @@
       "id": "ycbhl-game-53340-ycbhl-player-319-field",
       "gameId": "ycbhl-game-53340",
       "playerId": "ycbhl-player-319",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-ycbhl-player-25022-field",
+      "gameId": "ycbhl-game-53315",
+      "playerId": "ycbhl-player-25022",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-ycbhl-player-24604-field",
+      "gameId": "ycbhl-game-53315",
+      "playerId": "ycbhl-player-24604",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-ycbhl-player-320-field",
+      "gameId": "ycbhl-game-53315",
+      "playerId": "ycbhl-player-320",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 2,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-ycbhl-player-300-field",
+      "gameId": "ycbhl-game-53315",
+      "playerId": "ycbhl-player-300",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-ycbhl-player-26372-field",
+      "gameId": "ycbhl-game-53315",
+      "playerId": "ycbhl-player-26372",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-ycbhl-player-13781-field",
+      "gameId": "ycbhl-game-53315",
+      "playerId": "ycbhl-player-13781",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-ycbhl-player-25184-field",
+      "gameId": "ycbhl-game-53315",
+      "playerId": "ycbhl-player-25184",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "shots": null,
+      "penaltyMinutes": 0,
+      "plusMinus": null,
+      "blocks": null,
+      "takeaways": null,
+      "turnovers": null,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-ycbhl-player-25888-field",
+      "gameId": "ycbhl-game-53315",
+      "playerId": "ycbhl-player-25888",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -86525,6 +86694,21 @@
       "source": "league"
     },
     {
+      "id": "ycbhl-game-53315-ycbhl-player-26079-goalie",
+      "gameId": "ycbhl-game-53315",
+      "playerId": "ycbhl-player-26079",
+      "gamesPlayed": 1,
+      "wins": 0,
+      "losses": 1,
+      "ties": 0,
+      "goalsAgainst": 8,
+      "shotsAgainst": 19,
+      "saves": 11,
+      "shutouts": 0,
+      "minutesPlayed": 30,
+      "source": "league"
+    },
+    {
       "id": "ycbhl-game-52992-ycbhl-player-10252-goalie",
       "gameId": "ycbhl-game-52992",
       "playerId": "ycbhl-player-10252",
@@ -96021,6 +96205,206 @@
           2,
           3
         ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-goal-1-218-2",
+      "gameId": "ycbhl-game-53315",
+      "period": 1,
+      "clockSeconds": 218,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Tom Yeghouchian",
+        "assists": [
+          "Carlo Moushikh",
+          "Vartan Kargotsian"
+        ],
+        "strength": "ESG",
+        "score": [
+          1,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-goal-1-475-3",
+      "gameId": "ycbhl-game-53315",
+      "period": 1,
+      "clockSeconds": 475,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Nareg Zargarian",
+        "assists": [
+          "Ardases Sagsoz",
+          "Sascha Safarian"
+        ],
+        "strength": "ESG",
+        "score": [
+          2,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-goal-2-16-6",
+      "gameId": "ycbhl-game-53315",
+      "period": 2,
+      "clockSeconds": 16,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Kevo Bostajian",
+        "assists": [
+          "Vartan Kargotsian",
+          "Carlo Moushikh"
+        ],
+        "strength": "ESG",
+        "score": [
+          3,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-goal-2-208-7",
+      "gameId": "ycbhl-game-53315",
+      "period": 2,
+      "clockSeconds": 208,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Victor Mirzian",
+        "assists": [
+          "Ardases Sagsoz",
+          "Nareg Zargarian"
+        ],
+        "strength": "ESG",
+        "score": [
+          4,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-goal-2-526-8",
+      "gameId": "ycbhl-game-53315",
+      "period": 2,
+      "clockSeconds": 526,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Kevo Bostajian",
+        "assists": [
+          "Carlo Moushikh",
+          "Nicholas Milich"
+        ],
+        "strength": "ESG",
+        "score": [
+          5,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-goal-3-109-11",
+      "gameId": "ycbhl-game-53315",
+      "period": 3,
+      "clockSeconds": 109,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Carlo Moushikh",
+        "assists": [
+          "Tom Yeghouchian",
+          "Ardases Sagsoz"
+        ],
+        "strength": "ESG",
+        "score": [
+          6,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-goal-3-160-12",
+      "gameId": "ycbhl-game-53315",
+      "period": 3,
+      "clockSeconds": 160,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Tom Yeghouchian",
+        "assists": [
+          "Carlo Moushikh",
+          "Ardases Sagsoz"
+        ],
+        "strength": "ESG",
+        "score": [
+          7,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-goal-3-441-13",
+      "gameId": "ycbhl-game-53315",
+      "period": 3,
+      "clockSeconds": 441,
+      "eventType": "goal",
+      "teamSide": "opponent",
+      "primaryPlayerId": null,
+      "secondaryPlayerId": null,
+      "detail": {
+        "scorer": "Vartan Kargotsian",
+        "assists": [
+          "Tom Yeghouchian",
+          "Carlo Moushikh"
+        ],
+        "strength": "ESG",
+        "score": [
+          8,
+          0
+        ]
+      },
+      "source": "league"
+    },
+    {
+      "id": "ycbhl-game-53315-penalty-1-309-2",
+      "gameId": "ycbhl-game-53315",
+      "period": 1,
+      "clockSeconds": 309,
+      "eventType": "penalty",
+      "teamSide": "us",
+      "primaryPlayerId": "ycbhl-player-320",
+      "secondaryPlayerId": null,
+      "detail": {
+        "player": "Robert Cowie",
+        "minutes": 2,
+        "penalty": "Holding"
       },
       "source": "league"
     },
@@ -154975,9 +155359,9 @@
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
-      "gamesPlayed": 7,
+      "gamesPlayed": 8,
       "wins": 0,
-      "losses": 7,
+      "losses": 8,
       "ties": 0,
       "points": 0,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7288-goonsquad"
@@ -155391,11 +155775,11 @@
       "rank": 2,
       "teamName": "HOMENETMEN",
       "teamExternalId": "7283",
-      "gamesPlayed": 8,
-      "wins": 6,
+      "gamesPlayed": 9,
+      "wins": 7,
       "losses": 2,
       "ties": 0,
-      "points": 12,
+      "points": 14,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7283-homenetmen"
     },
@@ -155482,9 +155866,9 @@
       "rank": 9,
       "teamName": "GOONSQUAD",
       "teamExternalId": "7288",
-      "gamesPlayed": 7,
+      "gamesPlayed": 8,
       "wins": 0,
-      "losses": 7,
+      "losses": 8,
       "ties": 0,
       "points": 0,
       "isGoonSquad": true,
@@ -158294,7 +158678,7 @@
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
       "playerId": "ycbhl-player-26372",
-      "gamesPlayed": 3,
+      "gamesPlayed": 4,
       "goals": 1,
       "assists": 0,
       "points": 1,
@@ -158339,7 +158723,7 @@
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
       "playerId": "ycbhl-player-25184",
-      "gamesPlayed": 7,
+      "gamesPlayed": 8,
       "goals": 0,
       "assists": 0,
       "points": 0,
@@ -158354,7 +158738,7 @@
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
       "playerId": "ycbhl-player-25888",
-      "gamesPlayed": 7,
+      "gamesPlayed": 8,
       "goals": 0,
       "assists": 0,
       "points": 0,
@@ -158369,11 +158753,26 @@
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
       "playerId": "ycbhl-player-25022",
-      "gamesPlayed": 6,
+      "gamesPlayed": 7,
       "goals": 0,
       "assists": 0,
       "points": 0,
       "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-mon-wed-regular-ycbhl-player-13781-field",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "stage": "regular",
+      "playerId": "ycbhl-player-13781",
+      "gamesPlayed": 7,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 6,
       "powerPlayGoals": 0,
       "shortHandedGoals": 0,
       "emptyNetGoals": 0,
@@ -158395,15 +158794,30 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-mon-wed-regular-ycbhl-player-13781-field",
+      "id": "fall-2026-mon-wed-regular-ycbhl-player-320-field",
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
-      "playerId": "ycbhl-player-13781",
+      "playerId": "ycbhl-player-320",
       "gamesPlayed": 6,
       "goals": 0,
       "assists": 0,
       "points": 0,
-      "penaltyMinutes": 6,
+      "penaltyMinutes": 10,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-mon-wed-regular-ycbhl-player-24604-field",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "stage": "regular",
+      "playerId": "ycbhl-player-24604",
+      "gamesPlayed": 6,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 4,
       "powerPlayGoals": 0,
       "shortHandedGoals": 0,
       "emptyNetGoals": 0,
@@ -158419,36 +158833,6 @@
       "assists": 0,
       "points": 0,
       "penaltyMinutes": 4,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "fall-2026-mon-wed-regular-ycbhl-player-24604-field",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "stage": "regular",
-      "playerId": "ycbhl-player-24604",
-      "gamesPlayed": 5,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 4,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "fall-2026-mon-wed-regular-ycbhl-player-320-field",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "stage": "regular",
-      "playerId": "ycbhl-player-320",
-      "gamesPlayed": 5,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 8,
       "powerPlayGoals": 0,
       "shortHandedGoals": 0,
       "emptyNetGoals": 0,
@@ -158560,25 +158944,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-mon-wed-regular-ycbhl-player-24197-field",
+      "id": "fall-2026-mon-wed-regular-ycbhl-player-300-field",
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
-      "playerId": "ycbhl-player-24197",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 2,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "fall-2026-mon-wed-regular-ycbhl-player-26032-field",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "stage": "regular",
-      "playerId": "ycbhl-player-26032",
+      "playerId": "ycbhl-player-300",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -158624,6 +158993,36 @@
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
       "playerId": "ycbhl-player-26291",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-mon-wed-regular-ycbhl-player-24197-field",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "stage": "regular",
+      "playerId": "ycbhl-player-24197",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 2,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
+      "id": "fall-2026-mon-wed-regular-ycbhl-player-26032-field",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "stage": "regular",
+      "playerId": "ycbhl-player-26032",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -171752,6 +172151,26 @@
       "source": "league"
     },
     {
+      "id": "fall-2026-mon-wed-regular-ycbhl-player-26079-goalie",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "stage": "regular",
+      "playerId": "ycbhl-player-26079",
+      "gamesPlayed": 2,
+      "wins": 0,
+      "losses": 2,
+      "ties": 0,
+      "shutouts": 0,
+      "shotsAgainst": 40,
+      "goalsAgainst": 12,
+      "minutesPlayed": 60,
+      "goalsAgainstAverage": 6,
+      "savePercentage": 0.7,
+      "goals": 0,
+      "assists": 0,
+      "penaltyMinutes": 0,
+      "source": "league"
+    },
+    {
       "id": "fall-2026-mon-wed-regular-ycbhl-player-25970-goalie",
       "seasonTeamId": "fall-2026-mon-wed",
       "stage": "regular",
@@ -171806,26 +172225,6 @@
       "minutesPlayed": 30,
       "goalsAgainstAverage": 6,
       "savePercentage": 0.818,
-      "goals": 0,
-      "assists": 0,
-      "penaltyMinutes": 0,
-      "source": "league"
-    },
-    {
-      "id": "fall-2026-mon-wed-regular-ycbhl-player-26079-goalie",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "stage": "regular",
-      "playerId": "ycbhl-player-26079",
-      "gamesPlayed": 1,
-      "wins": 0,
-      "losses": 1,
-      "ties": 0,
-      "shutouts": 0,
-      "shotsAgainst": 21,
-      "goalsAgainst": 4,
-      "minutesPlayed": 30,
-      "goalsAgainstAverage": 4,
-      "savePercentage": 0.81,
       "goals": 0,
       "assists": 0,
       "penaltyMinutes": 0,
@@ -173553,8 +173952,8 @@
     }
   ],
   "detailImport": {
-    "requestedGames": 311,
-    "importedGames": 311,
+    "requestedGames": 312,
+    "importedGames": 312,
     "errors": []
   }
 }
