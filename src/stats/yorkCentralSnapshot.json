@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-10-29T02:42:01.481Z",
+  "capturedAt": "2026-10-30T01:42:17.628Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -1168,9 +1168,9 @@
       "id": "ycbhl-player-25739",
       "externalId": "25739",
       "displayName": "David Kerr",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/7030-goonsquad/25739-david-kerr",
-      "primaryPosition": "G",
+      "primaryPosition": null,
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/25739-david-kerr",
       "persisted": false
     },
     {
@@ -2482,9 +2482,9 @@
       "id": "ycbhl-player-24146",
       "externalId": "24146",
       "displayName": "Thomas Moody",
-      "active": true,
-      "sourceUrl": "https://www.yorkcentralbhl.com/player/6749-goonsquad/24146-thomas-moody",
-      "primaryPosition": "G",
+      "primaryPosition": null,
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/24146-thomas-moody",
       "persisted": false
     },
     {
@@ -3297,6 +3297,16 @@
       "persisted": false
     },
     {
+      "id": "fall-2026-mon-wed-ycbhl-player-25739",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-25739",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
+      "persisted": false
+    },
+    {
       "id": "fall-2026-mon-wed-ycbhl-player-26133",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-26133",
@@ -3340,6 +3350,16 @@
       "id": "fall-2026-mon-wed-ycbhl-player-26291",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-26291",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-24146",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-24146",
       "jerseyNumber": null,
       "position": null,
       "active": false,
