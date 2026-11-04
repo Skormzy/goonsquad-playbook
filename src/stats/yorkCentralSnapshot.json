@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-11-04T07:52:49.693Z",
+  "capturedAt": "2026-11-04T16:02:37.460Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -3047,26 +3047,6 @@
       "persisted": false
     },
     {
-      "id": "fall-2026-mon-wed-ycbhl-player-24197",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-24197",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-mon-wed-ycbhl-player-25473",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-25473",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "fall-2026-mon-wed-ycbhl-player-26057",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-26057",
@@ -3097,16 +3077,6 @@
       "persisted": false
     },
     {
-      "id": "fall-2026-mon-wed-ycbhl-player-25673",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-25673",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "fall-2026-mon-wed-ycbhl-player-320",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-320",
@@ -3124,16 +3094,6 @@
       "position": null,
       "active": true,
       "notes": "",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-mon-wed-ycbhl-player-300",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-300",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
       "persisted": false
     },
     {
@@ -3177,16 +3137,6 @@
       "persisted": false
     },
     {
-      "id": "fall-2026-mon-wed-ycbhl-player-26086",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-26086",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "fall-2026-mon-wed-ycbhl-player-307",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-307",
@@ -3197,29 +3147,9 @@
       "persisted": false
     },
     {
-      "id": "fall-2026-mon-wed-ycbhl-player-26400",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-26400",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "fall-2026-mon-wed-ycbhl-player-26079",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-26079",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-mon-wed-ycbhl-player-25739",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-25739",
       "jerseyNumber": null,
       "position": null,
       "active": false,
@@ -3234,16 +3164,6 @@
       "position": null,
       "active": true,
       "notes": "",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-mon-wed-ycbhl-player-26406",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-26406",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
       "persisted": false
     },
     {
@@ -3267,29 +3187,9 @@
       "persisted": false
     },
     {
-      "id": "fall-2026-mon-wed-ycbhl-player-26291",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-26291",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
       "id": "fall-2026-mon-wed-ycbhl-player-24146",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-24146",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-mon-wed-ycbhl-player-24770",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-24770",
       "jerseyNumber": null,
       "position": null,
       "active": false,
@@ -3310,16 +3210,6 @@
       "id": "fall-2026-mon-wed-ycbhl-player-26032",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-26032",
-      "jerseyNumber": null,
-      "position": null,
-      "active": false,
-      "notes": "EP",
-      "persisted": false
-    },
-    {
-      "id": "fall-2026-mon-wed-ycbhl-player-26399",
-      "seasonTeamId": "fall-2026-mon-wed",
-      "playerId": "ycbhl-player-26399",
       "jerseyNumber": null,
       "position": null,
       "active": false,
@@ -159921,10 +159811,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26298-field",
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25103-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "playerId": "ycbhl-player-26298",
+      "playerId": "ycbhl-player-25103",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -159936,10 +159826,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25103-field",
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26298-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "playerId": "ycbhl-player-25103",
+      "playerId": "ycbhl-player-26298",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
