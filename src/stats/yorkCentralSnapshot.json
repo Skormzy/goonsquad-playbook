@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-11-03T14:54:41.291Z",
+  "capturedAt": "2026-11-04T07:52:49.693Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -156943,9 +156943,9 @@
       "rank": 3,
       "teamName": "VIPERZ",
       "teamExternalId": "7270",
-      "gamesPlayed": 9,
+      "gamesPlayed": 10,
       "wins": 6,
-      "losses": 2,
+      "losses": 3,
       "ties": 1,
       "points": 13,
       "isGoonSquad": false,
@@ -156967,6 +156967,19 @@
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
       "rank": 5,
+      "teamName": "OWLS",
+      "teamExternalId": "7271",
+      "gamesPlayed": 10,
+      "wins": 3,
+      "losses": 5,
+      "ties": 2,
+      "points": 8,
+      "isGoonSquad": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7271-owls"
+    },
+    {
+      "seasonTeamId": "fall-2026-sunday-tier-4",
+      "rank": 6,
       "teamName": "FRESH MEAT",
       "teamExternalId": "7273",
       "gamesPlayed": 10,
@@ -156979,7 +156992,7 @@
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
-      "rank": 6,
+      "rank": 7,
       "teamName": "TORONTO HEAT",
       "teamExternalId": "7274",
       "gamesPlayed": 10,
@@ -156992,7 +157005,7 @@
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-4",
-      "rank": 7,
+      "rank": 8,
       "teamName": "ICE HOLES",
       "teamExternalId": "7275",
       "gamesPlayed": 10,
@@ -157002,19 +157015,6 @@
       "points": 6,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7275-ice-holes"
-    },
-    {
-      "seasonTeamId": "fall-2026-sunday-tier-4",
-      "rank": 8,
-      "teamName": "OWLS",
-      "teamExternalId": "7271",
-      "gamesPlayed": 9,
-      "wins": 2,
-      "losses": 5,
-      "ties": 2,
-      "points": 6,
-      "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7271-owls"
     },
     {
       "seasonTeamId": "fall-2026-sunday-tier-5",
@@ -159921,10 +159921,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25103-field",
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26298-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "playerId": "ycbhl-player-25103",
+      "playerId": "ycbhl-player-26298",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
@@ -159936,10 +159936,10 @@
       "source": "league"
     },
     {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26298-field",
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25103-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
-      "playerId": "ycbhl-player-26298",
+      "playerId": "ycbhl-player-25103",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
