@@ -3,7 +3,7 @@
   "sourceKey": "york-central",
   "sourceName": "York Central Ball Hockey League",
   "sourceUrl": "https://www.yorkcentralbhl.com/team/7250-goonsquad",
-  "capturedAt": "2026-11-04T22:04:34.501Z",
+  "capturedAt": "2026-11-05T02:41:27.939Z",
   "seasons": [
     {
       "id": "fall-2026",
@@ -2119,6 +2119,15 @@
       "persisted": false
     },
     {
+      "id": "ycbhl-player-26417",
+      "externalId": "26417",
+      "displayName": "Philippe Gilbert-poisson",
+      "primaryPosition": null,
+      "active": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/player/7288-goonsquad/26417-philippe-gilbert-poisson",
+      "persisted": false
+    },
+    {
       "id": "ycbhl-player-25792",
       "externalId": "25792",
       "displayName": "Philippe Lacasse-Barros",
@@ -3100,6 +3109,16 @@
       "id": "fall-2026-mon-wed-ycbhl-player-25970",
       "seasonTeamId": "fall-2026-mon-wed",
       "playerId": "ycbhl-player-25970",
+      "jerseyNumber": null,
+      "position": null,
+      "active": false,
+      "notes": "EP",
+      "persisted": false
+    },
+    {
+      "id": "fall-2026-mon-wed-ycbhl-player-26417",
+      "seasonTeamId": "fall-2026-mon-wed",
+      "playerId": "ycbhl-player-26417",
       "jerseyNumber": null,
       "position": null,
       "active": false,
@@ -157002,9 +157021,9 @@
       "rank": 2,
       "teamName": "HOMENETMEN",
       "teamExternalId": "7283",
-      "gamesPlayed": 9,
+      "gamesPlayed": 10,
       "wins": 7,
-      "losses": 2,
+      "losses": 3,
       "ties": 0,
       "points": 14,
       "isGoonSquad": false,
@@ -157013,6 +157032,19 @@
     {
       "seasonTeamId": "fall-2026-mon-wed",
       "rank": 3,
+      "teamName": "SMASH BROS",
+      "teamExternalId": "7290",
+      "gamesPlayed": 10,
+      "wins": 6,
+      "losses": 3,
+      "ties": 1,
+      "points": 13,
+      "isGoonSquad": false,
+      "sourceUrl": "https://www.yorkcentralbhl.com/team/7290-smash-bros"
+    },
+    {
+      "seasonTeamId": "fall-2026-mon-wed",
+      "rank": 4,
       "teamName": "GONGSHOW",
       "teamExternalId": "7285",
       "gamesPlayed": 10,
@@ -157025,7 +157057,7 @@
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
-      "rank": 4,
+      "rank": 5,
       "teamName": "DANFORTH KNIGHTS EYM",
       "teamExternalId": "7284",
       "gamesPlayed": 10,
@@ -157035,19 +157067,6 @@
       "points": 11,
       "isGoonSquad": false,
       "sourceUrl": "https://www.yorkcentralbhl.com/team/7284-danforth-knights-eym"
-    },
-    {
-      "seasonTeamId": "fall-2026-mon-wed",
-      "rank": 5,
-      "teamName": "SMASH BROS",
-      "teamExternalId": "7290",
-      "gamesPlayed": 9,
-      "wins": 5,
-      "losses": 3,
-      "ties": 1,
-      "points": 11,
-      "isGoonSquad": false,
-      "sourceUrl": "https://www.yorkcentralbhl.com/team/7290-smash-bros"
     },
     {
       "seasonTeamId": "fall-2026-mon-wed",
@@ -159841,6 +159860,21 @@
       "source": "league"
     },
     {
+      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26406-field",
+      "seasonTeamId": "fall-2026-sunday-tier-5",
+      "stage": "regular",
+      "playerId": "ycbhl-player-26406",
+      "gamesPlayed": 1,
+      "goals": 0,
+      "assists": 0,
+      "points": 0,
+      "penaltyMinutes": 0,
+      "powerPlayGoals": 0,
+      "shortHandedGoals": 0,
+      "emptyNetGoals": 0,
+      "source": "league"
+    },
+    {
       "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-25244-field",
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
@@ -159860,21 +159894,6 @@
       "seasonTeamId": "fall-2026-sunday-tier-5",
       "stage": "regular",
       "playerId": "ycbhl-player-25137",
-      "gamesPlayed": 1,
-      "goals": 0,
-      "assists": 0,
-      "points": 0,
-      "penaltyMinutes": 0,
-      "powerPlayGoals": 0,
-      "shortHandedGoals": 0,
-      "emptyNetGoals": 0,
-      "source": "league"
-    },
-    {
-      "id": "fall-2026-sunday-tier-5-regular-ycbhl-player-26406-field",
-      "seasonTeamId": "fall-2026-sunday-tier-5",
-      "stage": "regular",
-      "playerId": "ycbhl-player-26406",
       "gamesPlayed": 1,
       "goals": 0,
       "assists": 0,
